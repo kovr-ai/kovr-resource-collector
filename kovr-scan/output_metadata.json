@@ -1,0 +1,9 @@
+{
+    "ec2": [
+        "./ec2/ec2_output.json"
+    ],
+    "cloudwatch": [
+        "./cloudwatch/cloudwatch_output.json",
+        "./cloudwatch/logs_output.json"
+    ]
+}
