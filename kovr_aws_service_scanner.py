@@ -134,7 +134,9 @@ def class_to_dict(obj, seen=None):
 service_set = set()
 
 # Initialize the combined output dictionary using defaultdict
-combined_output_json = defaultdict(dict)
+combined_output_json = []
+
+# checks_to_execute = ['ec2','cloudwatch']
 
 # Define the checks you want to execute (modify as needed)
 for check_name in tqdm(checks_to_execute, desc="Aggregating Services"):
@@ -213,7 +215,7 @@ for check_name in tqdm(checks_to_execute, desc="Aggregating Services"):
                 print(f"Written data to {output_json_path}")
             
             # Add the data to the combined output dictionary
-            combined_output_json[service][service_output_key] = output_data
+            combined_output_json.append(output_data)
 
     except Exception as e:
         print(f"Exception while processing {check_name}: {e}")
