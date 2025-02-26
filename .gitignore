@@ -1,0 +1,7 @@
+env/
+env.old/
+
+.cursorignore
+
+# __pycache__
+__pycache__/
