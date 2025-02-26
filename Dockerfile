@@ -1,39 +1,19 @@
 FROM python:3.12-alpine
 
-LABEL maintainer="https://github.com/prowler-cloud/prowler"
+COPY . /app
 
-# Update system dependencies
-#hadolint ignore=DL3018
-RUN apk --no-cache upgrade && apk --no-cache add curl
+WORKDIR /app
 
-# Create nonroot user
-RUN mkdir -p /home/prowler && \
-    echo 'prowler:x:1000:1000:prowler:/home/prowler:' > /etc/passwd && \
-    echo 'prowler:x:1000:' > /etc/group && \
-    chown -R prowler:prowler /home/prowler
-USER prowler
+RUN pip install -r requirements.txt
 
-# Copy necessary files
-WORKDIR /home/prowler
-COPY prowler/  /home/prowler/prowler/
-COPY dashboard/ /home/prowler/dashboard/
-COPY pyproject.toml /home/prowler
-COPY README.md /home/prowler
+ENV AWS_ACCESS_KEY_ID=AKIAX5678901234567890
+ENV AWS_SECRET_ACCESS_KEY=1234567890123456789012345678901234567890
+ENV AWS_SESSION_TOKEN=1234567890123456789012345678901234567890
 
-# Install dependencies
-ENV HOME='/home/prowler'
-ENV PATH="$HOME/.local/bin:$PATH"
-#hadolint ignore=DL3013
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir .
+RUN mkdir -p ~/.aws
+RUN echo "[default]" > ~/.aws/credentials
+RUN echo "aws_access_key_id = $AWS_ACCESS_KEY_ID" >> ~/.aws/credentials
+RUN echo "aws_secret_access_key = $AWS_SECRET_ACCESS_KEY" >> ~/.aws/credentials
+RUN echo "aws_session_token = $AWS_SESSION_TOKEN" >> ~/.aws/credentials
 
-# Remove deprecated dash dependencies
-RUN pip uninstall dash-html-components -y && \
-    pip uninstall dash-core-components -y
-
-# Remove Prowler directory and build files
-USER 0
-RUN rm -rf /home/prowler/prowler /home/prowler/pyproject.toml /home/prowler/README.md /home/prowler/build /home/prowler/prowler.egg-info
-
-USER prowler
-ENTRYPOINT ["prowler"]
+ENTRYPOINT ["python", "scanner.py"]
