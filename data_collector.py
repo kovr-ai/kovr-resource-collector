@@ -3016,7 +3016,7 @@ class AWSProvider:
 
         # Create batches of 3 services
         service_batches = [
-            self.services[i : i + 5] for i in range(0, len(self.services), 5)
+            self.services[i : i + 10] for i in range(0, len(self.services), 10)
         ]
 
         def log_service_status():
