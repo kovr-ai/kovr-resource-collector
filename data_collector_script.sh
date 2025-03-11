@@ -29,6 +29,9 @@ curl -O https://raw.githubusercontent.com/kovr-ai/kovr-resource-collector/refs/h
 # Install requirements
 pip install -r data_collection_requirements.txt
 
+# Download script
+curl -O https://raw.githubusercontent.com/kovr-ai/kovr-resource-collector/refs/heads/main/data_collector.py
+
 # Run data collector
 python data_collector.py --provider aws
 
