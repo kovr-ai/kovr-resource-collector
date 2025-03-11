@@ -2893,8 +2893,6 @@ class AWSProvider:
             if self.aws_session_token:
                 session_kwargs["aws_session_token"] = self.aws_session_token
 
-        print(session_kwargs)
-
         self.initial_session = boto3.Session(**session_kwargs)
 
         # Get target regions
