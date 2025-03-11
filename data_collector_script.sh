@@ -24,10 +24,10 @@ if ! command -v curl &> /dev/null; then
 fi
 
 # Download requirements file using curl
-curl -O https://raw.githubusercontent.com/kovr-ai/kovr-resource-collector/refs/heads/main/data_collection_requirements.txt
+curl -O https://raw.githubusercontent.com/kovr-ai/kovr-resource-collector/refs/heads/main/data_collector_requirements.txt
 
 # Install requirements
-pip install -r data_collection_requirements.txt
+pip install -r data_collector_requirements.txt
 
 # Download script
 curl -O https://raw.githubusercontent.com/kovr-ai/kovr-resource-collector/refs/heads/main/data_collector.py
