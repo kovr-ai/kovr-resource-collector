@@ -1,6 +1,6 @@
-# rmfx-resource-collector
+# kovr-resource-collector
 
-The `rmfx-resource-collector` is a tool designed to scan cloud infrastructure resources (AWS, GCP, etc.) and generate a report of all resources found. This tool supports multiple cloud providers, but the following instructions are specific to AWS.
+The `kovr-resource-collector` is a tool designed to scan cloud infrastructure resources (AWS, GCP, etc.) and generate a report of all resources found. This tool supports multiple cloud providers, but the following instructions are specific to AWS.
 
 ## Cloud Provider Setup
 
@@ -37,23 +37,23 @@ To scan AWS resources, follow these steps:
 ## Running the Tool
 
 1. **Navigate to the Tool Folder:**
-   - Change to the `rmfx-resource-collector` directory:
+   - Change to the `kovr-resource-collector` directory:
    
      ```bash
-     cd rmfx-resource-collector
+     cd kovr-resource-collector
      ```
 
 2. **Run the AWS Service Scanner:**
    - Execute the scanner script for AWS:
    
      ```bash
-     python rmfx_aws_service_scanner.py
+     python kovr_aws_service_scanner.py
      ```
 
-   This will generate a folder called `rmfx-scan` and a zip file containing all scanned AWS resources, named `rmfx-scan-compressed.zip`.
+   This will generate a folder called `kovr-scan` and a zip file containing all scanned AWS resources, named `kovr-scan-compressed.zip`.
 
 3. **Upload the Scan Results:**
-   - Once the folder and zip file are generated, upload the `rmfx-scan` folder to the Sources UI of your RMFX interface.
+   - Once the folder and zip file are generated, upload the `kovr-scan` folder to the Sources UI of your kovr interface.
 
 ## Additional Cloud Providers
 
