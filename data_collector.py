@@ -2893,7 +2893,20 @@ class AWSProvider:
             if self.aws_session_token:
                 session_kwargs["aws_session_token"] = self.aws_session_token
 
-        self.initial_session = boto3.Session(**session_kwargs)
+        self.main_session = boto3.Session(**session_kwargs)
+        self.client_session = None
+
+        self.role_arn = self.config.get("role_arn") or os.environ.get("AWS_ROLE_ARN")
+        if self.role_arn:
+            kovr_arn = "arn:aws:iam::296062557786:role/KovrAuditRole"
+            self.kovr_session = self.assume_role(kovr_arn, self.main_session)
+            self.client_session = self.assume_role(self.role_arn, self.kovr_session)
+            credentials = self.client_session.get_credentials()
+            self.aws_access_key = credentials.access_key
+            self.aws_secret_key = credentials.secret_key
+            self.aws_session_token = credentials.token
+
+        self.initial_session = self.client_session or self.main_session
 
         # Get target regions
         self.target_regions = (
@@ -2937,11 +2950,29 @@ class AWSProvider:
             TrustedAdvisorService,
         ]
 
+    def assume_role(self, role_arn: str, session: boto3.Session) -> boto3.Session:
+        sts_client = session.client("sts")
+        assumed_role = sts_client.assume_role(
+            RoleArn=role_arn,
+            RoleSessionName="kovr-data-collector",
+        )
+        aws_access_key = assumed_role["Credentials"]["AccessKeyId"]
+        aws_secret_key = assumed_role["Credentials"]["SecretAccessKey"]
+        aws_session_token = assumed_role["Credentials"]["SessionToken"]
+        return boto3.Session(
+            aws_access_key_id=aws_access_key,
+            aws_secret_access_key=aws_secret_key,
+            aws_session_token=aws_session_token,
+        )
+
     def get_active_regions(self) -> List[str]:
-        ec2 = boto3.client("ec2", region_name="us-east-1")
+        ec2 = self.initial_session.client("ec2", region_name="us-east-1")
         active_regions = []
-        for region in ec2.describe_regions(AllRegions=False)["Regions"]:
-            active_regions.append(region["RegionName"])
+        active_regions = [
+            region["RegionName"]
+            for region in ec2.describe_regions(AllRegions=False)["Regions"]
+            if region["OptInStatus"] in ["opt-in-not-required", "opted-in"]
+        ]
         return active_regions
 
     def get_session_for_region(self, region: str) -> boto3.Session:
@@ -3089,7 +3120,9 @@ class AWSProvider:
         """Generate output for all target regions."""
         all_regions_data = []
 
-        for region in self.target_regions:
+        for i, region in enumerate(self.target_regions):
+            if i > 0:
+                break
             try:
                 logger.info(f"Starting collection for region: {region}")
                 region_data = self.collect_region_details(region)
@@ -3128,6 +3161,10 @@ def parse_args():
         "--region",
         help="AWS Region (can also be set via AWS_REGION or AWS_DEFAULT_REGION environment variable)",
     )
+    parser.add_argument(
+        "--role-arn",
+        help="AWS Role ARN (can also be set via AWS_ROLE_ARN environment variable)",
+    )
     return parser.parse_args()
 
 
@@ -3141,6 +3178,8 @@ def main():
         if args.provider == "aws":
             # Only include args in config if they were explicitly provided
             provider_config = {}
+            if args.role_arn:
+                provider_config["role_arn"] = args.role_arn
             if args.aws_access_key_id:
                 provider_config["aws_access_key_id"] = args.aws_access_key_id
             if args.aws_secret_access_key:
