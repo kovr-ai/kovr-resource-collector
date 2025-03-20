@@ -3120,9 +3120,7 @@ class AWSProvider:
         """Generate output for all target regions."""
         all_regions_data = []
 
-        for i, region in enumerate(self.target_regions):
-            if i > 0:
-                break
+        for region in self.target_regions:
             try:
                 logger.info(f"Starting collection for region: {region}")
                 region_data = self.collect_region_details(region)
