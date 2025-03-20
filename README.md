@@ -1,60 +1,101 @@
-# kovr-resource-collector
+# Kovr Resource Collector
 
-The `kovr-resource-collector` is a tool designed to scan cloud infrastructure resources (AWS, GCP, etc.) and generate a report of all resources found. This tool supports multiple cloud providers, but the following instructions are specific to AWS.
+The Kovr Resource Collector is a comprehensive tool designed to scan and collect cloud infrastructure resources across multiple cloud providers. It generates detailed reports of your cloud infrastructure that can be uploaded to Kovr as a source.
 
-## Cloud Provider Setup
+## Features
 
-### AWS
+- Multi-cloud resource scanning (currently supports AWS)
+- Comprehensive resource inventory collection
+- Parallel processing for efficient data collection
+- Detailed resource configuration capture
+- Compatible with Kovr's Sources UI
+- Generates structured JSON output
+- Support for cross-account access using IAM roles
 
-To scan AWS resources, follow these steps:
+## AWS Services Covered
 
-1. **Retrieve AWS Credentials:**
-   - Ensure you have your `aws_access_key_id`, `aws_secret_access_key`, and `aws_session_token`. These are required to access your AWS account.
+The collector scans a wide range of AWS services, including but not limited to:
 
-2. **Configure AWS Credentials:**
-   - Create a credentials file to provide access to AWS resources:
-     1. Navigate to your home directory:
-   
-        ```bash
-        cd ~
-        ```
+- EC2 (Instances, Security Groups, Volumes)
+- IAM (Users, Roles, Policies)
+- S3 (Buckets, Policies)
+- KMS (Keys, Aliases)
+- RDS (Databases, Snapshots)
+- Lambda Functions
+- VPC Resources
+- ECS/EKS Clusters
+- DynamoDB Tables
+- CloudWatch (Alarms, Logs)
+- And many more...
 
-     2. Create or update the AWS credentials file at `~/.aws/credentials`:
+## Prerequisites
 
-        ```bash
-        nano ~/.aws/credentials
-        ```
+- Python 3.x
+- AWS credentials with appropriate permissions
+- pip (Python package manager)
+- curl (for script download)
 
-     3. Save your AWS credentials in the following format:
+## Required Python Packages
 
-        ```
-        [default]
-        aws_access_key_id=YOUR_ACCESS_KEY_ID
-        aws_secret_access_key=YOUR_SECRET_ACCESS_KEY
-        aws_session_token=YOUR_SESSION_TOKEN
-        ```
+```ini
+boto3>=1.26.0
+pytest==8.0.2
+python-json-logger==2.0.7
+pydantic==1.10.13
+tqdm>=4.65.0
+```
 
-## Running the Tool
+## Installation & Usage
 
-1. **Navigate to the Tool Folder:**
-   - Change to the `kovr-resource-collector` directory:
-   
-     ```bash
-     cd kovr-resource-collector
-     ```
+### Quick Start
 
-2. **Run the AWS Service Scanner:**
-   - Execute the scanner script for AWS:
-   
-     ```bash
-     python kovr_aws_service_scanner.py
-     ```
+1. Set your AWS credentials as environment variables:
+   ```bash
+   export AWS_ACCESS_KEY_ID="your_access_key"
+   export AWS_SECRET_ACCESS_KEY="your_secret_key"
+   export AWS_SESSION_TOKEN="your_session_token"  # if using temporary credentials
+   ```
 
-   This will generate a folder called `kovr-scan` and a zip file containing all scanned AWS resources, named `kovr-scan-compressed.zip`.
+2. Run the collector with a single command:
+   ```bash
+   curl -s https://raw.githubusercontent.com/kovr-ai/kovr-resource-collector/main/data_collector_script.sh | bash
+   ```
 
-3. **Upload the Scan Results:**
-   - Once the folder and zip file are generated, upload the `kovr-scan` folder to the Sources UI of your kovr interface.
+### Manual Installation
 
-## Additional Cloud Providers
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/kovr-ai/kovr-resource-collector.git
+   cd kovr-resource-collector
+   ```
 
-Support for additional cloud providers (e.g., GCP, Azure) will be documented here in future updates.
+2. Install required packages:
+   ```bash
+   pip install -r data_collector_requirements.txt
+   ```
+
+3. Run the collector:
+   ```bash
+   python data_collector.py --provider aws
+   ```
+
+### Additional Options
+
+The collector supports several command-line arguments:
+
+```bash
+python data_collector.py --provider aws [OPTIONS]
+
+Options:
+  --aws-access-key-id TEXT        AWS Access Key ID
+  --aws-secret-access-key TEXT    AWS Secret Access Key
+  --aws-session-token TEXT        AWS Session Token
+  --region TEXT                   Specific AWS region to scan
+  --role-arn TEXT                 AWS Role ARN for cross-account access
+```
+
+## Output
+
+The collector generates a JSON file in the `output` directory containing detailed information about your cloud resources. This file can be directly uploaded to Kovr as a source.
+
+### Output Structure
