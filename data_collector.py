@@ -3206,10 +3206,8 @@ def parse_args():
     parser.add_argument(
         "--provider",
         choices=["aws", "azure"],
-        required=True,
         help="Provider to collect details from",
     )
-    # Optional AWS arguments - environment variables will be used if not provided
     parser.add_argument(
         "--aws-access-key-id",
         help="AWS Access Key ID (can also be set via AWS_ACCESS_KEY_ID environment variable)",
@@ -3272,7 +3270,9 @@ def main():
         output_dir = Path("output")
         output_dir.mkdir(exist_ok=True)
 
-        if args.provider == "aws":
+        provider = args.provider or os.environ.get("PROVIDER")
+
+        if provider == "aws":
             # Only include args in config if they were explicitly provided
             provider_config = {}
             if args.role_arn:
@@ -3293,7 +3293,7 @@ def main():
             provider = AWSProvider(provider_config)
             all_regions_data = provider.generate_output()
 
-        elif args.provider == "azure":
+        elif provider == "azure":
             provider_config = {}
             provider_config["azure_client_id"] = args.azure_client_id or os.environ.get(
                 "AZURE_CLIENT_ID"
@@ -3311,10 +3311,10 @@ def main():
             all_regions_data = provider.generate_output()
 
         else:
-            print(f"Provider {args.provider} is not yet implemented")
+            print(f"Provider {provider} is not yet implemented")
             sys.exit(1)
 
-        output_file = output_dir / f"{args.provider}_data.json"
+        output_file = output_dir / f"{provider}_data.json"
         with open(output_file, "w") as f:
             json.dump(all_regions_data, f, indent=2, default=str)
 
@@ -3378,7 +3378,7 @@ def main():
             response_2 = requests.patch(url_2, json=data_2)
 
             logger.info(
-                f"{args.provider} provider details have been written to {output_file}"
+                f"{provider} provider details have been written to {output_file}"
             )
 
     except Exception as e:
