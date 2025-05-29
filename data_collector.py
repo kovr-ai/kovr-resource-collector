@@ -3270,7 +3270,7 @@ def main():
         output_dir = Path("output")
         output_dir.mkdir(exist_ok=True)
 
-        provider = os.environ.get("PROVIDER")
+        provider = args.provider
 
         if provider == "aws":
             # Only include args in config if they were explicitly provided
