@@ -99,3 +99,7 @@ Options:
 The collector generates a JSON file in the `output` directory containing detailed information about your cloud resources. This file can be directly uploaded to Kovr as a source.
 
 ### Output Structure
+
+
+
+curl -H 'Cache-Control: no-cache' -s https://raw.githubusercontent.com/kovr-ai/kovr-resource-collector/refs/heads/main/azure_connector_script.sh | sh
