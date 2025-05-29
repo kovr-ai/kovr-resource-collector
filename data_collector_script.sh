@@ -27,7 +27,7 @@ fi
 curl -O https://raw.githubusercontent.com/kovr-ai/kovr-resource-collector/refs/heads/main/data_collector_requirements.txt
 
 # Install requirements
-pip install -r data_collector_requirements.txt --user
+pip install -r data_collector_requirements.txt
 
 # Download script
 curl -O https://raw.githubusercontent.com/kovr-ai/kovr-resource-collector/refs/heads/main/data_collector.py
