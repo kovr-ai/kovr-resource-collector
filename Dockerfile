@@ -24,4 +24,4 @@ ENV AZURE_SUBSCRIPTION_ID=azure_subscription_id
 
 RUN pip install -r data_collector_requirements.txt
 
-CMD ["/bin/sh", "-c", "python data_collector.py --provider azure"]
+CMD ["/bin/sh", "-c", "python data_collector.py --provider aws"]
