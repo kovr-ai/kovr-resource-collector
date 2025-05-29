@@ -8,6 +8,11 @@ import os
 import logging
 from concurrent.futures import ThreadPoolExecutor
 from tqdm import tqdm
+import requests
+import uuid
+import re
+from azure.identity import ClientSecretCredential
+from azure.mgmt.storage import StorageManagementClient
 
 import boto3
 from botocore.exceptions import ClientError
@@ -17,6 +22,23 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
+
+app_config = {
+    "dev": {
+        "url": "https://dev.kovrai.com/api/v1",
+        "role_arn": "arn:aws:iam::296062557786:role/KovrAuditRole",
+    },
+    "qa": {
+        "url": "https://qa.kovrai.com/api/v1",
+        "role_arn": "arn:aws:iam::650251729525:role/KovrAuditRole",
+    },
+    "prod": {
+        "url": "https://app.kovrai.com/api/v1",
+        "role_arn": "arn:aws:iam::314146328961:role/KovrAuditRole",
+    },
+}
+
+env = os.environ.get("ENV")
 
 
 class AWSService:
@@ -2890,7 +2912,11 @@ class AWSProvider:
                     "aws_secret_access_key": self.aws_secret_key,
                 }
             )
-            if self.aws_session_token:
+            if (
+                self.aws_session_token
+                and self.aws_session_token != ""
+                and self.aws_session_token != "aws_session_token"
+            ):
                 session_kwargs["aws_session_token"] = self.aws_session_token
 
         self.main_session = boto3.Session(**session_kwargs)
@@ -2898,7 +2924,7 @@ class AWSProvider:
 
         self.role_arn = self.config.get("role_arn") or os.environ.get("AWS_ROLE_ARN")
         if self.role_arn:
-            kovr_arn = "arn:aws:iam::296062557786:role/KovrAuditRole"
+            kovr_arn = app_config[env]["role_arn"]
             self.kovr_session = self.assume_role(kovr_arn, self.main_session)
             self.client_session = self.assume_role(self.role_arn, self.kovr_session)
             credentials = self.client_session.get_credentials()
@@ -3120,7 +3146,7 @@ class AWSProvider:
         """Generate output for all target regions."""
         all_regions_data = []
 
-        for region in self.target_regions:
+        for i, region in enumerate(self.target_regions):
             try:
                 logger.info(f"Starting collection for region: {region}")
                 region_data = self.collect_region_details(region)
@@ -3132,13 +3158,54 @@ class AWSProvider:
         return all_regions_data
 
 
+class AzureProvider:
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        self.config = config or {}
+
+        self.client = StorageManagementClient(
+            credential=ClientSecretCredential(
+                client_id=self.config.get("azure_client_id"),
+                client_secret=self.config.get("azure_client_secret"),
+                tenant_id=self.config.get("azure_tenant_id"),
+            ),
+            subscription_id=self.config.get("azure_subscription_id"),
+        )
+
+    def generate_output(self) -> List[Dict[str, Any]]:
+        data = self.client.storage_accounts.list()
+        items = []
+        for account in data:
+            items.append(
+                {
+                    "id": account.id,
+                    "name": account.name,
+                    "location": account.location,
+                    "provisioning_state": account.provisioning_state,
+                    "sku": account.sku,
+                    "kind": account.kind,
+                    "identity": account.identity,
+                    "extended_location": account.extended_location,
+                    "provisioning_state": account.provisioning_state,
+                    "primary_endpoints": account.primary_endpoints,
+                    "primary_location": account.primary_location,
+                    "status_of_primary": account.status_of_primary,
+                    "last_geo_failover_time": account.last_geo_failover_time,
+                    "secondary_location": account.secondary_location,
+                    "status_of_secondary": account.status_of_secondary,
+                    "creation_time": account.creation_time,
+                    "custom_domain": account.custom_domain,
+                }
+            )
+        return items
+
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Collect service details and generate a JSON report."
     )
     parser.add_argument(
         "--provider",
-        choices=["aws"],
+        choices=["aws", "azure"],
         required=True,
         help="Provider to collect details from",
     )
@@ -3163,6 +3230,38 @@ def parse_args():
         "--role-arn",
         help="AWS Role ARN (can also be set via AWS_ROLE_ARN environment variable)",
     )
+    parser.add_argument(
+        "--application-id",
+        help="Application ID (can also be set via APPLICATION_ID environment variable)",
+    )
+    parser.add_argument(
+        "--source-id",
+        help="Source ID (can also be set via SOURCE_ID environment variable)",
+    )
+    parser.add_argument(
+        "--connection-id",
+        help="Connection ID (can also be set via CONNECTION_ID environment variable)",
+    )
+    parser.add_argument(
+        "--env",
+        help="Environment (can also be set via ENV environment variable)",
+    )
+    parser.add_argument(
+        "--azure-client-id",
+        help="Azure Client ID (can also be set via AZURE_CLIENT_ID environment variable)",
+    )
+    parser.add_argument(
+        "--azure-client-secret",
+        help="Azure Client Secret (can also be set via AZURE_CLIENT_SECRET environment variable)",
+    )
+    parser.add_argument(
+        "--azure-tenant-id",
+        help="Azure Tenant ID (can also be set via AZURE_TENANT_ID environment variable)",
+    )
+    parser.add_argument(
+        "--azure-subscription-id",
+        help="Azure Subscription ID (can also be set via AZURE_SUBSCRIPTION_ID environment variable)",
+    )
     return parser.parse_args()
 
 
@@ -3182,7 +3281,11 @@ def main():
                 provider_config["aws_access_key_id"] = args.aws_access_key_id
             if args.aws_secret_access_key:
                 provider_config["aws_secret_access_key"] = args.aws_secret_access_key
-            if args.aws_session_token:
+            if (
+                args.aws_session_token
+                and args.aws_session_token != ""
+                and args.aws_session_token != "aws_session_token"
+            ):
                 provider_config["aws_session_token"] = args.aws_session_token
             if args.region:
                 provider_config["region"] = args.region
@@ -3190,15 +3293,93 @@ def main():
             provider = AWSProvider(provider_config)
             all_regions_data = provider.generate_output()
 
-            output_file = output_dir / "output.json"
-            with open(output_file, "w") as f:
-                json.dump(all_regions_data, f, indent=2, default=str)
-
-            logger.info(f"AWS provider details have been written to {output_file}")
+        elif args.provider == "azure":
+            provider_config = {}
+            provider_config["azure_client_id"] = args.azure_client_id or os.environ.get(
+                "AZURE_CLIENT_ID"
+            )
+            provider_config["azure_client_secret"] = (
+                args.azure_client_secret or os.environ.get("AZURE_CLIENT_SECRET")
+            )
+            provider_config["azure_tenant_id"] = args.azure_tenant_id or os.environ.get(
+                "AZURE_TENANT_ID"
+            )
+            provider_config["azure_subscription_id"] = (
+                args.azure_subscription_id or os.environ.get("AZURE_SUBSCRIPTION_ID")
+            )
+            provider = AzureProvider(provider_config)
+            all_regions_data = provider.generate_output()
 
         else:
-            print(f"Service {args.service} is not yet implemented")
+            print(f"Provider {args.provider} is not yet implemented")
             sys.exit(1)
+
+        output_file = output_dir / f"{args.provider}_data.json"
+        with open(output_file, "w") as f:
+            json.dump(all_regions_data, f, indent=2, default=str)
+
+        application_id = args.application_id or os.environ.get("APPLICATION_ID")
+        current_source_id = args.source_id or os.environ.get("SOURCE_ID")
+        connection_id = args.connection_id or os.environ.get("CONNECTION_ID")
+
+        if (
+            not application_id
+            or application_id == ""
+            or application_id == "application_id"
+            or not connection_id
+            or connection_id == ""
+            or connection_id == "connection_id"
+        ):
+            logger.info("No application ID or source ID provided, skipping upload")
+        else:
+            url = app_config[env]["url"]
+            endpoint = f"{url}/app/uploads/generate-presigned-url-internal?app_id={application_id}"
+
+            if (
+                current_source_id
+                and current_source_id != ""
+                and current_source_id != "source_id"
+            ):
+                endpoint += f"&source_id={current_source_id}"
+
+            data = {
+                "items": [
+                    {
+                        "file_type": "source_documents",
+                        "file_name": output_file.name,
+                        "fe_id": str(uuid.uuid4()),
+                    }
+                ]
+            }
+
+            response = requests.post(endpoint, json=data)
+
+            presigned_url = response.json()["data"][0]["url"]
+
+            uuid_pattern = re.compile(
+                r"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}"
+            )
+            uuids = uuid_pattern.findall(presigned_url)
+            source_uuid = uuids[0]
+
+            with open(output_file, "rb") as f:
+                requests.put(presigned_url, data=f)
+
+            url_2 = f"{url}/app/{application_id}/sources-internal?connection_id={connection_id}"
+            data_2 = {
+                "items": [
+                    {
+                        "control_ids": [],
+                        "tags": [],
+                        "uuid": source_uuid,
+                    }
+                ]
+            }
+            response_2 = requests.patch(url_2, json=data_2)
+
+            logger.info(
+                f"{args.provider} provider details have been written to {output_file}"
+            )
 
     except Exception as e:
         print(f"Error: {str(e)}")
