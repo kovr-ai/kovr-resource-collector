@@ -15,12 +15,20 @@ fi
 # Download requirements file using curl
 curl -O https://raw.githubusercontent.com/kovr-ai/kovr-resource-collector/refs/heads/main/data_collector_requirements.txt
 
+# Create a virtual environment
+python -m venv venv
+
+# Activate the virtual environment
+source venv/bin/activate
+
 # Install requirements
-pip install -r data_collector_requirements.txt --user
+pip install -r data_collector_requirements.txt
 
 # Download script
 curl -O https://raw.githubusercontent.com/kovr-ai/kovr-resource-collector/refs/heads/main/azure/run.ps1
 curl -O https://raw.githubusercontent.com/kovr-ai/kovr-resource-collector/refs/heads/main/azure/main.tf
 
+chmod +x run.ps1
+
 # Run terraform
-run.ps1
+pwsh run.ps1

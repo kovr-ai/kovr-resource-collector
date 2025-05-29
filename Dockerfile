@@ -20,6 +20,8 @@ ENV AZURE_CLIENT_SECRET=azure_client_secret
 ENV AZURE_TENANT_ID=azure_tenant_id
 ENV AZURE_SUBSCRIPTION_ID=azure_subscription_id
 
+ENV PROVIDER=provider
+
 RUN pip install -r data_collector_requirements.txt
 
-CMD ["python", "data_collector.py", "--provider", "aws"]
+CMD ["python", "data_collector.py"]
