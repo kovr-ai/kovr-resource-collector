@@ -3270,9 +3270,9 @@ def main():
         output_dir = Path("output")
         output_dir.mkdir(exist_ok=True)
 
-        provider = args.provider
+        source_provider = args.provider
 
-        if provider == "aws":
+        if source_provider == "aws":
             # Only include args in config if they were explicitly provided
             provider_config = {}
             if args.role_arn:
@@ -3293,7 +3293,7 @@ def main():
             provider = AWSProvider(provider_config)
             all_regions_data = provider.generate_output()
 
-        elif provider == "azure":
+        elif source_provider == "azure":
             provider_config = {}
             provider_config["azure_client_id"] = args.azure_client_id or os.environ.get(
                 "AZURE_CLIENT_ID"
@@ -3311,10 +3311,10 @@ def main():
             all_regions_data = provider.generate_output()
 
         else:
-            print(f"Provider {provider} is not yet implemented")
+            print(f"Provider {source_provider} is not yet implemented")
             sys.exit(1)
 
-        output_file = output_dir / f"{provider}_data.json"
+        output_file = output_dir / f"{source_provider}_data.json"
         with open(output_file, "w") as f:
             json.dump(all_regions_data, f, indent=2, default=str)
 
