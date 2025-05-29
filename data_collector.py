@@ -3203,11 +3203,11 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description="Collect service details and generate a JSON report."
     )
-    parser.add_argument(
-        "--provider",
-        choices=["aws", "azure"],
-        help="Provider to collect details from",
-    )
+    # parser.add_argument(
+    #     "--provider",
+    #     choices=["aws", "azure"],
+    #     help="Provider to collect details from",
+    # )
     parser.add_argument(
         "--aws-access-key-id",
         help="AWS Access Key ID (can also be set via AWS_ACCESS_KEY_ID environment variable)",
@@ -3270,7 +3270,7 @@ def main():
         output_dir = Path("output")
         output_dir.mkdir(exist_ok=True)
 
-        provider = args.provider or os.environ.get("PROVIDER")
+        provider = os.environ.get("PROVIDER")
 
         if provider == "aws":
             # Only include args in config if they were explicitly provided
