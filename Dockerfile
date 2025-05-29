@@ -24,4 +24,4 @@ ENV PROVIDER=provider
 
 RUN pip install -r data_collector_requirements.txt
 
-CMD ["/bin/sh", "-c", "python data_collector.py"]
+CMD ["/bin/sh", "-c", "python data_collector.py --provider azure"]
