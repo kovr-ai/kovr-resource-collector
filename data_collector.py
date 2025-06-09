@@ -2900,6 +2900,9 @@ class AWSProvider:
         self.aws_session_token = self.config.get("aws_session_token") or os.environ.get(
             "AWS_SESSION_TOKEN"
         )
+        self.aws_external_id = self.config.get("aws_external_id") or os.environ.get(
+            "AWS_EXTERNAL_ID"
+        )
 
         # Get initial session for region discovery
         session_kwargs = {
@@ -2981,6 +2984,7 @@ class AWSProvider:
         assumed_role = sts_client.assume_role(
             RoleArn=role_arn,
             RoleSessionName="kovr-data-collector",
+            ExternalId=self.aws_external_id if self.aws_external_id else None,
         )
         aws_access_key = assumed_role["Credentials"]["AccessKeyId"]
         aws_secret_key = assumed_role["Credentials"]["SecretAccessKey"]
@@ -3233,6 +3237,10 @@ def parse_args():
         help="Application ID (can also be set via APPLICATION_ID environment variable)",
     )
     parser.add_argument(
+        "--aws-external-id",
+        help="AWS External ID (can also be set via AWS_EXTERNAL_ID environment variable)",
+    )
+    parser.add_argument(
         "--source-id",
         help="Source ID (can also be set via SOURCE_ID environment variable)",
     )
@@ -3289,6 +3297,8 @@ def main():
                 provider_config["aws_session_token"] = args.aws_session_token
             if args.region:
                 provider_config["region"] = args.region
+            if args.aws_external_id:
+                provider_config["aws_external_id"] = args.aws_external_id
 
             provider = AWSProvider(provider_config)
             all_regions_data = provider.generate_output()

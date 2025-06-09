@@ -7,6 +7,7 @@ WORKDIR /app
 ENV AWS_ACCESS_KEY_ID=aws_access_key_id
 ENV AWS_SECRET_ACCESS_KEY=aws_secret_access_key
 ENV AWS_SESSION_TOKEN=aws_session_token
+ENV AWS_EXTERNAL_ID=aws_external_id
 
 ENV AWS_REGION=aws_region
 ENV AWS_ROLE_ARN=aws_role_arn
