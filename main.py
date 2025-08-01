@@ -44,7 +44,7 @@ def parse_args():
     )
     parser.add_argument(
         "--provider",
-        choices=["aws", "azure"],
+        choices=["aws", "azure", "gh"],
         help="Provider to collect details from",
     )
     parser.add_argument(
@@ -137,15 +137,19 @@ if __name__ == "__main__":
     response_file_path = f"{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}_response.json"
     with open(response_file_path, "w") as f:
         json.dump(response, f, indent=4, default=datetime_json_encoder)
-    upload_json_to_s3(response_file_path, "kovr-ds-test", response_file_path)
+    upload_json_to_s3(response_file_path, "kovr-app-file-uploads-dev", response_file_path)
     print(f"Response uploaded to: {response_file_path}")
 
-    rule_engine = RuleEngine(args["provider"], response)
-    report = rule_engine.process()
+    if args["provider"] == "aws":
+        rule_engine = RuleEngine(args["provider"], response)
+        report = rule_engine.process()
+    else:
+        report = {}
+    
     report_file_path = f"{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}_report.json"
     with open(report_file_path, "w") as f:
         json.dump(report, f, indent=4, default=datetime_json_encoder)
-    upload_json_to_s3(report_file_path, "kovr-ds-test", report_file_path)
+    upload_json_to_s3(report_file_path, "kovr-app-file-uploads-dev", report_file_path)
     print(f"Report uploaded to: {report_file_path}")
 
     url = app_config["url"] + f"/connections/{args['connection_id']}/connection-status"
