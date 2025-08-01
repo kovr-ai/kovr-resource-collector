@@ -34,6 +34,8 @@ class BoundaryProtectionCheck:
                 
                 # Check VPC configuration
                 vpcs = ec2_data.get('vpcs', {})
+                subnets = ec2_data.get('subnets', {})
+                
                 for vpc_id, vpc_data in vpcs.items():
                     # Check if VPC has internet gateway attached
                     internet_gateways = ec2_data.get('internet_gateways', {})
@@ -48,7 +50,6 @@ class BoundaryProtectionCheck:
                     
                     if vpc_has_igw:
                         # Check for public subnets
-                        subnets = ec2_data.get('subnets', {})
                         for subnet_id, subnet_data in subnets.items():
                             if subnet_data.get('vpc_id') == vpc_id:
                                 if subnet_data.get('map_public_ip_on_launch', False):
@@ -57,6 +58,10 @@ class BoundaryProtectionCheck:
                 # Check for instances in public subnets
                 instances = ec2_data.get('instances', {})
                 for instance_id, instance_data in instances.items():
+                    # Handle case where instance_data might be a string
+                    if isinstance(instance_data, str):
+                        continue
+                    
                     subnet_id = instance_data.get('subnet_id')
                     if subnet_id:
                         subnet_data = subnets.get(subnet_id, {})

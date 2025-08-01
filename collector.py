@@ -11,10 +11,8 @@ class Collector:
     
     def decrypt_data(self, data):
         try:
-            if not isinstance(data, str):
-                raise ValueError("Invalid data type")
-            
-            data = json.loads(data)
+            if isinstance(data, str):
+                data = json.loads(data)
 
             if not isinstance(data, dict):
                 raise ValueError("Invalid data type")

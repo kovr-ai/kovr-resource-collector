@@ -4,7 +4,7 @@ import boto3
 @service_class
 class CloudTrailService(BaseService):
     def __init__(self, client: boto3.Session):
-        super().__init__(self)
+        super().__init__(client)
 
     def process(self):
         data = {
@@ -15,10 +15,11 @@ class CloudTrailService(BaseService):
         }
         
         client = self.client.client("cloudtrail")
-        
+
         try:
             response = client.list_trails()
-            for trail in response["trails"]:
+            trails_list = response.get("trails", [])
+            for trail in trails_list:
                 trail_name = trail["Name"]
                 trail_arn = trail["TrailARN"]
                 
