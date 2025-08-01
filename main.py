@@ -44,7 +44,6 @@ def parse_args():
     )
     parser.add_argument(
         "--provider",
-        choices=["aws", "azure", "gh"],
         help="Provider to collect details from",
     )
     parser.add_argument(
