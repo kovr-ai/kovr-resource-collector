@@ -38,7 +38,7 @@ class EC2Service(BaseService):
         }
         
         client = self.client.client("ec2")
-        
+
         # Get account limits
         try:
             limits_response = client.describe_account_attributes()
