@@ -27,7 +27,7 @@ class IAMService(BaseService):
         }
         
         client = self.client.client("iam")
-        
+
         try:
             data["account"]["summary"] = client.get_account_summary()["SummaryMap"]
         except Exception as e:

@@ -15,7 +15,13 @@ class BaseControl:
         statuses = []
         for check in self.checks:
             if provider == "aws":
-                check_result = check.check_aws(data)
+                try:
+                    check_result = check.check_aws(data)
+                except Exception as e:
+                    check_result = {
+                        "status": "ERROR",
+                        "details": f"Error evaluating AWS check: {str(e)}"
+                    }
             elif provider == "google_workspace":
                 check_result = check.check_google_workspace(data)
             else:

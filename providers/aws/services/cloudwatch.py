@@ -4,7 +4,7 @@ import boto3
 @service_class
 class CloudWatchService(BaseService):
     def __init__(self, client: boto3.Session):
-        super().__init__(self)
+        super().__init__(client)
 
     def process(self):
         data = {
@@ -17,7 +17,7 @@ class CloudWatchService(BaseService):
         
         logs_client = self.client.client("logs")
         cloudwatch_client = self.client.client("cloudwatch")
-        
+
         # Get CloudWatch Logs data
         self._get_log_groups(logs_client, data)
         self._get_log_streams(logs_client, data)
