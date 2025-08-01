@@ -19,7 +19,7 @@ class S3Service(BaseService):
         }
         
         client = self.client.client("s3")
-        
+
         try:
             response = client.list_buckets()
             for bucket in response["Buckets"]:
@@ -57,7 +57,7 @@ class S3Service(BaseService):
         try:
             response = client.get_bucket_policy(Bucket=bucket_name)
             data["bucket_policies"][bucket_name] = response["Policy"]
-        except client.exceptions.NoSuchBucketPolicy:
+        except client.exceptions.NoSuchBucket:
             data["bucket_policies"][bucket_name] = None
         except Exception:
             data["bucket_policies"][bucket_name] = None
@@ -101,7 +101,7 @@ class S3Service(BaseService):
         try:
             response = client.get_bucket_lifecycle_configuration(Bucket=bucket_name)
             data["bucket_lifecycle"][bucket_name] = response["Rules"]
-        except client.exceptions.NoSuchLifecycleConfiguration:
+        except client.exceptions.NoSuchBucket:
             data["bucket_lifecycle"][bucket_name] = []
         except Exception:
             data["bucket_lifecycle"][bucket_name] = []
