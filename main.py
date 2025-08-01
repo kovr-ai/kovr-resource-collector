@@ -115,6 +115,14 @@ def parse_args():
             "REGIONS": ["us-west-2"],
             "AWS_ROLE_ARN": args.role_arn or os.getenv("AWS_ROLE_ARN"),
             "AWS_EXTERNAL_ID": args.aws_external_id or os.getenv("AWS_EXTERNAL_ID"),
+            "AZURE_CLIENT_ID": args.azure_client_id
+            or os.getenv("AZURE_CLIENT_ID"),
+            "AZURE_CLIENT_SECRET": args.azure_client_secret
+            or os.getenv("AZURE_CLIENT_SECRET"),
+            "AZURE_TENANT_ID": args.azure_tenant_id
+            or os.getenv("AZURE_TENANT_ID"),
+            "AZURE_SUBSCRIPTION_ID": args.azure_subscription_id
+            or os.getenv("AZURE_SUBSCRIPTION_ID"),
         },
         "env": args.env or os.getenv("ENV"),
         "connection_id": args.connection_id or os.getenv("CONNECTION_ID"),
@@ -140,6 +148,9 @@ if __name__ == "__main__":
     print(f"Response uploaded to: {response_file_path}")
 
     if args["provider"] == "aws":
+        rule_engine = RuleEngine(args["provider"], response)
+        report = rule_engine.process()
+    elif args["provider"] == "azure":
         rule_engine = RuleEngine(args["provider"], response)
         report = rule_engine.process()
     else:
