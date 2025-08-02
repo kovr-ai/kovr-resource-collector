@@ -76,7 +76,7 @@ class Check(BaseModel):
     expected_value: Any
     description: Optional[str] = None
     
-    def evaluate(self, resources: List[Resource]) -> "CheckResult":
+    def evaluate(self, resources: List[Resource]) -> List["CheckResult"]:
         """
         Evaluate this check against a resource's data.
         
