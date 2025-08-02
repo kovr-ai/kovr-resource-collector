@@ -3,7 +3,8 @@ Resources module for provider-specific resource models.
 """
 import yaml
 import os
-from typing import Dict, Any
+from typing import Dict, Any, List
+from .models import Resource
 
 # Global storage for loaded resource definitions
 _loaded_resources: Dict[str, Dict[str, Any]] = {}

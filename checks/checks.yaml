@@ -1,11 +1,13 @@
 # GitHub-specific checks configuration
-# Works directly with GitHubResource objects
+# Maps to Check model structure in checks/models.py
 
-github_checks:
+checks:
   - name: "github_all_branches_protected"
     description: "Verify that all branches in GitHub repository have protection enabled"
-    check_method: "is_all_branches_protected"
-    expected_value: true
+    field_path: "branches"
+    operation:
+      name: "not_contains"
+    expected_value: {"protected": false}
     tags: ["security", "github", "branch_protection"]
     severity: "high"
     category: "access_control" 

@@ -4,9 +4,30 @@ Checks module for resource validation and evaluation.
 import yaml
 import os
 from typing import Dict, Any
+from .models import Check, ComparisonOperation, ComparisonOperationEnum
 
 # Global storage for loaded checks
-_loaded_checks: Dict[str, Dict[str, Any]] = {}
+_loaded_checks: Dict[str, Check] = {}
+
+def _create_check_from_config(check_name: str, check_config: Dict[str, Any]) -> Check:
+    """Create a Check object from YAML configuration."""
+    
+    # Parse operation
+    operation_config = check_config['operation']
+    operation_name = operation_config['name']
+    
+    # Create ComparisonOperation
+    operation_enum = ComparisonOperationEnum(operation_name)
+    operation = ComparisonOperation(name=operation_enum)
+    
+    # Create Check object
+    return Check(
+        name=check_name,
+        field_path=check_config['field_path'],
+        operation=operation,
+        expected_value=check_config['expected_value'],
+        description=check_config.get('description')
+    )
 
 def load_checks_from_yaml(yaml_file_path: str = None):
     """
@@ -27,13 +48,15 @@ def load_checks_from_yaml(yaml_file_path: str = None):
             yaml_data = yaml.safe_load(file)
         
         # Process github_checks
-        if 'github_checks' in yaml_data:
-            for check_config in yaml_data['github_checks']:
-                check_name = check_config['name']
-                _loaded_checks[check_name] = check_config
-                
-                # Make accessible as module attribute
-                globals()[check_name] = check_config
+        for check_config in yaml_data['checks']:
+            check_name = check_config['name']
+
+            # Create proper Check object
+            check = _create_check_from_config(check_name, check_config)
+            _loaded_checks[check_name] = check
+
+            # Make accessible as module attribute
+            globals()[check_name] = check
         
         print(f"✅ Loaded {len(_loaded_checks)} checks from {yaml_file_path}")
         
@@ -42,7 +65,7 @@ def load_checks_from_yaml(yaml_file_path: str = None):
     except Exception as e:
         print(f"❌ Error loading checks from YAML: {e}")
 
-def get_loaded_checks() -> Dict[str, Dict[str, Any]]:
+def get_loaded_checks() -> Dict[str, Check]:
     """Get all loaded checks."""
     return _loaded_checks.copy()
 
