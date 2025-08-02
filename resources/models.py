@@ -133,7 +133,6 @@ class Resource(BaseModel):
             "id": self.id,
             "source_connector": self.source_connector,
             "data": self.data,
-            "status": self.status.value,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
             "metadata": self.metadata,
