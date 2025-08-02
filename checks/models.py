@@ -2,8 +2,9 @@
 Models for checks module - handles resource validation and evaluation.
 """
 from enum import Enum
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, List
 from pydantic import BaseModel, Field
+from resources.models import Resource
 
 
 class ComparisonOperationEnum(Enum):
@@ -75,7 +76,7 @@ class Check(BaseModel):
     expected_value: Any
     description: Optional[str] = None
     
-    def evaluate(self, resource_data: dict) -> "CheckResult":
+    def evaluate(self, resources: List[Resource]) -> "CheckResult":
         """
         Evaluate this check against a resource's data.
         
@@ -85,19 +86,24 @@ class Check(BaseModel):
         Returns:
             CheckResult: The result of the check evaluation
         """
-        actual_value = self._extract_field_value(resource_data, self.field_path)
-        passed = self.operation.compare(actual_value, self.expected_value)
+        check_results = []
+        for resource in resources:
+            actual_value = self._extract_field_value(resource, self.field_path)
+            passed = self.operation.compare(actual_value, self.expected_value)
         
-        return CheckResult(
-            passed=passed,
-            check=self,
-            message=f"Check '{self.name}' {'passed' if passed else 'failed'}"
-        )
+            check_result = CheckResult(
+                passed=passed,
+                check=self,
+                resource=resource,
+                message=f"Check '{self.name}' {'passed' if passed else 'failed'}"
+            )
+            check_results.append(check_result)
+        return check_results
     
-    def _extract_field_value(self, data: dict, field_path: str) -> Any:
+    def _extract_field_value(self, resource: Resource, field_path: str) -> Any:
         """Extract value from nested dictionary using dot notation."""
         keys = field_path.split('.')
-        value = data
+        value = resource.data
         for key in keys:
             if isinstance(value, dict):
                 value = value.get(key)
@@ -110,5 +116,6 @@ class CheckResult(BaseModel):
     """Result of a check evaluation."""
     passed: bool
     check: Check
+    resource: Resource
     message: Optional[str] = None
     error: Optional[str] = None
