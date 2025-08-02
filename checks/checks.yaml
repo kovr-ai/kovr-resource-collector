@@ -1,34 +1,11 @@
-# Checks configuration file
-# Maps directly to Check model structure in checks/models.py
+# GitHub-specific checks configuration
+# Works directly with GitHubResource objects
 
-checks:
+github_checks:
   - name: "github_all_branches_protected"
     description: "Verify that all branches in GitHub repository have protection enabled"
-    field_path: "branches"
-    operation:
-      name: "custom"
-      custom_function_name: "all_branches_protected"
+    check_method: "is_all_branches_protected"
     expected_value: true
-    metadata:
-      provider: "github"
-      resource_type: "repository"
-      category: "access_control"
-      severity: "high"
-      tags: ["security", "github", "branch_protection"]
-
-# Simple custom function for checking all branches
-custom_functions:
-  all_branches_protected:
-    description: "Check if all branches in a repository have branch protection enabled"
-    implementation: |
-      def all_branches_protected(branches_data, expected_value):
-          """Check if all branches have protection enabled."""
-          if not branches_data or not isinstance(branches_data, list):
-              return False
-          
-          # Check that all branches are protected
-          for branch in branches_data:
-              if not isinstance(branch, dict) or not branch.get('protected', False):
-                  return False
-          
-          return True 
+    tags: ["security", "github", "branch_protection"]
+    severity: "high"
+    category: "access_control" 

@@ -1,0 +1,54 @@
+# Resources configuration file
+# Defines resource structures for different providers
+
+resources:
+  github:
+    name: "github"
+    description: "GitHub repository resource"
+    provider: "github"
+    
+    # Define the structure that matches GitHub API response
+    fields:
+      repository: "string"
+      basic_info:
+        id: "integer"
+        name: "string" 
+        full_name: "string"
+        description: "string"
+        private: "boolean"
+        owner: "string"
+        html_url: "string"
+        clone_url: "string"
+        ssh_url: "string"
+        size: "integer"
+        language: "string"
+        created_at: "string"
+        updated_at: "string"
+        pushed_at: "string"
+        stargazers_count: "integer"
+        watchers_count: "integer"
+        forks_count: "integer"
+        open_issues_count: "integer"
+        archived: "boolean"
+        disabled: "boolean"
+      metadata:
+        default_branch: "string"
+        topics: "array"
+        has_issues: "boolean"
+        has_projects: "boolean"
+        has_wiki: "boolean"
+        has_pages: "boolean"
+        has_downloads: "boolean"
+        has_discussions: "boolean"
+        is_template: "boolean"
+        license: "string"
+      branches:
+        - name: "string"
+          sha: "string"  
+          protected: "boolean"
+          protection_details: "object"
+      statistics:
+        total_commits: "integer"
+        contributors_count: "integer"
+        languages: "object"
+        code_frequency: "array" 
