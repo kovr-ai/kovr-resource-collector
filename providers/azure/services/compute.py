@@ -1,6 +1,7 @@
 from providers.service import BaseService, service_class
-from azure.mgmt.compute import ComputeManagementClient
-from azure.mgmt.resource import ResourceManagementClient
+import uuid
+from datetime import datetime, timedelta
+import random
 
 
 @service_class
@@ -8,8 +9,7 @@ class ComputeService(BaseService):
     def __init__(self, credential, subscription_id):
         super().__init__(credential)
         self.subscription_id = subscription_id
-        self.compute_client = ComputeManagementClient(credential, subscription_id)
-        self.resource_client = ResourceManagementClient(credential, subscription_id)
+        # No real clients needed for mock data
 
     def process(self):
         data = {
@@ -27,184 +27,163 @@ class ComputeService(BaseService):
             }
         }
 
-        try:
-            # Get Virtual Machines
-            print("Collecting Virtual Machines...")
-            vms = self.compute_client.virtual_machines.list_all()
-            for vm in vms:
-                vm_dict = self._vm_to_dict(vm)
-                data["virtual_machines"][vm.id] = vm_dict
-                print(f"Found VM: {vm.name}")
+        # Generate mock Virtual Machines
+        print("Generating mock Virtual Machines...")
+        vm_count = random.randint(2, 8)
+        for i in range(vm_count):
+            vm_id = f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{i%3}/providers/Microsoft.Compute/virtualMachines/mock-vm-{i}"
+            vm_dict = self._generate_mock_vm(i)
+            data["virtual_machines"][vm_id] = vm_dict
+            print(f"Generated VM: mock-vm-{i}")
 
-        except Exception as e:
-            print(f"Error collecting Virtual Machines: {str(e)}")
-            data["virtual_machines"] = {}
+        # Generate mock Availability Sets
+        print("Generating mock Availability Sets...")
+        for i in range(2):
+            av_set_id = f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{i}/providers/Microsoft.Compute/availabilitySets/mock-avset-{i}"
+            av_set_dict = self._generate_mock_availability_set(i)
+            data["availability_sets"][av_set_id] = av_set_dict
+            print(f"Generated Availability Set: mock-avset-{i}")
 
-        try:
-            # Get Availability Sets
-            print("Collecting Availability Sets...")
-            availability_sets = self.compute_client.availability_sets.list_all()
-            for av_set in availability_sets:
-                av_set_dict = self._availability_set_to_dict(av_set)
-                data["availability_sets"][av_set.id] = av_set_dict
-                print(f"Found Availability Set: {av_set.name}")
+        # Generate mock VM Scale Sets
+        print("Generating mock VM Scale Sets...")
+        for i in range(1):
+            scale_set_id = f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{i}/providers/Microsoft.Compute/virtualMachineScaleSets/mock-vmss-{i}"
+            scale_set_dict = self._generate_mock_scale_set(i)
+            data["vm_scale_sets"][scale_set_id] = scale_set_dict
+            print(f"Generated VM Scale Set: mock-vmss-{i}")
 
-        except Exception as e:
-            print(f"Error collecting Availability Sets: {str(e)}")
-            data["availability_sets"] = {}
+        # Generate mock Managed Disks
+        print("Generating mock Managed Disks...")
+        disk_count = random.randint(5, 15)
+        for i in range(disk_count):
+            disk_id = f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{i%3}/providers/Microsoft.Compute/disks/mock-disk-{i}"
+            disk_dict = self._generate_mock_disk(i)
+            data["disks"][disk_id] = disk_dict
+            print(f"Generated Disk: mock-disk-{i}")
 
-        try:
-            # Get VM Scale Sets
-            print("Collecting VM Scale Sets...")
-            scale_sets = self.compute_client.virtual_machine_scale_sets.list_all()
-            for scale_set in scale_sets:
-                scale_set_dict = self._scale_set_to_dict(scale_set)
-                data["vm_scale_sets"][scale_set.id] = scale_set_dict
-                print(f"Found VM Scale Set: {scale_set.name}")
+        # Generate mock Images
+        print("Generating mock Images...")
+        for i in range(2):
+            image_id = f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{i}/providers/Microsoft.Compute/images/mock-image-{i}"
+            image_dict = self._generate_mock_image(i)
+            data["images"][image_id] = image_dict
+            print(f"Generated Image: mock-image-{i}")
 
-        except Exception as e:
-            print(f"Error collecting VM Scale Sets: {str(e)}")
-            data["vm_scale_sets"] = {}
-
-        try:
-            # Get Managed Disks
-            print("Collecting Managed Disks...")
-            disks = self.compute_client.disks.list()
-            for disk in disks:
-                disk_dict = self._disk_to_dict(disk)
-                data["disks"][disk.id] = disk_dict
-                print(f"Found Disk: {disk.name}")
-
-        except Exception as e:
-            print(f"Error collecting Managed Disks: {str(e)}")
-            data["disks"] = {}
-
-        try:
-            # Get Images
-            print("Collecting Images...")
-            images = self.compute_client.images.list()
-            for image in images:
-                image_dict = self._image_to_dict(image)
-                data["images"][image.id] = image_dict
-                print(f"Found Image: {image.name}")
-
-        except Exception as e:
-            print(f"Error collecting Images: {str(e)}")
-            data["images"] = {}
-
-        try:
-            # Get Snapshots
-            print("Collecting Snapshots...")
-            snapshots = self.compute_client.snapshots.list()
-            for snapshot in snapshots:
-                snapshot_dict = self._snapshot_to_dict(snapshot)
-                data["snapshots"][snapshot.id] = snapshot_dict
-                print(f"Found Snapshot: {snapshot.name}")
-
-        except Exception as e:
-            print(f"Error collecting Snapshots: {str(e)}")
-            data["snapshots"] = {}
+        # Generate mock Snapshots
+        print("Generating mock Snapshots...")
+        for i in range(3):
+            snapshot_id = f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{i}/providers/Microsoft.Compute/snapshots/mock-snapshot-{i}"
+            snapshot_dict = self._generate_mock_snapshot(i)
+            data["snapshots"][snapshot_id] = snapshot_dict
+            print(f"Generated Snapshot: mock-snapshot-{i}")
 
         return data
 
-    def _vm_to_dict(self, vm):
-        """Convert VM object to dictionary"""
+    def _generate_mock_vm(self, index):
+        """Generate mock VM data"""
+        vm_sizes = ["Standard_B2s", "Standard_D2s_v3", "Standard_F2s_v2", "Standard_E2s_v3"]
+        os_types = ["Linux", "Windows"]
+        states = ["Succeeded", "Running", "Stopped", "Deallocated"]
+        
         return {
-            "id": vm.id,
-            "name": vm.name,
-            "location": vm.location,
-            "resource_group": vm.id.split('/')[4] if len(vm.id.split('/')) > 4 else None,
-            "vm_size": vm.hardware_profile.vm_size if vm.hardware_profile else None,
-            "provisioning_state": vm.provisioning_state,
-            "vm_id": vm.vm_id,
-            "os_type": vm.storage_profile.os_disk.os_type if vm.storage_profile and vm.storage_profile.os_disk else None,
+            "id": f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{index%3}/providers/Microsoft.Compute/virtualMachines/mock-vm-{index}",
+            "name": f"mock-vm-{index}",
+            "location": random.choice(["eastus", "westus2", "centralus"]),
+            "resource_group": f"mock-rg-{index%3}",
+            "vm_size": random.choice(vm_sizes),
+            "provisioning_state": random.choice(states),
+            "vm_id": str(uuid.uuid4()),
+            "os_type": random.choice(os_types),
             "os_disk": {
-                "name": vm.storage_profile.os_disk.name if vm.storage_profile and vm.storage_profile.os_disk else None,
-                "disk_size_gb": vm.storage_profile.os_disk.disk_size_gb if vm.storage_profile and vm.storage_profile.os_disk else None,
-                "managed_disk_id": vm.storage_profile.os_disk.managed_disk.id if vm.storage_profile and vm.storage_profile.os_disk and vm.storage_profile.os_disk.managed_disk else None,
+                "name": f"mock-vm-{index}_OsDisk",
+                "disk_size_gb": random.choice([30, 64, 128]),
+                "managed_disk_id": f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{index%3}/providers/Microsoft.Compute/disks/mock-vm-{index}_OsDisk",
             },
             "data_disks": [
                 {
-                    "name": disk.name,
-                    "disk_size_gb": disk.disk_size_gb,
-                    "lun": disk.lun,
-                    "managed_disk_id": disk.managed_disk.id if disk.managed_disk else None,
+                    "name": f"mock-vm-{index}_DataDisk_{j}",
+                    "disk_size_gb": random.choice([100, 500, 1000]),
+                    "lun": j,
+                    "managed_disk_id": f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{index%3}/providers/Microsoft.Compute/disks/mock-vm-{index}_DataDisk_{j}",
                 }
-                for disk in (vm.storage_profile.data_disks or []) if vm.storage_profile
+                for j in range(random.randint(0, 3))
             ],
-            "network_interfaces": [ni.id for ni in (vm.network_profile.network_interfaces or [])] if vm.network_profile else [],
-            "tags": dict(vm.tags) if vm.tags else {},
-            "zones": vm.zones,
+            "network_interfaces": [f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{index%3}/providers/Microsoft.Network/networkInterfaces/mock-vm-{index}-nic"],
+            "tags": {"Environment": random.choice(["Dev", "Test", "Prod"]), "Owner": f"Team{index%3}"},
+            "zones": [str(random.randint(1, 3))] if random.choice([True, False]) else None,
         }
 
-    def _availability_set_to_dict(self, av_set):
-        """Convert Availability Set object to dictionary"""
+    def _generate_mock_availability_set(self, index):
+        """Generate mock Availability Set data"""
         return {
-            "id": av_set.id,
-            "name": av_set.name,
-            "location": av_set.location,
-            "resource_group": av_set.id.split('/')[4] if len(av_set.id.split('/')) > 4 else None,
-            "platform_fault_domain_count": av_set.platform_fault_domain_count,
-            "platform_update_domain_count": av_set.platform_update_domain_count,
-            "virtual_machines": [vm.id for vm in (av_set.virtual_machines or [])],
-            "tags": dict(av_set.tags) if av_set.tags else {},
+            "id": f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{index}/providers/Microsoft.Compute/availabilitySets/mock-avset-{index}",
+            "name": f"mock-avset-{index}",
+            "location": random.choice(["eastus", "westus2"]),
+            "resource_group": f"mock-rg-{index}",
+            "platform_fault_domain_count": random.choice([2, 3]),
+            "platform_update_domain_count": random.choice([5, 10, 20]),
+            "virtual_machines": [f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{index}/providers/Microsoft.Compute/virtualMachines/mock-vm-{i}" for i in range(2)],
+            "tags": {"Purpose": "HighAvailability"},
         }
 
-    def _scale_set_to_dict(self, scale_set):
-        """Convert VM Scale Set object to dictionary"""
+    def _generate_mock_scale_set(self, index):
+        """Generate mock VM Scale Set data"""
         return {
-            "id": scale_set.id,
-            "name": scale_set.name,
-            "location": scale_set.location,
-            "resource_group": scale_set.id.split('/')[4] if len(scale_set.id.split('/')) > 4 else None,
+            "id": f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{index}/providers/Microsoft.Compute/virtualMachineScaleSets/mock-vmss-{index}",
+            "name": f"mock-vmss-{index}",
+            "location": "eastus",
+            "resource_group": f"mock-rg-{index}",
             "sku": {
-                "name": scale_set.sku.name if scale_set.sku else None,
-                "capacity": scale_set.sku.capacity if scale_set.sku else None,
+                "name": "Standard_B2s",
+                "capacity": random.randint(2, 10),
             },
-            "provisioning_state": scale_set.provisioning_state,
-            "upgrade_policy": scale_set.upgrade_policy.mode if scale_set.upgrade_policy else None,
-            "tags": dict(scale_set.tags) if scale_set.tags else {},
-            "zones": scale_set.zones,
+            "provisioning_state": "Succeeded",
+            "upgrade_policy": random.choice(["Automatic", "Manual", "Rolling"]),
+            "tags": {"Environment": "Production", "Application": "WebServer"},
+            "zones": [str(i) for i in range(1, random.randint(2, 4))],
         }
 
-    def _disk_to_dict(self, disk):
-        """Convert Disk object to dictionary"""
+    def _generate_mock_disk(self, index):
+        """Generate mock Disk data"""
+        disk_types = ["Premium_LRS", "Standard_LRS", "StandardSSD_LRS"]
+        disk_states = ["Unattached", "Attached", "Reserved"]
+        
         return {
-            "id": disk.id,
-            "name": disk.name,
-            "location": disk.location,
-            "resource_group": disk.id.split('/')[4] if len(disk.id.split('/')) > 4 else None,
-            "disk_size_gb": disk.disk_size_gb,
-            "disk_state": disk.disk_state,
-            "os_type": disk.os_type,
-            "provisioning_state": disk.provisioning_state,
-            "disk_iops_read_write": disk.disk_iops_read_write,
-            "disk_mbps_read_write": disk.disk_mbps_read_write,
-            "tags": dict(disk.tags) if disk.tags else {},
-            "zones": disk.zones,
+            "id": f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{index%3}/providers/Microsoft.Compute/disks/mock-disk-{index}",
+            "name": f"mock-disk-{index}",
+            "location": random.choice(["eastus", "westus2"]),
+            "resource_group": f"mock-rg-{index%3}",
+            "disk_size_gb": random.choice([32, 64, 128, 256, 512, 1024]),
+            "disk_state": random.choice(disk_states),
+            "os_type": random.choice(["Linux", "Windows", None]),
+            "provisioning_state": "Succeeded",
+            "disk_iops_read_write": random.randint(120, 20000),
+            "disk_mbps_read_write": random.randint(25, 900),
+            "tags": {"BackupPolicy": "Daily", "CostCenter": f"CC{index%5}"},
+            "zones": [str(random.randint(1, 3))] if random.choice([True, False]) else None,
         }
 
-    def _image_to_dict(self, image):
-        """Convert Image object to dictionary"""
+    def _generate_mock_image(self, index):
+        """Generate mock Image data"""
         return {
-            "id": image.id,
-            "name": image.name,
-            "location": image.location,
-            "resource_group": image.id.split('/')[4] if len(image.id.split('/')) > 4 else None,
-            "provisioning_state": image.provisioning_state,
-            "tags": dict(image.tags) if image.tags else {},
+            "id": f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{index}/providers/Microsoft.Compute/images/mock-image-{index}",
+            "name": f"mock-image-{index}",
+            "location": "eastus",
+            "resource_group": f"mock-rg-{index}",
+            "provisioning_state": "Succeeded",
+            "tags": {"ImageType": "Golden", "OS": random.choice(["Ubuntu", "Windows"])},
         }
 
-    def _snapshot_to_dict(self, snapshot):
-        """Convert Snapshot object to dictionary"""
+    def _generate_mock_snapshot(self, index):
+        """Generate mock Snapshot data"""
         return {
-            "id": snapshot.id,
-            "name": snapshot.name,
-            "location": snapshot.location,
-            "resource_group": snapshot.id.split('/')[4] if len(snapshot.id.split('/')) > 4 else None,
-            "disk_size_gb": snapshot.disk_size_gb,
-            "os_type": snapshot.os_type,
-            "provisioning_state": snapshot.provisioning_state,
-            "time_created": snapshot.time_created.isoformat() if snapshot.time_created else None,
-            "tags": dict(snapshot.tags) if snapshot.tags else {},
+            "id": f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{index}/providers/Microsoft.Compute/snapshots/mock-snapshot-{index}",
+            "name": f"mock-snapshot-{index}",
+            "location": "eastus",
+            "resource_group": f"mock-rg-{index}",
+            "disk_size_gb": random.choice([32, 64, 128]),
+            "os_type": random.choice(["Linux", "Windows", None]),
+            "provisioning_state": "Succeeded",
+            "time_created": (datetime.now() - timedelta(days=random.randint(1, 30))).isoformat(),
+            "tags": {"Purpose": "Backup", "RetentionDays": "30"},
         } 

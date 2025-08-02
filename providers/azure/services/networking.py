@@ -1,5 +1,6 @@
 from providers.service import BaseService, service_class
-from azure.mgmt.network import NetworkManagementClient
+import random
+import ipaddress
 
 
 @service_class
@@ -7,7 +8,7 @@ class NetworkingService(BaseService):
     def __init__(self, credential, subscription_id):
         super().__init__(credential)
         self.subscription_id = subscription_id
-        self.network_client = NetworkManagementClient(credential, subscription_id)
+        # No real clients needed for mock data
 
     def process(self):
         data = {
@@ -21,195 +22,212 @@ class NetworkingService(BaseService):
             "route_tables": {},
         }
 
-        try:
-            # Get Virtual Networks
-            print("Collecting Virtual Networks...")
-            vnets = self.network_client.virtual_networks.list_all()
-            for vnet in vnets:
-                vnet_dict = self._vnet_to_dict(vnet)
-                data["virtual_networks"][vnet.id] = vnet_dict
-                print(f"Found Virtual Network: {vnet.name}")
+        # Generate mock Virtual Networks
+        print("Generating mock Virtual Networks...")
+        vnet_count = random.randint(2, 5)
+        for i in range(vnet_count):
+            vnet_id = f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{i%3}/providers/Microsoft.Network/virtualNetworks/mock-vnet-{i}"
+            vnet_dict = self._generate_mock_vnet(i)
+            data["virtual_networks"][vnet_id] = vnet_dict
+            print(f"Generated Virtual Network: mock-vnet-{i}")
 
-                # Get subnets for this VNet
-                if vnet.subnets:
-                    for subnet in vnet.subnets:
-                        subnet_dict = self._subnet_to_dict(subnet, vnet.id)
-                        data["subnets"][subnet.id] = subnet_dict
+            # Generate subnets for this VNet
+            subnet_count = random.randint(2, 6)
+            for j in range(subnet_count):
+                subnet_id = f"{vnet_id}/subnets/subnet-{j}"
+                subnet_dict = self._generate_mock_subnet(j, vnet_id, i)
+                data["subnets"][subnet_id] = subnet_dict
 
-        except Exception as e:
-            print(f"Error collecting Virtual Networks: {str(e)}")
-            data["virtual_networks"] = {}
+        # Generate mock Network Security Groups
+        print("Generating mock Network Security Groups...")
+        nsg_count = random.randint(3, 8)
+        for i in range(nsg_count):
+            nsg_id = f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{i%3}/providers/Microsoft.Network/networkSecurityGroups/mock-nsg-{i}"
+            nsg_dict = self._generate_mock_nsg(i)
+            data["network_security_groups"][nsg_id] = nsg_dict
+            print(f"Generated NSG: mock-nsg-{i}")
 
-        try:
-            # Get Network Security Groups
-            print("Collecting Network Security Groups...")
-            nsgs = self.network_client.network_security_groups.list_all()
-            for nsg in nsgs:
-                nsg_dict = self._nsg_to_dict(nsg)
-                data["network_security_groups"][nsg.id] = nsg_dict
-                print(f"Found NSG: {nsg.name}")
+        # Generate mock Network Interfaces
+        print("Generating mock Network Interfaces...")
+        nic_count = random.randint(5, 12)
+        for i in range(nic_count):
+            nic_id = f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{i%3}/providers/Microsoft.Network/networkInterfaces/mock-nic-{i}"
+            nic_dict = self._generate_mock_nic(i)
+            data["network_interfaces"][nic_id] = nic_dict
+            print(f"Generated NIC: mock-nic-{i}")
 
-        except Exception as e:
-            print(f"Error collecting Network Security Groups: {str(e)}")
-            data["network_security_groups"] = {}
+        # Generate mock Public IP Addresses
+        print("Generating mock Public IP Addresses...")
+        pip_count = random.randint(3, 8)
+        for i in range(pip_count):
+            pip_id = f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{i%3}/providers/Microsoft.Network/publicIPAddresses/mock-pip-{i}"
+            pip_dict = self._generate_mock_public_ip(i)
+            data["public_ip_addresses"][pip_id] = pip_dict
+            print(f"Generated Public IP: mock-pip-{i}")
 
-        try:
-            # Get Network Interfaces
-            print("Collecting Network Interfaces...")
-            nics = self.network_client.network_interfaces.list_all()
-            for nic in nics:
-                nic_dict = self._nic_to_dict(nic)
-                data["network_interfaces"][nic.id] = nic_dict
-                print(f"Found Network Interface: {nic.name}")
-
-        except Exception as e:
-            print(f"Error collecting Network Interfaces: {str(e)}")
-            data["network_interfaces"] = {}
-
-        try:
-            # Get Public IP Addresses
-            print("Collecting Public IP Addresses...")
-            public_ips = self.network_client.public_ip_addresses.list_all()
-            for pip in public_ips:
-                pip_dict = self._public_ip_to_dict(pip)
-                data["public_ip_addresses"][pip.id] = pip_dict
-                print(f"Found Public IP: {pip.name}")
-
-        except Exception as e:
-            print(f"Error collecting Public IP Addresses: {str(e)}")
-            data["public_ip_addresses"] = {}
-
-        try:
-            # Get Load Balancers
-            print("Collecting Load Balancers...")
-            load_balancers = self.network_client.load_balancers.list_all()
-            for lb in load_balancers:
-                lb_dict = self._load_balancer_to_dict(lb)
-                data["load_balancers"][lb.id] = lb_dict
-                print(f"Found Load Balancer: {lb.name}")
-
-        except Exception as e:
-            print(f"Error collecting Load Balancers: {str(e)}")
-            data["load_balancers"] = {}
+        # Generate mock Load Balancers
+        print("Generating mock Load Balancers...")
+        lb_count = random.randint(1, 3)
+        for i in range(lb_count):
+            lb_id = f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{i}/providers/Microsoft.Network/loadBalancers/mock-lb-{i}"
+            lb_dict = self._generate_mock_load_balancer(i)
+            data["load_balancers"][lb_id] = lb_dict
+            print(f"Generated Load Balancer: mock-lb-{i}")
 
         return data
 
-    def _vnet_to_dict(self, vnet):
-        """Convert Virtual Network object to dictionary"""
+    def _generate_mock_vnet(self, index):
+        """Generate mock Virtual Network data"""
+        locations = ["eastus", "westus2", "centralus", "northeurope"]
+        address_spaces = ["10.0.0.0/16", "172.16.0.0/12", "192.168.0.0/16", "10.1.0.0/16"]
+        
         return {
-            "id": vnet.id,
-            "name": vnet.name,
-            "location": vnet.location,
-            "resource_group": vnet.id.split('/')[4] if len(vnet.id.split('/')) > 4 else None,
-            "address_space": vnet.address_space.address_prefixes if vnet.address_space else [],
-            "provisioning_state": vnet.provisioning_state,
-            "subnets": [subnet.id for subnet in (vnet.subnets or [])],
-            "tags": dict(vnet.tags) if vnet.tags else {},
+            "id": f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{index%3}/providers/Microsoft.Network/virtualNetworks/mock-vnet-{index}",
+            "name": f"mock-vnet-{index}",
+            "location": random.choice(locations),
+            "resource_group": f"mock-rg-{index%3}",
+            "address_space": [random.choice(address_spaces)],
+            "provisioning_state": "Succeeded",
+            "subnets": [f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{index%3}/providers/Microsoft.Network/virtualNetworks/mock-vnet-{index}/subnets/subnet-{j}" for j in range(random.randint(2, 4))],
+            "enable_ddos_protection": random.choice([True, False]),
+            "enable_vm_protection": random.choice([True, False]),
+            "tags": {
+                "Environment": random.choice(["Dev", "Test", "Prod"]),
+                "Network": f"VNet{index}",
+            },
         }
 
-    def _subnet_to_dict(self, subnet, vnet_id):
-        """Convert Subnet object to dictionary"""
+    def _generate_mock_subnet(self, index, vnet_id, vnet_index):
+        """Generate mock Subnet data"""
+        # Generate subnet CIDR based on VNet address space
+        base_network = f"10.{vnet_index}.{index}.0/24"
+        
         return {
-            "id": subnet.id,
-            "name": subnet.name,
+            "id": f"{vnet_id}/subnets/subnet-{index}",
+            "name": f"subnet-{index}",
             "vnet_id": vnet_id,
-            "address_prefix": subnet.address_prefix,
-            "provisioning_state": subnet.provisioning_state,
-            "network_security_group_id": subnet.network_security_group.id if subnet.network_security_group else None,
-            "route_table_id": subnet.route_table.id if subnet.route_table else None,
+            "address_prefix": base_network,
+            "provisioning_state": "Succeeded",
+            "network_security_group_id": f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{vnet_index%3}/providers/Microsoft.Network/networkSecurityGroups/mock-nsg-{index}" if random.choice([True, False]) else None,
+            "route_table_id": None,
         }
 
-    def _nsg_to_dict(self, nsg):
-        """Convert Network Security Group object to dictionary"""
+    def _generate_mock_nsg(self, index):
+        """Generate mock Network Security Group data"""
+        locations = ["eastus", "westus2", "centralus"]
+        
+        # Generate some mock security rules
+        security_rules = []
+        rule_count = random.randint(2, 8)
+        for i in range(rule_count):
+            security_rules.append({
+                "name": f"AllowRule{i}",
+                "protocol": random.choice(["TCP", "UDP", "*"]),
+                "source_port_range": "*",
+                "destination_port_range": random.choice(["80", "443", "22", "3389", "8080"]),
+                "source_address_prefix": random.choice(["*", "10.0.0.0/8", "Internet"]),
+                "destination_address_prefix": "*",
+                "access": random.choice(["Allow", "Deny"]),
+                "priority": 100 + i * 10,
+                "direction": random.choice(["Inbound", "Outbound"]),
+            })
+        
         return {
-            "id": nsg.id,
-            "name": nsg.name,
-            "location": nsg.location,
-            "resource_group": nsg.id.split('/')[4] if len(nsg.id.split('/')) > 4 else None,
-            "provisioning_state": nsg.provisioning_state,
-            "security_rules": [
-                {
-                    "name": rule.name,
-                    "protocol": rule.protocol,
-                    "source_port_range": rule.source_port_range,
-                    "destination_port_range": rule.destination_port_range,
-                    "source_address_prefix": rule.source_address_prefix,
-                    "destination_address_prefix": rule.destination_address_prefix,
-                    "access": rule.access,
-                    "priority": rule.priority,
-                    "direction": rule.direction,
-                }
-                for rule in (nsg.security_rules or [])
-            ],
-            "tags": dict(nsg.tags) if nsg.tags else {},
+            "id": f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{index%3}/providers/Microsoft.Network/networkSecurityGroups/mock-nsg-{index}",
+            "name": f"mock-nsg-{index}",
+            "location": random.choice(locations),
+            "resource_group": f"mock-rg-{index%3}",
+            "provisioning_state": "Succeeded",
+            "security_rules": security_rules,
+            "tags": {
+                "Purpose": random.choice(["Web", "Database", "Application"]),
+                "Tier": random.choice(["Frontend", "Backend", "DMZ"]),
+            },
         }
 
-    def _nic_to_dict(self, nic):
-        """Convert Network Interface object to dictionary"""
+    def _generate_mock_nic(self, index):
+        """Generate mock Network Interface data"""
+        locations = ["eastus", "westus2", "centralus"]
+        
         return {
-            "id": nic.id,
-            "name": nic.name,
-            "location": nic.location,
-            "resource_group": nic.id.split('/')[4] if len(nic.id.split('/')) > 4 else None,
-            "provisioning_state": nic.provisioning_state,
-            "mac_address": nic.mac_address,
-            "primary": nic.primary,
-            "enable_accelerated_networking": nic.enable_accelerated_networking,
-            "enable_ip_forwarding": nic.enable_ip_forwarding,
+            "id": f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{index%3}/providers/Microsoft.Network/networkInterfaces/mock-nic-{index}",
+            "name": f"mock-nic-{index}",
+            "location": random.choice(locations),
+            "resource_group": f"mock-rg-{index%3}",
+            "provisioning_state": "Succeeded",
+            "mac_address": f"00-0D-3A-{random.randint(10,99):02X}-{random.randint(10,99):02X}-{random.randint(10,99):02X}",
+            "primary": random.choice([True, False]),
+            "enable_accelerated_networking": random.choice([True, False]),
+            "enable_ip_forwarding": random.choice([True, False]),
             "ip_configurations": [
                 {
-                    "name": config.name,
-                    "private_ip_address": config.private_ip_address,
-                    "private_ip_allocation_method": config.private_ip_allocation_method,
-                    "subnet_id": config.subnet.id if config.subnet else None,
-                    "public_ip_address_id": config.public_ip_address.id if config.public_ip_address else None,
+                    "name": "ipconfig1",
+                    "private_ip_address": f"10.{index%3}.{random.randint(0,255)}.{random.randint(4,254)}",
+                    "private_ip_allocation_method": "Dynamic",
+                    "subnet_id": f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{index%3}/providers/Microsoft.Network/virtualNetworks/mock-vnet-{index%3}/subnets/subnet-0",
+                    "public_ip_address_id": f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{index%3}/providers/Microsoft.Network/publicIPAddresses/mock-pip-{index}" if random.choice([True, False]) else None,
                 }
-                for config in (nic.ip_configurations or [])
             ],
-            "tags": dict(nic.tags) if nic.tags else {},
+            "tags": {
+                "Owner": f"VM-{index}",
+                "Environment": random.choice(["Dev", "Test", "Prod"]),
+            },
         }
 
-    def _public_ip_to_dict(self, pip):
-        """Convert Public IP Address object to dictionary"""
+    def _generate_mock_public_ip(self, index):
+        """Generate mock Public IP Address data"""
+        locations = ["eastus", "westus2", "centralus"]
+        allocation_methods = ["Static", "Dynamic"]
+        
+        # Generate a fake public IP address
+        ip_address = f"{random.randint(1,223)}.{random.randint(1,254)}.{random.randint(1,254)}.{random.randint(1,254)}"
+        
         return {
-            "id": pip.id,
-            "name": pip.name,
-            "location": pip.location,
-            "resource_group": pip.id.split('/')[4] if len(pip.id.split('/')) > 4 else None,
-            "ip_address": pip.ip_address,
-            "provisioning_state": pip.provisioning_state,
-            "public_ip_allocation_method": pip.public_ip_allocation_method,
-            "public_ip_address_version": pip.public_ip_address_version,
-            "idle_timeout_in_minutes": pip.idle_timeout_in_minutes,
-            "tags": dict(pip.tags) if pip.tags else {},
+            "id": f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{index%3}/providers/Microsoft.Network/publicIPAddresses/mock-pip-{index}",
+            "name": f"mock-pip-{index}",
+            "location": random.choice(locations),
+            "resource_group": f"mock-rg-{index%3}",
+            "ip_address": ip_address,
+            "provisioning_state": "Succeeded",
+            "public_ip_allocation_method": random.choice(allocation_methods),
+            "public_ip_address_version": "IPv4",
+            "idle_timeout_in_minutes": random.choice([4, 10, 15, 30]),
+            "tags": {
+                "Service": random.choice(["Web", "API", "Database"]),
+                "Environment": random.choice(["Dev", "Test", "Prod"]),
+            },
         }
 
-    def _load_balancer_to_dict(self, lb):
-        """Convert Load Balancer object to dictionary"""
+    def _generate_mock_load_balancer(self, index):
+        """Generate mock Load Balancer data"""
+        locations = ["eastus", "westus2", "centralus"]
+        
         return {
-            "id": lb.id,
-            "name": lb.name,
-            "location": lb.location,
-            "resource_group": lb.id.split('/')[4] if len(lb.id.split('/')) > 4 else None,
-            "provisioning_state": lb.provisioning_state,
+            "id": f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{index}/providers/Microsoft.Network/loadBalancers/mock-lb-{index}",
+            "name": f"mock-lb-{index}",
+            "location": random.choice(locations),
+            "resource_group": f"mock-rg-{index}",
+            "provisioning_state": "Succeeded",
             "frontend_ip_configurations": [
                 {
-                    "name": config.name,
-                    "private_ip_address": config.private_ip_address,
-                    "subnet_id": config.subnet.id if config.subnet else None,
-                    "public_ip_address_id": config.public_ip_address.id if config.public_ip_address else None,
+                    "name": "LoadBalancerFrontEnd",
+                    "private_ip_address": None,
+                    "subnet_id": None,
+                    "public_ip_address_id": f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{index}/providers/Microsoft.Network/publicIPAddresses/mock-pip-lb-{index}",
                 }
-                for config in (lb.frontend_ip_configurations or [])
             ],
-            "backend_address_pools": [pool.name for pool in (lb.backend_address_pools or [])],
+            "backend_address_pools": [f"BackendPool{i}" for i in range(random.randint(1, 3))],
             "load_balancing_rules": [
                 {
-                    "name": rule.name,
-                    "protocol": rule.protocol,
-                    "frontend_port": rule.frontend_port,
-                    "backend_port": rule.backend_port,
+                    "name": f"HTTPRule{i}",
+                    "protocol": "TCP",
+                    "frontend_port": 80 + i,
+                    "backend_port": 8080 + i,
                 }
-                for rule in (lb.load_balancing_rules or [])
+                for i in range(random.randint(1, 3))
             ],
-            "tags": dict(lb.tags) if lb.tags else {},
+            "tags": {
+                "Application": random.choice(["WebApp", "API", "Database"]),
+                "Tier": "LoadBalancer",
+            },
         } 

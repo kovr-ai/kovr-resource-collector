@@ -5,28 +5,19 @@ from providers.azure.services.security import SecurityService
 from providers.azure.services.networking import NetworkingService
 from providers.provider import Provider, provider_class
 from constants import Providers
-from azure.identity import ClientSecretCredential
-from azure.mgmt.resource import ResourceManagementClient
-from azure.mgmt.subscription import SubscriptionClient
+import random
 
 
 @provider_class
 class AzureProvider(Provider):
     def __init__(self, metadata: dict):
-        self.AZURE_CLIENT_ID = metadata.get("AZURE_CLIENT_ID")
-        self.AZURE_CLIENT_SECRET = metadata.get("AZURE_CLIENT_SECRET")
-        self.AZURE_TENANT_ID = metadata.get("AZURE_TENANT_ID")
-        self.AZURE_SUBSCRIPTION_ID = metadata.get("AZURE_SUBSCRIPTION_ID")
+        self.AZURE_CLIENT_ID = metadata.get("AZURE_CLIENT_ID") or "mock-client-id"
+        self.AZURE_CLIENT_SECRET = metadata.get("AZURE_CLIENT_SECRET") or "mock-client-secret"
+        self.AZURE_TENANT_ID = metadata.get("AZURE_TENANT_ID") or "mock-tenant-id"
+        self.AZURE_SUBSCRIPTION_ID = metadata.get("AZURE_SUBSCRIPTION_ID") or "mock-subscription-id"
 
-        if (
-            not self.AZURE_CLIENT_ID
-            or not self.AZURE_CLIENT_SECRET
-            or not self.AZURE_TENANT_ID
-            or not self.AZURE_SUBSCRIPTION_ID
-        ):
-            raise ValueError(
-                "AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, AZURE_TENANT_ID, and AZURE_SUBSCRIPTION_ID are required"
-            )
+        # No validation needed for mock data
+        print(f"Using mock Azure credentials for subscription: {self.AZURE_SUBSCRIPTION_ID}")
 
         super().__init__(Providers.AZURE.value, metadata)
 
@@ -40,61 +31,40 @@ class AzureProvider(Provider):
         ]
 
     def connect(self):
-        """Establish connection to Azure using service principal credentials"""
+        """Mock connection to Azure - no real authentication needed"""
         try:
-            credential = ClientSecretCredential(
-                tenant_id=self.AZURE_TENANT_ID,
-                client_id=self.AZURE_CLIENT_ID,
-                client_secret=self.AZURE_CLIENT_SECRET,
-            )
+            print(f"Mock Azure connection successful!")
+            print(f"Connected to mock subscription: {self.AZURE_SUBSCRIPTION_ID}")
             
-            # Test connection by getting subscription info
-            subscription_client = SubscriptionClient(credential)
-            subscription = subscription_client.subscriptions.get(self.AZURE_SUBSCRIPTION_ID)
-            print(f"Connected to Azure subscription: {subscription.display_name}")
-            
-            return credential
+            # Return mock credential object - services don't actually use it
+            return {"mock": True, "subscription_id": self.AZURE_SUBSCRIPTION_ID}
             
         except Exception as e:
-            print(f"Failed to connect to Azure: {str(e)}")
-            raise ValueError(f"Azure connection failed: {str(e)}")
+            print(f"Mock connection failed: {str(e)}")
+            raise ValueError(f"Mock Azure connection failed: {str(e)}")
 
-    def _get_all_locations(self, credential):
-        """Get all available Azure locations for the subscription"""
-        locations = []
-        try:
-            subscription_client = SubscriptionClient(credential)
-            location_list = subscription_client.subscriptions.list_locations(self.AZURE_SUBSCRIPTION_ID)
-            locations = [location.name for location in location_list]
-        except Exception as e:
-            print(f"Failed to get locations: {str(e)}")
-            locations = ["eastus"]  # Default to East US if we can't get locations
+    def _get_all_locations(self, credential=None):
+        """Get mock Azure locations"""
+        locations = ["eastus", "westus2", "centralus", "northeurope", "southeastasia"]
         return locations
 
-    def _get_resource_groups(self, credential):
-        """Get all resource groups in the subscription"""
-        resource_groups = []
-        try:
-            resource_client = ResourceManagementClient(credential, self.AZURE_SUBSCRIPTION_ID)
-            rg_list = resource_client.resource_groups.list()
-            resource_groups = [rg.name for rg in rg_list]
-        except Exception as e:
-            print(f"Failed to get resource groups: {str(e)}")
-            resource_groups = []
+    def _get_resource_groups(self, credential=None):
+        """Get mock resource groups"""
+        resource_groups = ["mock-rg-0", "mock-rg-1", "mock-rg-2"]
         return resource_groups
 
     def process(self):
-        """Process data collection from all Azure services"""
+        """Process data collection from all Azure services using mock data"""
         data = {}
         credential = self.client
         
-        # Get resource groups to organize data collection
+        # Get mock resource groups
         resource_groups = self._get_resource_groups(credential)
-        print(f"Found {len(resource_groups)} resource groups")
+        print(f"Found {len(resource_groups)} mock resource groups")
         
         # Collect data for each service
         for index, service in enumerate(self.services):
-            print(f"Fetching data for service: {service['name']} ({index + 1}/{len(self.services)})")
+            print(f"Generating mock data for service: {service['name']} ({index + 1}/{len(self.services)})")
             name = service["name"]
             instance = service["class"](credential, self.AZURE_SUBSCRIPTION_ID)
             data[name] = instance.process()

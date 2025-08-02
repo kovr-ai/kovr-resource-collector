@@ -1,6 +1,7 @@
 from providers.service import BaseService, service_class
-from azure.mgmt.authorization import AuthorizationManagementClient
-from azure.mgmt.msi import ManagedServiceIdentityClient
+import random
+import uuid
+from datetime import datetime, timedelta
 
 
 @service_class
@@ -8,8 +9,7 @@ class IdentityService(BaseService):
     def __init__(self, credential, subscription_id):
         super().__init__(credential)
         self.subscription_id = subscription_id
-        self.auth_client = AuthorizationManagementClient(credential, subscription_id)
-        self.msi_client = ManagedServiceIdentityClient(credential, subscription_id)
+        # No real clients needed for mock data
 
     def process(self):
         data = {
@@ -18,98 +18,140 @@ class IdentityService(BaseService):
             "managed_identities": {},
         }
 
-        try:
-            # Get Role Assignments
-            print("Collecting Role Assignments...")
-            role_assignments = self.auth_client.role_assignments.list()
-            for assignment in role_assignments:
-                assignment_dict = self._role_assignment_to_dict(assignment)
-                data["role_assignments"][assignment.id] = assignment_dict
-                print(f"Found Role Assignment: {assignment.id}")
+        # Generate mock Role Assignments
+        print("Generating mock Role Assignments...")
+        assignment_count = random.randint(10, 25)
+        for i in range(assignment_count):
+            assignment_id = f"/subscriptions/{self.subscription_id}/providers/Microsoft.Authorization/roleAssignments/{uuid.uuid4()}"
+            assignment_dict = self._generate_mock_role_assignment(i)
+            data["role_assignments"][assignment_id] = assignment_dict
+            print(f"Generated Role Assignment {i}")
 
-        except Exception as e:
-            print(f"Error collecting Role Assignments: {str(e)}")
-            data["role_assignments"] = {}
+        # Generate mock Role Definitions
+        print("Generating mock Role Definitions...")
+        definition_count = random.randint(5, 15)
+        for i in range(definition_count):
+            definition_id = f"/subscriptions/{self.subscription_id}/providers/Microsoft.Authorization/roleDefinitions/{uuid.uuid4()}"
+            definition_dict = self._generate_mock_role_definition(i)
+            data["role_definitions"][definition_id] = definition_dict
+            print(f"Generated Role Definition: {definition_dict['role_name']}")
 
-        try:
-            # Get Role Definitions
-            print("Collecting Role Definitions...")
-            role_definitions = self.auth_client.role_definitions.list(f"/subscriptions/{self.subscription_id}")
-            for definition in role_definitions:
-                definition_dict = self._role_definition_to_dict(definition)
-                data["role_definitions"][definition.id] = definition_dict
-                print(f"Found Role Definition: {definition.role_name}")
-
-        except Exception as e:
-            print(f"Error collecting Role Definitions: {str(e)}")
-            data["role_definitions"] = {}
-
-        try:
-            # Get Managed Identities
-            print("Collecting Managed Identities...")
-            managed_identities = self.msi_client.user_assigned_identities.list_by_subscription()
-            for identity in managed_identities:
-                identity_dict = self._managed_identity_to_dict(identity)
-                data["managed_identities"][identity.id] = identity_dict
-                print(f"Found Managed Identity: {identity.name}")
-
-        except Exception as e:
-            print(f"Error collecting Managed Identities: {str(e)}")
-            data["managed_identities"] = {}
+        # Generate mock Managed Identities
+        print("Generating mock Managed Identities...")
+        identity_count = random.randint(3, 8)
+        for i in range(identity_count):
+            identity_id = f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{i%3}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/mock-identity-{i}"
+            identity_dict = self._generate_mock_managed_identity(i)
+            data["managed_identities"][identity_id] = identity_dict
+            print(f"Generated Managed Identity: mock-identity-{i}")
 
         return data
 
-    def _role_assignment_to_dict(self, assignment):
-        """Convert Role Assignment object to dictionary"""
+    def _generate_mock_role_assignment(self, index):
+        """Generate mock Role Assignment data"""
+        principal_types = ["User", "Group", "ServicePrincipal"]
+        scopes = [
+            f"/subscriptions/{self.subscription_id}",
+            f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{index%3}",
+            f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{index%3}/providers/Microsoft.Compute/virtualMachines/mock-vm-{index}"
+        ]
+        
+        role_definitions = [
+            f"/subscriptions/{self.subscription_id}/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c",  # Contributor
+            f"/subscriptions/{self.subscription_id}/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7",  # Reader
+            f"/subscriptions/{self.subscription_id}/providers/Microsoft.Authorization/roleDefinitions/18d7d88d-d35e-4fb5-a5c3-7773c20a72d9",  # User Access Administrator
+            f"/subscriptions/{self.subscription_id}/providers/Microsoft.Authorization/roleDefinitions/8e3af657-a8ff-443c-a75c-2fe8c4bcb635",  # Owner
+        ]
+        
+        created_on = datetime.now() - timedelta(days=random.randint(1, 365))
+        
         return {
-            "id": assignment.id,
-            "name": assignment.name,
-            "type": assignment.type,
-            "scope": assignment.scope,
-            "role_definition_id": assignment.role_definition_id,
-            "principal_id": assignment.principal_id,
-            "principal_type": assignment.principal_type,
-            "created_on": assignment.created_on.isoformat() if assignment.created_on else None,
-            "updated_on": assignment.updated_on.isoformat() if assignment.updated_on else None,
-            "created_by": assignment.created_by,
-            "updated_by": assignment.updated_by,
+            "id": f"/subscriptions/{self.subscription_id}/providers/Microsoft.Authorization/roleAssignments/{uuid.uuid4()}",
+            "name": str(uuid.uuid4()),
+            "type": "Microsoft.Authorization/roleAssignments",
+            "scope": random.choice(scopes),
+            "role_definition_id": random.choice(role_definitions),
+            "principal_id": str(uuid.uuid4()),
+            "principal_type": random.choice(principal_types),
+            "created_on": created_on.isoformat(),
+            "updated_on": created_on.isoformat(),
+            "created_by": str(uuid.uuid4()),
+            "updated_by": str(uuid.uuid4()),
         }
 
-    def _role_definition_to_dict(self, definition):
-        """Convert Role Definition object to dictionary"""
+    def _generate_mock_role_definition(self, index):
+        """Generate mock Role Definition data"""
+        custom_roles = [
+            "Custom VM Operator",
+            "Custom Storage Reader",
+            "Custom Network Admin",
+            "Custom Security Reviewer",
+            "Custom Backup Operator"
+        ]
+        
+        builtin_roles = [
+            "Virtual Machine Contributor",
+            "Storage Account Contributor", 
+            "Network Contributor",
+            "Security Admin",
+            "Backup Contributor"
+        ]
+        
+        is_custom = random.choice([True, False])
+        role_name = random.choice(custom_roles if is_custom else builtin_roles)
+        
+        # Generate permissions based on role type
+        if "VM" in role_name or "Virtual Machine" in role_name:
+            actions = ["Microsoft.Compute/virtualMachines/*", "Microsoft.Compute/disks/read"]
+        elif "Storage" in role_name:
+            actions = ["Microsoft.Storage/storageAccounts/*", "Microsoft.Storage/storageAccounts/blobServices/*"]
+        elif "Network" in role_name:
+            actions = ["Microsoft.Network/*"]
+        elif "Security" in role_name:
+            actions = ["Microsoft.Security/*", "Microsoft.Authorization/*/read"]
+        else:
+            actions = ["Microsoft.Resources/subscriptions/resourceGroups/read"]
+        
+        created_on = datetime.now() - timedelta(days=random.randint(30, 730))
+        
         return {
-            "id": definition.id,
-            "name": definition.name,
-            "type": definition.type,
-            "role_name": definition.role_name,
-            "description": definition.description,
-            "role_type": definition.role_type,
+            "id": f"/subscriptions/{self.subscription_id}/providers/Microsoft.Authorization/roleDefinitions/{uuid.uuid4()}",
+            "name": str(uuid.uuid4()),
+            "type": "Microsoft.Authorization/roleDefinitions",
+            "role_name": role_name,
+            "description": f"Custom role for {role_name.lower()} operations",
+            "role_type": "CustomRole" if is_custom else "BuiltInRole",
             "permissions": [
                 {
-                    "actions": permission.actions or [],
-                    "not_actions": permission.not_actions or [],
-                    "data_actions": permission.data_actions or [],
-                    "not_data_actions": permission.not_data_actions or [],
+                    "actions": actions,
+                    "not_actions": [],
+                    "data_actions": [],
+                    "not_data_actions": [],
                 }
-                for permission in (definition.permissions or [])
             ],
-            "assignable_scopes": definition.assignable_scopes or [],
-            "created_on": definition.created_on.isoformat() if definition.created_on else None,
-            "updated_on": definition.updated_on.isoformat() if definition.updated_on else None,
-            "created_by": definition.created_by,
-            "updated_by": definition.updated_by,
+            "assignable_scopes": [f"/subscriptions/{self.subscription_id}"],
+            "created_on": created_on.isoformat(),
+            "updated_on": created_on.isoformat(),
+            "created_by": str(uuid.uuid4()),
+            "updated_by": str(uuid.uuid4()),
         }
 
-    def _managed_identity_to_dict(self, identity):
-        """Convert Managed Identity object to dictionary"""
+    def _generate_mock_managed_identity(self, index):
+        """Generate mock Managed Identity data"""
+        locations = ["eastus", "westus2", "centralus"]
+        
         return {
-            "id": identity.id,
-            "name": identity.name,
-            "location": identity.location,
-            "resource_group": identity.id.split('/')[4] if len(identity.id.split('/')) > 4 else None,
-            "type": identity.type,
-            "principal_id": identity.principal_id,
-            "client_id": identity.client_id,
-            "tenant_id": identity.tenant_id,
-            "tags": dict(identity.tags) if identity.tags else {},
+            "id": f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{index%3}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/mock-identity-{index}",
+            "name": f"mock-identity-{index}",
+            "location": random.choice(locations),
+            "resource_group": f"mock-rg-{index%3}",
+            "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+            "principal_id": str(uuid.uuid4()),
+            "client_id": str(uuid.uuid4()),
+            "tenant_id": str(uuid.uuid4()),
+            "tags": {
+                "Environment": random.choice(["Dev", "Test", "Prod"]),
+                "Application": f"App{index%5}",
+                "ManagedBy": "Infrastructure",
+            },
         } 

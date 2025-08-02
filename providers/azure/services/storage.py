@@ -1,5 +1,6 @@
 from providers.service import BaseService, service_class
-from azure.mgmt.storage import StorageManagementClient
+import random
+from datetime import datetime, timedelta
 
 
 @service_class
@@ -7,7 +8,7 @@ class StorageService(BaseService):
     def __init__(self, credential, subscription_id):
         super().__init__(credential)
         self.subscription_id = subscription_id
-        self.storage_client = StorageManagementClient(credential, subscription_id)
+        # No real clients needed for mock data
 
     def process(self):
         data = {
@@ -18,87 +19,106 @@ class StorageService(BaseService):
             "tables": {},
         }
 
-        try:
-            # Get Storage Accounts
-            print("Collecting Storage Accounts...")
-            storage_accounts = self.storage_client.storage_accounts.list()
-            for account in storage_accounts:
-                account_dict = self._storage_account_to_dict(account)
-                data["storage_accounts"][account.id] = account_dict
-                print(f"Found Storage Account: {account.name}")
+        # Generate mock Storage Accounts
+        print("Generating mock Storage Accounts...")
+        account_count = random.randint(2, 6)
+        for i in range(account_count):
+            account_id = f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{i%3}/providers/Microsoft.Storage/storageAccounts/mockstorageacc{i}"
+            account_dict = self._generate_mock_storage_account(i)
+            data["storage_accounts"][account_id] = account_dict
+            print(f"Generated Storage Account: mockstorageacc{i}")
 
-                # Get blob containers for this storage account
-                try:
-                    containers = self.storage_client.blob_containers.list(
-                        account.id.split('/')[4], account.name
-                    )
-                    for container in containers:
-                        container_dict = self._container_to_dict(container, account.id)
-                        data["blob_containers"][container.id] = container_dict
-                except Exception as e:
-                    print(f"Error collecting containers for {account.name}: {str(e)}")
+            # Generate blob containers for this storage account
+            container_count = random.randint(1, 5)
+            for j in range(container_count):
+                container_id = f"{account_id}/blobServices/default/containers/container-{j}"
+                container_dict = self._generate_mock_container(j, account_id)
+                data["blob_containers"][container_id] = container_dict
 
-                # Get file shares for this storage account
-                try:
-                    shares = self.storage_client.file_shares.list(
-                        account.id.split('/')[4], account.name
-                    )
-                    for share in shares:
-                        share_dict = self._file_share_to_dict(share, account.id)
-                        data["file_shares"][share.id] = share_dict
-                except Exception as e:
-                    print(f"Error collecting file shares for {account.name}: {str(e)}")
-
-        except Exception as e:
-            print(f"Error collecting Storage Accounts: {str(e)}")
-            data["storage_accounts"] = {}
+            # Generate file shares for this storage account
+            share_count = random.randint(0, 3)
+            for j in range(share_count):
+                share_id = f"{account_id}/fileServices/default/shares/share-{j}"
+                share_dict = self._generate_mock_file_share(j, account_id)
+                data["file_shares"][share_id] = share_dict
 
         return data
 
-    def _storage_account_to_dict(self, account):
-        """Convert Storage Account object to dictionary"""
+    def _generate_mock_storage_account(self, index):
+        """Generate mock Storage Account data"""
+        kinds = ["StorageV2", "Storage", "BlobStorage", "BlockBlobStorage", "FileStorage"]
+        sku_names = ["Standard_LRS", "Standard_GRS", "Standard_RAGRS", "Premium_LRS"]
+        access_tiers = ["Hot", "Cool"]
+        locations = ["eastus", "westus2", "centralus", "northeurope"]
+        
+        creation_time = datetime.now() - timedelta(days=random.randint(30, 365))
+        
         return {
-            "id": account.id,
-            "name": account.name,
-            "location": account.location,
-            "resource_group": account.id.split('/')[4] if len(account.id.split('/')) > 4 else None,
-            "kind": account.kind,
+            "id": f"/subscriptions/{self.subscription_id}/resourceGroups/mock-rg-{index%3}/providers/Microsoft.Storage/storageAccounts/mockstorageacc{index}",
+            "name": f"mockstorageacc{index}",
+            "location": random.choice(locations),
+            "resource_group": f"mock-rg-{index%3}",
+            "kind": random.choice(kinds),
             "sku": {
-                "name": account.sku.name if account.sku else None,
-                "tier": account.sku.tier if account.sku else None,
+                "name": random.choice(sku_names),
+                "tier": "Standard" if "Standard" in random.choice(sku_names) else "Premium",
             },
-            "access_tier": account.access_tier,
-            "provisioning_state": account.provisioning_state,
-            "creation_time": account.creation_time.isoformat() if account.creation_time else None,
-            "primary_location": account.primary_location,
-            "secondary_location": account.secondary_location,
-            "enable_https_traffic_only": account.enable_https_traffic_only,
-            "allow_blob_public_access": account.allow_blob_public_access,
-            "minimum_tls_version": account.minimum_tls_version,
-            "tags": dict(account.tags) if account.tags else {},
+            "access_tier": random.choice(access_tiers),
+            "provisioning_state": "Succeeded",
+            "creation_time": creation_time.isoformat(),
+            "primary_location": random.choice(locations),
+            "secondary_location": random.choice(locations) if random.choice([True, False]) else None,
+            "enable_https_traffic_only": random.choice([True, False]),
+            "allow_blob_public_access": random.choice([True, False]),
+            "allow_shared_key_access": random.choice([True, False]),
+            "minimum_tls_version": random.choice(["TLS1_0", "TLS1_1", "TLS1_2"]),
+            "tags": {
+                "Environment": random.choice(["Dev", "Test", "Prod"]),
+                "CostCenter": f"CC{index%5}",
+                "Owner": f"Team{index%3}"
+            },
         }
 
-    def _container_to_dict(self, container, storage_account_id):
-        """Convert Blob Container object to dictionary"""
+    def _generate_mock_container(self, index, storage_account_id):
+        """Generate mock Blob Container data"""
+        public_access_types = [None, "Blob", "Container"]
+        lease_statuses = ["Available", "Leased", "Expired", "Breaking", "Broken"]
+        lease_states = ["Available", "Leased", "Expired", "Breaking", "Broken"]
+        
+        last_modified = datetime.now() - timedelta(days=random.randint(1, 90))
+        
         return {
-            "id": container.id,
-            "name": container.name,
+            "id": f"{storage_account_id}/blobServices/default/containers/container-{index}",
+            "name": f"container-{index}",
             "storage_account_id": storage_account_id,
-            "public_access": container.public_access,
-            "last_modified_time": container.last_modified_time.isoformat() if container.last_modified_time else None,
-            "lease_status": container.lease_status,
-            "lease_state": container.lease_state,
-            "metadata": container.metadata,
+            "public_access": random.choice(public_access_types),
+            "last_modified_time": last_modified.isoformat(),
+            "lease_status": random.choice(lease_statuses),
+            "lease_state": random.choice(lease_states),
+            "metadata": {
+                "purpose": random.choice(["backup", "logs", "media", "documents"]),
+                "created_by": f"user{index%5}",
+            },
         }
 
-    def _file_share_to_dict(self, share, storage_account_id):
-        """Convert File Share object to dictionary"""
+    def _generate_mock_file_share(self, index, storage_account_id):
+        """Generate mock File Share data"""
+        protocols = ["SMB", "NFS"]
+        access_tiers = ["TransactionOptimized", "Hot", "Cool", "Premium"]
+        
+        last_modified = datetime.now() - timedelta(days=random.randint(1, 60))
+        
         return {
-            "id": share.id,
-            "name": share.name,
+            "id": f"{storage_account_id}/fileServices/default/shares/share-{index}",
+            "name": f"share-{index}",
             "storage_account_id": storage_account_id,
-            "share_quota": share.share_quota,
-            "enabled_protocols": share.enabled_protocols,
-            "last_modified_time": share.last_modified_time.isoformat() if share.last_modified_time else None,
-            "metadata": share.metadata,
+            "share_quota": random.choice([100, 500, 1000, 5120]),
+            "share_usage_bytes": random.randint(1000000, 100000000),  # 1MB to 100MB
+            "enabled_protocols": random.choice(protocols),
+            "access_tier": random.choice(access_tiers),
+            "last_modified_time": last_modified.isoformat(),
+            "metadata": {
+                "department": random.choice(["IT", "HR", "Finance", "Marketing"]),
+                "backup_enabled": str(random.choice([True, False])).lower(),
+            },
         } 
