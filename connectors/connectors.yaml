@@ -1,0 +1,64 @@
+# Connectors configuration file
+# Defines connector services for different providers
+
+connectors:
+  github:
+    name: "github"
+    description: "GitHub connector for complete organization/user data collection"
+    provider: "github"
+    connector_type: "github"
+    
+    # Input specification for this connector
+    input:
+      # Authentication
+      token: "string"
+      
+      # Target specification  
+      org_name: "string"
+      username: "string"
+      
+      # Collection options
+      mini_run: "integer"
+      repositories_limit: "integer"
+      
+      # Service selection flags
+      include_repositories: "boolean"
+      include_actions: "boolean" 
+      include_security: "boolean"
+      include_collaboration: "boolean"
+      include_organization: "boolean"
+      include_advanced_features: "boolean"
+    
+    # Output specification - matches response.json structure
+    output:
+      collection_time: "string"
+      authenticated_user: "string"
+      total_repositories: "integer"
+      repositories_data: "array"
+      rate_limit_info: "object"
+      metadata: "object"
+    
+    # Configuration for the GitHub provider
+    config:
+      base_url: "https://api.github.com"
+      rate_limit: 5000
+      timeout: 30
+      
+    # Services available for this connector
+    services:
+      - name: "github_data_collection"
+        description: "Collect complete GitHub data (repositories, actions, security, collaboration, etc.)"
+        provider_service: "providers.gh.gh_provider"
+        method: "process"
+        output_resource: "github"
+    
+    # Authentication configuration
+    auth:
+      type: "token"
+      token_env_var: "GITHUB_TOKEN"
+      
+    # Collection settings
+    collection:
+      batch_size: 100
+      retry_attempts: 3
+      retry_delay: 1 
