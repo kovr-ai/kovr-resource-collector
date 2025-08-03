@@ -138,4 +138,4 @@ def get_loaded_connectors() -> Dict[str, Any]:
 load_connectors_from_yaml()
 
 # Export main components
-__all__ = ['ConnectorService', 'ConnectorType', 'GithubConnectorInput', 'get_loaded_connectors', 'github'] 
+__all__ = ['ConnectorService', 'ConnectorType', 'get_loaded_connectors']

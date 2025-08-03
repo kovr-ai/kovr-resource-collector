@@ -38,7 +38,7 @@ checks:
 
   - name: "github_repository_private"
     description: "Verify that GitHub repository is private"
-    field_path: "basic_info"
+    field_path: "repository_data.basic_info"
     operation:
       name: "custom"
       custom_logic: |
@@ -57,7 +57,7 @@ checks:
 
   - name: "github_minimum_branch_count"
     description: "Verify that GitHub repository has at least 3 branches"
-    field_path: "branches"
+    field_path: "repository_data.branches"
     operation:
       name: "custom"
       custom_logic: |

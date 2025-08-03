@@ -9,7 +9,6 @@ github:
     provider_service: "providers.gh.gh_provider"
     method: "process"
 
-
   # Input specification for this connector
   input:
     GITHUB_TOKEN: "string"
