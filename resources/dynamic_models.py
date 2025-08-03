@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, create_model
 from datetime import datetime
 import yaml
 import os
+from .models import Resource
 
 
 def yaml_type_to_python_type(yaml_type: str, available_models: Dict[str, Type[BaseModel]] = None) -> type:
@@ -65,15 +66,8 @@ def resolve_resource_type_reference(field_type: str, all_models: Dict[str, Type[
 def create_resource_model_from_schema(resource_name: str, schema_definition: Dict[str, Any], all_schemas: Dict[str, Any], available_models: Dict[str, Type[BaseModel]] = None) -> Type[BaseModel]:
     """Create a dynamic Pydantic model from a resource schema definition."""
     
-    # Add base Resource fields
-    base_fields = {
-        'id': (Optional[str], None),
-        'source_connector': (Optional[str], None),
-        'created_at': (Optional[datetime], None),
-        'updated_at': (Optional[datetime], None),
-        'metadata': (Optional[Dict[str, Any]], Field(default_factory=dict)),
-        'tags': (Optional[List[str]], Field(default_factory=list))
-    }
+    # Start with empty fields - base Resource fields will be inherited only for main Resource
+    base_fields = {}
     
     # Process schema fields
     fields_definition = schema_definition.get('fields', {})
@@ -104,8 +98,22 @@ def create_resource_model_from_schema(resource_name: str, schema_definition: Dic
             field_type = yaml_type_to_python_type(str(field_def), available_models)
             base_fields[field_name] = (Optional[field_type], None)
     
-    # Create the model
-    model = create_model(resource_name, **base_fields)
+    # Determine base class based on model type
+    base_class = None
+    if resource_name.endswith('Resource'):
+        # Main resource models inherit from Resource
+        base_class = Resource
+    elif resource_name.endswith('ResourceCollection'):
+        # Collection models inherit from ResourceCollection (but this is handled elsewhere)
+        from .models import ResourceCollection
+        base_class = ResourceCollection
+    # Nested models (RepositoryData, ActionsData, etc.) don't inherit from anything special
+    
+    # Create the model with appropriate base class
+    if base_class:
+        model = create_model(resource_name, __base__=base_class, **base_fields)
+    else:
+        model = create_model(resource_name, **base_fields)
     
     # Add useful methods
     def get_field_value(self, field_path: str) -> Any:
@@ -182,54 +190,65 @@ def load_and_create_dynamic_models(yaml_file_path: str = None) -> Dict[str, Type
             yaml_data = yaml.safe_load(file)
         
         dynamic_models = {}
-        all_schemas = yaml_data.get('resources', {})
         
-        # Determine creation order - data models first, then main resources, then collections
-        data_models = []      # Models like RepositoryData, ActionsData, etc.
-        resource_models = []  # Models like GithubResource
-        collection_models = [] # Models like GithubResourceCollection
-        
-        for resource_name, resource_config in all_schemas.items():
-            if 'collection_type' in resource_config:
-                collection_models.append((resource_name, resource_config))
-            elif resource_name.endswith('Data'):
-                data_models.append((resource_name, resource_config))
-            else:
-                resource_models.append((resource_name, resource_config))
-        
-        # First pass: Create data models (like RepositoryData, ActionsData)
-        for resource_name, resource_config in data_models:
-            model_class = create_resource_model_from_schema(resource_name, resource_config, all_schemas, dynamic_models)
-            dynamic_models[resource_name] = model_class
-            model_class.__provider__ = resource_config.get('provider', 'unknown')
-            model_class.__description__ = resource_config.get('description', '')
-        
-        # Second pass: Create resource models (like GithubResource) - now they can reference data models
-        for resource_name, resource_config in resource_models:
-            model_class = create_resource_model_from_schema(resource_name, resource_config, all_schemas, dynamic_models)
-            dynamic_models[resource_name] = model_class
-            model_class.__provider__ = resource_config.get('provider', 'unknown')
-            model_class.__description__ = resource_config.get('description', '')
-        
-        # Third pass: Create collection models and resolve resource type references
-        for resource_name, resource_config in collection_models:
-            collection_type = resource_config.get('collection_type')
-            if collection_type and collection_type in dynamic_models:
-                resource_type = dynamic_models[collection_type]
+        # Process each provider section (e.g., 'github')
+        for provider_name, provider_config in yaml_data.items():
+            if not isinstance(provider_config, dict):
+                continue
                 
-                # Create collection model with proper resource type
-                model_class = create_collection_model_with_resource_type(
-                    resource_name, resource_config, resource_type, all_schemas
-                )
-                dynamic_models[resource_name] = model_class
-                model_class.__provider__ = resource_config.get('provider', 'unknown')
-                model_class.__description__ = resource_config.get('description', '')
-            else:
-                # Fallback for collections without proper resource type
-                model_class = create_resource_model_from_schema(resource_name, resource_config, all_schemas, dynamic_models)
-                dynamic_models[resource_name] = model_class
-                model_class.__provider__ = resource_config.get('provider', 'unknown')
-                model_class.__description__ = resource_config.get('description', '')
+            # Determine creation order within this provider
+            data_models = []      # Models like RepositoryData, ActionsData, etc.
+            main_resource = None  # The main Resource model
+            main_collection = None # The main ResourceCollection model
+            
+            for model_name, model_config in provider_config.items():
+                if not isinstance(model_config, dict):
+                    continue
+                    
+                if model_name == 'Resource':
+                    main_resource = (model_name, model_config)
+                elif model_name == 'ResourceCollection':
+                    main_collection = (model_name, model_config)
+                else:
+                    # These are nested data models (RepositoryData, ActionsData, etc.)
+                    data_models.append((model_name, model_config))
+            
+            # First pass: Create nested data models
+            for model_name, model_config in data_models:
+                full_model_name = model_name  # Keep original name like 'RepositoryData'
+                model_class = create_resource_model_from_schema(full_model_name, model_config, provider_config, dynamic_models)
+                dynamic_models[full_model_name] = model_class
+                model_class.__provider__ = provider_name
+                model_class.__description__ = model_config.get('description', '')
+            
+            # Second pass: Create main resource model
+            if main_resource:
+                model_name, model_config = main_resource
+                full_model_name = f"{provider_name.title()}Resource"  # github -> GithubResource
+                model_class = create_resource_model_from_schema(full_model_name, model_config, provider_config, dynamic_models)
+                dynamic_models[full_model_name] = model_class
+                model_class.__provider__ = provider_name
+                model_class.__description__ = model_config.get('description', '')
+            
+            # Third pass: Create collection model
+            if main_collection:
+                model_name, model_config = main_collection
+                full_model_name = f"{provider_name.title()}ResourceCollection"  # github -> GithubResourceCollection
+                
+                # Get the resource type for the collection
+                resource_model_name = f"{provider_name.title()}Resource"
+                if resource_model_name in dynamic_models:
+                    resource_type = dynamic_models[resource_model_name]
+                    model_class = create_collection_model_with_resource_type(
+                        full_model_name, model_config, resource_type, provider_config, dynamic_models
+                    )
+                else:
+                    # Fallback if resource type not found
+                    model_class = create_resource_model_from_schema(full_model_name, model_config, provider_config, dynamic_models)
+                
+                dynamic_models[full_model_name] = model_class
+                model_class.__provider__ = provider_name
+                model_class.__description__ = model_config.get('description', '')
         
         print(f"✅ Created {len(dynamic_models)} dynamic Pydantic models from {yaml_file_path}")
         return dynamic_models
@@ -242,47 +261,51 @@ def load_and_create_dynamic_models(yaml_file_path: str = None) -> Dict[str, Type
         return {}
 
 
-def create_collection_model_with_resource_type(resource_name: str, schema_definition: Dict[str, Any], resource_type: Type[BaseModel], all_schemas: Dict[str, Any]) -> Type[BaseModel]:
+def create_collection_model_with_resource_type(resource_name: str, schema_definition: Dict[str, Any], resource_type: Type[BaseModel], all_schemas: Dict[str, Any], available_models: Dict[str, Type[BaseModel]] = None) -> Type[BaseModel]:
     """Create a collection model with properly typed resource field."""
     
-    # Base fields for collections
-    base_fields = {
-        'resources': (List[resource_type], Field(default_factory=list, description=f"List of {resource_type.__name__} objects")),
-        'source_connector': (str, Field(description="Source connector that fetched this collection")),
-        'total_count': (int, Field(description="Total number of resources in the collection")),
-        'fetched_at': (datetime, Field(default_factory=datetime.now, description="When this collection was fetched")),
-        'metadata': (Dict[str, Any], Field(default_factory=dict, description="Collection metadata"))
-    }
+    # Import ResourceCollection base class
+    from .models import ResourceCollection
     
-    # Add schema-specific fields (excluding resources since we handled it above)
+    # Base fields for collections - these will be inherited from ResourceCollection
+    base_fields = {}
+    
+    # Add schema-specific fields (excluding standard ResourceCollection fields)
     schema_fields = schema_definition.get('fields', {})
     for field_name, field_def in schema_fields.items():
-        if field_name == 'resources':
-            continue  # Already handled above
+        if field_name in ['resources', 'source_connector', 'total_count', 'fetched_at', 'metadata']:
+            # Skip standard ResourceCollection fields - they'll be inherited
+            # But we need to override 'resources' with the proper type
+            if field_name == 'resources':
+                base_fields[field_name] = (List[resource_type], Field(default_factory=list, description=f"List of {resource_type.__name__} objects"))
+            continue
             
         if isinstance(field_def, dict):
             # Nested object
-            nested_model = create_nested_model(f"{resource_name}_{field_name.title()}", field_def)
+            nested_model = create_nested_model(f"{resource_name}_{field_name.title()}", field_def, available_models)
             base_fields[field_name] = (nested_model, Field(default_factory=dict))
         elif isinstance(field_def, list) and len(field_def) > 0:
             # Array
             if isinstance(field_def[0], dict):
-                item_model = create_nested_model(f"{resource_name}_{field_name.title()}Item", field_def[0])
+                item_model = create_nested_model(f"{resource_name}_{field_name.title()}Item", field_def[0], available_models)
                 base_fields[field_name] = (List[item_model], Field(default_factory=list))
             else:
-                item_type = yaml_type_to_python_type(field_def[0])
+                item_type = yaml_type_to_python_type(field_def[0], available_models)
                 base_fields[field_name] = (List[item_type], Field(default_factory=list))
         elif isinstance(field_def, str):
             # Simple field
-            field_type = yaml_type_to_python_type(field_def)
+            field_type = yaml_type_to_python_type(field_def, available_models)
             base_fields[field_name] = (Optional[field_type], None)
         else:
             # Simple field
-            field_type = yaml_type_to_python_type(field_def)
+            field_type = yaml_type_to_python_type(str(field_def), available_models)
             base_fields[field_name] = (Optional[field_type], None)
     
-    # Create the model
-    model = create_model(resource_name, **base_fields)
+    # Override resources field with proper typing
+    base_fields['resources'] = (List[resource_type], Field(default_factory=list, description=f"List of {resource_type.__name__} objects"))
+    
+    # Create the model inheriting from ResourceCollection
+    model = create_model(resource_name, __base__=ResourceCollection, **base_fields)
     
     # Add collection-specific methods
     def __len__(self) -> int:

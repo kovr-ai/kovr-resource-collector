@@ -28,23 +28,13 @@ connectors:
       include_collaboration: "boolean"
       include_organization: "boolean"
       include_advanced_features: "boolean"
-    
-    # Output specification - matches response.json structure
-    output:
-      collection_time: "string"
-      authenticated_user: "string"
-      total_repositories: "integer"
-      repositories_data: "array"
-      rate_limit_info: "object"
-      metadata: "object"
-    
+
     # Configuration for the GitHub provider
     config:
       base_url: "https://api.github.com"
       rate_limit: 5000
       timeout: 30
-      
-    # Single service for this connector (not an array)
+
     service:
       name: "github_data_collection"
       description: "Collect complete GitHub data (repositories, actions, security, collaboration, etc.)"

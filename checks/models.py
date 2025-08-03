@@ -103,12 +103,9 @@ class Check(BaseModel):
     def _extract_field_value(self, resource: Resource, field_path: str) -> Any:
         """Extract value from nested dictionary using dot notation."""
         keys = field_path.split('.')
-        value = resource.data
+        value = resource
         for key in keys:
-            if isinstance(value, dict):
-                value = value.get(key)
-            else:
-                return None
+            value = getattr(value, key)
         return value
 
 

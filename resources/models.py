@@ -58,7 +58,6 @@ class Resource(BaseModel):
     """
     id: str
     source_connector: str
-    data: Dict[str, Any]
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
     metadata: Dict[str, Any] = Field(default_factory=dict)

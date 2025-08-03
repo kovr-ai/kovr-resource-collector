@@ -4,7 +4,7 @@
 checks:
   - name: "github_main_branch_protected"
     description: "Verify that the main branch in GitHub repository has protection enabled"
-    field_path: "branches"
+    field_path: "repository_data.branches"
     operation:
       name: "custom"
       custom_logic: |
@@ -13,7 +13,7 @@ checks:
             result = False
         else:
             result = False  # Default to False if main branch not found
-            main_branch_names = ['main', 'master']  # Common main branch names
+            main_branch_names = ['main', 'master', 'production', 'prod']  # Common main branch names
             
             for branch in fetched_value:
                 branch_name = None
@@ -36,8 +36,8 @@ checks:
     severity: "high"
     category: "access_control"
 
-  - name: "github_repository_not_private"
-    description: "Verify that GitHub repository is public (not private)"
+  - name: "github_repository_private"
+    description: "Verify that GitHub repository is private"
     field_path: "basic_info"
     operation:
       name: "custom"
@@ -45,18 +45,18 @@ checks:
         # Check if repository is NOT private (i.e., it's public)
         if isinstance(fetched_value, dict):
             private_status = fetched_value.get('private', True)
-            result = not private_status  # Pass if not private (i.e., public)
+            result = private_status  # Pass if not private (i.e., public)
         else:
             # Handle Pydantic models
             private_status = getattr(fetched_value, 'private', True)
-            result = not private_status
+            result = private_status
     expected_value: null
     tags: ["security", "github", "visibility"]
     severity: "medium"
     category: "access_control"
 
   - name: "github_minimum_branch_count"
-    description: "Verify that GitHub repository has at least 2 branches"
+    description: "Verify that GitHub repository has at least 3 branches"
     field_path: "branches"
     operation:
       name: "custom"

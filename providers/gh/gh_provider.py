@@ -19,8 +19,6 @@ load_dotenv()
 class GitHubProvider(Provider):
     def __init__(self, metadata: dict):
         self.config = self.load_config("providers/gh/github_config.json")
-        self.output_dir = Path("output/github")
-        self.output_dir.mkdir(parents=True, exist_ok=True)
         self.metadata = self.prepare_metadata()
         self.GITHUB_TOKEN = self.metadata["GITHUB_TOKEN"]
 
@@ -74,7 +72,6 @@ class GitHubProvider(Provider):
         return {
             "GITHUB_TOKEN": github_token,
             "config": self.config,
-            "output_dir": str(self.output_dir)
         }
 
     def _get_service_class(self, service_class_name: str):
