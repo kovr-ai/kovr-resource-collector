@@ -102,11 +102,36 @@ class Check(BaseModel):
         return check_results
     
     def _extract_field_value(self, resource: Resource, field_path: str) -> Any:
-        """Extract value from nested dictionary using dot notation."""
+        """Extract value from nested dictionary using dot notation, with support for functions like len()."""
+        
+        # Check if field_path contains a function call like len()
+        if field_path.startswith('len(') and field_path.endswith(')'):
+            # Extract the inner field path from len(field.path)
+            inner_field_path = field_path[4:-1]  # Remove 'len(' and ')'
+            
+            # Extract the value using the inner field path
+            inner_value = self._extract_nested_value(resource, inner_field_path)
+            
+            # Apply len() function
+            try:
+                return len(inner_value) if hasattr(inner_value, '__len__') else 0
+            except TypeError:
+                return 0
+        else:
+            # Regular field path extraction
+            return self._extract_nested_value(resource, field_path)
+    
+    def _extract_nested_value(self, resource: Resource, field_path: str) -> Any:
+        """Extract value from nested object using dot notation."""
         keys = field_path.split('.')
         value = resource
         for key in keys:
-            value = getattr(value, key)
+            if hasattr(value, key):
+                value = getattr(value, key)
+            elif isinstance(value, dict) and key in value:
+                value = value[key]
+            else:
+                raise AttributeError(f"Field '{key}' not found in path '{field_path}'")
         return value
 
 

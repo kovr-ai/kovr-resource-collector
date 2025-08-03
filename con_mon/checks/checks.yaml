@@ -40,19 +40,10 @@ checks:
   - id: 1002
     name: "github_repository_private"
     description: "Verify that GitHub repository is private"
-    field_path: "repository_data.basic_info"
+    field_path: "repository_data.basic_info.private"
     operation:
-      name: "custom"
-      custom_logic: |
-        # Check if repository is NOT private (i.e., it's public)
-        if isinstance(fetched_value, dict):
-            private_status = fetched_value.get('private', True)
-            result = private_status  # Pass if not private (i.e., public)
-        else:
-            # Handle Pydantic models
-            private_status = getattr(fetched_value, 'private', True)
-            result = private_status
-    expected_value: null
+      name: "EQUAL"
+    expected_value: true
     tags: ["security", "github", "visibility"]
     severity: "medium"
     category: "access_control"
@@ -60,17 +51,10 @@ checks:
   - id: 1003
     name: "github_minimum_branch_count"
     description: "Verify that GitHub repository has at least 3 branches"
-    field_path: "repository_data.branches"
+    field_path: "len(repository_data.branches)"
     operation:
-      name: "custom"
-      custom_logic: |
-        # Check if repository has at least 3 branches
-        if isinstance(fetched_value, list):
-            branch_count = len(fetched_value)
-            result = branch_count >= 3
-        else:
-            result = False
-    expected_value: null
+      name: "GREATER_THAN_OR_EQUAL"
+    expected_value: 3
     tags: ["development", "github", "branch_management"]
     severity: "low"
     category: "development_practices" 

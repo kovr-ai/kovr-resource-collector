@@ -16,8 +16,17 @@ def _create_check_from_config(check_id:int, check_name: str, check_config: Dict[
     operation_config = check_config['operation']
     operation_name = operation_config['name']
     
-    # Create ComparisonOperation
-    operation_enum = ComparisonOperationEnum(operation_name)
+    # Create ComparisonOperation - support both enum names and values
+    try:
+        # First try by enum name (e.g., "EQUAL", "NOT_EQUAL")
+        operation_enum = ComparisonOperationEnum[operation_name]
+    except KeyError:
+        try:
+            # Fallback to enum value (e.g., "==", "!=", "custom")
+            operation_enum = ComparisonOperationEnum(operation_name)
+        except ValueError:
+            raise ValueError(f"Unsupported operation '{operation_name}'. Supported operations: {[op.name for op in ComparisonOperationEnum]} or {[op.value for op in ComparisonOperationEnum]}")
+    
     operation = ComparisonOperation(name=operation_enum)
     
     # Handle custom logic if present - execute any logic defined in YAML
@@ -173,9 +182,5 @@ load_checks_from_yaml()
 __all__ = [
     'get_checks_by_ids',
     'get_loaded_checks', 
-    'load_checks_from_yaml',
-    # Individual checks (added dynamically during load)
-    'github_main_branch_protected',
-    'github_repository_private', 
-    'github_minimum_branch_count'
+    'load_checks_from_yaml'
 ] 
