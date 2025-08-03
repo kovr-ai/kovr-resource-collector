@@ -2,7 +2,7 @@
 # Defines resource structures for different providers
 
 resources:
-  github_resource:
+  GithubResource:
     name: "github"
     description: "GitHub repository resource"
     provider: "github"

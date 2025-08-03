@@ -6,16 +6,9 @@ Test simplified checks implementation by running available checks against real d
 import json
 import checks
 from typing import List, Dict, Any
-from dataclasses import dataclass
-
-@dataclass
-class CheckResult:
-    """Result of running a check against a resource."""
-    passed: bool
-    check_name: str
-    resource_name: str
-    message: str
-    error: str = None
+from checks.models import CheckResult as ChecksCheckResult
+from resources.models import Resource, ResourceCollection
+from datetime import datetime
 
 def load_response_data(file_path: str = "response.json"):
     """Load the response.json file."""
@@ -29,43 +22,67 @@ def load_response_data(file_path: str = "response.json"):
         print(f"❌ Error parsing JSON: {e}")
         return None
 
+def create_resources_from_response_data(response_data: Dict[str, Any]) -> List[Resource]:
+    """Convert response data to Resource objects."""
+    resources_list = []
+    
+    # This is already processed resource data
+    for resource_data in response_data['resources']:
+        # Create Resource instance from the processed data
+        resource = Resource(
+            id=resource_data['id'],
+            source_connector=resource_data['source_connector'],
+            data=resource_data['data'],
+            created_at=datetime.fromisoformat(resource_data['created_at']),
+            updated_at=datetime.fromisoformat(resource_data['updated_at']),
+            metadata=resource_data.get('metadata', {}),
+            tags=resource_data.get('tags', [])
+        )
+        resources_list.append(resource)
+    
+    return resources_list
+
 def run_available_checks():
     """Load data and run all available checks against it."""
     
     print("=== Running Available Checks Against Real Data ===\n")
     
-    # Load real GitHub data
-    print("📂 Loading GitHub data...")
+    # Load GitHub data from response.json
+    print("📂 Loading GitHub data from response.json...")
     response_data = load_response_data()
     if not response_data:
         return False
     
-    repositories_data = response_data.get('repositories_data', [])
-    print(f"✅ Loaded {len(repositories_data)} repositories\n")
+    # Convert to Resource objects
+    resources_list = create_resources_from_response_data(response_data)
+    print(f"✅ Loaded {len(resources_list)} repositories as Resource objects\n")
     
     # Get all loaded checks
     loaded_checks = checks.get_loaded_checks()
     print(f"🔍 Found {len(loaded_checks)} available checks:")
-    for check_name, check_config in loaded_checks.items():
-        print(f"   - {check_name}: {check_config['description']}")
+    for check_name, check_obj in loaded_checks.items():
+        print(f"   - {check_name}: {check_obj.description or 'No description'}")
     print()
     
     # Run all checks and collect results
-    all_check_results: List[CheckResult] = []
+    all_check_results: List[ChecksCheckResult] = []
     
-    for check_name, check_config in loaded_checks.items():
+    for check_name, check_obj in loaded_checks.items():
         print(f"🔍 Running check: {check_name}")
         
-        for repo_data in repositories_data:
-            repo_name = repo_data.get('repository', 'unknown')
+        # Run the check against all resources
+        try:
+            check_results = check_obj.evaluate(resources_list)
+            all_check_results.extend(check_results)
             
-            # Run the check and create CheckResult
-            result = evaluate_check_with_result(check_config, check_name, repo_data, repo_name)
-            all_check_results.append(result)
-            
-            # Display result
-            status_icon = "✅" if result.passed else "❌"
-            print(f"   {status_icon} {repo_name}: {result.message}")
+            # Display results for this check
+            for result in check_results:
+                status_icon = "✅" if result.passed else "❌"
+                repo_name = result.resource.get_field_value('repository')
+                print(f"   {status_icon} {repo_name}: {result.message}")
+                
+        except Exception as e:
+            print(f"   ❌ Error running check {check_name}: {str(e)}")
         
         print()
     
@@ -80,7 +97,7 @@ def run_available_checks():
     if passed_results:
         grouped_passed = group_results_by_check(passed_results)
         for check_name, results in grouped_passed.items():
-            resources = [r.resource_name for r in results]
+            resources = [r.resource.get_field_value('repository') for r in results]
             print(f"   {check_name}: {', '.join(resources)}")
     else:
         print("   None")
@@ -89,7 +106,7 @@ def run_available_checks():
     if failed_results:
         grouped_failed = group_results_by_check(failed_results)
         for check_name, results in grouped_failed.items():
-            resources = [r.resource_name for r in results]
+            resources = [r.resource.get_field_value('repository') for r in results]
             print(f"   {check_name}: {', '.join(resources)}")
     else:
         print("   None")
@@ -100,69 +117,26 @@ def run_available_checks():
     print(f"✅ Total passed: {len(passed_results)}")
     print(f"❌ Total failed: {len(failed_results)}")
     
-    if len(failed_results) == 0:
+    if len(failed_results) == 0 and len(passed_results) > 0:
         print("🎉 All checks passed!")
-    elif len(passed_results) == 0:
+    elif len(passed_results) == 0 and len(failed_results) > 0:
         print("⚠️  All checks failed!")
-    else:
+    elif len(all_check_results) > 0:
         success_rate = (len(passed_results) / len(all_check_results)) * 100
         print(f"📊 Success rate: {success_rate:.1f}%")
+    else:
+        print("ℹ️  No checks were run")
     
     return True
 
-def evaluate_check_with_result(check_config: Dict[str, Any], check_name: str, repo_data: Dict[str, Any], repo_name: str) -> CheckResult:
-    """Evaluate a single check against repository data and return CheckResult."""
-    check_method = check_config.get('check_method')
-    expected_value = check_config.get('expected_value')
-    
-    try:
-        if check_method == 'is_all_branches_protected':
-            # Check if all branches are protected
-            branches = repo_data.get('branches', [])
-            if not branches:
-                return CheckResult(
-                    passed=False,
-                    check_name=check_name,
-                    resource_name=repo_name,
-                    message="No branches found",
-                    error="Repository has no branches"
-                )
-            
-            all_protected = all(branch.get('protected', False) for branch in branches)
-            protected_count = sum(1 for b in branches if b.get('protected', False))
-            
-            return CheckResult(
-                passed=all_protected,
-                check_name=check_name,
-                resource_name=repo_name,
-                message=f"Branch protection: {protected_count}/{len(branches)} protected"
-            )
-        
-        # Add more check method handlers here as needed
-        return CheckResult(
-            passed=False,
-            check_name=check_name,
-            resource_name=repo_name,
-            message="Unknown check method",
-            error=f"Unknown check method: {check_method}"
-        )
-        
-    except Exception as e:
-        return CheckResult(
-            passed=False,
-            check_name=check_name,
-            resource_name=repo_name,
-            message="Check execution failed",
-            error=str(e)
-        )
-
-def group_results_by_check(results: List[CheckResult]) -> Dict[str, List[CheckResult]]:
+def group_results_by_check(results: List[ChecksCheckResult]) -> Dict[str, List[ChecksCheckResult]]:
     """Group CheckResults by check name."""
     grouped = {}
     for result in results:
-        if result.check_name not in grouped:
-            grouped[result.check_name] = []
-        grouped[result.check_name].append(result)
+        check_name = result.check.name
+        if check_name not in grouped:
+            grouped[check_name] = []
+        grouped[check_name].append(result)
     return grouped
 
 if __name__ == "__main__":
