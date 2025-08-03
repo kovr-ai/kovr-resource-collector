@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Callable
 from pydantic import BaseModel, Field
 from enum import Enum
+from resources.models import ResourceCollection
 
 
 class ConnectorType(Enum):
@@ -23,23 +24,18 @@ class ConnectorInput(BaseModel, ABC):
     pass
 
 
-class ConnectorOutput(BaseModel, ABC):
-    """Abstract base class for connector output data."""
-    pass
-
-
 class ConnectorService(BaseModel):
     """
     Service that contains the python function to fetch data.
     """
     name: str
     connector_type: ConnectorType
-    fetch_function: Callable[[ConnectorInput], ConnectorOutput] = Field(exclude=True)
+    fetch_function: Callable[[ConnectorInput], ResourceCollection] = Field(exclude=True)
     
     class Config:
         arbitrary_types_allowed = True
 
-    def fetch_data(self, input_config: ConnectorInput) -> ConnectorOutput:
+    def fetch_data(self, input_config: ConnectorInput) -> ResourceCollection:
         """
         Fetch data using the configured function.
         

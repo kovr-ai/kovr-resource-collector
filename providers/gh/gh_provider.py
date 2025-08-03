@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 import json
 from typing import Dict, Any
+from resources import GithubResourceCollection
 
 # Load environment variables from .env file
 load_dotenv()
@@ -120,18 +121,42 @@ class GitHubProvider(Provider):
             print(f"Unexpected error during GitHub connection: {e}")
             raise
 
-    def process(self) -> GitHubReport:
+    # def process(self) -> GitHubReport:
+    def process(self) -> GithubResourceCollection:
         """Process data collection and return GitHubReport model"""
         # Create the report object
-        report = GitHubReport(
-            authenticated_user=self.user.login if hasattr(self, 'user') else None
-        )
         with open(
             '/Users/ironeagle-kovr/Workspace/code/kovr-resource-collector/2025-08-02-19-03-26_response.json',
             'r'
         ) as mock_response_file:
             mock_response = json.load(mock_response_file)
-            return GitHubReport.model_validate(mock_response)
+            
+            # Import the resource models
+            from resources import GithubResourceCollection, GithubResource
+            
+            # Convert repositories_data to GithubResource objects
+            github_resources = []
+            for repo_data in mock_response.get('repositories_data', []):
+                try:
+                    # Add required base Resource fields
+                    repo_data_with_base_fields = {
+                        **repo_data,
+                        'id': f"github-{repo_data.get('repository', 'unknown').replace('/', '-')}",
+                        'source_connector': 'github'
+                    }
+                    
+                    github_resource = GithubResource(**repo_data_with_base_fields)
+                    github_resources.append(github_resource)
+                except Exception as e:
+                    print(f"Error converting repository data: {e}")
+                    continue
+            
+            # Create and return GithubResourceCollection
+            return GithubResourceCollection(resources=github_resources)
+
+        report = GitHubReport(
+            authenticated_user=self.user.login if hasattr(self, 'user') else None
+        )
         
         # Get list of repositories
         try:

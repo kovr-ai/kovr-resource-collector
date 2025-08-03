@@ -4,20 +4,22 @@ Connectors module for data fetching service definitions.
 Auto-generated imports available:
 - ConnectorService objects: github, aws, etc. (based on YAML config)
 - Input models: GithubConnectorInput, AwsConnectorInput, etc.
-- Output models: GithubConnectorOutput, AwsConnectorOutput, etc.
+
+Note: Services now return ResourceCollection objects directly (no connector output models)
 
 Usage:
-    from connectors import github, GithubConnectorInput, GithubConnectorOutput
+    from connectors import github, GithubConnectorInput
+    from resources import GithubResourceCollection
     
     input_config = GithubConnectorInput(token='...', org_name='...')
-    result = github.fetch_data(input_config)
+    result: GithubResourceCollection = github.fetch_data(input_config)
 """
 import yaml
 import os
 import importlib
 from typing import Dict, Any, List, Type
 from pydantic import BaseModel, create_model
-from .models import ConnectorService, ConnectorType, ConnectorInput, ConnectorOutput
+from .models import ConnectorService, ConnectorType, ConnectorInput
 
 # Global storage for loaded connectors
 _loaded_connectors: Dict[str, Dict[str, Any]] = {}
@@ -26,7 +28,7 @@ _connector_models: Dict[str, Dict[str, Type[BaseModel]]] = {}
 
 # This will be populated dynamically during loading
 __all__ = [
-    'ConnectorService', 'ConnectorType', 'ConnectorInput', 'ConnectorOutput',
+    'ConnectorService', 'ConnectorType', 'ConnectorInput',
     'get_loaded_connectors', 'get_connector_services', 'get_all_connector_services', 'get_connector_models'
 ]
 
@@ -80,40 +82,7 @@ def _create_provider_wrapper(provider_class, method_name, connector_config):
         method = getattr(provider_instance, method_name)
         provider_result = method()
         
-        # Convert provider result to connector output format
-        connector_name = connector_config['name']
-        output_model_name = f"{connector_name.title()}ConnectorOutput"
-        
-        if output_model_name in globals():
-            output_model = globals()[output_model_name]
-            
-            # Convert provider result to connector output
-            if hasattr(provider_result, '__dict__'):
-                provider_data = provider_result.__dict__
-            elif hasattr(provider_result, 'model_dump'):
-                provider_data = provider_result.model_dump()
-            else:
-                provider_data = provider_result
-            
-            # Map the data to connector output fields
-            connector_output_data = {}
-            for field_name in output_model.model_fields.keys():
-                value = None
-                if hasattr(provider_result, field_name):
-                    value = getattr(provider_result, field_name)
-                elif field_name in provider_data:
-                    value = provider_data[field_name]
-                
-                # Convert value to appropriate type
-                if value is not None:
-                    # Convert datetime to string
-                    if hasattr(value, 'isoformat'):
-                        value = value.isoformat()
-                    connector_output_data[field_name] = value
-            
-            return output_model(**connector_output_data)
-        
-        # Fallback: return provider result as-is
+        # Provider now returns ResourceCollection directly
         return provider_result
     return fetch_function
 
@@ -204,20 +173,7 @@ def load_connectors_from_yaml(yaml_file_path: str = None):
                     # Add to __all__ for discoverability
                     __all__.append(full_input_name)
                 
-                if 'output' in connector_config:
-                    output_model = _create_dynamic_model(
-                        f"{connector_name.title()}ConnectorOutput", 
-                        connector_config['output'],
-                        ConnectorOutput
-                    )
-                    models['output'] = output_model
-                    
-                    # Make output model available for direct import (full name only)
-                    full_output_name = f"{connector_name.title()}ConnectorOutput"
-                    globals()[full_output_name] = output_model
-                    
-                    # Add to __all__ for discoverability
-                    __all__.append(full_output_name)
+                # Note: No output model creation - services return ResourceCollection directly
                 
                 _connector_models[connector_name] = models
                 
