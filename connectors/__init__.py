@@ -1,5 +1,17 @@
 """
 Connectors module for data fetching service definitions.
+
+Auto-generated imports available:
+- ConnectorService objects: github, aws, etc. (based on YAML config)
+- Input models: GithubInput, AwsInput, etc. (short names)
+- Output models: GithubOutput, AwsOutput, etc. (short names)
+- Full model names: GithubConnectorInput, GithubConnectorOutput, etc.
+
+Usage:
+    from connectors import github, GithubInput, GithubOutput
+    
+    input_config = GithubInput(token='...', org_name='...')
+    result = github.fetch_data(input_config)
 """
 import yaml
 import os
@@ -12,6 +24,12 @@ from .models import ConnectorService, ConnectorType, ConnectorInput, ConnectorOu
 _loaded_connectors: Dict[str, Dict[str, Any]] = {}
 _connector_services: Dict[str, List[ConnectorService]] = {}
 _connector_models: Dict[str, Dict[str, Type[BaseModel]]] = {}
+
+# This will be populated dynamically during loading
+__all__ = [
+    'ConnectorService', 'ConnectorType', 'ConnectorInput', 'ConnectorOutput',
+    'get_loaded_connectors', 'get_connector_services', 'get_all_connector_services', 'get_connector_models'
+]
 
 def _create_dynamic_model(name: str, fields_spec: Dict[str, str], base_class: Type[BaseModel]) -> Type[BaseModel]:
     """Create a dynamic Pydantic model from YAML field specifications."""
@@ -109,7 +127,7 @@ def load_connectors_from_yaml(yaml_file_path: str = None):
     Args:
         yaml_file_path: Path to YAML file, defaults to connectors/connectors.yaml
     """
-    global _loaded_connectors, _connector_services, _connector_models
+    global _loaded_connectors, _connector_services, _connector_models, __all__
     
     if yaml_file_path is None:
         # Default to connectors.yaml in the same directory as this file
@@ -125,6 +143,9 @@ def load_connectors_from_yaml(yaml_file_path: str = None):
             for connector_name, connector_config in yaml_data['connectors'].items():
                 _loaded_connectors[connector_name] = connector_config
                 
+                # Add connector name to __all__
+                __all__.append(connector_name)
+                
                 # Create dynamic input/output models if specified
                 models = {}
                 if 'input' in connector_config:
@@ -134,6 +155,16 @@ def load_connectors_from_yaml(yaml_file_path: str = None):
                         ConnectorInput
                     )
                     models['input'] = input_model
+                    
+                    # Make input model available for direct import
+                    # Both full name and short name
+                    full_input_name = f"{connector_name.title()}ConnectorInput"
+                    short_input_name = f"{connector_name.title()}Input"
+                    globals()[full_input_name] = input_model
+                    globals()[short_input_name] = input_model
+                    
+                    # Add to __all__ for discoverability
+                    __all__.extend([full_input_name, short_input_name])
                 
                 if 'output' in connector_config:
                     output_model = _create_dynamic_model(
@@ -142,6 +173,16 @@ def load_connectors_from_yaml(yaml_file_path: str = None):
                         ConnectorOutput
                     )
                     models['output'] = output_model
+                    
+                    # Make output model available for direct import
+                    # Both full name and short name
+                    full_output_name = f"{connector_name.title()}ConnectorOutput"
+                    short_output_name = f"{connector_name.title()}Output"
+                    globals()[full_output_name] = output_model
+                    globals()[short_output_name] = output_model
+                    
+                    # Add to __all__ for discoverability
+                    __all__.extend([full_output_name, short_output_name])
                 
                 _connector_models[connector_name] = models
                 
@@ -155,11 +196,62 @@ def load_connectors_from_yaml(yaml_file_path: str = None):
                 _connector_services[connector_name] = services
                 
                 # Make accessible as module attribute
-                globals()[connector_name] = {
-                    'config': connector_config,
-                    'services': services,
-                    'models': models
-                }
+                # If there's only one service, return it directly for easy access
+                # If multiple services, create a wrapper with the primary service as default
+                if len(services) == 1:
+                    # Single service - return ConnectorService directly
+                    connector_obj = services[0]
+                    # Add metadata for backward compatibility
+                    connector_obj._config = connector_config
+                    connector_obj._models = models
+                    connector_obj._services = services
+                elif len(services) > 1:
+                    # Multiple services - create a wrapper class
+                    class ConnectorWrapper:
+                        def __init__(self, services, config, models):
+                            self._services = services
+                            self._config = config
+                            self._models = models
+                            # Use first service as default
+                            self._default_service = services[0]
+                        
+                        def fetch_data(self, input_config: ConnectorInput) -> ConnectorOutput:
+                            """Fetch data using the default (first) service."""
+                            return self._default_service.fetch_data(input_config)
+                        
+                        def get_service(self, service_name: str) -> ConnectorService:
+                            """Get a specific service by name."""
+                            for service in self._services:
+                                if service.name == service_name:
+                                    return service
+                            raise ValueError(f"Service '{service_name}' not found")
+                        
+                        def list_services(self) -> List[str]:
+                            """List all available service names."""
+                            return [service.name for service in self._services]
+                        
+                        @property
+                        def config(self):
+                            return self._config
+                        
+                        @property
+                        def models(self):
+                            return self._models
+                        
+                        @property
+                        def services(self):
+                            return self._services
+                    
+                    connector_obj = ConnectorWrapper(services, connector_config, models)
+                else:
+                    # No services - return config dict for backward compatibility
+                    connector_obj = {
+                        'config': connector_config,
+                        'services': services,
+                        'models': models
+                    }
+                
+                globals()[connector_name] = connector_obj
         
         total_services = sum(len(services) for services in _connector_services.values())
         print(f"✅ Loaded {len(_loaded_connectors)} connectors with {total_services} services from {yaml_file_path}")
