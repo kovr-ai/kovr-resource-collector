@@ -44,13 +44,13 @@ connectors:
       rate_limit: 5000
       timeout: 30
       
-    # Services available for this connector
-    services:
-      - name: "github_data_collection"
-        description: "Collect complete GitHub data (repositories, actions, security, collaboration, etc.)"
-        provider_service: "providers.gh.gh_provider"
-        method: "process"
-        output_resource: "github"
+    # Single service for this connector (not an array)
+    service:
+      name: "github_data_collection"
+      description: "Collect complete GitHub data (repositories, actions, security, collaboration, etc.)"
+      provider_service: "providers.gh.gh_provider"
+      method: "process"
+      output_resource: "github"
     
     # Authentication configuration
     auth:

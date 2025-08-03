@@ -186,28 +186,33 @@ def load_connectors_from_yaml(yaml_file_path: str = None):
                 
                 _connector_models[connector_name] = models
                 
-                # Create ConnectorService objects for each service
-                services = []
-                for service_config in connector_config.get('services', []):
-                    service = _create_connector_service(service_config, connector_config)
-                    if service:
-                        services.append(service)
-                
-                _connector_services[connector_name] = services
-                
-                # Make accessible as module attribute
-                # Each connector has exactly one service, so return it directly
-                if services:
-                    connector_obj = services[0]  # Take the single service
-                    # Add metadata for backward compatibility
-                    connector_obj._config = connector_config
-                    connector_obj._models = models
-                    connector_obj._services = services
+                # Create single ConnectorService object from service configuration
+                service_config = connector_config.get('service')
+                if service_config:
+                    connector_service = _create_connector_service(service_config, connector_config)
+                    if connector_service:
+                        # Store in services dict for backward compatibility (as single-item list)
+                        _connector_services[connector_name] = [connector_service]
+                        
+                        # Make accessible as module attribute - return ConnectorService directly
+                        connector_obj = connector_service
+                        # Add metadata for backward compatibility
+                        connector_obj._config = connector_config
+                        connector_obj._models = models
+                        connector_obj._services = [connector_service]  # Single service in list for compatibility
+                    else:
+                        # Fallback to dict if service creation failed
+                        connector_obj = {
+                            'config': connector_config,
+                            'services': [],
+                            'models': models
+                        }
                 else:
-                    # Fallback to dict if no services (shouldn't happen)
+                    # No service defined - fallback to dict
+                    _connector_services[connector_name] = []
                     connector_obj = {
                         'config': connector_config,
-                        'services': services,
+                        'services': [],
                         'models': models
                     }
                 
