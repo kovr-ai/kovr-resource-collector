@@ -134,8 +134,63 @@ def get_loaded_connectors() -> Dict[str, Any]:
     """Get all loaded connector configurations."""
     return _loaded_connectors.copy()
 
+def get_connector_by_id(connector_id: str):
+    """
+    Get a connector service by its ID/name.
+    
+    Args:
+        connector_id: The connector identifier (e.g., 'github')
+        
+    Returns:
+        ConnectorService object for the specified connector
+        
+    Raises:
+        ValueError: If connector_id is not found
+    """
+    if connector_id in globals():
+        connector = globals()[connector_id]
+        if isinstance(connector, ConnectorService):
+            return connector
+    
+    raise ValueError(f"Connector '{connector_id}' not found. Available connectors: {list(_loaded_connectors.keys())}")
+
+def get_connector_input_by_id(connector_service_or_id):
+    """
+    Get the input class for a connector service.
+    
+    Args:
+        connector_service_or_id: Either a ConnectorService object or connector ID string
+        
+    Returns:
+        Input class for the connector (e.g., GithubConnectorInput)
+        
+    Raises:
+        ValueError: If input class is not found
+    """
+    # Handle both ConnectorService object and string ID
+    if isinstance(connector_service_or_id, ConnectorService):
+        connector_name = connector_service_or_id.name.lower()
+    else:
+        connector_name = str(connector_service_or_id).lower()
+    
+    # Generate expected input class name
+    input_class_name = f"{connector_name.title()}ConnectorInput"
+    
+    if input_class_name in globals():
+        return globals()[input_class_name]
+    
+    raise ValueError(f"Input class '{input_class_name}' not found for connector '{connector_name}'")
+
 # Auto-load connectors when module is imported
 load_connectors_from_yaml()
 
 # Export main components
-__all__ = ['ConnectorService', 'ConnectorType', 'get_loaded_connectors']
+__all__ = [
+    'ConnectorService', 
+    'ConnectorType', 
+    'get_loaded_connectors',
+    'get_connector_by_id',
+    'get_connector_input_by_id',
+    'github', 
+    'GithubConnectorInput'
+]

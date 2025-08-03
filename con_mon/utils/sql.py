@@ -24,7 +24,8 @@ def insert_check_results(executed_check_results: List[Tuple[int, str, List[Any]]
                         resource_collection: Any,
                         customer_id: str,
                         connection_id: int,
-                        output_dir: Optional[str] = None):
+                        output_dir: Optional[str] = None,
+                        **kwargs):
     """
     Generate and write SQL files or insert directly into database from executed check results.
     
@@ -34,6 +35,7 @@ def insert_check_results(executed_check_results: List[Tuple[int, str, List[Any]]
         customer_id: Customer identifier for SQL records
         connection_id: Connection identifier for SQL records
         output_dir: Directory to write SQL files. If None, insert directly into database.
+        **kwargs: Additional keyword arguments (ignored, for compatibility)
     """
     
     # Get ResourceCollection as dict for resource_json

@@ -3,7 +3,7 @@ Checks module for resource validation and evaluation.
 """
 import yaml
 import os
-from typing import Dict, Any, Callable
+from typing import Dict, Any, Callable, List, Tuple, Optional, Union
 from .models import Check, ComparisonOperation, ComparisonOperationEnum
 
 # Global storage for loaded checks
@@ -110,5 +110,72 @@ def get_loaded_checks() -> Dict[str, Check]:
     """Get all loaded checks."""
     return _loaded_checks.copy()
 
+def get_checks_by_ids(check_ids: Optional[Union[List[int], int]] = None) -> List[Tuple[int, str, Check]]:
+    """
+    Get checks by their IDs or return all checks if check_ids is None or empty list.
+    
+    Args:
+        check_ids: List of check IDs to filter by, single check ID, None or empty list to return all checks
+        
+    Returns:
+        List of tuples in format (check_id, check_name, check_object)
+        
+    Examples:
+        # Get all checks (any of these work)
+        all_checks = get_checks_by_ids()
+        all_checks = get_checks_by_ids(None)
+        all_checks = get_checks_by_ids([])
+        
+        # Get specific checks by ID
+        selected_checks = get_checks_by_ids([1001, 1002])
+        
+        # Get single check by ID
+        single_check = get_checks_by_ids(1001)
+    """
+    # Convert single int to list for consistent processing
+    if isinstance(check_ids, int):
+        check_ids = [check_ids]
+    
+    # Treat empty list the same as None (return all checks)
+    if check_ids is not None and len(check_ids) == 0:
+        check_ids = None
+    
+    result = []
+    
+    for check_name, check_obj in _loaded_checks.items():
+        # If no specific IDs requested, include all checks
+        if check_ids is None:
+            result.append((check_obj.id, check_name, check_obj))
+        # If specific IDs requested, include only matching checks
+        elif check_obj.id in check_ids:
+            result.append((check_obj.id, check_name, check_obj))
+    
+    # Sort by check ID for consistent ordering
+    result.sort(key=lambda x: x[0])
+    
+    # Log what checks were returned
+    if check_ids is None:
+        print(f"📋 Retrieved all {len(result)} available checks")
+    else:
+        found_ids = [check_id for check_id, _, _ in result]
+        missing_ids = [cid for cid in check_ids if cid not in found_ids]
+        
+        print(f"📋 Retrieved {len(result)} checks matching IDs: {found_ids}")
+        if missing_ids:
+            print(f"⚠️ Warning: Check IDs not found: {missing_ids}")
+    
+    return result
+
 # Auto-load checks when module is imported
-load_checks_from_yaml() 
+load_checks_from_yaml()
+
+# Export main functions and loaded checks
+__all__ = [
+    'get_checks_by_ids',
+    'get_loaded_checks', 
+    'load_checks_from_yaml',
+    # Individual checks (added dynamically during load)
+    'github_main_branch_protected',
+    'github_repository_private', 
+    'github_minimum_branch_count'
+] 
