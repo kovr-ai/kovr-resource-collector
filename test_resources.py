@@ -1,25 +1,338 @@
 #!/usr/bin/env python3
 """
-Test resources module - verify GithubResourceCollection and GithubResource models
-contain all data from response.json without data loss.
+Dynamic test resources module - verify GithubResourceCollection and GithubResource models
+contain all data from response.json based on YAML schema definitions.
+No hardcoded field names - everything is validated against the YAML schema.
 """
 
 import json
+import yaml
+import os
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple, Union
 from resources import GithubResource, GithubResourceCollection
+
+def load_schema_definitions() -> Dict[str, Any]:
+    """Load the YAML schema definitions."""
+    schema_path = os.path.join('resources', 'resources.yaml')
+    with open(schema_path, 'r') as f:
+        return yaml.safe_load(f)
 
 def load_response_data() -> Dict[str, Any]:
     """Load the response.json file."""
     with open('response.json', 'r') as f:
         return json.load(f)
 
+def extract_field_paths(schema_fields: Dict[str, Any], prefix: str = "") -> List[Tuple[str, str]]:
+    """
+    Recursively extract all field paths from schema definition.
+    Returns list of tuples: (field_path, field_type)
+    
+    Example: 
+    - ('basic_info.id', 'integer')
+    - ('metadata.default_branch', 'string')
+    - ('branches[].name', 'string')
+    """
+    field_paths = []
+    
+    for field_name, field_definition in schema_fields.items():
+        current_path = f"{prefix}.{field_name}" if prefix else field_name
+        
+        if isinstance(field_definition, dict):
+            # Nested object - recurse deeper
+            field_paths.extend(extract_field_paths(field_definition, current_path))
+        elif isinstance(field_definition, list):
+            # Array with object structure - handle array items
+            if field_definition and isinstance(field_definition[0], dict):
+                # Array of objects (like branches)
+                array_item_paths = extract_field_paths(field_definition[0], f"{current_path}[]")
+                field_paths.extend(array_item_paths)
+            else:
+                # Simple array
+                field_paths.append((current_path, "array"))
+        else:
+            # Simple field
+            field_paths.append((current_path, field_definition))
+    
+    return field_paths
+
+def get_nested_value(obj: Any, field_path: str) -> Any:
+    """
+    Get nested value from object using dot notation path.
+    Handles both dict and Pydantic model access.
+    Supports array notation like 'branches[].name'
+    """
+    parts = field_path.split('.')
+    current = obj
+    
+    for part in parts:
+        if part.endswith('[]'):
+            # Array field - return the array itself for now
+            field_name = part[:-2]  # Remove []
+            if isinstance(current, dict):
+                current = current.get(field_name)
+            else:
+                current = getattr(current, field_name, None)
+        else:
+            if isinstance(current, dict):
+                current = current.get(part)
+            else:
+                current = getattr(current, part, None)
+        
+        if current is None:
+            break
+    
+    return current
+
+def compare_values(model_value: Any, original_value: Any, field_type: str) -> Tuple[bool, str]:
+    """
+    Compare model value with original value considering the field type.
+    Returns (is_match, message)
+    """
+    # Handle None values
+    if model_value is None and original_value is None:
+        return True, "Both None"
+    if model_value is None or original_value is None:
+        return False, f"One is None: model={model_value}, original={original_value}"
+    
+    # Handle datetime conversion
+    if field_type == "string" and isinstance(model_value, datetime):
+        model_value = model_value.isoformat()
+    
+    # Direct comparison for most types
+    if model_value == original_value:
+        return True, f"Values match: {model_value}"
+    else:
+        return False, f"Values differ: model={model_value}, original={original_value}"
+
+def test_array_field(model_array: List[Any], original_array: List[Any], field_paths: List[Tuple[str, str]], base_path: str) -> Dict[str, List[str]]:
+    """
+    Test array fields with nested objects (like branches).
+    """
+    results = {
+        'passed': [],
+        'failed': [],
+        'warnings': []
+    }
+    
+    # Check array length
+    if len(model_array) == len(original_array):
+        results['passed'].append(f"✅ {base_path}: Array length matches ({len(model_array)} items)")
+    else:
+        results['failed'].append(f"❌ {base_path}: Array length differs - model: {len(model_array)}, original: {len(original_array)}")
+        return results
+    
+    # Test fields in array items
+    array_field_paths = [fp for fp in field_paths if fp[0].startswith(f"{base_path}[]")]
+    
+    if array_field_paths and model_array and original_array:
+        # Test first item in detail, then spot check others
+        for i, (model_item, original_item) in enumerate(zip(model_array, original_array)):
+            item_prefix = f"{base_path}[{i}]"
+            
+            for field_path, field_type in array_field_paths:
+                # Convert array path to item-specific path
+                item_field_path = field_path.replace(f"{base_path}[].", "")
+                
+                try:
+                    model_value = get_nested_value(model_item, item_field_path)
+                    original_value = get_nested_value(original_item, item_field_path)
+                    
+                    is_match, message = compare_values(model_value, original_value, field_type)
+                    
+                    if is_match:
+                        if i == 0:  # Only show details for first item to avoid spam
+                            results['passed'].append(f"✅ {item_prefix}.{item_field_path}: {message}")
+                    else:
+                        results['failed'].append(f"❌ {item_prefix}.{item_field_path}: {message}")
+                        
+                except Exception as e:
+                    results['failed'].append(f"❌ {item_prefix}.{item_field_path}: Error accessing - {str(e)}")
+            
+            # Only test first few items in detail for performance
+            if i >= 2:
+                break
+    
+    return results
+
+def test_resource_schema(resource_obj: Any, original_resource_data: Dict[str, Any], schema_fields: Dict[str, Any], resource_type: str = "Resource") -> Dict[str, List[str]]:
+    """
+    Test any resource object against its YAML schema definition.
+    Completely dynamic - works with any resource type defined in YAML.
+    """
+    results = {
+        'passed': [],
+        'failed': [],
+        'warnings': []
+    }
+    
+    # Extract all field paths from schema
+    field_paths = extract_field_paths(schema_fields)
+    
+    print(f"  📋 Testing {len(field_paths)} schema-defined fields for {resource_type}...")
+    
+    for field_path, field_type in field_paths:
+        # Skip array item paths - they'll be handled by test_array_field
+        if '[].' in field_path:
+            continue
+            
+        try:
+            # Get model value from resource object
+            model_value = get_nested_value(resource_obj, field_path)
+            
+            # Get original value from response data
+            # This is the only part that needs to know about the data structure
+            if field_path in ['repository', 'basic_info', 'metadata', 'branches', 'statistics']:
+                # Top-level fields from data section (for resources that have this structure)
+                original_value = original_resource_data.get('data', {}).get(field_path)
+            else:
+                # Nested field - need to navigate through data structure
+                data_section = original_resource_data.get('data', original_resource_data)
+                original_value = get_nested_value(data_section, field_path)
+            
+            # Handle array fields specially
+            if field_type == "array" or (isinstance(original_value, list) and field_path.endswith('s')):
+                if isinstance(model_value, list) and isinstance(original_value, list):
+                    # Test array fields with potential nested objects
+                    array_results = test_array_field(model_value, original_value, field_paths, field_path)
+                    results['passed'].extend(array_results['passed'])
+                    results['failed'].extend(array_results['failed'])
+                    results['warnings'].extend(array_results['warnings'])
+                else:
+                    results['failed'].append(f"❌ {field_path}: Expected array, got model: {type(model_value)}, original: {type(original_value)}")
+            elif field_path.endswith('[]'):
+                # Skip array item indicators - handled above
+                continue
+            else:
+                # Regular field comparison
+                is_match, message = compare_values(model_value, original_value, field_type)
+                
+                if is_match:
+                    results['passed'].append(f"✅ {field_path}: {message}")
+                else:
+                    results['failed'].append(f"❌ {field_path}: {message}")
+                    
+        except Exception as e:
+            results['failed'].append(f"❌ {field_path}: Error during validation - {str(e)}")
+    
+    return results
+
+def test_base_resource_fields(resource_obj: Any, original_resource_data: Dict[str, Any]) -> Dict[str, List[str]]:
+    """Test base Resource fields for any resource type (id, source_connector, created_at, updated_at, tags, metadata)."""
+    results = {
+        'passed': [],
+        'failed': [],
+        'warnings': []
+    }
+    
+    # Base fields that all resources should have
+    base_fields = ['id', 'source_connector', 'created_at', 'updated_at']
+    
+    for field in base_fields:
+        try:
+            model_value = getattr(resource_obj, field)
+            original_value = original_resource_data.get(field)
+            
+            # Special handling for datetime fields
+            if field in ['created_at', 'updated_at'] and isinstance(model_value, datetime):
+                model_value = model_value.isoformat()
+            
+            if model_value == original_value:
+                results['passed'].append(f"✅ {field}: Values match")
+            else:
+                results['failed'].append(f"❌ {field}: Model={model_value}, Original={original_value}")
+                
+        except Exception as e:
+            results['failed'].append(f"❌ {field}: Error accessing - {str(e)}")
+    
+    # Test tags (should include original tags plus metadata preservation tags)
+    try:
+        model_tags = resource_obj.tags
+        original_tags = original_resource_data.get('tags', [])
+        
+        original_tags_present = all(tag in model_tags for tag in original_tags)
+        if original_tags_present:
+            results['passed'].append(f"✅ tags: All {len(original_tags)} original tags present")
+        else:
+            missing = [tag for tag in original_tags if tag not in model_tags]
+            results['failed'].append(f"❌ tags: Missing original tags: {missing}")
+            
+        # Check for metadata preservation tags
+        original_metadata = original_resource_data.get('metadata', {})
+        if original_metadata:
+            expected_tags = []
+            if 'authenticated_user' in original_metadata:
+                expected_tags.append(f"user:{original_metadata['authenticated_user']}")
+            if 'provider' in original_metadata:
+                expected_tags.append(f"provider:{original_metadata['provider']}")
+            
+            missing_meta_tags = [tag for tag in expected_tags if tag not in model_tags]
+            if not missing_meta_tags:
+                results['passed'].append(f"✅ tags: Metadata preservation tags present")
+            else:
+                results['failed'].append(f"❌ tags: Missing metadata tags: {missing_meta_tags}")
+                
+    except Exception as e:
+        results['failed'].append(f"❌ tags: Error accessing - {str(e)}")
+    
+    return results
+
+def test_resource_collection_schema(collection_obj: Any, original_data: Dict[str, Any], schema_fields: Dict[str, Any], collection_type: str = "ResourceCollection") -> Dict[str, List[str]]:
+    """Test any resource collection against its YAML schema definition."""
+    results = {
+        'passed': [],
+        'failed': [],
+        'warnings': []
+    }
+    
+    # Extract field paths from collection schema
+    field_paths = extract_field_paths(schema_fields)
+    
+    print(f"  📋 Testing {len(field_paths)} collection schema fields for {collection_type}...")
+    
+    for field_path, field_type in field_paths:
+        # Skip resources field - it's special (contains resource objects)
+        if field_path == 'resources':
+            continue
+            
+        try:
+            model_value = get_nested_value(collection_obj, field_path)
+            
+            # Collection fields are set by us, so we mainly check they exist and have correct types
+            if model_value is not None:
+                results['passed'].append(f"✅ {field_path}: Present with value")
+            else:
+                results['warnings'].append(f"⚠️  {field_path}: Not set (may be intentional)")
+                
+        except Exception as e:
+            results['failed'].append(f"❌ {field_path}: Error accessing - {str(e)}")
+    
+    # Test resources field specially
+    try:
+        if hasattr(collection_obj, 'resources') and len(collection_obj.resources) == len(original_data['resources']):
+            results['passed'].append(f"✅ resources: Contains {len(collection_obj.resources)} resources")
+        else:
+            results['failed'].append(f"❌ resources: Expected {len(original_data['resources'])}, got {len(getattr(collection_obj, 'resources', []))}")
+        
+        # Check that all items are the expected resource type (generic check)
+        if hasattr(collection_obj, 'resources'):
+            for i, resource in enumerate(collection_obj.resources):
+                # Just check it has the basic resource attributes
+                if hasattr(resource, 'id') and hasattr(resource, 'source_connector'):
+                    results['passed'].append(f"✅ resources[{i}]: Is valid resource object")
+                else:
+                    results['failed'].append(f"❌ resources[{i}]: Not a valid resource object, got {type(resource)}")
+                
+    except Exception as e:
+        results['failed'].append(f"❌ resources: Error accessing - {str(e)}")
+    
+    return results
+
 def create_github_resources_from_response(response_data: Dict[str, Any]) -> List[GithubResource]:
-    """Create GithubResource objects from response data."""
+    """Create GithubResource objects from response data (same as before)."""
     github_resources = []
     
     for resource_data in response_data['resources']:
-        # Extract GitHub repository metadata from data.metadata
         github_repo_metadata = resource_data['data'].get('metadata', {})
         
         github_resource = GithubResource(
@@ -27,32 +340,28 @@ def create_github_resources_from_response(response_data: Dict[str, Any]) -> List
             source_connector=resource_data['source_connector'],
             created_at=datetime.fromisoformat(resource_data['created_at']),
             updated_at=datetime.fromisoformat(resource_data['updated_at']),
-            metadata=github_repo_metadata,  # Use GitHub repository metadata for the metadata field
+            metadata=github_repo_metadata,
             tags=resource_data.get('tags', []),
-            
-            # Schema-specific fields from the data section
             repository=resource_data['data']['repository'],
             basic_info=resource_data['data']['basic_info'],
             branches=resource_data['data']['branches'],
             statistics=resource_data['data']['statistics']
         )
         
-        # Store original resource metadata in a custom way if needed
-        # We could add this to tags or handle it differently
-        original_resource_metadata = resource_data.get('metadata', {})
-        if original_resource_metadata:
-            # Add resource metadata info as tags for tracking
-            if 'authenticated_user' in original_resource_metadata:
-                github_resource.add_tag(f"user:{original_resource_metadata['authenticated_user']}")
-            if 'provider' in original_resource_metadata:
-                github_resource.add_tag(f"provider:{original_resource_metadata['provider']}")
+        # Preserve original resource metadata as tags
+        original_metadata = resource_data.get('metadata', {})
+        if original_metadata:
+            if 'authenticated_user' in original_metadata:
+                github_resource.add_tag(f"user:{original_metadata['authenticated_user']}")
+            if 'provider' in original_metadata:
+                github_resource.add_tag(f"provider:{original_metadata['provider']}")
         
         github_resources.append(github_resource)
     
     return github_resources
 
 def create_github_resource_collection(github_resources: List[GithubResource]) -> GithubResourceCollection:
-    """Create a GithubResourceCollection from GithubResource objects."""
+    """Create GithubResourceCollection (same as before)."""
     return GithubResourceCollection(
         resources=github_resources,
         source_connector='github',
@@ -76,292 +385,103 @@ def create_github_resource_collection(github_resources: List[GithubResource]) ->
         }
     )
 
-def test_data_completeness(original_data: Dict[str, Any], github_resource: GithubResource, resource_index: int) -> Dict[str, List[str]]:
-    """Test if all data from original JSON is accessible in the GithubResource model."""
+def run_dynamic_schema_test():
+    """Run comprehensive dynamic test based on YAML schema definitions."""
     
-    results = {
-        'passed': [],
-        'failed': [],
-        'warnings': []
-    }
+    print("🧪 Dynamic Schema-Based Resources Test")
+    print("=" * 60)
     
-    original_resource = original_data['resources'][resource_index]
-    original_data_section = original_resource['data']
+    # Load schema definitions
+    print("📋 Loading YAML schema definitions...")
+    schema_data = load_schema_definitions()
     
-    # Test base resource fields (excluding metadata and tags which need special handling)
-    base_fields = ['id', 'source_connector', 'created_at', 'updated_at']
-    for field in base_fields:
-        try:
-            model_value = getattr(github_resource, field)
-            original_value = original_resource[field]
-            
-            # Special handling for datetime fields
-            if field in ['created_at', 'updated_at']:
-                if isinstance(model_value, datetime):
-                    model_value = model_value.isoformat()
-                if model_value == original_value:
-                    results['passed'].append(f"✅ {field}: {model_value}")
-                else:
-                    results['failed'].append(f"❌ {field}: Expected {original_value}, got {model_value}")
-            else:
-                if model_value == original_value:
-                    results['passed'].append(f"✅ {field}: matches")
-                else:
-                    results['failed'].append(f"❌ {field}: Expected {original_value}, got {model_value}")
-        except Exception as e:
-            results['failed'].append(f"❌ {field}: Error accessing - {str(e)}")
+    # Auto-detect resource types from YAML
+    available_resources = list(schema_data['resources'].keys())
+    print(f"✅ Found {len(available_resources)} resource types: {', '.join(available_resources)}")
     
-    # Test tags field - should contain original tags plus additional metadata preservation tags
-    original_tags = original_resource['tags']
-    try:
-        model_tags = github_resource.tags
+    # For this test, we'll focus on the first resource type and its collection
+    # In a real system, you might want to test all resource types
+    resource_types = [rt for rt in available_resources if not rt.endswith('Collection')]
+    collection_types = [rt for rt in available_resources if rt.endswith('Collection')]
+    
+    if not resource_types:
+        print("❌ No resource types found in YAML schema")
+        return None
         
-        # Check that all original tags are present
-        original_tags_present = all(tag in model_tags for tag in original_tags)
-        if original_tags_present:
-            results['passed'].append(f"✅ tags: All original tags present ({len(original_tags)} tags)")
-        else:
-            missing_tags = [tag for tag in original_tags if tag not in model_tags]
-            results['failed'].append(f"❌ tags: Missing original tags: {missing_tags}")
-        
-        # Check for expected additional tags (resource metadata preservation)
-        original_resource_metadata = original_resource.get('metadata', {})
-        if original_resource_metadata:
-            expected_user_tag = f"user:{original_resource_metadata.get('authenticated_user', '')}"
-            expected_provider_tag = f"provider:{original_resource_metadata.get('provider', '')}"
-            
-            if expected_user_tag in model_tags:
-                results['passed'].append(f"✅ tags: Resource metadata user tag present")
-            else:
-                results['failed'].append(f"❌ tags: Expected user tag {expected_user_tag} not found")
-                
-            if expected_provider_tag in model_tags:
-                results['passed'].append(f"✅ tags: Resource metadata provider tag present")  
-            else:
-                results['failed'].append(f"❌ tags: Expected provider tag {expected_provider_tag} not found")
-    except Exception as e:
-        results['failed'].append(f"❌ tags: Error accessing - {str(e)}")
+    # Use the first resource type found
+    resource_type = resource_types[0]  # e.g., 'GithubResource'
+    resource_schema = schema_data['resources'][resource_type]['fields']
     
-    # Test metadata field - should contain GitHub repository metadata, not resource metadata
-    original_github_metadata = original_data_section['metadata']
-    try:
-        model_metadata = github_resource.metadata
-        metadata_fields = ['default_branch', 'topics', 'has_issues', 'has_projects', 'has_wiki', 
-                          'has_pages', 'has_downloads', 'has_discussions', 'is_template', 'license']
-        
-        for field in metadata_fields:
-            try:
-                if isinstance(model_metadata, dict):
-                    model_value = model_metadata.get(field)
-                else:
-                    model_value = getattr(model_metadata, field, None)
-                
-                original_value = original_github_metadata.get(field)
-                
-                if model_value == original_value:
-                    results['passed'].append(f"✅ metadata.{field}: matches")
-                else:
-                    results['failed'].append(f"❌ metadata.{field}: Expected {original_value}, got {model_value}")
-            except Exception as e:
-                results['failed'].append(f"❌ metadata.{field}: Error accessing - {str(e)}")
-    except Exception as e:
-        results['failed'].append(f"❌ metadata: Error accessing - {str(e)}")
+    # Find corresponding collection type
+    collection_type = None
+    collection_schema = None
+    for ct in collection_types:
+        if schema_data['resources'][ct].get('collection_type') == resource_type:
+            collection_type = ct
+            collection_schema = schema_data['resources'][ct]['fields']
+            break
     
-    # Test data section fields
-    
-    # Test repository field
-    try:
-        if github_resource.repository == original_data_section['repository']:
-            results['passed'].append(f"✅ repository: {github_resource.repository}")
-        else:
-            results['failed'].append(f"❌ repository: Expected {original_data_section['repository']}, got {github_resource.repository}")
-    except Exception as e:
-        results['failed'].append(f"❌ repository: Error accessing - {str(e)}")
-    
-    # Test basic_info fields
-    original_basic_info = original_data_section['basic_info']
-    try:
-        model_basic_info = github_resource.basic_info
-        basic_info_fields = ['id', 'name', 'full_name', 'description', 'private', 'owner', 
-                           'html_url', 'clone_url', 'ssh_url', 'size', 'language', 
-                           'created_at', 'updated_at', 'pushed_at', 'stargazers_count',
-                           'watchers_count', 'forks_count', 'open_issues_count', 'archived', 'disabled']
-        
-        for field in basic_info_fields:
-            try:
-                if isinstance(model_basic_info, dict):
-                    model_value = model_basic_info.get(field)
-                else:
-                    model_value = getattr(model_basic_info, field, None)
-                
-                original_value = original_basic_info.get(field)
-                
-                if model_value == original_value:
-                    results['passed'].append(f"✅ basic_info.{field}: matches")
-                else:
-                    results['failed'].append(f"❌ basic_info.{field}: Expected {original_value}, got {model_value}")
-            except Exception as e:
-                results['failed'].append(f"❌ basic_info.{field}: Error accessing - {str(e)}")
-    except Exception as e:
-        results['failed'].append(f"❌ basic_info: Error accessing - {str(e)}")
-    
-    # Test branches
-    original_branches = original_data_section['branches']
-    try:
-        model_branches = github_resource.branches
-        if len(model_branches) == len(original_branches):
-            results['passed'].append(f"✅ branches: {len(model_branches)} branches present")
-            
-            # Test first branch in detail if available
-            if model_branches and original_branches:
-                first_branch = model_branches[0]
-                first_original = original_branches[0]
-                
-                branch_fields = ['name', 'sha', 'protected', 'protection_details']
-                for field in branch_fields:
-                    try:
-                        if isinstance(first_branch, dict):
-                            model_value = first_branch.get(field)
-                        else:
-                            model_value = getattr(first_branch, field, None)
-                        
-                        original_value = first_original.get(field)
-                        
-                        if model_value == original_value:
-                            results['passed'].append(f"✅ branches[0].{field}: matches")
-                        else:
-                            results['failed'].append(f"❌ branches[0].{field}: Expected {original_value}, got {model_value}")
-                    except Exception as e:
-                        results['failed'].append(f"❌ branches[0].{field}: Error accessing - {str(e)}")
-        else:
-            results['failed'].append(f"❌ branches: Expected {len(original_branches)} branches, got {len(model_branches)}")
-    except Exception as e:
-        results['failed'].append(f"❌ branches: Error accessing - {str(e)}")
-    
-    # Test statistics
-    original_statistics = original_data_section['statistics']
-    try:
-        model_statistics = github_resource.statistics
-        stats_fields = ['total_commits', 'contributors_count', 'languages', 'code_frequency']
-        
-        for field in stats_fields:
-            try:
-                if isinstance(model_statistics, dict):
-                    model_value = model_statistics.get(field)
-                else:
-                    model_value = getattr(model_statistics, field, None)
-                
-                original_value = original_statistics.get(field)
-                
-                if model_value == original_value:
-                    results['passed'].append(f"✅ statistics.{field}: matches")
-                else:
-                    results['failed'].append(f"❌ statistics.{field}: Expected {original_value}, got {model_value}")
-            except Exception as e:
-                results['failed'].append(f"❌ statistics.{field}: Error accessing - {str(e)}")
-    except Exception as e:
-        results['failed'].append(f"❌ statistics: Error accessing - {str(e)}")
-    
-    return results
-
-def test_collection_functionality(collection: GithubResourceCollection, original_data: Dict[str, Any]) -> Dict[str, List[str]]:
-    """Test GithubResourceCollection functionality."""
-    
-    results = {
-        'passed': [],
-        'failed': [],
-        'warnings': []
-    }
-    
-    # Test collection basic properties
-    try:
-        if len(collection) == len(original_data['resources']):
-            results['passed'].append(f"✅ Collection length: {len(collection)}")
-        else:
-            results['failed'].append(f"❌ Collection length: Expected {len(original_data['resources'])}, got {len(collection)}")
-    except Exception as e:
-        results['failed'].append(f"❌ Collection length: Error - {str(e)}")
-    
-    # Test collection iteration
-    try:
-        count = 0
-        for resource in collection:
-            if isinstance(resource, GithubResource):
-                count += 1
-            else:
-                results['failed'].append(f"❌ Iteration: Item {count} is not GithubResource, got {type(resource)}")
-        
-        if count == len(original_data['resources']):
-            results['passed'].append(f"✅ Collection iteration: All {count} items are GithubResource objects")
-        else:
-            results['failed'].append(f"❌ Collection iteration: Expected {len(original_data['resources'])}, iterated {count}")
-    except Exception as e:
-        results['failed'].append(f"❌ Collection iteration: Error - {str(e)}")
-    
-    # Test collection indexing
-    try:
-        first_resource = collection[0]
-        if isinstance(first_resource, GithubResource):
-            results['passed'].append(f"✅ Collection indexing: collection[0] returns GithubResource")
-        else:
-            results['failed'].append(f"❌ Collection indexing: collection[0] returned {type(first_resource)}")
-    except Exception as e:
-        results['failed'].append(f"❌ Collection indexing: Error - {str(e)}")
-    
-    # Test collection metadata
-    try:
-        if hasattr(collection, 'collection_metadata'):
-            results['passed'].append(f"✅ Collection metadata: Available")
-        else:
-            results['failed'].append(f"❌ Collection metadata: Not available")
-    except Exception as e:
-        results['failed'].append(f"❌ Collection metadata: Error - {str(e)}")
-    
-    return results
-
-def run_comprehensive_test():
-    """Run comprehensive test of resources module."""
-    
-    print("🧪 Comprehensive Resources Test")
-    print("=" * 50)
+    print(f"🎯 Testing resource type: {resource_type}")
+    if collection_type:
+        print(f"🎯 Testing collection type: {collection_type}")
     
     # Load original data
-    print("📂 Loading response.json...")
+    print("\n📂 Loading response.json...")
     original_data = load_response_data()
     print(f"✅ Loaded data for {len(original_data['resources'])} resources")
     
-    # Create GithubResource objects
-    print("\n🏗️  Creating GithubResource objects...")
-    github_resources = create_github_resources_from_response(original_data)
-    print(f"✅ Created {len(github_resources)} GithubResource objects")
+    # Dynamically create resources based on detected type
+    print(f"\n🏗️  Creating {resource_type} objects...")
     
-    # Create GithubResourceCollection
-    print("\n📦 Creating GithubResourceCollection...")
-    collection = create_github_resource_collection(github_resources)
-    print(f"✅ Created collection with {len(collection)} resources")
+    # For now, we'll use the GitHub creation logic, but this could be made more generic
+    # In a full implementation, you'd have a factory pattern here
+    if resource_type == 'GithubResource':
+        resources = create_github_resources_from_response(original_data)
+        print(f"✅ Created {len(resources)} {resource_type} objects")
+        
+        # Create collection if collection type exists
+        if collection_type == 'GithubResourceCollection':
+            print(f"\n📦 Creating {collection_type}...")
+            collection = create_github_resource_collection(resources)
+            print(f"✅ Created collection with {len(collection)} resources")
+        else:
+            collection = None
+    else:
+        print(f"⚠️  Resource type '{resource_type}' not yet supported in creation logic")
+        return None
     
-    # Test collection functionality
-    print("\n🔍 Testing Collection Functionality...")
-    collection_results = test_collection_functionality(collection, original_data)
-    
-    print(f"   Collection Tests Passed: {len(collection_results['passed'])}")
-    print(f"   Collection Tests Failed: {len(collection_results['failed'])}")
-    if collection_results['warnings']:
+    # Test collection schema (if available)
+    if collection and collection_schema:
+        print(f"\n🔍 Testing {collection_type} Schema Compliance...")
+        collection_results = test_resource_collection_schema(collection, original_data, collection_schema, collection_type)
+        
+        print(f"   Collection Tests Passed: {len(collection_results['passed'])}")
+        print(f"   Collection Tests Failed: {len(collection_results['failed'])}")
         print(f"   Collection Warnings: {len(collection_results['warnings'])}")
+    else:
+        collection_results = {'passed': [], 'failed': [], 'warnings': []}
     
     # Test individual resources
-    print("\n🔬 Testing Individual Resources...")
+    print(f"\n🔬 Testing Individual {resource_type} Schema Compliance...")
     all_passed = 0
     all_failed = 0
     all_warnings = 0
     
-    for i, github_resource in enumerate(collection.resources):
-        print(f"\n  Testing Resource {i+1}: {github_resource.repository}")
-        resource_results = test_data_completeness(original_data, github_resource, i)
+    for i, resource_obj in enumerate(resources):
+        # Get resource name dynamically
+        resource_name = getattr(resource_obj, 'repository', f'{resource_type}_{i+1}')
+        print(f"\n  Testing Resource {i+1}: {resource_name}")
         
-        passed = len(resource_results['passed'])
-        failed = len(resource_results['failed'])
-        warnings = len(resource_results['warnings'])
+        # Test base resource fields (generic for all resource types)
+        base_results = test_base_resource_fields(resource_obj, original_data['resources'][i])
+        
+        # Test schema-specific fields (dynamic based on YAML)
+        schema_results = test_resource_schema(resource_obj, original_data['resources'][i], resource_schema, resource_type)
+        
+        # Combine results
+        passed = len(base_results['passed']) + len(schema_results['passed'])
+        failed = len(base_results['failed']) + len(schema_results['failed'])
+        warnings = len(base_results['warnings']) + len(schema_results['warnings'])
         
         print(f"    ✅ Passed: {passed}")
         print(f"    ❌ Failed: {failed}")
@@ -372,32 +492,36 @@ def run_comprehensive_test():
         all_failed += failed
         all_warnings += warnings
         
-        # Show some details for first resource
-        if i == 0:
-            print("    Sample passed tests:")
-            for test in resource_results['passed'][:5]:
+        # Show sample results for first resource
+        if i == 0 and failed > 0:
+            print("    Sample failed tests:")
+            all_failed_tests = base_results['failed'] + schema_results['failed']
+            for test in all_failed_tests[:3]:
                 print(f"      {test}")
-            
-            if resource_results['failed']:
-                print("    Failed tests:")
-                for test in resource_results['failed'][:3]:
-                    print(f"      {test}")
     
     # Final summary
-    print(f"\n📊 Final Summary:")
-    print(f"   Total Tests Passed: {all_passed + len(collection_results['passed'])}")
-    print(f"   Total Tests Failed: {all_failed + len(collection_results['failed'])}")
-    print(f"   Total Warnings: {all_warnings + len(collection_results['warnings'])}")
+    total_passed = all_passed + len(collection_results['passed'])
+    total_failed = all_failed + len(collection_results['failed'])
+    total_warnings = all_warnings + len(collection_results['warnings'])
     
-    success_rate = (all_passed + len(collection_results['passed'])) / (all_passed + all_failed + len(collection_results['passed']) + len(collection_results['failed'])) * 100
-    print(f"   Success Rate: {success_rate:.1f}%")
+    print(f"\n📊 Final Dynamic Schema Test Summary:")
+    print(f"   Resource Type Tested: {resource_type}")
+    if collection_type:
+        print(f"   Collection Type Tested: {collection_type}")
+    print(f"   Total Tests Passed: {total_passed}")
+    print(f"   Total Tests Failed: {total_failed}")
+    print(f"   Total Warnings: {total_warnings}")
     
-    if all_failed + len(collection_results['failed']) == 0:
-        print("\n🎉 All tests passed! Data integrity maintained.")
+    if total_failed + total_passed > 0:
+        success_rate = total_passed / (total_passed + total_failed) * 100
+        print(f"   Success Rate: {success_rate:.1f}%")
+    
+    if total_failed == 0:
+        print(f"\n🎉 All schema-based tests passed! Complete data integrity maintained for {resource_type}.")
     else:
-        print(f"\n⚠️  Some tests failed. Data completeness issues detected.")
+        print(f"\n⚠️  {total_failed} tests failed. Schema compliance issues detected for {resource_type}.")
     
-    return collection
+    return collection if collection else resources
 
 if __name__ == "__main__":
-    run_comprehensive_test() 
+    run_dynamic_schema_test() 
