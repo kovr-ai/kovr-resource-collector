@@ -51,4 +51,32 @@ resources:
         total_commits: "integer"
         contributors_count: "integer"
         languages: "object"
-        code_frequency: "array" 
+        code_frequency: "array"
+
+  GithubResourceCollection:
+    name: "github_collection"
+    description: "Collection of GitHub repository resources from a single connector call"
+    provider: "github"
+    collection_type: "GithubResource"
+    
+    # Define the structure for GitHub resource collections
+    fields:
+      resources: "github_resource_array"
+      source_connector: "string"
+      total_count: "integer"
+      fetched_at: "string"
+      collection_metadata:
+        authenticated_user: "string"
+        total_repositories: "integer"
+        total_workflows: "integer"
+        total_issues: "integer"
+        total_pull_requests: "integer"
+        total_security_alerts: "integer"
+        total_collaborators: "integer"
+        total_tags: "integer"
+        total_active_webhooks: "integer"
+        rate_limit_info: "object"
+      github_api_metadata:
+        collection_time: "string"
+        api_version: "string"
+        scope: "array"
