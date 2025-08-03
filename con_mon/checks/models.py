@@ -4,7 +4,7 @@ Models for checks module - handles resource validation and evaluation.
 from enum import Enum
 from typing import Any, Callable, Optional, List
 from pydantic import BaseModel, Field
-from resources.models import Resource
+from con_mon.resources.models import Resource
 
 
 class ComparisonOperationEnum(Enum):

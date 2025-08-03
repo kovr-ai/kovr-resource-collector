@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Callable
 from pydantic import BaseModel, Field
 from enum import Enum
-from resources.models import ResourceCollection
+from con_mon.resources.models import ResourceCollection
 
 
 class ConnectorType(Enum):
