@@ -2,7 +2,8 @@
 # Maps to Check model structure in checks/models.py
 
 checks:
-  - name: "github_main_branch_protected"
+  - id: 1001
+    name: "github_main_branch_protected"
     description: "Verify that the main branch in GitHub repository has protection enabled"
     field_path: "repository_data.branches"
     operation:
@@ -36,7 +37,8 @@ checks:
     severity: "high"
     category: "access_control"
 
-  - name: "github_repository_private"
+  - id: 1002
+    name: "github_repository_private"
     description: "Verify that GitHub repository is private"
     field_path: "repository_data.basic_info"
     operation:
@@ -55,7 +57,8 @@ checks:
     severity: "medium"
     category: "access_control"
 
-  - name: "github_minimum_branch_count"
+  - id: 1003
+    name: "github_minimum_branch_count"
     description: "Verify that GitHub repository has at least 3 branches"
     field_path: "repository_data.branches"
     operation:

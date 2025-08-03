@@ -9,7 +9,7 @@ from .models import Check, ComparisonOperation, ComparisonOperationEnum
 # Global storage for loaded checks
 _loaded_checks: Dict[str, Check] = {}
 
-def _create_check_from_config(check_name: str, check_config: Dict[str, Any]) -> Check:
+def _create_check_from_config(check_id:int, check_name: str, check_config: Dict[str, Any]) -> Check:
     """Create a Check object from YAML configuration."""
     
     # Parse operation
@@ -61,6 +61,7 @@ def _create_check_from_config(check_name: str, check_config: Dict[str, Any]) -> 
     
     # Create Check object
     return Check(
+        id=check_id,
         name=check_name,
         field_path=check_config['field_path'],
         operation=operation,
@@ -88,10 +89,11 @@ def load_checks_from_yaml(yaml_file_path: str = None):
         
         # Process github_checks
         for check_config in yaml_data['checks']:
+            check_id = check_config['id']
             check_name = check_config['name']
 
             # Create proper Check object
-            check = _create_check_from_config(check_name, check_config)
+            check = _create_check_from_config(check_id, check_name, check_config)
             _loaded_checks[check_name] = check
 
             # Make accessible as module attribute
