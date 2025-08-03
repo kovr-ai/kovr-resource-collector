@@ -17,7 +17,7 @@ class CheckResult:
     message: str
     error: str = None
 
-def load_response_data(file_path: str = "2025-08-02-19-03-26_response.json"):
+def load_response_data(file_path: str = "response.json"):
     """Load the response.json file."""
     try:
         with open(file_path, 'r') as file:
