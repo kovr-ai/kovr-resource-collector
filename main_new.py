@@ -4,16 +4,19 @@ from con_mon.connectors import get_connector_by_id, get_connector_input_by_id
 
 
 def main(
+    connection_id: int,
     connector_type: str,
-    metadata: dict,
+    credentials: dict,
+    customer_id: str,
     check_ids: list[int] | None = None,
+    metadata: dict | None = None,
 ):
     checks_to_run = get_checks_by_ids(check_ids)
     connector_service = get_connector_by_id(connector_type)
     ConnectorInput = get_connector_input_by_id(connector_service)
 
     # Initialize GitHub connector
-    connector_input = ConnectorInput(**metadata)
+    connector_input = ConnectorInput(**credentials)
     resource_collection = connector_service.fetch_data(connector_input)
 
     print(f"✅ Retrieved {len(resource_collection.resources)} {connector_type} resources")
@@ -33,18 +36,34 @@ def main(
     sql.insert_check_results(
         executed_check_results,
         resource_collection=resource_collection,
-        **metadata,
+        customer_id=customer_id,
+        connection_id=connection_id,
+    )
+
+def params_from_connection_id(
+    connection_id: int,
+    check_ids: list[int] | None = None,
+):
+    connector_type = 'github'
+    credentials = dict(
+        GITHUB_TOKEN='your-github-token-here',
+    )
+    metadata = dict()
+    customer_id = 'kovr-customer-001',
+    return (
+        connection_id,
+        connector_type,
+        credentials,
+        customer_id,
+        check_ids,
+        metadata,
     )
 
 
 if __name__ == "__main__":
-    metadata = dict(
-        GITHUB_TOKEN='your-github-token-here',
-        customer_id='kovr-customer-001',
-        connection_id=1,
-    )
     main(
-        connector_type='github',
-        metadata=metadata,
-        check_ids=[],
+        *params_from_connection_id(
+            1,
+            check_ids=[],
+        ),
     )
