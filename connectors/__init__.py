@@ -52,16 +52,22 @@ def _create_dynamic_model(name: str, fields_spec: Dict[str, str], base_class: Ty
 
 def _create_provider_wrapper(provider_class, method_name, connector_config):
     """Create a wrapper function for provider class methods."""
-    def fetch_function(*args, **kwargs):
-        # Extract metadata from kwargs or create default
-        metadata = kwargs.get('metadata', {})
-        if not metadata and connector_config.get('auth'):
-            # Create metadata from connector config
-            import os
+    def fetch_function(input_config, **kwargs):
+        # Convert input_config to metadata for provider constructor
+        metadata = {}
+        
+        # Get auth token from environment
+        if connector_config.get('auth'):
             token_env_var = connector_config['auth'].get('token_env_var', 'GITHUB_TOKEN')
             token = os.getenv(token_env_var)
             if token:
                 metadata = {token_env_var: token}
+        
+        # Add input config fields to metadata if needed
+        if hasattr(input_config, '__dict__'):
+            for key, value in input_config.__dict__.items():
+                if value is not None:
+                    metadata[key] = value
         
         # Instantiate provider
         provider_instance = provider_class(metadata)
@@ -70,9 +76,45 @@ def _create_provider_wrapper(provider_class, method_name, connector_config):
         if hasattr(provider_instance, 'connect'):
             provider_instance.connect()
         
-        # Call the method
+        # Call the method (no arguments for process methods)
         method = getattr(provider_instance, method_name)
-        return method(*args, **kwargs)
+        provider_result = method()
+        
+        # Convert provider result to connector output format
+        connector_name = connector_config['name']
+        output_model_name = f"{connector_name.title()}ConnectorOutput"
+        
+        if output_model_name in globals():
+            output_model = globals()[output_model_name]
+            
+            # Convert provider result to connector output
+            if hasattr(provider_result, '__dict__'):
+                provider_data = provider_result.__dict__
+            elif hasattr(provider_result, 'model_dump'):
+                provider_data = provider_result.model_dump()
+            else:
+                provider_data = provider_result
+            
+            # Map the data to connector output fields
+            connector_output_data = {}
+            for field_name in output_model.model_fields.keys():
+                value = None
+                if hasattr(provider_result, field_name):
+                    value = getattr(provider_result, field_name)
+                elif field_name in provider_data:
+                    value = provider_data[field_name]
+                
+                # Convert value to appropriate type
+                if value is not None:
+                    # Convert datetime to string
+                    if hasattr(value, 'isoformat'):
+                        value = value.isoformat()
+                    connector_output_data[field_name] = value
+            
+            return output_model(**connector_output_data)
+        
+        # Fallback: return provider result as-is
+        return provider_result
     return fetch_function
 
 def _create_connector_service(service_config: Dict[str, Any], connector_config: Dict[str, Any]) -> ConnectorService:

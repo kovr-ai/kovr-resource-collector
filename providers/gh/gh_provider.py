@@ -126,6 +126,12 @@ class GitHubProvider(Provider):
         report = GitHubReport(
             authenticated_user=self.user.login if hasattr(self, 'user') else None
         )
+        with open(
+            '/Users/ironeagle-kovr/Workspace/code/kovr-resource-collector/2025-08-02-19-03-26_response.json',
+            'r'
+        ) as mock_response_file:
+            mock_response = json.load(mock_response_file)
+            return GitHubReport.model_validate(mock_response)
         
         # Get list of repositories
         try:
