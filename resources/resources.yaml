@@ -2,17 +2,15 @@
 # Defines resource structures for different providers
 
 resources:
-  GithubResource:
-    name: "github"
-    description: "GitHub repository resource"
-    provider: "github"
-    
-    # Define the structure that matches GitHub API response
+  # Nested data type schemas
+  RepositoryData:
+    name: "repository_data"
+    description: "Repository basic information and metadata"
     fields:
       repository: "string"
       basic_info:
         id: "integer"
-        name: "string" 
+        name: "string"
         full_name: "string"
         description: "string"
         private: "boolean"
@@ -42,16 +40,103 @@ resources:
         has_discussions: "boolean"
         is_template: "boolean"
         license: "string"
-      branches:
-        - name: "string"
-          sha: "string"  
-          protected: "boolean"
-          protection_details: "object"
+      branches: "array"
       statistics:
         total_commits: "integer"
         contributors_count: "integer"
         languages: "object"
         code_frequency: "array"
+
+  ActionsData:
+    name: "actions_data"
+    description: "GitHub Actions workflows and runs"
+    fields:
+      repository: "string"
+      workflows: "object"
+      total_workflows: "integer"
+      active_workflows: "integer"
+      recent_runs_count: "integer"
+
+  CollaborationData:
+    name: "collaboration_data"
+    description: "Collaboration information - issues, PRs, collaborators"
+    fields:
+      repository: "string"
+      issues: "array"
+      pull_requests: "array"
+      collaborators: "array"
+      total_issues: "integer"
+      open_issues: "integer"
+      closed_issues: "integer"
+      total_pull_requests: "integer"
+      open_pull_requests: "integer"
+      merged_pull_requests: "integer"
+      draft_pull_requests: "integer"
+      total_collaborators: "integer"
+
+  SecurityData:
+    name: "security_data"
+    description: "Security advisories, alerts and analysis"
+    fields:
+      repository: "string"
+      security_advisories: "object"
+      vulnerability_alerts: "object"
+      dependency_graph: "object"
+      security_analysis:
+        advanced_security_enabled: "boolean"
+        secret_scanning_enabled: "boolean"
+        push_protection_enabled: "boolean"
+        dependency_review_enabled: "boolean"
+      code_scanning_alerts: "object"
+      total_advisories: "integer"
+      total_dependabot_alerts: "integer"
+      total_code_scanning_alerts: "integer"
+      security_features_enabled: "integer"
+
+  OrganizationData:
+    name: "organization_data"
+    description: "Organization members, teams and collaborators"
+    fields:
+      repository: "string"
+      members: "array"
+      teams: "array"
+      outside_collaborators: "array"
+      total_members: "integer"
+      total_teams: "integer"
+      total_outside_collaborators: "integer"
+      admin_members: "integer"
+      members_error: "string"
+      teams_error: "string"
+      collaborators_error: "string"
+
+  AdvancedFeaturesData:
+    name: "advanced_features_data"
+    description: "Advanced GitHub features - tags, webhooks"
+    fields:
+      repository: "string"
+      tags: "array"
+      webhooks: "array"
+      total_tags: "integer"
+      total_webhooks: "integer"
+      active_webhooks: "integer"
+      tags_error: "string"
+      webhooks_error: "string"
+
+  # Main resource schemas
+  GithubResource:
+    name: "github"
+    description: "GitHub repository resource"
+    provider: "github"
+    
+    # Define the structure that matches GitHub API response with all data types
+    fields:
+      name: "string"  # Repository name for easy identification
+      repository_data: "RepositoryData"  # Nested Pydantic model
+      actions_data: "ActionsData"        # Nested Pydantic model
+      collaboration_data: "CollaborationData"  # Nested Pydantic model
+      security_data: "SecurityData"      # Nested Pydantic model
+      organization_data: "OrganizationData"    # Nested Pydantic model
+      advanced_features_data: "AdvancedFeaturesData"  # Nested Pydantic model
 
   GithubResourceCollection:
     name: "github_collection"
