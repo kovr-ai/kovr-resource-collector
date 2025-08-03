@@ -3,14 +3,13 @@ Connectors module for data fetching service definitions.
 
 Auto-generated imports available:
 - ConnectorService objects: github, aws, etc. (based on YAML config)
-- Input models: GithubInput, AwsInput, etc. (short names)
-- Output models: GithubOutput, AwsOutput, etc. (short names)
-- Full model names: GithubConnectorInput, GithubConnectorOutput, etc.
+- Input models: GithubConnectorInput, AwsConnectorInput, etc.
+- Output models: GithubConnectorOutput, AwsConnectorOutput, etc.
 
 Usage:
-    from connectors import github, GithubInput, GithubOutput
+    from connectors import github, GithubConnectorInput, GithubConnectorOutput
     
-    input_config = GithubInput(token='...', org_name='...')
+    input_config = GithubConnectorInput(token='...', org_name='...')
     result = github.fetch_data(input_config)
 """
 import yaml
@@ -156,15 +155,12 @@ def load_connectors_from_yaml(yaml_file_path: str = None):
                     )
                     models['input'] = input_model
                     
-                    # Make input model available for direct import
-                    # Both full name and short name
+                    # Make input model available for direct import (full name only)
                     full_input_name = f"{connector_name.title()}ConnectorInput"
-                    short_input_name = f"{connector_name.title()}Input"
                     globals()[full_input_name] = input_model
-                    globals()[short_input_name] = input_model
                     
                     # Add to __all__ for discoverability
-                    __all__.extend([full_input_name, short_input_name])
+                    __all__.append(full_input_name)
                 
                 if 'output' in connector_config:
                     output_model = _create_dynamic_model(
@@ -174,15 +170,12 @@ def load_connectors_from_yaml(yaml_file_path: str = None):
                     )
                     models['output'] = output_model
                     
-                    # Make output model available for direct import
-                    # Both full name and short name
+                    # Make output model available for direct import (full name only)
                     full_output_name = f"{connector_name.title()}ConnectorOutput"
-                    short_output_name = f"{connector_name.title()}Output"
                     globals()[full_output_name] = output_model
-                    globals()[short_output_name] = output_model
                     
                     # Add to __all__ for discoverability
-                    __all__.extend([full_output_name, short_output_name])
+                    __all__.append(full_output_name)
                 
                 _connector_models[connector_name] = models
                 
