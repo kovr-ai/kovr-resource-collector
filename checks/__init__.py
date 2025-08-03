@@ -3,7 +3,7 @@ Checks module for resource validation and evaluation.
 """
 import yaml
 import os
-from typing import Dict, Any
+from typing import Dict, Any, Callable
 from .models import Check, ComparisonOperation, ComparisonOperationEnum
 
 # Global storage for loaded checks
@@ -19,6 +19,45 @@ def _create_check_from_config(check_name: str, check_config: Dict[str, Any]) -> 
     # Create ComparisonOperation
     operation_enum = ComparisonOperationEnum(operation_name)
     operation = ComparisonOperation(name=operation_enum)
+    
+    # Handle custom logic if present - execute any logic defined in YAML
+    if operation_name == 'custom' and 'custom_logic' in operation_config:
+        custom_logic_code = operation_config['custom_logic']
+        
+        def create_dynamic_custom_function(code: str):
+            """Create a custom function that executes YAML-defined logic."""
+            def custom_function(fetched_value, config_value):
+                # Create a safe namespace for executing the custom logic
+                namespace = {
+                    'fetched_value': fetched_value,
+                    'config_value': config_value,
+                    'isinstance': isinstance,
+                    'list': list,
+                    'dict': dict,
+                    'getattr': getattr,
+                    'len': len,
+                    'any': any,
+                    'all': all,
+                    'True': True,
+                    'False': False,
+                    'None': None,
+                    'result': False  # Default result
+                }
+                
+                try:
+                    # Execute the custom logic code from YAML
+                    exec(code, {"__builtins__": {}}, namespace)
+                    # The custom logic should set the 'result' variable
+                    return namespace.get('result', False)
+                    
+                except Exception as e:
+                    print(f"❌ Error executing custom logic for {check_name}: {e}")
+                    return False
+            
+            return custom_function
+        
+        # Set the dynamic custom function on the operation
+        operation.custom_function = create_dynamic_custom_function(custom_logic_code)
     
     # Create Check object
     return Check(
