@@ -1,6 +1,7 @@
 from con_mon.utils import sql, helpers
 from con_mon.checks import get_checks_by_ids
 from con_mon.connectors import get_connector_by_id, get_connector_input_by_id
+from con_mon.utils.db import get_db
 
 
 def main(
@@ -44,20 +45,89 @@ def params_from_connection_id(
     connection_id: int,
     check_ids: list[int] | None = None,
 ):
-    connector_type = 'github'
-    credentials = dict(
-        GITHUB_TOKEN='your-github-token-here',
-    )
-    metadata = dict()
-    customer_id = 'kovr-customer-001',
-    return (
-        connection_id,
-        connector_type,
-        credentials,
+    """
+    Fetch connection parameters from database by connection_id.
+    
+    Args:
+        connection_id: ID of the connection record in the database
+        check_ids: List of check IDs to run (optional)
+        
+    Returns:
+        Tuple of (connection_id, connector_type, credentials, customer_id, check_ids, metadata)
+        
+    Raises:
+        ValueError: If connection_id is not found or data is invalid
+    """
+    # Get database instance
+    db = get_db()
+    
+    print(f"🔍 Fetching connection data for ID: {connection_id}")
+    
+    # Query to get connection data
+    query_sql = """
+    SELECT 
+        id,
         customer_id,
-        check_ids,
+        type,
+        credentials,
         metadata,
-    )
+        sync_status
+    FROM connections 
+    WHERE id = %s 
+    AND is_deleted = FALSE;
+    """
+    
+    try:
+        results = db.execute_query(query_sql, (connection_id,))
+        
+        if not results:
+            raise ValueError(f"Connection ID {connection_id} not found or has been deleted")
+        
+        connection = results[0]
+        
+        # Validate connection is active
+        if connection['sync_status'] != 'active':
+            print(f"⚠️ Warning: Connection {connection_id} status is '{connection['sync_status']}' (not active)")
+        
+        # Extract data from database record
+        customer_id = connection['customer_id']
+        credentials = connection['credentials']  # Already a dict from JSONB
+        metadata = connection['metadata'] or {}  # Default to empty dict if None
+        
+        # Map connection type to connector type
+        # Assuming type 1 = github, can be extended for other types
+        type_mapping = {
+            1: 'github',
+            # Add more mappings as needed
+            # 2: 'aws',
+            # 3: 'azure',
+        }
+        
+        connection_type = connection['type']
+        if connection_type not in type_mapping:
+            raise ValueError(f"Unsupported connection type: {connection_type}")
+        
+        connector_type = type_mapping[connection_type]
+        
+        print(f"✅ Connection data loaded:")
+        print(f"   • Customer ID: {customer_id}")
+        print(f"   • Connector Type: {connector_type}")
+        print(f"   • Status: {connection['sync_status']}")
+        print(f"   • Credentials: {list(credentials.keys())}")
+        print(f"   • Metadata: {list(metadata.keys()) if metadata else 'No metadata'}")
+        
+        return (
+            connection_id,
+            connector_type,
+            credentials,
+            customer_id,
+            check_ids,
+            metadata,
+        )
+        
+    except Exception as e:
+        print(f"❌ Failed to fetch connection data: {e}")
+        raise
 
 
 if __name__ == "__main__":
