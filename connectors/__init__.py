@@ -196,55 +196,15 @@ def load_connectors_from_yaml(yaml_file_path: str = None):
                 _connector_services[connector_name] = services
                 
                 # Make accessible as module attribute
-                # If there's only one service, return it directly for easy access
-                # If multiple services, create a wrapper with the primary service as default
-                if len(services) == 1:
-                    # Single service - return ConnectorService directly
-                    connector_obj = services[0]
+                # Each connector has exactly one service, so return it directly
+                if services:
+                    connector_obj = services[0]  # Take the single service
                     # Add metadata for backward compatibility
                     connector_obj._config = connector_config
                     connector_obj._models = models
                     connector_obj._services = services
-                elif len(services) > 1:
-                    # Multiple services - create a wrapper class
-                    class ConnectorWrapper:
-                        def __init__(self, services, config, models):
-                            self._services = services
-                            self._config = config
-                            self._models = models
-                            # Use first service as default
-                            self._default_service = services[0]
-                        
-                        def fetch_data(self, input_config: ConnectorInput) -> ConnectorOutput:
-                            """Fetch data using the default (first) service."""
-                            return self._default_service.fetch_data(input_config)
-                        
-                        def get_service(self, service_name: str) -> ConnectorService:
-                            """Get a specific service by name."""
-                            for service in self._services:
-                                if service.name == service_name:
-                                    return service
-                            raise ValueError(f"Service '{service_name}' not found")
-                        
-                        def list_services(self) -> List[str]:
-                            """List all available service names."""
-                            return [service.name for service in self._services]
-                        
-                        @property
-                        def config(self):
-                            return self._config
-                        
-                        @property
-                        def models(self):
-                            return self._models
-                        
-                        @property
-                        def services(self):
-                            return self._services
-                    
-                    connector_obj = ConnectorWrapper(services, connector_config, models)
                 else:
-                    # No services - return config dict for backward compatibility
+                    # Fallback to dict if no services (shouldn't happen)
                     connector_obj = {
                         'config': connector_config,
                         'services': services,
