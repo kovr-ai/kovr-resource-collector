@@ -18,9 +18,7 @@ load_dotenv()
 @provider_class
 class GitHubProvider(Provider):
     def __init__(self, metadata: dict):
-        self.config = self.load_config("providers/gh/github_config.json")
-        self.metadata = self.prepare_metadata()
-        self.GITHUB_TOKEN = self.metadata["GITHUB_TOKEN"]
+        self.GITHUB_TOKEN = metadata["GITHUB_TOKEN"]
 
         super().__init__(Providers.GITHUB.value, metadata)
         
@@ -33,46 +31,6 @@ class GitHubProvider(Provider):
             {"name": "organization", "class": self._get_service_class("OrganizationService")},
             {"name": "advanced_features", "class": self._get_service_class("AdvancedFeaturesService")}
         ]
-
-    def load_config(self, config_file: str) -> Dict[str, Any]:
-        """Load configuration from JSON file"""
-        try:
-            with open(config_file, 'r') as f:
-                config = json.load(f)
-                print(f"Loaded configuration from {config_file}")
-                return config
-        except FileNotFoundError:
-            print(f"Configuration file {config_file} not found. Using default settings.")
-            return {
-                "github": {
-                    "output_config": {
-                        "repositories": True,
-                        "actions": True,
-                        "collaboration": True,
-                        "security": True,
-                        "organization": True,
-                        "advanced_features": True
-                    }
-                },
-                "features": {
-                    "rate_limit_monitoring": True,
-                    "detailed_logging": True
-                }
-            }
-        except Exception as e:
-            print(f"Error loading configuration: {e}")
-            return {}
-
-    def prepare_metadata(self) -> Dict[str, Any]:
-        """Prepare metadata for the GitHub provider"""
-        github_token = os.getenv("GITHUB_TOKEN")
-        if not github_token:
-            raise ValueError("GITHUB_TOKEN environment variable is required")
-        
-        return {
-            "GITHUB_TOKEN": github_token,
-            "config": self.config,
-        }
 
     def _get_service_class(self, service_class_name: str):
         """Dynamically load and return service class"""
@@ -151,7 +109,7 @@ class GitHubProvider(Provider):
                         'id': f"github-{repo_name.replace('/', '-')}",
                         'source_connector': 'github'
                     }
-                    
+
                     github_resource = GithubResource(**resource_data)
                     github_resources.append(github_resource)
                 except Exception as e:

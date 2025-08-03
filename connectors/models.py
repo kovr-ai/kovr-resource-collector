@@ -29,6 +29,7 @@ class ConnectorService(BaseModel):
     Service that contains the python function to fetch data.
     """
     name: str
+    description: str
     connector_type: ConnectorType
     fetch_function: Callable[[ConnectorInput], ResourceCollection] = Field(exclude=True)
     

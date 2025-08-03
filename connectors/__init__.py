@@ -1,143 +1,53 @@
 """
 Connectors module for data fetching service definitions.
 
-Auto-generated imports available:
-- ConnectorService objects: github, aws, etc. (based on YAML config)
-- Input models: GithubConnectorInput, AwsConnectorInput, etc.
-
-Note: Services now return ResourceCollection objects directly (no connector output models)
+Simple connector loading from YAML configuration.
 
 Usage:
     from connectors import github, GithubConnectorInput
-    from resources import GithubResourceCollection
-    
-    input_config = GithubConnectorInput(token='...', org_name='...')
-    result: GithubResourceCollection = github.fetch_data(input_config)
+    input_config = GithubConnectorInput(GITHUB_TOKEN="your_token")
+    result = github.fetch_data(input_config)
 """
 import yaml
 import os
 import importlib
-from typing import Dict, Any, List, Type
-from pydantic import BaseModel, create_model
-from .models import ConnectorService, ConnectorType, ConnectorInput
+from typing import Dict, Any
+from pydantic import BaseModel
+from .models import ConnectorService, ConnectorType
 
 # Global storage for loaded connectors
-_loaded_connectors: Dict[str, Dict[str, Any]] = {}
-_connector_services: Dict[str, List[ConnectorService]] = {}
-_connector_models: Dict[str, Dict[str, Type[BaseModel]]] = {}
+_loaded_connectors: Dict[str, Any] = {}
 
-# This will be populated dynamically during loading
-__all__ = [
-    'ConnectorService', 'ConnectorType', 'ConnectorInput',
-    'get_loaded_connectors', 'get_connector_services', 'get_all_connector_services', 'get_connector_models'
-]
-
-def _create_dynamic_model(name: str, fields_spec: Dict[str, str], base_class: Type[BaseModel]) -> Type[BaseModel]:
-    """Create a dynamic Pydantic model from YAML field specifications."""
-    field_definitions = {}
+def create_input_class_from_yaml(input_spec: Dict[str, str], class_name: str):
+    """
+    Dynamically create a Pydantic input class from YAML input specification.
     
-    for field_name, field_type in fields_spec.items():
+    Args:
+        input_spec: Dictionary of field_name -> field_type from YAML
+        class_name: Name for the generated class
+    
+    Returns:
+        Dynamically created Pydantic model class
+    """
+    fields = {}
+    for field_name, field_type in input_spec.items():
         if field_type == "string":
-            field_definitions[field_name] = (str, None)
-        elif field_type == "integer":
-            field_definitions[field_name] = (int, None)
-        elif field_type == "boolean":
-            field_definitions[field_name] = (bool, None)
-        elif field_type == "array":
-            field_definitions[field_name] = (list, None)
-        elif field_type == "object":
-            field_definitions[field_name] = (dict, None)
-        else:
-            field_definitions[field_name] = (Any, None)
+            fields[field_name] = (str, ...)  # Required string field
+        # Add more type mappings as needed
     
-    return create_model(name, **field_definitions, __base__=base_class)
-
-def _create_provider_wrapper(provider_class, method_name, connector_config):
-    """Create a wrapper function for provider class methods."""
-    def fetch_function(input_config, **kwargs):
-        # Convert input_config to metadata for provider constructor
-        metadata = {}
-        
-        # Get auth token from environment
-        if connector_config.get('auth'):
-            token_env_var = connector_config['auth'].get('token_env_var', 'GITHUB_TOKEN')
-            token = os.getenv(token_env_var)
-            if token:
-                metadata = {token_env_var: token}
-        
-        # Add input config fields to metadata if needed
-        if hasattr(input_config, '__dict__'):
-            for key, value in input_config.__dict__.items():
-                if value is not None:
-                    metadata[key] = value
-        
-        # Instantiate provider
-        provider_instance = provider_class(metadata)
-        
-        # Connect if method exists
-        if hasattr(provider_instance, 'connect'):
-            provider_instance.connect()
-        
-        # Call the method (no arguments for process methods)
-        method = getattr(provider_instance, method_name)
-        provider_result = method()
-        
-        # Provider now returns ResourceCollection directly
-        return provider_result
-    return fetch_function
-
-def _create_connector_service(service_config: Dict[str, Any], connector_config: Dict[str, Any]) -> ConnectorService:
-    """Create a ConnectorService object from service configuration."""
-    try:
-        # Dynamic import of the provider service module
-        provider_service_path = service_config['provider_service']
-        method_name = service_config['method']
-        
-        # Import the module
-        module = importlib.import_module(provider_service_path)
-        
-        # Check if this is a class method (for providers) or module function
-        if hasattr(module, method_name):
-            # Direct module function
-            fetch_function = getattr(module, method_name)
-        else:
-            # Look for provider class and create wrapper
-            provider_class = None
-            for attr_name in dir(module):
-                attr = getattr(module, attr_name)
-                if (isinstance(attr, type) and 
-                    hasattr(attr, '_is_provider') and 
-                    attr._is_provider):
-                    provider_class = attr
-                    break
-            
-            if provider_class and hasattr(provider_class, method_name):
-                # Create wrapper function for class method
-                fetch_function = _create_provider_wrapper(provider_class, method_name, connector_config)
-            else:
-                raise AttributeError(f"Method '{method_name}' not found in module or provider class")
-        
-        # Create ConnectorService
-        connector_type = ConnectorType(connector_config['connector_type'])
-        
-        return ConnectorService(
-            name=service_config['name'],
-            connector_type=connector_type,
-            fetch_function=fetch_function
-        )
-        
-    except Exception as e:
-        print(f"❌ Error creating connector service {service_config['name']}: {e}")
-        return None
+    return type(class_name, (BaseModel,), {
+        '__annotations__': {k: v[0] for k, v in fields.items()},
+        **{k: v[1] for k, v in fields.items()}
+    })
 
 def load_connectors_from_yaml(yaml_file_path: str = None):
     """
-    Load connector configurations from YAML file and create ConnectorService objects.
+    Load connector configurations from YAML file and create connector services.
     
     Args:
         yaml_file_path: Path to YAML file, defaults to connectors/connectors.yaml
     """
-    global _loaded_connectors, _connector_services, _connector_models, __all__
+    global _loaded_connectors
     
     if yaml_file_path is None:
         # Default to connectors.yaml in the same directory as this file
@@ -148,90 +58,84 @@ def load_connectors_from_yaml(yaml_file_path: str = None):
         with open(yaml_file_path, 'r') as file:
             yaml_data = yaml.safe_load(file)
         
-        # Process connectors
-        if 'connectors' in yaml_data:
-            for connector_name, connector_config in yaml_data['connectors'].items():
+        # Process connectors - handle new structure where each connector is a top-level key
+        for connector_name, connector_data in yaml_data.items():
+            if 'connectors' in connector_data:
+                connector_config = connector_data['connectors']
                 _loaded_connectors[connector_name] = connector_config
                 
-                # Add connector name to __all__
-                __all__.append(connector_name)
-                
-                # Create dynamic input/output models if specified
-                models = {}
-                if 'input' in connector_config:
-                    input_model = _create_dynamic_model(
-                        f"{connector_name.title()}ConnectorInput",
-                        connector_config['input'],
-                        ConnectorInput
+                # Create input class from YAML input specification
+                if 'input' in connector_data:
+                    input_class_name = f"{connector_name.title()}ConnectorInput"
+                    input_class = create_input_class_from_yaml(
+                        connector_data['input'], 
+                        input_class_name
                     )
-                    models['input'] = input_model
+                    globals()[input_class_name] = input_class
+                
+                # Import provider module
+                provider_service_path = connector_config['provider_service']
+                method_name = connector_config['method']
+                
+                try:
+                    module = importlib.import_module(provider_service_path)
                     
-                    # Make input model available for direct import (full name only)
-                    full_input_name = f"{connector_name.title()}ConnectorInput"
-                    globals()[full_input_name] = input_model
+                    # Look for provider class
+                    provider_class = None
+                    for attr_name in dir(module):
+                        attr = getattr(module, attr_name)
+                        if (isinstance(attr, type) and 
+                            hasattr(attr, '_is_provider') and 
+                            attr._is_provider):
+                            provider_class = attr
+                            break
                     
-                    # Add to __all__ for discoverability
-                    __all__.append(full_input_name)
-                
-                # Note: No output model creation - services return ResourceCollection directly
-                
-                _connector_models[connector_name] = models
-                
-                # Create single ConnectorService object from service configuration
-                service_config = connector_config.get('service')
-                if service_config:
-                    connector_service = _create_connector_service(service_config, connector_config)
-                    if connector_service:
-                        # Store in services dict for backward compatibility (as single-item list)
-                        _connector_services[connector_name] = [connector_service]
+                    if provider_class and hasattr(provider_class, method_name):
+                        # Create wrapper function
+                        def create_fetch_function(provider_cls, method):
+                            def fetch_function(input_config):
+                                # Convert input_config to dictionary for metadata
+                                if hasattr(input_config, 'dict'):
+                                    metadata = input_config.dict()
+                                elif hasattr(input_config, 'model_dump'):
+                                    metadata = input_config.model_dump()
+                                else:
+                                    metadata = dict(input_config)
+                                
+                                provider_instance = provider_cls(metadata)
+                                return getattr(provider_instance, method)()
+                            return fetch_function
                         
-                        # Make accessible as module attribute - return ConnectorService directly
-                        connector_obj = connector_service
-                        # Add metadata for backward compatibility
-                        connector_obj._config = connector_config
-                        connector_obj._models = models
-                        connector_obj._services = [connector_service]  # Single service in list for compatibility
+                        # Create connector service
+                        connector_service = ConnectorService(
+                            name=connector_config['name'],
+                            description=connector_config.get('description', f"{connector_config['name']} connector"),
+                            connector_type=ConnectorType(connector_config['connector_type']),
+                            fetch_function=create_fetch_function(provider_class, method_name)
+                        )
+                        
+                        # Make connector available as module attribute
+                        globals()[connector_name] = connector_service
+                        
                     else:
-                        # Fallback to dict if service creation failed
-                        connector_obj = {
-                            'config': connector_config,
-                            'services': [],
-                            'models': models
-                        }
-                else:
-                    # No service defined - fallback to dict
-                    _connector_services[connector_name] = []
-                    connector_obj = {
-                        'config': connector_config,
-                        'services': [],
-                        'models': models
-                    }
-                
-                globals()[connector_name] = connector_obj
+                        print(f"❌ Provider class or method '{method_name}' not found in {provider_service_path}")
+                        
+                except Exception as e:
+                    print(f"❌ Error loading provider {provider_service_path}: {e}")
         
-        total_services = sum(len(services) for services in _connector_services.values())
-        print(f"✅ Loaded {len(_loaded_connectors)} connectors with {total_services} services from {yaml_file_path}")
+        print(f"✅ Loaded {len(_loaded_connectors)} connectors from {yaml_file_path}")
         
     except FileNotFoundError:
         print(f"❌ Connectors YAML file not found: {yaml_file_path}")
     except Exception as e:
         print(f"❌ Error loading connectors from YAML: {e}")
 
-def get_loaded_connectors() -> Dict[str, Dict[str, Any]]:
+def get_loaded_connectors() -> Dict[str, Any]:
     """Get all loaded connector configurations."""
     return _loaded_connectors.copy()
 
-def get_connector_services(connector_name: str) -> List[ConnectorService]:
-    """Get ConnectorService objects for a specific connector."""
-    return _connector_services.get(connector_name, [])
-
-def get_all_connector_services() -> Dict[str, List[ConnectorService]]:
-    """Get all ConnectorService objects grouped by connector."""
-    return _connector_services.copy()
-
-def get_connector_models(connector_name: str) -> Dict[str, Type[BaseModel]]:
-    """Get input/output models for a specific connector."""
-    return _connector_models.get(connector_name, {})
-
 # Auto-load connectors when module is imported
-load_connectors_from_yaml() 
+load_connectors_from_yaml()
+
+# Export main components
+__all__ = ['ConnectorService', 'ConnectorType', 'GithubConnectorInput', 'get_loaded_connectors', 'github'] 
