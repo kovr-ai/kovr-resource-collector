@@ -98,15 +98,40 @@ class Check(BaseModel):
         """
         check_results = []
         for resource in resources:
-            actual_value = self._extract_field_value(resource, self.field_path)
-            passed = self.operation.compare(actual_value, self.expected_value)
-        
-            check_result = CheckResult(
-                passed=passed,
-                check=self,
-                resource=resource,
-                message=f"Check '{self.name}' {'passed' if passed else 'failed'}"
-            )
+            try:
+                # Try to extract field value - may fail if field is missing
+                actual_value = self._extract_field_value(resource, self.field_path)
+                
+                try:
+                    # Try to compare values - may fail due to type mismatch or other issues
+                    passed = self.operation.compare(actual_value, self.expected_value)
+                    
+                    check_result = CheckResult(
+                        passed=passed,
+                        check=self,
+                        resource=resource,
+                        message=f"Check '{self.name}' {'passed' if passed else 'failed'}. Expected: {self.expected_value}, Actual: {actual_value}"
+                    )
+                except Exception as compare_error:
+                    # Comparison failed - create failed result with error details
+                    check_result = CheckResult(
+                        passed=False,
+                        check=self,
+                        resource=resource,
+                        message=f"Check '{self.name}' failed due to comparison error",
+                        error=f"Comparison failed: {str(compare_error)}. Field path: {self.field_path}, Expected: {self.expected_value}, Actual: {actual_value}"
+                    )
+                    
+            except Exception as field_error:
+                # Field extraction failed - create failed result with error details
+                check_result = CheckResult(
+                    passed=False,
+                    check=self,
+                    resource=resource,
+                    message=f"Check '{self.name}' failed due to missing field",
+                    error=f"Field extraction failed: {str(field_error)}. Field path: {self.field_path} not found in resource {resource.id}"
+                )
+            
             check_results.append(check_result)
         return check_results
     
