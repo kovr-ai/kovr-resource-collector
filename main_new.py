@@ -25,35 +25,18 @@ def main(
 
     # Execute checks and collect results
     executed_check_results = []
+    failed_check_results = []
+    
     for check_id, check_name, check_function in checks_to_run:
-        try:
-            # Execute the check against all resources
-            check_results = check_function.evaluate(resource_collection.resources)
-            executed_check_results.append((check_id, check_name, check_results))
-        except Exception as check_error:
-            # Check execution failed entirely - create failed result for each resource
-            from con_mon.checks.models import CheckResult
-            
-            failed_check_results = []
-            for resource in resource_collection.resources:
-                failed_result = CheckResult(
-                    passed=False,
-                    check=check_function,
-                    resource=resource,
-                    message=f"Check '{check_name}' failed due to execution error",
-                    error=f"Check execution failed: {str(check_error)}. Check ID: {check_id}"
-                )
-                failed_check_results.append(failed_result)
-            
-            executed_check_results.append((check_id, check_name, failed_check_results))
-            print(f"⚠️ Check {check_id} ({check_name}) failed to execute: {check_error}")
+        # Execute the check against all resources
+        check_results = check_function.evaluate(resource_collection.resources)
+        executed_check_results.append((check_id, check_name, check_results))
 
     # Generate SQL files from executed check results
     helpers.print_summary(
         executed_check_results=executed_check_results,
     )
 
-    return
     # Print comprehensive summary
     sql.insert_check_results(
         executed_check_results,
