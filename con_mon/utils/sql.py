@@ -84,7 +84,7 @@ def insert_check_results(executed_check_results: List[Tuple[int, str, List[Any]]
             overall_result = 'MIXED'
             result_message = f"Check '{check_name}' passed for {success_count} resources, failed for {failure_count} resources"
         
-        # Add detailed failure messages
+        # Add detailed failure messages with proper formatting
         failure_details = []
         if failure_count > 0:
             for result in check_results:
@@ -92,9 +92,30 @@ def insert_check_results(executed_check_results: List[Tuple[int, str, List[Any]]
                     failure_details.append({
                         'resource_id': result.resource.id,
                         'resource_name': result.resource.name,
-                        'message': result.message
+                        'message': result.message,
+                        'error': result.error if result.error else None
                     })
-            result_message += f". Failures: {'; '.join([f'{fd['resource_name']}: {fd['message']}' for fd in failure_details])}"
+            
+            # Format failure details with proper line breaks
+            if len(failure_details) == 1:
+                # Single failure - keep it concise
+                fd = failure_details[0]
+                if fd['error']:
+                    result_message += f"\n• Failure: {fd['resource_name']} - {fd['message']}\n• Error: {fd['error']}"
+                else:
+                    result_message += f"\n• Failure: {fd['resource_name']} - {fd['message']}"
+            else:
+                # Multiple failures - format as a list
+                result_message += f"\n• Failures ({len(failure_details)} resources):"
+                for i, fd in enumerate(failure_details[:5]):  # Limit to first 5 for readability
+                    if fd['error']:
+                        result_message += f"\n  {i+1}. {fd['resource_name']}: {fd['message']} (Error: {fd['error']})"
+                    else:
+                        result_message += f"\n  {i+1}. {fd['resource_name']}: {fd['message']}"
+                
+                # Add summary if there are more failures
+                if len(failure_details) > 5:
+                    result_message += f"\n  ... and {len(failure_details) - 5} more failures"
         
         # Store processed result
         processed_results.append({
@@ -169,7 +190,7 @@ INSERT INTO con_mon_results (
 
 
 def _insert_into_database(processed_results: List[dict], customer_id: str, connection_id: int):
-    """Insert check results into both history and current results tables."""
+    """Insert check results into both history and current results tables using bulk operations."""
     from .db import get_db
     
     database = get_db()
@@ -179,110 +200,105 @@ def _insert_into_database(processed_results: List[dict], customer_id: str, conne
         print("💡 Consider providing output_dir parameter to generate SQL files instead.")
         return
     
-    print(f"\n💾 **Inserting into Database:**")
+    print(f"\n💾 **Bulk Inserting into Database:**")
     print(f"   • Database: {database._connection_pool._kwargs.get('database', 'unknown')}")
     print(f"   • Host: {database._connection_pool._kwargs.get('host', 'unknown')}")
+    print(f"   • Processing {len(processed_results)} check results in bulk...")
     
-    # Step 1: INSERT into history table (con_mon_results_history)
-    history_insert_sql = """
-    INSERT INTO con_mon_results_history (
-        customer_id, connection_id, check_id, result, result_message,
-        success_count, failure_count, success_percentage,
-        success_resources, failed_resources, exclusions, resource_json
-    ) VALUES (
-        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
-    ) RETURNING id;
-    """
-    
-    # Step 2: DELETE from current results table
-    delete_current_sql = """
-    DELETE FROM con_mon_results 
-    WHERE customer_id = %s AND connection_id = %s AND check_id = %s;
-    """
-    
-    # Step 3: INSERT into current results table
-    current_insert_sql = """
-    INSERT INTO con_mon_results (
-        customer_id, connection_id, check_id, result, result_message,
-        success_count, failure_count, success_percentage,
-        success_resources, failed_resources, exclusions, resource_json
-    ) VALUES (
-        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
-    ) RETURNING id;
-    """
-    
-    inserted_history_count = 0
-    updated_current_count = 0
-    failed_count = 0
+    # Prepare all parameters for bulk operations
+    all_params = []
+    check_ids_to_delete = []
     
     for result in processed_results:
-        try:
-            # Prepare parameters for all operations
-            params = (
-                customer_id,
-                connection_id,
-                result['check_id'],
-                result['overall_result'],
-                result['result_message'],
-                result['success_count'],
-                result['failure_count'],
-                result['success_percentage'],
-                safe_json_dumps(result['success_resources']),  # Will be cast to JSONB by PostgreSQL
-                safe_json_dumps(result['failed_resources']),
-                safe_json_dumps([]),  # Empty exclusions array
-                safe_json_dumps(result['resource_collection_dict'])
-            )
-            
-            # Step 1: Insert into history table (always append)
-            history_row_id = database.execute_insert(history_insert_sql, params)
-            
-            if history_row_id:
-                print(f"   📜 {result['check_name']}: History record inserted with ID {history_row_id}")
-                inserted_history_count += 1
+        params = (
+            customer_id,
+            connection_id,
+            result['check_id'],
+            result['overall_result'],
+            result['result_message'],
+            result['success_count'],
+            result['failure_count'],
+            result['success_percentage'],
+            safe_json_dumps(result['success_resources']),  # Will be cast to JSONB by PostgreSQL
+            safe_json_dumps(result['failed_resources']),
+            safe_json_dumps([]),  # Empty exclusions array
+            safe_json_dumps(result['resource_collection_dict'])
+        )
+        all_params.append(params)
+        check_ids_to_delete.append(result['check_id'])
+    
+    try:
+        with database.get_connection() as conn:
+            with conn.cursor() as cursor:
+                # Step 1: Bulk INSERT into history table (con_mon_results_history)
+                print(f"\n📜 **Step 1: Bulk inserting into history table...**")
+                history_insert_sql = """
+                INSERT INTO con_mon_results_history (
+                    customer_id, connection_id, check_id, result, result_message,
+                    success_count, failure_count, success_percentage,
+                    success_resources, failed_resources, exclusions, resource_json
+                ) VALUES (
+                    %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                );
+                """
                 
-                # Step 4: Stitch DELETE + INSERT for current results (maintain latest only)
-                try:
-                    # Step 2: Delete existing current result
-                    delete_params = (customer_id, connection_id, result['check_id'])
-                    deleted_rows = database.execute_delete(delete_current_sql, delete_params)
-                    
-                    # Step 3: Insert new current result
-                    current_row_id = database.execute_insert(current_insert_sql, params)
-                    
-                    if current_row_id:
-                        if deleted_rows > 0:
-                            print(f"   ✅ {result['check_name']}: Current result updated (ID {current_row_id}, replaced {deleted_rows} old records)")
-                        else:
-                            print(f"   ✅ {result['check_name']}: Current result inserted (ID {current_row_id}, first time)")
-                        updated_current_count += 1
-                    else:
-                        print(f"   ⚠️ {result['check_name']}: Current result inserted but no ID returned")
-                        updated_current_count += 1
-                        
-                except Exception as current_error:
-                    print(f"   ❌ {result['check_name']}: Failed to update current result - {current_error}")
-                    print(f"      (History record {history_row_id} was saved successfully)")
-                    failed_count += 1
-            else:
-                print(f"   ⚠️ {result['check_name']}: History record inserted but no ID returned")
-                inserted_history_count += 1
+                cursor.executemany(history_insert_sql, all_params)
+                history_inserted = cursor.rowcount
+                print(f"   ✅ Inserted {history_inserted} records into con_mon_results_history")
                 
-        except Exception as e:
-            print(f"   ❌ {result['check_name']}: Failed to insert - {e}")
-            failed_count += 1
-    
-    # Print comprehensive insertion summary
-    print(f"\n📊 **Database Insertion Summary:**")
-    print(f"   • History records inserted: {inserted_history_count}")
-    print(f"   • Current results updated: {updated_current_count}")
-    print(f"   • Failed operations: {failed_count}")
-    print(f"   • Total check results processed: {len(processed_results)}")
-    
-    if inserted_history_count > 0:
-        print(f"   ✅ All check executions have been preserved in history")
-    
-    if updated_current_count > 0:
-        print(f"   ✅ Latest check results are available in current results table")
-    
-    if failed_count > 0:
-        print(f"   ⚠️ {failed_count} operations failed - check database connectivity and table schema")
+                # Step 2: Bulk DELETE from current results table
+                print(f"\n🗑️  **Step 2: Bulk deleting from current results table...**")
+                if len(check_ids_to_delete) == 1:
+                    delete_current_sql = """
+                    DELETE FROM con_mon_results 
+                    WHERE customer_id = %s AND connection_id = %s AND check_id = %s;
+                    """
+                    cursor.execute(delete_current_sql, (customer_id, connection_id, check_ids_to_delete[0]))
+                else:
+                    # Use IN clause for multiple check_ids
+                    placeholders = ','.join(['%s'] * len(check_ids_to_delete))
+                    delete_current_sql = f"""
+                    DELETE FROM con_mon_results 
+                    WHERE customer_id = %s AND connection_id = %s AND check_id IN ({placeholders});
+                    """
+                    cursor.execute(delete_current_sql, (customer_id, connection_id, *check_ids_to_delete))
+                
+                deleted_rows = cursor.rowcount
+                print(f"   ✅ Deleted {deleted_rows} existing records from con_mon_results")
+                
+                # Step 3: Bulk INSERT into current results table
+                print(f"\n💾 **Step 3: Bulk inserting into current results table...**")
+                current_insert_sql = """
+                INSERT INTO con_mon_results (
+                    customer_id, connection_id, check_id, result, result_message,
+                    success_count, failure_count, success_percentage,
+                    success_resources, failed_resources, exclusions, resource_json
+                ) VALUES (
+                    %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                );
+                """
+                
+                cursor.executemany(current_insert_sql, all_params)
+                current_inserted = cursor.rowcount
+                print(f"   ✅ Inserted {current_inserted} records into con_mon_results")
+                
+                # Commit all operations
+                conn.commit()
+                
+                # Print comprehensive insertion summary
+                print(f"\n📊 **Bulk Database Operation Summary:**")
+                print(f"   • History records inserted: {history_inserted}")
+                print(f"   • Current records deleted: {deleted_rows}")
+                print(f"   • Current records inserted: {current_inserted}")
+                print(f"   • Total check results processed: {len(processed_results)}")
+                print(f"   • Operation: BULK (much faster than individual operations)")
+                
+                print(f"\n✅ **All operations completed successfully:**")
+                print(f"   • All check executions preserved in history")
+                print(f"   • Latest check results available in current results table")
+                print(f"   • Database consistency maintained")
+                
+    except Exception as e:
+        print(f"\n❌ **Bulk database operation failed:** {e}")
+        print(f"💡 Consider providing output_dir parameter to generate SQL files instead.")
+        raise
