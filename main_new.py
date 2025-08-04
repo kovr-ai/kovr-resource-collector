@@ -1,3 +1,4 @@
+import os
 from con_mon.utils import sql, helpers
 from con_mon.checks import get_checks_by_ids
 from con_mon.connectors import get_connector_by_id, get_connector_input_by_id
@@ -131,9 +132,13 @@ def params_from_connection_id(
 
 
 if __name__ == "__main__":
+    connection_id = os.environ.get("CONNECTION_ID")
+    check_ids_str = os.environ.get("CHECK_IDS")
+    check_ids = check_ids_str.split(",") if check_ids_str else list()
     main(
         *params_from_connection_id(
-            1,
-            check_ids=[],
+            int(connection_id),
+            [int(check_id)
+             for check_id in check_ids],
         ),
     )
