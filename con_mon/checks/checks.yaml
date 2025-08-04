@@ -1,0 +1,60 @@
+# GitHub-specific checks configuration
+# Maps to Check model structure in checks/models.py
+
+checks:
+  - id: 1001
+    name: "github_main_branch_protected"
+    description: "Verify that the main branch in GitHub repository has protection enabled"
+    field_path: "repository_data.branches"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check if the main branch (or master branch) is protected
+        if not isinstance(fetched_value, list):
+            result = False
+        else:
+            result = False  # Default to False if main branch not found
+            main_branch_names = ['main', 'master', 'production', 'prod']  # Common main branch names
+            
+            for branch in fetched_value:
+                branch_name = None
+                is_protected = False
+                
+                if isinstance(branch, dict):
+                    branch_name = branch.get('name', '')
+                    is_protected = branch.get('protected', False)
+                else:
+                    # Handle Pydantic models
+                    branch_name = getattr(branch, 'name', '')
+                    is_protected = getattr(branch, 'protected', False)
+                
+                # Check if this is a main branch
+                if branch_name in main_branch_names:
+                    result = is_protected
+                    break  # Found main branch, stop looking
+    expected_value: null
+    tags: ["security", "github", "branch_protection", "main_branch"]
+    severity: "high"
+    category: "access_control"
+
+  - id: 1002
+    name: "github_repository_private"
+    description: "Verify that GitHub repository is private"
+    field_path: "repository_data.basic_info.private"
+    operation:
+      name: "EQUAL"
+    expected_value: true
+    tags: ["security", "github", "visibility"]
+    severity: "medium"
+    category: "access_control"
+
+  - id: 1003
+    name: "github_minimum_branch_count"
+    description: "Verify that GitHub repository has at least 3 branches"
+    field_path: "len(repository_data.branches)"
+    operation:
+      name: "GREATER_THAN_OR_EQUAL"
+    expected_value: 3
+    tags: ["development", "github", "branch_management"]
+    severity: "low"
+    category: "development_practices" 

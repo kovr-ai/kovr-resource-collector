@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 import json
 from typing import Dict, Any
+from con_mon.resources import GithubResource, GithubResourceCollection
 
 # Load environment variables from .env file
 load_dotenv()
@@ -17,11 +18,7 @@ load_dotenv()
 @provider_class
 class GitHubProvider(Provider):
     def __init__(self, metadata: dict):
-        self.config = self.load_config("providers/gh/github_config.json")
-        self.output_dir = Path("output/github")
-        self.output_dir.mkdir(parents=True, exist_ok=True)
-        self.metadata = self.prepare_metadata()
-        self.GITHUB_TOKEN = self.metadata["GITHUB_TOKEN"]
+        self.GITHUB_TOKEN = metadata["GITHUB_TOKEN"]
 
         super().__init__(Providers.GITHUB.value, metadata)
         
@@ -34,47 +31,6 @@ class GitHubProvider(Provider):
             {"name": "organization", "class": self._get_service_class("OrganizationService")},
             {"name": "advanced_features", "class": self._get_service_class("AdvancedFeaturesService")}
         ]
-
-    def load_config(self, config_file: str) -> Dict[str, Any]:
-        """Load configuration from JSON file"""
-        try:
-            with open(config_file, 'r') as f:
-                config = json.load(f)
-                print(f"Loaded configuration from {config_file}")
-                return config
-        except FileNotFoundError:
-            print(f"Configuration file {config_file} not found. Using default settings.")
-            return {
-                "github": {
-                    "output_config": {
-                        "repositories": True,
-                        "actions": True,
-                        "collaboration": True,
-                        "security": True,
-                        "organization": True,
-                        "advanced_features": True
-                    }
-                },
-                "features": {
-                    "rate_limit_monitoring": True,
-                    "detailed_logging": True
-                }
-            }
-        except Exception as e:
-            print(f"Error loading configuration: {e}")
-            return {}
-
-    def prepare_metadata(self) -> Dict[str, Any]:
-        """Prepare metadata for the GitHub provider"""
-        github_token = os.getenv("GITHUB_TOKEN")
-        if not github_token:
-            raise ValueError("GITHUB_TOKEN environment variable is required")
-        
-        return {
-            "GITHUB_TOKEN": github_token,
-            "config": self.config,
-            "output_dir": str(self.output_dir)
-        }
 
     def _get_service_class(self, service_class_name: str):
         """Dynamically load and return service class"""
@@ -120,9 +76,71 @@ class GitHubProvider(Provider):
             print(f"Unexpected error during GitHub connection: {e}")
             raise
 
-    def process(self) -> GitHubReport:
+    def process(self) -> GithubResourceCollection:
         """Process data collection and return GitHubReport model"""
-        # Create the report object
+        with open(
+            '/Users/ironeagle-kovr/Workspace/code/kovr-resource-collector/2025-08-02-19-03-26_response.json',
+            'r'
+        ) as mock_response_file:
+            mock_response = json.load(mock_response_file)
+            
+            # Create lookup dictionaries for each data type by repository
+            repositories_lookup = {item['repository']: item for item in mock_response.get('repositories_data', [])}
+            actions_lookup = {item['repository']: item for item in mock_response.get('actions_data', [])}
+            collaboration_lookup = {item['repository']: item for item in mock_response.get('collaboration_data', [])}
+            security_lookup = {item['repository']: item for item in mock_response.get('security_data', [])}
+            organization_lookup = {item['repository']: item for item in mock_response.get('organization_data', [])}
+            advanced_features_lookup = {item['repository']: item for item in mock_response.get('advanced_features_data', [])}
+            
+            # Convert to GithubResource objects with ALL data types
+            github_resources = []
+            for repo_name in repositories_lookup.keys():
+                try:
+                    # Create comprehensive GithubResource with all data types
+                    resource_data = {
+                        'name': repo_name,
+                        'repository_data': repositories_lookup.get(repo_name, {}),
+                        'actions_data': actions_lookup.get(repo_name, {}),
+                        'collaboration_data': collaboration_lookup.get(repo_name, {}),
+                        'security_data': security_lookup.get(repo_name, {}),
+                        'organization_data': organization_lookup.get(repo_name, {}),
+                        'advanced_features_data': advanced_features_lookup.get(repo_name, {}),
+                        # Add required base Resource fields
+                        'id': f"github-{repo_name.replace('/', '-')}",
+                        'source_connector': 'github'
+                    }
+
+                    github_resource = GithubResource(**resource_data)
+                    github_resources.append(github_resource)
+                except Exception as e:
+                    print(f"Error converting repository data for {repo_name}: {e}")
+                    continue
+            
+            # Create and return GithubResourceCollection
+            return GithubResourceCollection(
+                resources=github_resources,
+                source_connector='github',
+                total_count=len(github_resources),
+                fetched_at=mock_response.get('collection_time'),
+                collection_metadata={
+                    'authenticated_user': mock_response.get('authenticated_user'),
+                    'total_repositories': mock_response.get('total_repositories'),
+                    'total_workflows': mock_response.get('total_workflows', 0),
+                    'total_issues': mock_response.get('total_issues', 0),
+                    'total_pull_requests': mock_response.get('total_pull_requests', 0),
+                    'total_security_alerts': mock_response.get('total_security_alerts', 0),
+                    'total_collaborators': mock_response.get('total_collaborators', 0),
+                    'total_tags': mock_response.get('total_tags', 0),
+                    'total_active_webhooks': mock_response.get('total_active_webhooks', 0),
+                    'rate_limit_info': mock_response.get('rate_limit_info')
+                },
+                github_api_metadata={
+                    'collection_time': mock_response.get('collection_time'),
+                    'api_version': 'v3',  # GitHub API version
+                    'scope': ['repo', 'read:org', 'actions:read', 'security_events:read']  # Extended scopes
+                }
+            )
+
         report = GitHubReport(
             authenticated_user=self.user.login if hasattr(self, 'user') else None
         )
