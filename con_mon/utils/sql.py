@@ -169,7 +169,7 @@ INSERT INTO con_mon_results (
 
 
 def _insert_into_database(processed_results: List[dict], customer_id: str, connection_id: int):
-    """Insert check results directly into the database."""
+    """Insert check results into both history and current results tables."""
     from .db import get_db
     
     database = get_db()
@@ -183,7 +183,25 @@ def _insert_into_database(processed_results: List[dict], customer_id: str, conne
     print(f"   • Database: {database._connection_pool._kwargs.get('database', 'unknown')}")
     print(f"   • Host: {database._connection_pool._kwargs.get('host', 'unknown')}")
     
-    insert_sql = """
+    # Step 1: INSERT into history table (con_mon_results_history)
+    history_insert_sql = """
+    INSERT INTO con_mon_results_history (
+        customer_id, connection_id, check_id, result, result_message,
+        success_count, failure_count, success_percentage,
+        success_resources, failed_resources, exclusions, resource_json
+    ) VALUES (
+        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+    ) RETURNING id;
+    """
+    
+    # Step 2: DELETE from current results table
+    delete_current_sql = """
+    DELETE FROM con_mon_results 
+    WHERE customer_id = %s AND connection_id = %s AND check_id = %s;
+    """
+    
+    # Step 3: INSERT into current results table
+    current_insert_sql = """
     INSERT INTO con_mon_results (
         customer_id, connection_id, check_id, result, result_message,
         success_count, failure_count, success_percentage,
@@ -193,12 +211,13 @@ def _insert_into_database(processed_results: List[dict], customer_id: str, conne
     ) RETURNING id;
     """
     
-    inserted_count = 0
+    inserted_history_count = 0
+    updated_current_count = 0
     failed_count = 0
     
     for result in processed_results:
         try:
-            # Prepare parameters for parameterized query
+            # Prepare parameters for all operations
             params = (
                 customer_id,
                 connection_id,
@@ -214,28 +233,56 @@ def _insert_into_database(processed_results: List[dict], customer_id: str, conne
                 safe_json_dumps(result['resource_collection_dict'])
             )
             
-            # Insert into database
-            row_id = database.execute_insert(insert_sql, params)
+            # Step 1: Insert into history table (always append)
+            history_row_id = database.execute_insert(history_insert_sql, params)
             
-            if row_id:
-                print(f"   ✅ {result['check_name']}: Inserted with ID {row_id}")
-                inserted_count += 1
+            if history_row_id:
+                print(f"   📜 {result['check_name']}: History record inserted with ID {history_row_id}")
+                inserted_history_count += 1
+                
+                # Step 4: Stitch DELETE + INSERT for current results (maintain latest only)
+                try:
+                    # Step 2: Delete existing current result
+                    delete_params = (customer_id, connection_id, result['check_id'])
+                    deleted_rows = database.execute_delete(delete_current_sql, delete_params)
+                    
+                    # Step 3: Insert new current result
+                    current_row_id = database.execute_insert(current_insert_sql, params)
+                    
+                    if current_row_id:
+                        if deleted_rows > 0:
+                            print(f"   ✅ {result['check_name']}: Current result updated (ID {current_row_id}, replaced {deleted_rows} old records)")
+                        else:
+                            print(f"   ✅ {result['check_name']}: Current result inserted (ID {current_row_id}, first time)")
+                        updated_current_count += 1
+                    else:
+                        print(f"   ⚠️ {result['check_name']}: Current result inserted but no ID returned")
+                        updated_current_count += 1
+                        
+                except Exception as current_error:
+                    print(f"   ❌ {result['check_name']}: Failed to update current result - {current_error}")
+                    print(f"      (History record {history_row_id} was saved successfully)")
+                    failed_count += 1
             else:
-                print(f"   ⚠️ {result['check_name']}: Inserted but no ID returned")
-                inserted_count += 1
+                print(f"   ⚠️ {result['check_name']}: History record inserted but no ID returned")
+                inserted_history_count += 1
                 
         except Exception as e:
             print(f"   ❌ {result['check_name']}: Failed to insert - {e}")
             failed_count += 1
     
-    # Print insertion summary
+    # Print comprehensive insertion summary
     print(f"\n📊 **Database Insertion Summary:**")
-    print(f"   • Successfully inserted: {inserted_count}")
-    print(f"   • Failed insertions: {failed_count}")
-    print(f"   • Total check results: {len(processed_results)}")
+    print(f"   • History records inserted: {inserted_history_count}")
+    print(f"   • Current results updated: {updated_current_count}")
+    print(f"   • Failed operations: {failed_count}")
+    print(f"   • Total check results processed: {len(processed_results)}")
     
-    if inserted_count > 0:
-        print(f"   ✅ Check results have been stored in the database")
+    if inserted_history_count > 0:
+        print(f"   ✅ All check executions have been preserved in history")
+    
+    if updated_current_count > 0:
+        print(f"   ✅ Latest check results are available in current results table")
     
     if failed_count > 0:
-        print(f"   ⚠️ {failed_count} insertions failed - check database connectivity and table schema")
+        print(f"   ⚠️ {failed_count} operations failed - check database connectivity and table schema")
