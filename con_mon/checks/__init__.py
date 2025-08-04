@@ -75,7 +75,14 @@ def _create_check_from_config(check_id:int, check_name: str, check_config: Dict[
         field_path=check_config['field_path'],
         operation=operation,
         expected_value=check_config['expected_value'],
-        description=check_config.get('description')
+        description=check_config.get('description'),
+        # NIST compliance fields
+        framework_name=check_config.get('framework_name'),
+        control_name=check_config.get('control_name'),
+        # Additional metadata fields
+        tags=check_config.get('tags'),
+        severity=check_config.get('severity'),
+        category=check_config.get('category')
     )
 
 def load_checks_from_yaml(yaml_file_path: str = None):

@@ -77,6 +77,15 @@ class Check(BaseModel):
     expected_value: Any
     description: Optional[str] = None
     
+    # NIST compliance fields
+    framework_name: str = None
+    control_name: str = None
+    
+    # Additional metadata fields from YAML
+    tags: Optional[List[str]] = None
+    severity: Optional[str] = None
+    category: Optional[str] = None
+    
     def evaluate(self, resources: List[Resource]) -> List["CheckResult"]:
         """
         Evaluate this check against a resource's data.
