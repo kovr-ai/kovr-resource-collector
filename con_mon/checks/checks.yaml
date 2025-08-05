@@ -6745,7 +6745,7 @@ checks:
   resource_type: GithubResource
   field_path: repository_data.basic_info.clone_url
   operation:
-    name: STARTS_WITH
+    name: contains
   expected_value: "https://"
   tags:
   - security
@@ -6763,7 +6763,7 @@ checks:
   resource_type: GithubResource
   field_path: repository_data.basic_info.ssh_url
   operation:
-    name: STARTS_WITH
+    name: contains
   expected_value: "git@github.com:"
   tags:
   - security
