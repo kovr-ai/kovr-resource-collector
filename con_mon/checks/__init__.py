@@ -54,6 +54,7 @@ def _create_check_from_config(check_id:int, check_name: str, check_config: Dict[
     # Create Check object with updated field names for CSV compatibility
     return Check(
         id=check_id,
+        connection_id=check_config['connection_id'],        # Connection ID from YAML
         name=check_name,
         field_path=check_config['field_path'],
         operation=operation,
@@ -114,27 +115,31 @@ def get_loaded_checks() -> Dict[str, Check]:
     """Get all loaded checks."""
     return _loaded_checks.copy()
 
-def get_checks_by_ids(check_ids: Optional[Union[List[int], int]] = None) -> List[Tuple[int, str, Check]]:
+def get_checks_by_ids(
+    connection_id: int,
+    check_ids: Optional[Union[List[int], int]] = None
+) -> List[Tuple[int, str, Check]]:
     """
-    Get checks by their IDs or return all checks if check_ids is None or empty list.
+    Get checks by their IDs filtered by connection_id, or return all checks for connection if check_ids is None or empty list.
     
     Args:
-        check_ids: List of check IDs to filter by, single check ID, None or empty list to return all checks
+        connection_id: Connection ID to filter by (1=GitHub, 2=AWS)
+        check_ids: List of check IDs to filter by, single check ID, None or empty list to return all checks for connection
         
     Returns:
         List of tuples in format (check_id, check_name, check_object)
         
     Examples:
-        # Get all checks (any of these work)
-        all_checks = get_checks_by_ids()
-        all_checks = get_checks_by_ids(None)
-        all_checks = get_checks_by_ids([])
+        # Get all GitHub checks (connection_id=1)
+        all_github_checks = get_checks_by_ids(1)
+        all_github_checks = get_checks_by_ids(1, None)
+        all_github_checks = get_checks_by_ids(1, [])
         
-        # Get specific checks by ID
-        selected_checks = get_checks_by_ids([1001, 1002])
+        # Get specific GitHub checks by ID
+        selected_github_checks = get_checks_by_ids(1, [1001, 1002])
         
-        # Get single check by ID
-        single_check = get_checks_by_ids(1001)
+        # Get single AWS check by ID
+        single_aws_check = get_checks_by_ids(2, 2001)
     """
     # Convert single int to list for consistent processing
     if isinstance(check_ids, int):
@@ -147,7 +152,11 @@ def get_checks_by_ids(check_ids: Optional[Union[List[int], int]] = None) -> List
     result = []
     
     for check_name, check_obj in _loaded_checks.items():
-        # If no specific IDs requested, include all checks
+        # First filter by connection_id
+        if check_obj.connection_id != connection_id:
+            continue
+            
+        # If no specific IDs requested, include all checks for this connection
         if check_ids is None:
             result.append((check_obj.id, check_name, check_obj))
         # If specific IDs requested, include only matching checks
@@ -158,15 +167,16 @@ def get_checks_by_ids(check_ids: Optional[Union[List[int], int]] = None) -> List
     result.sort(key=lambda x: x[0])
     
     # Log what checks were returned
+    connection_name = "GitHub" if connection_id == 1 else "AWS" if connection_id == 2 else f"Connection {connection_id}"
     if check_ids is None:
-        print(f"📋 Retrieved all {len(result)} available checks")
+        print(f"📋 Retrieved all {len(result)} available {connection_name} checks")
     else:
         found_ids = [check_id for check_id, _, _ in result]
         missing_ids = [cid for cid in check_ids if cid not in found_ids]
         
-        print(f"📋 Retrieved {len(result)} checks matching IDs: {found_ids}")
+        print(f"📋 Retrieved {len(result)} {connection_name} checks matching IDs: {found_ids}")
         if missing_ids:
-            print(f"⚠️ Warning: Check IDs not found: {missing_ids}")
+            print(f"⚠️ Warning: {connection_name} check IDs not found: {missing_ids}")
     
     return result
 

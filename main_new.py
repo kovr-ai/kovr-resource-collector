@@ -13,7 +13,7 @@ def main(
     check_ids: list[int] | None = None,
     metadata: dict | None = None,
 ):
-    checks_to_run = get_checks_by_ids(check_ids)
+    checks_to_run = get_checks_by_ids(connection_id, check_ids)
     connector_service = get_connector_by_id(connector_type)
     ConnectorInput = get_connector_input_by_id(connector_service)
 
@@ -37,6 +37,7 @@ def main(
         executed_check_results=executed_check_results,
     )
 
+    return
     # Print comprehensive summary
     sql.insert_check_results(
         executed_check_results,
@@ -136,6 +137,7 @@ def params_from_connection_id(
 
 if __name__ == "__main__":
     connection_id = os.environ.get("CONNECTION_ID")
+    connection_id = '2'
     check_ids_str = os.environ.get("CHECK_IDS")
     check_ids = check_ids_str.split(",") if check_ids_str else list()
     main(

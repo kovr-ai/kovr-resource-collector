@@ -71,6 +71,7 @@ class Check(BaseModel):
     Represents a single check that evaluates a resource field against a configured value.
     """
     id: int
+    connection_id: int = Field(..., description="ID of the connection/provider this check belongs to (1=GitHub, 2=AWS)")
     name: str
     field_path: str = Field(..., description="e.g., 'price', 'metadata.status', 'tags[0]'")
     operation: ComparisonOperation
