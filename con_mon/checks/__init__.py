@@ -81,10 +81,11 @@ def _create_check_from_config(check_id:int, check_name: str, check_config: Dict[
         resource_type=resource_type,  # Actual model type instead of string
         
         # Updated to use both IDs and names from CSV data
-        framework_id=check_config['framework_id'],      # Integer ID from CSV (required)
-        control_id=check_config['control_id'],          # Integer ID from CSV (required)
-        framework_name=check_config['framework_name'],  # String name from CSV (required)
-        control_name=check_config['control_name'],      # String name from CSV (required)
+        control_ids=check_config['control_ids'],          # Integer ID from CSV (required)
+        # framework_id=check_config['framework_id'],      # Integer ID from CSV (required)
+        # control_id=check_config['control_id'],          # Integer ID from CSV (required)
+        # framework_name=check_config['framework_name'],  # String name from CSV (required)
+        # control_name=check_config['control_name'],      # String name from CSV (required)
         
         # Additional metadata
         tags=check_config.get('tags'),
