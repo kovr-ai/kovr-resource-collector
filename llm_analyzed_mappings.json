@@ -2261,44 +2261,44 @@
   "21377": {
     "check_name": "github_security_analysis_si_2",
     "controls": [
-      304
+      1046
     ],
-    "reasoning": "Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository has security analysis enabled"
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository has security analysis enabled"
   },
   "21378": {
     "check_name": "github_dependency_scanning_si_2_2",
     "controls": [
-      306
+      1048
     ],
-    "reasoning": "Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository has dependency review enabled"
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository has dependency review enabled"
   },
   "21379": {
     "check_name": "github_code_scanning_alerts_si_4",
     "controls": [
-      310
+      1064
     ],
-    "reasoning": "Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository monitors code scanning alerts"
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository monitors code scanning alerts"
   },
   "21380": {
     "check_name": "github_dependabot_alerts_monitoring_si_4_2",
     "controls": [
-      312
+      1066
     ],
-    "reasoning": "Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository monitors Dependabot alerts"
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository monitors Dependabot alerts"
   },
   "21381": {
     "check_name": "aws_cloudwatch_monitoring_si_4_4",
     "controls": [
-      314
+      1068
     ],
-    "reasoning": "Direct mapping from AWS services system_information_integrity check: Verify AWS CloudWatch provides system monitoring"
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from AWS services system_information_integrity check: Verify AWS CloudWatch provides system monitoring"
   },
   "21382": {
     "check_name": "aws_cloudwatch_alarms_si_4_5",
     "controls": [
-      315
+      1069
     ],
-    "reasoning": "Direct mapping from AWS services system_information_integrity check: Verify AWS CloudWatch has security alarms configured"
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from AWS services system_information_integrity check: Verify AWS CloudWatch has security alarms configured"
   },
   "21383": {
     "check_name": "aws_cloudtrail_audit_logging_au_2",
@@ -2429,30 +2429,30 @@
   "21401": {
     "check_name": "github_vulnerability_disclosure_si_5",
     "controls": [
-      316
+      1090
     ],
-    "reasoning": "Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository has vulnerability disclosure process"
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository has vulnerability disclosure process"
   },
   "21402": {
     "check_name": "github_security_function_verification_si_6",
     "controls": [
-      317
+      1092
     ],
-    "reasoning": "Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository security functions work correctly"
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository security functions work correctly"
   },
   "21403": {
     "check_name": "aws_software_integrity_si_7",
     "controls": [
-      318
+      1096
     ],
-    "reasoning": "Direct mapping from AWS services system_information_integrity check: Verify AWS services maintain software integrity"
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from AWS services system_information_integrity check: Verify AWS services maintain software integrity"
   },
   "21404": {
     "check_name": "aws_information_integrity_si_7_1",
     "controls": [
-      319
+      1097
     ],
-    "reasoning": "Direct mapping from AWS services system_information_integrity check: Verify AWS services detect unauthorized changes"
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from AWS services system_information_integrity check: Verify AWS services detect unauthorized changes"
   },
   "21405": {
     "check_name": "aws_audit_record_generation_au_3_2",
@@ -2660,58 +2660,58 @@
   "21434": {
     "check_name": "github_information_system_monitoring_si_4_3",
     "controls": [
-      313
+      1067
     ],
-    "reasoning": "Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository has comprehensive monitoring"
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository has comprehensive monitoring"
   },
   "21435": {
     "check_name": "aws_spam_protection_si_8",
     "controls": [
-      320
+      1114
     ],
-    "reasoning": "Direct mapping from AWS services system_information_integrity check: Verify AWS services provide spam and phishing protection"
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from AWS services system_information_integrity check: Verify AWS services provide spam and phishing protection"
   },
   "21436": {
     "check_name": "github_information_input_restrictions_si_10",
     "controls": [
-      322
+      1119
     ],
-    "reasoning": "Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository validates information inputs"
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository validates information inputs"
   },
   "21437": {
     "check_name": "aws_error_handling_si_11",
     "controls": [
-      323
+      1126
     ],
-    "reasoning": "Direct mapping from AWS services system_information_integrity check: Verify AWS services handle errors securely"
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from AWS services system_information_integrity check: Verify AWS services handle errors securely"
   },
   "21438": {
     "check_name": "github_information_handling_si_12",
     "controls": [
-      324
+      1127
     ],
-    "reasoning": "Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository handles information securely"
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository handles information securely"
   },
   "21439": {
     "check_name": "aws_predictable_failure_prevention_si_13",
     "controls": [
-      325
+      1131
     ],
-    "reasoning": "Direct mapping from AWS services system_information_integrity check: Verify AWS services prevent predictable failures"
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from AWS services system_information_integrity check: Verify AWS services prevent predictable failures"
   },
   "21440": {
     "check_name": "github_non_persistence_si_14",
     "controls": [
-      326
+      1137
     ],
-    "reasoning": "Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository supports non-persistent processing"
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository supports non-persistent processing"
   },
   "21441": {
     "check_name": "aws_information_output_filtering_si_15",
     "controls": [
-      327
+      1141
     ],
-    "reasoning": "Direct mapping from AWS services system_information_integrity check: Verify AWS services filter information output"
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from AWS services system_information_integrity check: Verify AWS services filter information output"
   },
   "21442": {
     "check_name": "aws_cryptographic_key_establishment_sc_17",
@@ -2751,8 +2751,8 @@
   "21447": {
     "check_name": "github_memory_protection_si_16",
     "controls": [
-      328
+      1142
     ],
-    "reasoning": "Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository protects against memory-based attacks"
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository protects against memory-based attacks"
   }
 }

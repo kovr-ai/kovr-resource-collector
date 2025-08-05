@@ -6737,7 +6737,6 @@ checks:
   category: system_information_integrity
   control_ids:
   - 1306
-# Batch 1: 25 new checks for NIST 800-53 coverage improvement (21367-21391)
 - id: 21367
   connection_id: 1
   name: github_secure_communication_sc_8
@@ -6746,7 +6745,7 @@ checks:
   field_path: repository_data.basic_info.clone_url
   operation:
     name: contains
-  expected_value: "https://"
+  expected_value: https://
   tags:
   - security
   - github
@@ -6764,7 +6763,7 @@ checks:
   field_path: repository_data.basic_info.ssh_url
   operation:
     name: contains
-  expected_value: "git@github.com:"
+  expected_value: 'git@github.com:'
   tags:
   - security
   - github
@@ -6782,12 +6781,8 @@ checks:
   field_path: vpcs
   operation:
     name: custom
-    custom_logic: |
-      # Check if VPCs exist for network segmentation
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) > 0
+    custom_logic: "# Check if VPCs exist for network segmentation\nif not isinstance(fetched_value,\
+      \ dict):\n    result = False\nelse:\n    result = len(fetched_value) > 0\n"
   expected_value: null
   tags:
   - security
@@ -6806,12 +6801,9 @@ checks:
   field_path: security_groups
   operation:
     name: custom
-    custom_logic: |
-      # Check if security groups exist for boundary protection
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) > 0
+    custom_logic: "# Check if security groups exist for boundary protection\nif not\
+      \ isinstance(fetched_value, dict):\n    result = False\nelse:\n    result =\
+      \ len(fetched_value) > 0\n"
   expected_value: null
   tags:
   - security
@@ -6830,12 +6822,9 @@ checks:
   field_path: nat_gateways
   operation:
     name: custom
-    custom_logic: |
-      # Check if NAT gateways exist for outbound protection
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # Can be 0 if no outbound needed
+    custom_logic: "# Check if NAT gateways exist for outbound protection\nif not isinstance(fetched_value,\
+      \ dict):\n    result = False\nelse:\n    result = len(fetched_value) >= 0  #\
+      \ Can be 0 if no outbound needed\n"
   expected_value: null
   tags:
   - security
@@ -6854,12 +6843,9 @@ checks:
   field_path: internet_gateways
   operation:
     name: custom
-    custom_logic: |
-      # Check if internet gateways are properly configured
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # Can exist or not based on architecture
+    custom_logic: "# Check if internet gateways are properly configured\nif not isinstance(fetched_value,\
+      \ dict):\n    result = False\nelse:\n    result = len(fetched_value) >= 0  #\
+      \ Can exist or not based on architecture\n"
   expected_value: null
   tags:
   - security
@@ -6896,12 +6882,9 @@ checks:
   field_path: repository_data.metadata.is_template
   operation:
     name: custom
-    custom_logic: |
-      # If it's a template, it should have proper documentation
-      if fetched_value is True:
-          result = True  # Template repositories help standardize acquisition
-      else:
-          result = True  # Non-templates are also compliant
+    custom_logic: "# If it's a template, it should have proper documentation\nif fetched_value\
+      \ is True:\n    result = True  # Template repositories help standardize acquisition\n\
+      else:\n    result = True  # Non-templates are also compliant\n"
   expected_value: null
   tags:
   - security
@@ -6920,12 +6903,9 @@ checks:
   field_path: tags
   operation:
     name: custom
-    custom_logic: |
-      # Check if tags exist for resource tracking
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # Tags may or may not exist
+    custom_logic: "# Check if tags exist for resource tracking\nif not isinstance(fetched_value,\
+      \ dict):\n    result = False\nelse:\n    result = len(fetched_value) >= 0  #\
+      \ Tags may or may not exist\n"
   expected_value: null
   tags:
   - security
@@ -6944,12 +6924,9 @@ checks:
   field_path: instances
   operation:
     name: custom
-    custom_logic: |
-      # Check if instances exist and can be managed
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # Instances should be manageable
+    custom_logic: "# Check if instances exist and can be managed\nif not isinstance(fetched_value,\
+      \ dict):\n    result = False\nelse:\n    result = len(fetched_value) >= 0  #\
+      \ Instances should be manageable\n"
   expected_value: null
   tags:
   - security
@@ -6977,7 +6954,7 @@ checks:
   severity: high
   category: system_information_integrity
   control_ids:
-  - 304
+  - 1046
 - id: 21378
   connection_id: 1
   name: github_dependency_scanning_si_2_2
@@ -6995,7 +6972,7 @@ checks:
   severity: high
   category: system_information_integrity
   control_ids:
-  - 306
+  - 1048
 - id: 21379
   connection_id: 1
   name: github_code_scanning_alerts_si_4
@@ -7013,7 +6990,7 @@ checks:
   severity: medium
   category: system_information_integrity
   control_ids:
-  - 310
+  - 1064
 - id: 21380
   connection_id: 1
   name: github_dependabot_alerts_monitoring_si_4_2
@@ -7031,7 +7008,7 @@ checks:
   severity: medium
   category: system_information_integrity
   control_ids:
-  - 312
+  - 1066
 - id: 21381
   connection_id: 2
   name: aws_cloudwatch_monitoring_si_4_4
@@ -7040,12 +7017,9 @@ checks:
   field_path: metrics
   operation:
     name: custom
-    custom_logic: |
-      # Check if metrics exist for monitoring
-      if not isinstance(fetched_value, list):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # Metrics should be available
+    custom_logic: "# Check if metrics exist for monitoring\nif not isinstance(fetched_value,\
+      \ list):\n    result = False\nelse:\n    result = len(fetched_value) >= 0  #\
+      \ Metrics should be available\n"
   expected_value: null
   tags:
   - security
@@ -7055,7 +7029,7 @@ checks:
   severity: high
   category: system_information_integrity
   control_ids:
-  - 314
+  - 1068
 - id: 21382
   connection_id: 2
   name: aws_cloudwatch_alarms_si_4_5
@@ -7064,12 +7038,9 @@ checks:
   field_path: alarms
   operation:
     name: custom
-    custom_logic: |
-      # Check if alarms exist for security monitoring
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # Alarms may or may not exist
+    custom_logic: "# Check if alarms exist for security monitoring\nif not isinstance(fetched_value,\
+      \ dict):\n    result = False\nelse:\n    result = len(fetched_value) >= 0  #\
+      \ Alarms may or may not exist\n"
   expected_value: null
   tags:
   - security
@@ -7079,7 +7050,7 @@ checks:
   severity: medium
   category: system_information_integrity
   control_ids:
-  - 315
+  - 1069
 - id: 21383
   connection_id: 2
   name: aws_cloudtrail_audit_logging_au_2
@@ -7088,12 +7059,9 @@ checks:
   field_path: trails
   operation:
     name: custom
-    custom_logic: |
-      # Check if CloudTrail trails exist for audit logging
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) > 0  # At least one trail should exist
+    custom_logic: "# Check if CloudTrail trails exist for audit logging\nif not isinstance(fetched_value,\
+      \ dict):\n    result = False\nelse:\n    result = len(fetched_value) > 0  #\
+      \ At least one trail should exist\n"
   expected_value: null
   tags:
   - security
@@ -7112,12 +7080,9 @@ checks:
   field_path: event_selectors
   operation:
     name: custom
-    custom_logic: |
-      # Check if event selectors are configured
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # Event selectors may be configured
+    custom_logic: "# Check if event selectors are configured\nif not isinstance(fetched_value,\
+      \ dict):\n    result = False\nelse:\n    result = len(fetched_value) >= 0  #\
+      \ Event selectors may be configured\n"
   expected_value: null
   tags:
   - security
@@ -7136,12 +7101,9 @@ checks:
   field_path: log_groups
   operation:
     name: custom
-    custom_logic: |
-      # Check if log groups exist for audit records
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # Log groups may exist
+    custom_logic: "# Check if log groups exist for audit records\nif not isinstance(fetched_value,\
+      \ dict):\n    result = False\nelse:\n    result = len(fetched_value) >= 0  #\
+      \ Log groups may exist\n"
   expected_value: null
   tags:
   - security
@@ -7160,12 +7122,9 @@ checks:
   field_path: log_streams
   operation:
     name: custom
-    custom_logic: |
-      # Check if log streams exist for detailed audit records
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # Log streams may exist
+    custom_logic: "# Check if log streams exist for detailed audit records\nif not\
+      \ isinstance(fetched_value, dict):\n    result = False\nelse:\n    result =\
+      \ len(fetched_value) >= 0  # Log streams may exist\n"
   expected_value: null
   tags:
   - security
@@ -7184,12 +7143,9 @@ checks:
   field_path: dashboards
   operation:
     name: custom
-    custom_logic: |
-      # Check if dashboards exist for audit review
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # Dashboards may be configured
+    custom_logic: "# Check if dashboards exist for audit review\nif not isinstance(fetched_value,\
+      \ dict):\n    result = False\nelse:\n    result = len(fetched_value) >= 0  #\
+      \ Dashboards may be configured\n"
   expected_value: null
   tags:
   - security
@@ -7208,12 +7164,9 @@ checks:
   field_path: insight_selectors
   operation:
     name: custom
-    custom_logic: |
-      # Check if insight selectors are configured for advanced audit analysis
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # Insight selectors may be configured
+    custom_logic: "# Check if insight selectors are configured for advanced audit\
+      \ analysis\nif not isinstance(fetched_value, dict):\n    result = False\nelse:\n\
+      \    result = len(fetched_value) >= 0  # Insight selectors may be configured\n"
   expected_value: null
   tags:
   - security
@@ -7268,12 +7221,9 @@ checks:
   field_path: volumes
   operation:
     name: custom
-    custom_logic: |
-      # Check if EBS volumes exist for backup capabilities
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # Volumes may exist for backup
+    custom_logic: "# Check if EBS volumes exist for backup capabilities\nif not isinstance(fetched_value,\
+      \ dict):\n    result = False\nelse:\n    result = len(fetched_value) >= 0  #\
+      \ Volumes may exist for backup\n"
   expected_value: null
   tags:
   - security
@@ -7284,7 +7234,6 @@ checks:
   category: contingency_planning
   control_ids:
   - 143
-# Batch 2: 25 new checks for NIST 800-53 coverage improvement (21392-21416)
 - id: 21392
   connection_id: 2
   name: aws_route_table_security_sc_7_6
@@ -7293,12 +7242,8 @@ checks:
   field_path: route_tables
   operation:
     name: custom
-    custom_logic: |
-      # Check if route tables exist for secure routing
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) > 0
+    custom_logic: "# Check if route tables exist for secure routing\nif not isinstance(fetched_value,\
+      \ dict):\n    result = False\nelse:\n    result = len(fetched_value) > 0\n"
   expected_value: null
   tags:
   - security
@@ -7317,12 +7262,8 @@ checks:
   field_path: subnets
   operation:
     name: custom
-    custom_logic: |
-      # Check if subnets exist for network isolation
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) > 0
+    custom_logic: "# Check if subnets exist for network isolation\nif not isinstance(fetched_value,\
+      \ dict):\n    result = False\nelse:\n    result = len(fetched_value) > 0\n"
   expected_value: null
   tags:
   - security
@@ -7341,12 +7282,9 @@ checks:
   field_path: network_interfaces
   operation:
     name: custom
-    custom_logic: |
-      # Check if network interfaces exist for protection
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # Interfaces may exist
+    custom_logic: "# Check if network interfaces exist for protection\nif not isinstance(fetched_value,\
+      \ dict):\n    result = False\nelse:\n    result = len(fetched_value) >= 0  #\
+      \ Interfaces may exist\n"
   expected_value: null
   tags:
   - security
@@ -7365,7 +7303,7 @@ checks:
   field_path: repository_data.basic_info.html_url
   operation:
     name: contains
-  expected_value: "https://"
+  expected_value: https://
   tags:
   - security
   - github
@@ -7383,12 +7321,9 @@ checks:
   field_path: bucket_encryption
   operation:
     name: custom
-    custom_logic: |
-      # Check if bucket encryption exists for transmission security
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # Encryption may be configured
+    custom_logic: "# Check if bucket encryption exists for transmission security\n\
+      if not isinstance(fetched_value, dict):\n    result = False\nelse:\n    result\
+      \ = len(fetched_value) >= 0  # Encryption may be configured\n"
   expected_value: null
   tags:
   - security
@@ -7443,12 +7378,9 @@ checks:
   field_path: vpcs
   operation:
     name: custom
-    custom_logic: |
-      # Check if VPCs exist for secure architecture
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) > 0  # VPCs should exist for security
+    custom_logic: "# Check if VPCs exist for secure architecture\nif not isinstance(fetched_value,\
+      \ dict):\n    result = False\nelse:\n    result = len(fetched_value) > 0  #\
+      \ VPCs should exist for security\n"
   expected_value: null
   tags:
   - security
@@ -7467,12 +7399,9 @@ checks:
   field_path: security_groups
   operation:
     name: custom
-    custom_logic: |
-      # Check if security groups implement security engineering
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) > 0  # Security groups should exist
+    custom_logic: "# Check if security groups implement security engineering\nif not\
+      \ isinstance(fetched_value, dict):\n    result = False\nelse:\n    result =\
+      \ len(fetched_value) > 0  # Security groups should exist\n"
   expected_value: null
   tags:
   - security
@@ -7500,7 +7429,7 @@ checks:
   severity: medium
   category: system_information_integrity
   control_ids:
-  - 316
+  - 1090
 - id: 21402
   connection_id: 1
   name: github_security_function_verification_si_6
@@ -7518,7 +7447,7 @@ checks:
   severity: high
   category: system_information_integrity
   control_ids:
-  - 317
+  - 1092
 - id: 21403
   connection_id: 2
   name: aws_software_integrity_si_7
@@ -7527,12 +7456,9 @@ checks:
   field_path: instances
   operation:
     name: custom
-    custom_logic: |
-      # Check if instances exist for software integrity monitoring
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # Instances should be monitored
+    custom_logic: "# Check if instances exist for software integrity monitoring\n\
+      if not isinstance(fetched_value, dict):\n    result = False\nelse:\n    result\
+      \ = len(fetched_value) >= 0  # Instances should be monitored\n"
   expected_value: null
   tags:
   - security
@@ -7542,7 +7468,7 @@ checks:
   severity: high
   category: system_information_integrity
   control_ids:
-  - 318
+  - 1096
 - id: 21404
   connection_id: 2
   name: aws_information_integrity_si_7_1
@@ -7551,12 +7477,9 @@ checks:
   field_path: trails
   operation:
     name: custom
-    custom_logic: |
-      # Check if CloudTrail exists for change detection
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # Trails may exist for monitoring
+    custom_logic: "# Check if CloudTrail exists for change detection\nif not isinstance(fetched_value,\
+      \ dict):\n    result = False\nelse:\n    result = len(fetched_value) >= 0  #\
+      \ Trails may exist for monitoring\n"
   expected_value: null
   tags:
   - security
@@ -7566,7 +7489,7 @@ checks:
   severity: high
   category: system_information_integrity
   control_ids:
-  - 319
+  - 1097
 - id: 21405
   connection_id: 2
   name: aws_audit_record_generation_au_3_2
@@ -7575,12 +7498,9 @@ checks:
   field_path: trails
   operation:
     name: custom
-    custom_logic: |
-      # Check if CloudTrail generates audit records
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # Trails generate audit records
+    custom_logic: "# Check if CloudTrail generates audit records\nif not isinstance(fetched_value,\
+      \ dict):\n    result = False\nelse:\n    result = len(fetched_value) >= 0  #\
+      \ Trails generate audit records\n"
   expected_value: null
   tags:
   - security
@@ -7599,12 +7519,9 @@ checks:
   field_path: log_groups
   operation:
     name: custom
-    custom_logic: |
-      # Check if log groups exist for audit storage monitoring
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # Log groups for audit storage
+    custom_logic: "# Check if log groups exist for audit storage monitoring\nif not\
+      \ isinstance(fetched_value, dict):\n    result = False\nelse:\n    result =\
+      \ len(fetched_value) >= 0  # Log groups for audit storage\n"
   expected_value: null
   tags:
   - security
@@ -7623,12 +7540,9 @@ checks:
   field_path: alarms
   operation:
     name: custom
-    custom_logic: |
-      # Check if alarms exist for audit failure response
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # Alarms may be configured
+    custom_logic: "# Check if alarms exist for audit failure response\nif not isinstance(fetched_value,\
+      \ dict):\n    result = False\nelse:\n    result = len(fetched_value) >= 0  #\
+      \ Alarms may be configured\n"
   expected_value: null
   tags:
   - security
@@ -7665,12 +7579,9 @@ checks:
   field_path: snapshots
   operation:
     name: custom
-    custom_logic: |
-      # Check if snapshots exist for contingency testing
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # Snapshots support testing
+    custom_logic: "# Check if snapshots exist for contingency testing\nif not isinstance(fetched_value,\
+      \ dict):\n    result = False\nelse:\n    result = len(fetched_value) >= 0  #\
+      \ Snapshots support testing\n"
   expected_value: null
   tags:
   - security
@@ -7689,12 +7600,9 @@ checks:
   field_path: volumes
   operation:
     name: custom
-    custom_logic: |
-      # Check if volumes exist for backup storage
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # Volumes for backup storage
+    custom_logic: "# Check if volumes exist for backup storage\nif not isinstance(fetched_value,\
+      \ dict):\n    result = False\nelse:\n    result = len(fetched_value) >= 0  #\
+      \ Volumes for backup storage\n"
   expected_value: null
   tags:
   - security
@@ -7731,12 +7639,9 @@ checks:
   field_path: security_groups
   operation:
     name: custom
-    custom_logic: |
-      # Check if security groups control information flow
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) > 0  # Security groups control flow
+    custom_logic: "# Check if security groups control information flow\nif not isinstance(fetched_value,\
+      \ dict):\n    result = False\nelse:\n    result = len(fetched_value) > 0  #\
+      \ Security groups control flow\n"
   expected_value: null
   tags:
   - security
@@ -7773,12 +7678,9 @@ checks:
   field_path: policies
   operation:
     name: custom
-    custom_logic: |
-      # Check if IAM policies exist for least privilege
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) > 0  # Policies should exist
+    custom_logic: "# Check if IAM policies exist for least privilege\nif not isinstance(fetched_value,\
+      \ dict):\n    result = False\nelse:\n    result = len(fetched_value) > 0  #\
+      \ Policies should exist\n"
   expected_value: null
   tags:
   - security
@@ -7815,12 +7717,9 @@ checks:
   field_path: instances
   operation:
     name: custom
-    custom_logic: |
-      # Check if instances are managed with physical access controls
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # AWS provides physical controls
+    custom_logic: "# Check if instances are managed with physical access controls\n\
+      if not isinstance(fetched_value, dict):\n    result = False\nelse:\n    result\
+      \ = len(fetched_value) >= 0  # AWS provides physical controls\n"
   expected_value: null
   tags:
   - security
@@ -7831,7 +7730,6 @@ checks:
   category: physical_environmental_protection
   control_ids:
   - 186
-# Batch 3: 25 new checks for NIST 800-53 coverage improvement (21417-21441)
 - id: 21417
   connection_id: 2
   name: aws_access_control_devices_pe_5
@@ -7840,12 +7738,9 @@ checks:
   field_path: instances
   operation:
     name: custom
-    custom_logic: |
-      # Check if instances have proper access controls
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # AWS manages device access
+    custom_logic: "# Check if instances have proper access controls\nif not isinstance(fetched_value,\
+      \ dict):\n    result = False\nelse:\n    result = len(fetched_value) >= 0  #\
+      \ AWS manages device access\n"
   expected_value: null
   tags:
   - security
@@ -7882,12 +7777,9 @@ checks:
   field_path: network_interfaces
   operation:
     name: custom
-    custom_logic: |
-      # Check if network interfaces are controlled for transmission
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # AWS controls transmission medium
+    custom_logic: "# Check if network interfaces are controlled for transmission\n\
+      if not isinstance(fetched_value, dict):\n    result = False\nelse:\n    result\
+      \ = len(fetched_value) >= 0  # AWS controls transmission medium\n"
   expected_value: null
   tags:
   - security
@@ -7924,12 +7816,9 @@ checks:
   field_path: trails
   operation:
     name: custom
-    custom_logic: |
-      # Check if CloudTrail supports incident response training
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # CloudTrail aids training
+    custom_logic: "# Check if CloudTrail supports incident response training\nif not\
+      \ isinstance(fetched_value, dict):\n    result = False\nelse:\n    result =\
+      \ len(fetched_value) >= 0  # CloudTrail aids training\n"
   expected_value: null
   tags:
   - security
@@ -7966,12 +7855,9 @@ checks:
   field_path: instances
   operation:
     name: custom
-    custom_logic: |
-      # Check if instances have controlled maintenance
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # AWS provides controlled maintenance
+    custom_logic: "# Check if instances have controlled maintenance\nif not isinstance(fetched_value,\
+      \ dict):\n    result = False\nelse:\n    result = len(fetched_value) >= 0  #\
+      \ AWS provides controlled maintenance\n"
   expected_value: null
   tags:
   - security
@@ -8008,12 +7894,9 @@ checks:
   field_path: users
   operation:
     name: custom
-    custom_logic: |
-      # Check if IAM users represent controlled personnel access
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # IAM controls personnel access
+    custom_logic: "# Check if IAM users represent controlled personnel access\nif\
+      \ not isinstance(fetched_value, dict):\n    result = False\nelse:\n    result\
+      \ = len(fetched_value) >= 0  # IAM controls personnel access\n"
   expected_value: null
   tags:
   - security
@@ -8050,12 +7933,9 @@ checks:
   field_path: security_groups
   operation:
     name: custom
-    custom_logic: |
-      # Check if security groups support security planning
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) > 0  # Security groups are part of planning
+    custom_logic: "# Check if security groups support security planning\nif not isinstance(fetched_value,\
+      \ dict):\n    result = False\nelse:\n    result = len(fetched_value) > 0  #\
+      \ Security groups are part of planning\n"
   expected_value: null
   tags:
   - security
@@ -8092,12 +7972,9 @@ checks:
   field_path: instances
   operation:
     name: custom
-    custom_logic: |
-      # Check if instances support security categorization
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # Instances can be categorized
+    custom_logic: "# Check if instances support security categorization\nif not isinstance(fetched_value,\
+      \ dict):\n    result = False\nelse:\n    result = len(fetched_value) >= 0  #\
+      \ Instances can be categorized\n"
   expected_value: null
   tags:
   - security
@@ -8134,12 +8011,9 @@ checks:
   field_path: instances
   operation:
     name: custom
-    custom_logic: |
-      # Check if instances are part of supply chain risk management
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # AWS manages supply chain risks
+    custom_logic: "# Check if instances are part of supply chain risk management\n\
+      if not isinstance(fetched_value, dict):\n    result = False\nelse:\n    result\
+      \ = len(fetched_value) >= 0  # AWS manages supply chain risks\n"
   expected_value: null
   tags:
   - security
@@ -8176,12 +8050,9 @@ checks:
   field_path: trails
   operation:
     name: custom
-    custom_logic: |
-      # Check if CloudTrail supports supply chain monitoring
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # CloudTrail monitors supply chain
+    custom_logic: "# Check if CloudTrail supports supply chain monitoring\nif not\
+      \ isinstance(fetched_value, dict):\n    result = False\nelse:\n    result =\
+      \ len(fetched_value) >= 0  # CloudTrail monitors supply chain\n"
   expected_value: null
   tags:
   - security
@@ -8209,7 +8080,7 @@ checks:
   severity: medium
   category: system_information_integrity
   control_ids:
-  - 313
+  - 1067
 - id: 21435
   connection_id: 2
   name: aws_spam_protection_si_8
@@ -8218,12 +8089,9 @@ checks:
   field_path: security_groups
   operation:
     name: custom
-    custom_logic: |
-      # Check if security groups help prevent spam/phishing
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) > 0  # Security groups provide protection
+    custom_logic: "# Check if security groups help prevent spam/phishing\nif not isinstance(fetched_value,\
+      \ dict):\n    result = False\nelse:\n    result = len(fetched_value) > 0  #\
+      \ Security groups provide protection\n"
   expected_value: null
   tags:
   - security
@@ -8233,7 +8101,7 @@ checks:
   severity: medium
   category: system_information_integrity
   control_ids:
-  - 320
+  - 1114
 - id: 21436
   connection_id: 1
   name: github_information_input_restrictions_si_10
@@ -8251,7 +8119,7 @@ checks:
   severity: high
   category: system_information_integrity
   control_ids:
-  - 322
+  - 1119
 - id: 21437
   connection_id: 2
   name: aws_error_handling_si_11
@@ -8260,12 +8128,9 @@ checks:
   field_path: alarms
   operation:
     name: custom
-    custom_logic: |
-      # Check if alarms handle errors securely
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # Alarms handle errors
+    custom_logic: "# Check if alarms handle errors securely\nif not isinstance(fetched_value,\
+      \ dict):\n    result = False\nelse:\n    result = len(fetched_value) >= 0  #\
+      \ Alarms handle errors\n"
   expected_value: null
   tags:
   - security
@@ -8275,7 +8140,7 @@ checks:
   severity: medium
   category: system_information_integrity
   control_ids:
-  - 323
+  - 1126
 - id: 21438
   connection_id: 1
   name: github_information_handling_si_12
@@ -8293,7 +8158,7 @@ checks:
   severity: high
   category: system_information_integrity
   control_ids:
-  - 324
+  - 1127
 - id: 21439
   connection_id: 2
   name: aws_predictable_failure_prevention_si_13
@@ -8302,12 +8167,9 @@ checks:
   field_path: metrics
   operation:
     name: custom
-    custom_logic: |
-      # Check if metrics help prevent predictable failures
-      if not isinstance(fetched_value, list):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # Metrics prevent failures
+    custom_logic: "# Check if metrics help prevent predictable failures\nif not isinstance(fetched_value,\
+      \ list):\n    result = False\nelse:\n    result = len(fetched_value) >= 0  #\
+      \ Metrics prevent failures\n"
   expected_value: null
   tags:
   - security
@@ -8317,7 +8179,7 @@ checks:
   severity: medium
   category: system_information_integrity
   control_ids:
-  - 325
+  - 1131
 - id: 21440
   connection_id: 1
   name: github_non_persistence_si_14
@@ -8335,7 +8197,7 @@ checks:
   severity: low
   category: system_information_integrity
   control_ids:
-  - 326
+  - 1137
 - id: 21441
   connection_id: 2
   name: aws_information_output_filtering_si_15
@@ -8344,12 +8206,9 @@ checks:
   field_path: log_groups
   operation:
     name: custom
-    custom_logic: |
-      # Check if log groups filter information output
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # Log groups filter output
+    custom_logic: "# Check if log groups filter information output\nif not isinstance(fetched_value,\
+      \ dict):\n    result = False\nelse:\n    result = len(fetched_value) >= 0  #\
+      \ Log groups filter output\n"
   expected_value: null
   tags:
   - security
@@ -8359,8 +8218,7 @@ checks:
   severity: medium
   category: system_information_integrity
   control_ids:
-  - 327
-# Batch 4: Final 6 checks to reach 81 total new NIST 800-53 checks (21442-21447)
+  - 1141
 - id: 21442
   connection_id: 2
   name: aws_cryptographic_key_establishment_sc_17
@@ -8369,12 +8227,9 @@ checks:
   field_path: bucket_encryption
   operation:
     name: custom
-    custom_logic: |
-      # Check if bucket encryption supports key establishment
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) >= 0  # Encryption supports key establishment
+    custom_logic: "# Check if bucket encryption supports key establishment\nif not\
+      \ isinstance(fetched_value, dict):\n    result = False\nelse:\n    result =\
+      \ len(fetched_value) >= 0  # Encryption supports key establishment\n"
   expected_value: null
   tags:
   - security
@@ -8411,12 +8266,9 @@ checks:
   field_path: security_groups
   operation:
     name: custom
-    custom_logic: |
-      # Check if security groups can control VoIP traffic
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) > 0  # Security groups control VoIP
+    custom_logic: "# Check if security groups can control VoIP traffic\nif not isinstance(fetched_value,\
+      \ dict):\n    result = False\nelse:\n    result = len(fetched_value) > 0  #\
+      \ Security groups control VoIP\n"
   expected_value: null
   tags:
   - security
@@ -8435,7 +8287,7 @@ checks:
   field_path: repository_data.basic_info.clone_url
   operation:
     name: contains
-  expected_value: "github.com"
+  expected_value: github.com
   tags:
   - security
   - github
@@ -8453,12 +8305,9 @@ checks:
   field_path: vpcs
   operation:
     name: custom
-    custom_logic: |
-      # Check if VPCs follow secure architecture design
-      if not isinstance(fetched_value, dict):
-          result = False
-      else:
-          result = len(fetched_value) > 0  # VPCs represent secure architecture
+    custom_logic: "# Check if VPCs follow secure architecture design\nif not isinstance(fetched_value,\
+      \ dict):\n    result = False\nelse:\n    result = len(fetched_value) > 0  #\
+      \ VPCs represent secure architecture\n"
   expected_value: null
   tags:
   - security
@@ -8486,4 +8335,4 @@ checks:
   severity: high
   category: system_information_integrity
   control_ids:
-  - 328
+  - 1142
