@@ -5472,7 +5472,7 @@ checks:
     control_id: 1226  # AU-3-3-2
     control_name: "AU-3-3-2"
     resource_type: "AWSCloudWatchResource"
-    field_path: "log_groups"
+    field_path: "len(log_groups)"
     operation:
       name: "GREATER_THAN"
     expected_value: 0
@@ -5751,7 +5751,7 @@ checks:
     control_id: 1259  # IR-3-6-2
     control_name: "IR-3-6-2"
     resource_type: "AWSCloudWatchResource"
-    field_path: "alarms"
+    field_path: "len(alarms)"
     operation:
       name: "GREATER_THAN"
     expected_value: 0
@@ -5974,7 +5974,7 @@ checks:
     control_id: 1282  # PS-3-9-1
     control_name: "PS-3-9-1"
     resource_type: "AWSIAMResource"
-    field_path: "groups"
+    field_path: "len(groups)"
     operation:
       name: "GREATER_THAN"
     expected_value: 0
@@ -6324,7 +6324,7 @@ checks:
     control_id: 1236  # CA-3-12-3
     control_name: "CA-3-12-3"
     resource_type: "AWSCloudWatchResource"
-    field_path: "alarms"
+    field_path: "len(alarms)"
     operation:
       name: "GREATER_THAN"
     expected_value: 2
