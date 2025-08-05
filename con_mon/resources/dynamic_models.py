@@ -178,89 +178,6 @@ def create_resource_model_from_schema(resource_name: str, schema_definition: Dic
     return model
 
 
-def load_and_create_dynamic_models(yaml_file_path: str = None) -> Dict[str, Type[BaseModel]]:
-    """Load YAML schemas and create dynamic Pydantic models."""
-    
-    if yaml_file_path is None:
-        current_dir = os.path.dirname(__file__)
-        yaml_file_path = os.path.join(current_dir, 'resources.yaml')
-    
-    try:
-        with open(yaml_file_path, 'r') as file:
-            yaml_data = yaml.safe_load(file)
-        
-        dynamic_models = {}
-        
-        # Process each provider section (e.g., 'github')
-        for provider_name, provider_config in yaml_data.items():
-            if not isinstance(provider_config, dict):
-                continue
-                
-            # Determine creation order within this provider
-            data_models = []      # Models like RepositoryData, ActionsData, etc.
-            main_resource = None  # The main Resource model
-            main_collection = None # The main ResourceCollection model
-            
-            for model_name, model_config in provider_config.items():
-                if not isinstance(model_config, dict):
-                    continue
-                    
-                if model_name == 'Resource':
-                    main_resource = (model_name, model_config)
-                elif model_name == 'ResourceCollection':
-                    main_collection = (model_name, model_config)
-                else:
-                    # These are nested data models (RepositoryData, ActionsData, etc.)
-                    data_models.append((model_name, model_config))
-            
-            # First pass: Create nested data models
-            for model_name, model_config in data_models:
-                full_model_name = model_name  # Keep original name like 'RepositoryData'
-                model_class = create_resource_model_from_schema(full_model_name, model_config, provider_config, dynamic_models)
-                dynamic_models[full_model_name] = model_class
-                model_class.__provider__ = provider_name
-                model_class.__description__ = model_config.get('description', '')
-            
-            # Second pass: Create main resource model
-            if main_resource:
-                model_name, model_config = main_resource
-                full_model_name = f"{provider_name.title()}Resource"  # github -> GithubResource
-                model_class = create_resource_model_from_schema(full_model_name, model_config, provider_config, dynamic_models)
-                dynamic_models[full_model_name] = model_class
-                model_class.__provider__ = provider_name
-                model_class.__description__ = model_config.get('description', '')
-            
-            # Third pass: Create collection model
-            if main_collection:
-                model_name, model_config = main_collection
-                full_model_name = f"{provider_name.title()}ResourceCollection"  # github -> GithubResourceCollection
-                
-                # Get the resource type for the collection
-                resource_model_name = f"{provider_name.title()}Resource"
-                if resource_model_name in dynamic_models:
-                    resource_type = dynamic_models[resource_model_name]
-                    model_class = create_collection_model_with_resource_type(
-                        full_model_name, model_config, resource_type, provider_config, dynamic_models
-                    )
-                else:
-                    # Fallback if resource type not found
-                    model_class = create_resource_model_from_schema(full_model_name, model_config, provider_config, dynamic_models)
-                
-                dynamic_models[full_model_name] = model_class
-                model_class.__provider__ = provider_name
-                model_class.__description__ = model_config.get('description', '')
-        
-        print(f"✅ Created {len(dynamic_models)} dynamic Pydantic models from {yaml_file_path}")
-        return dynamic_models
-        
-    except FileNotFoundError:
-        print(f"Error: Resources YAML file not found at {yaml_file_path}")
-        return {}
-    except Exception as e:
-        print(f"Error loading dynamic models: {e}")
-        return {}
-
-
 def create_collection_model_with_resource_type(resource_name: str, schema_definition: Dict[str, Any], resource_type: Type[BaseModel], all_schemas: Dict[str, Any], available_models: Dict[str, Type[BaseModel]] = None) -> Type[BaseModel]:
     """Create a collection model with properly typed resource field."""
     
@@ -354,6 +271,278 @@ def create_collection_model_with_resource_type(resource_name: str, schema_defini
     model.__collection_type__ = schema_definition.get('collection_type')
     
     return model
+
+
+def create_multi_resource_collection_model(resource_name: str, schema_definition: Dict[str, Any], resource_types: List[Type[BaseModel]], all_schemas: Dict[str, Any], available_models: Dict[str, Type[BaseModel]] = None) -> Type[BaseModel]:
+    """Create a collection model that can handle multiple resource types (for AWS)."""
+    
+    # Import ResourceCollection base class
+    from .models import ResourceCollection
+    
+    # Base fields for collections - these will be inherited from ResourceCollection
+    base_fields = {}
+    
+    # Add schema-specific fields (excluding standard ResourceCollection fields)
+    schema_fields = schema_definition.get('fields', {})
+    for field_name, field_def in schema_fields.items():
+        if field_name in ['resources', 'source_connector', 'total_count', 'fetched_at', 'metadata']:
+            # Skip standard ResourceCollection fields - they'll be inherited
+            # But we need to override 'resources' with the proper type
+            if field_name == 'resources':
+                # For multi-resource collections, use Union of all resource types
+                from typing import Union
+                if len(resource_types) > 1:
+                    union_type = Union[tuple(resource_types)]
+                    base_fields[field_name] = (List[union_type], Field(default_factory=list, description=f"List of AWS resource objects"))
+                elif len(resource_types) == 1:
+                    base_fields[field_name] = (List[resource_types[0]], Field(default_factory=list, description=f"List of {resource_types[0].__name__} objects"))
+                else:
+                    base_fields[field_name] = (List[Any], Field(default_factory=list, description="List of resource objects"))
+            continue
+            
+        if isinstance(field_def, dict):
+            # Nested object
+            nested_model = create_nested_model(f"{resource_name}_{field_name.title()}", field_def, available_models)
+            base_fields[field_name] = (nested_model, Field(default_factory=dict))
+        elif isinstance(field_def, list) and len(field_def) > 0:
+            # Array - skip the resource references as they're handled above
+            if field_name == 'resources':
+                continue
+            if isinstance(field_def[0], dict):
+                item_model = create_nested_model(f"{resource_name}_{field_name.title()}Item", field_def[0], available_models)
+                base_fields[field_name] = (List[item_model], Field(default_factory=list))
+            else:
+                item_type = yaml_type_to_python_type(field_def[0], available_models)
+                base_fields[field_name] = (List[item_type], Field(default_factory=list))
+        elif isinstance(field_def, str):
+            # Simple field
+            field_type = yaml_type_to_python_type(field_def, available_models)
+            base_fields[field_name] = (Optional[field_type], None)
+        else:
+            # Simple field
+            field_type = yaml_type_to_python_type(str(field_def), available_models)
+            base_fields[field_name] = (Optional[field_type], None)
+    
+    # Create the model inheriting from ResourceCollection
+    model = create_model(resource_name, __base__=ResourceCollection, **base_fields)
+    
+    # Add collection-specific methods
+    def __len__(self) -> int:
+        """Return the number of resources in the collection."""
+        return len(self.resources)
+    
+    def __iter__(self):
+        """Make the collection iterable."""
+        return iter(self.resources)
+    
+    def __getitem__(self, index: Union[int, slice]):
+        """Allow indexing and slicing of the collection."""
+        return self.resources[index]
+    
+    def add_resource(self, resource) -> None:
+        """Add a resource to the collection."""
+        self.resources.append(resource)
+        self.total_count = len(self.resources)
+    
+    def get_resources_by_service(self, service: str) -> List[Any]:
+        """Get resources filtered by AWS service."""
+        return [r for r in self.resources if hasattr(r, '__service__') and r.__service__ == service]
+    
+    def get_ec2_resources(self) -> List[Any]:
+        """Get EC2 resources from the collection."""
+        return self.get_resources_by_service('ec2')
+    
+    def get_iam_resources(self) -> List[Any]:
+        """Get IAM resources from the collection."""
+        return self.get_resources_by_service('iam')
+    
+    def get_s3_resources(self) -> List[Any]:
+        """Get S3 resources from the collection."""
+        return self.get_resources_by_service('s3')
+    
+    def get_cloudtrail_resources(self) -> List[Any]:
+        """Get CloudTrail resources from the collection."""
+        return self.get_resources_by_service('cloudtrail')
+    
+    def get_cloudwatch_resources(self) -> List[Any]:
+        """Get CloudWatch resources from the collection."""
+        return self.get_resources_by_service('cloudwatch')
+    
+    def get_field_value(self, field_path: str) -> Any:
+        """Get a field value using dot notation."""
+        keys = field_path.split('.')
+        value = self
+        
+        for key in keys:
+            if hasattr(value, key):
+                value = getattr(value, key)
+            else:
+                return None
+        return value
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary representation."""
+        return self.model_dump()
+    
+    # Add methods to the model
+    model.__len__ = __len__
+    model.__iter__ = __iter__
+    model.__getitem__ = __getitem__
+    model.add_resource = add_resource
+    model.get_resources_by_service = get_resources_by_service
+    model.get_ec2_resources = get_ec2_resources
+    model.get_iam_resources = get_iam_resources
+    model.get_s3_resources = get_s3_resources
+    model.get_cloudtrail_resources = get_cloudtrail_resources
+    model.get_cloudwatch_resources = get_cloudwatch_resources
+    model.get_field_value = get_field_value
+    model.to_dict = to_dict
+    
+    # Add metadata to the model
+    model.__is_collection__ = True
+    model.__collection_type__ = schema_definition.get('collection_type')
+    model.__resource_types__ = resource_types
+    
+    return model
+
+
+def load_and_create_dynamic_models(yaml_file_path: str = None) -> Dict[str, Type[BaseModel]]:
+    """Load YAML schemas and create dynamic Pydantic models."""
+    
+    if yaml_file_path is None:
+        current_dir = os.path.dirname(__file__)
+        yaml_file_path = os.path.join(current_dir, 'resources.yaml')
+    
+    try:
+        with open(yaml_file_path, 'r') as file:
+            yaml_data = yaml.safe_load(file)
+        
+        dynamic_models = {}
+        
+        # Process each provider section (e.g., 'github', 'aws')
+        for provider_name, provider_config in yaml_data.items():
+            if not isinstance(provider_config, dict):
+                continue
+                
+            # Handle the new structure with resources: section
+            resources_section = provider_config.get('resources', {})
+            main_collection = provider_config.get('ResourceCollection')
+            
+            # Determine creation order within this provider
+            data_models = []      # Models like RepositoryData, ActionsData, etc.
+            resource_models = []  # Resource models like Resource, EC2Resource, IAMResource, etc.
+            
+            for model_name, model_config in resources_section.items():
+                if not isinstance(model_config, dict):
+                    continue
+                    
+                if model_name.endswith('Resource'):
+                    # These are resource models (Resource, EC2Resource, IAMResource, etc.)
+                    resource_models.append((model_name, model_config))
+                else:
+                    # These are nested data models (RepositoryData, ActionsData, etc.)
+                    data_models.append((model_name, model_config))
+            
+            # First pass: Create nested data models
+            for model_name, model_config in data_models:
+                full_model_name = model_name  # Keep original name like 'RepositoryData'
+                model_class = create_resource_model_from_schema(full_model_name, model_config, provider_config, dynamic_models)
+                dynamic_models[full_model_name] = model_class
+                model_class.__provider__ = provider_name
+                model_class.__description__ = model_config.get('description', '')
+            
+            # Second pass: Create resource models
+            for model_name, model_config in resource_models:
+                if provider_name == 'github':
+                    # GitHub has a single Resource model
+                    full_model_name = f"{provider_name.title()}Resource"  # github -> GithubResource
+                elif provider_name == 'aws':
+                    # AWS has service-specific resources (EC2Resource, IAMResource, etc.)
+                    if model_name == 'EC2Resource':
+                        full_model_name = "AWSEC2Resource"
+                    elif model_name == 'IAMResource':
+                        full_model_name = "AWSIAMResource"
+                    elif model_name == 'S3Resource':
+                        full_model_name = "AWSS3Resource"
+                    elif model_name == 'CloudTrailResource':
+                        full_model_name = "AWSCloudTrailResource"
+                    elif model_name == 'CloudWatchResource':
+                        full_model_name = "AWSCloudWatchResource"
+                    else:
+                        full_model_name = f"AWS{model_name}"
+                else:
+                    # Default naming for other providers
+                    full_model_name = f"{provider_name.title()}{model_name}"
+                
+                model_class = create_resource_model_from_schema(full_model_name, model_config, provider_config, dynamic_models)
+                dynamic_models[full_model_name] = model_class
+                model_class.__provider__ = provider_name
+                model_class.__service__ = model_config.get('service', '')
+                model_class.__description__ = model_config.get('description', '')
+            
+            # Third pass: Create collection model
+            if main_collection:
+                full_model_name = f"{provider_name.upper()}ResourceCollection" if provider_name == 'aws' else f"{provider_name.title()}ResourceCollection"  # aws -> AWSResourceCollection
+                
+                # Handle resources field with dot notation references
+                resources_field = main_collection.get('fields', {}).get('resources', [])
+                
+                if provider_name == 'github':
+                    # GitHub has a single resource type
+                    resource_model_name = "GithubResource"
+                    if resource_model_name in dynamic_models:
+                        resource_type = dynamic_models[resource_model_name]
+                        model_class = create_collection_model_with_resource_type(
+                            full_model_name, main_collection, resource_type, provider_config, dynamic_models
+                        )
+                    else:
+                        model_class = create_resource_model_from_schema(full_model_name, main_collection, provider_config, dynamic_models)
+                
+                elif provider_name == 'aws':
+                    # AWS has multiple resource types - create a collection that can handle all of them
+                    aws_resource_types = []
+                    for resource_ref in resources_field:
+                        if isinstance(resource_ref, str) and 'aws.resources.' in resource_ref:
+                            # Extract resource name from dot notation like "aws.resources.EC2Resource"
+                            resource_name = resource_ref.split('.')[-1]  # Get "EC2Resource"
+                            if resource_name == 'EC2Resource':
+                                aws_model_name = "AWSEC2Resource"
+                            elif resource_name == 'IAMResource':
+                                aws_model_name = "AWSIAMResource"
+                            elif resource_name == 'S3Resource':
+                                aws_model_name = "AWSS3Resource"
+                            elif resource_name == 'CloudTrailResource':
+                                aws_model_name = "AWSCloudTrailResource"
+                            elif resource_name == 'CloudWatchResource':
+                                aws_model_name = "AWSCloudWatchResource"
+                            else:
+                                aws_model_name = f"AWS{resource_name}"
+                            
+                            if aws_model_name in dynamic_models:
+                                aws_resource_types.append(dynamic_models[aws_model_name])
+                    
+                    # Create a multi-resource collection
+                    model_class = create_multi_resource_collection_model(
+                        full_model_name, main_collection, aws_resource_types, provider_config, dynamic_models
+                    )
+                
+                else:
+                    # Default handling for other providers
+                    model_class = create_resource_model_from_schema(full_model_name, main_collection, provider_config, dynamic_models)
+                
+                dynamic_models[full_model_name] = model_class
+                model_class.__provider__ = provider_name
+                model_class.__description__ = main_collection.get('description', '')
+        
+        print(f"✅ Created {len(dynamic_models)} dynamic Pydantic models from {yaml_file_path}")
+        return dynamic_models
+        
+    except FileNotFoundError:
+        print(f"Error: Resources YAML file not found at {yaml_file_path}")
+        return {}
+    except Exception as e:
+        print(f"Error loading dynamic models: {e}")
+        return {}
 
 
 # Global storage for dynamic models
