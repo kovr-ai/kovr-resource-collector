@@ -116,21 +116,22 @@ github:
       tags_error: "string"
       webhooks_error: "string"
 
-  # Main resource schemas
-  Resource:
-    name: "github"
-    description: "GitHub repository resource"
-    provider: "github"
+  resources:
+    # Main resource schemas
+    Resource:
+      name: "github"
+      description: "GitHub repository resource"
+      provider: "github"
 
-    # Define the structure that matches GitHub API response with all data types
-    fields:
-      name: "string"  # Repository name for easy identification
-      repository_data: "RepositoryData"  # Nested Pydantic model
-      actions_data: "ActionsData"        # Nested Pydantic model
-      collaboration_data: "CollaborationData"  # Nested Pydantic model
-      security_data: "SecurityData"      # Nested Pydantic model
-      organization_data: "OrganizationData"    # Nested Pydantic model
-      advanced_features_data: "AdvancedFeaturesData"  # Nested Pydantic model
+      # Define the structure that matches GitHub API response with all data types
+      fields:
+        name: "string"  # Repository name for easy identification
+        repository_data: "RepositoryData"  # Nested Pydantic model
+        actions_data: "ActionsData"        # Nested Pydantic model
+        collaboration_data: "CollaborationData"  # Nested Pydantic model
+        security_data: "SecurityData"      # Nested Pydantic model
+        organization_data: "OrganizationData"    # Nested Pydantic model
+        advanced_features_data: "AdvancedFeaturesData"  # Nested Pydantic model
 
   ResourceCollection:
     name: "github_collection"
@@ -140,7 +141,8 @@ github:
 
     # Define the structure for GitHub resource collections
     fields:
-      resources: "github_resource_array"
+      resources:
+        - "github.resources.Resource"
       source_connector: "string"
       total_count: "integer"
       fetched_at: "string"
@@ -159,3 +161,170 @@ github:
         collection_time: "string"
         api_version: "string"
         scope: "array"
+
+aws:
+  resources:
+    # AWS EC2 Resource Schema
+    EC2Resource:
+      name: "aws_ec2"
+      description: "AWS EC2 service resource"
+      provider: "aws"
+      service: "ec2"
+
+      fields:
+        region: "string"
+        account_id: "string"
+        # Account-level information
+        account:
+          limits: "object"
+          reserved_instances: "array"
+          spot_instances: "array"
+        # EC2 resources
+        instances: "object"
+        security_groups: "object"
+        vpcs: "object"
+        subnets: "object"
+        route_tables: "object"
+        internet_gateways: "object"
+        nat_gateways: "object"
+        elastic_ips: "object"
+        key_pairs: "object"
+        volumes: "object"
+        snapshots: "object"
+        network_interfaces: "object"
+        relationships: "object"
+        # Metadata
+        total_instances: "integer"
+        total_security_groups: "integer"
+        total_vpcs: "integer"
+        total_volumes: "integer"
+        collection_timestamp: "string"
+
+    # AWS IAM Resource Schema
+    IAMResource:
+      name: "aws_iam"
+      description: "AWS IAM service resource"
+      provider: "aws"
+      service: "iam"
+
+      fields:
+        region: "string"
+        account_id: "string"
+        # Account-level information
+        account: "object"
+        # IAM resources
+        users: "object"
+        groups: "object"
+        roles: "object"
+        policies: "object"
+        relationships: "object"
+        # Metadata
+        total_users: "integer"
+        total_groups: "integer"
+        total_roles: "integer"
+        total_policies: "integer"
+        collection_timestamp: "string"
+
+    # AWS S3 Resource Schema
+    S3Resource:
+      name: "aws_s3"
+      description: "AWS S3 service resource"
+      provider: "aws"
+      service: "s3"
+
+      fields:
+        region: "string"
+        account_id: "string"
+        # S3 resources
+        buckets: "object"
+        bucket_policies: "object"
+        bucket_encryption: "object"
+        bucket_versioning: "object"
+        bucket_logging: "object"
+        bucket_public_access: "object"
+        bucket_lifecycle: "object"
+        bucket_notifications: "object"
+        # Metadata
+        total_buckets: "integer"
+        total_encrypted_buckets: "integer"
+        total_public_buckets: "integer"
+        total_versioned_buckets: "integer"
+        collection_timestamp: "string"
+
+    # AWS CloudTrail Resource Schema
+    CloudTrailResource:
+      name: "aws_cloudtrail"
+      description: "AWS CloudTrail service resource"
+      provider: "aws"
+      service: "cloudtrail"
+
+      fields:
+        region: "string"
+        account_id: "string"
+        # CloudTrail resources
+        trails: "object"
+        event_selectors: "object"
+        insight_selectors: "object"
+        tags: "object"
+        # Metadata
+        total_trails: "integer"
+        total_multi_region_trails: "integer"
+        total_logging_trails: "integer"
+        total_organization_trails: "integer"
+        collection_timestamp: "string"
+
+    # AWS CloudWatch Resource Schema
+    CloudWatchResource:
+      name: "aws_cloudwatch"
+      description: "AWS CloudWatch service resource"
+      provider: "aws"
+      service: "cloudwatch"
+
+      fields:
+        region: "string"
+        account_id: "string"
+        # CloudWatch resources
+        log_groups: "object"
+        log_streams: "object"
+        metrics: "object"
+        alarms: "object"
+        dashboards: "object"
+        # Metadata
+        total_log_groups: "integer"
+        total_log_streams: "integer"
+        total_alarms: "integer"
+        total_dashboards: "integer"
+        collection_timestamp: "string"
+
+  ResourceCollection:
+    name: "aws_collection"
+    description: "Collection of AWS resources from a single connector call"
+    provider: "aws"
+    collection_type: "AWSResource"
+
+    # Define the structure for AWS resource collections
+    fields:
+      resources:
+        - "aws.resources.EC2Resource"
+        - "aws.resources.IAMResource"
+        - "aws.resources.S3Resource"
+        - "aws.resources.CloudTrailResource"
+        - "aws.resources.CloudWatchResource"
+      source_connector: "string"
+      total_count: "integer"
+      fetched_at: "string"
+      collection_metadata:
+        account_id: "string"
+        regions: "array"
+        services_collected: "array"
+        total_ec2_instances: "integer"
+        total_iam_users: "integer"
+        total_s3_buckets: "integer"
+        total_cloudtrail_trails: "integer"
+        total_cloudwatch_log_groups: "integer"
+        collection_errors: "array"
+      aws_api_metadata:
+        collection_time: "string"
+        api_version: "string"
+        services: "array"
+        regions_scanned: "array"
