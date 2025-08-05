@@ -4,12 +4,6 @@ Compliance module for con_mon - manages cybersecurity frameworks, controls, and 
 
 from .models import BaseModel, Framework, Control, Standard, StandardControlMapping, FrameworkWithControls, StandardWithControls, ControlWithStandards
 from .data_loader import (
-    # Classes
-    BaseLoader,
-    CSVLoader,
-    DBLoader,
-    get_csv_loader,
-    get_db_loader,
     # Legacy functions
     load_frameworks_from_csv, 
     load_frameworks_from_db,
@@ -37,12 +31,6 @@ __all__ = [
     'FrameworkWithControls',
     'StandardWithControls', 
     'ControlWithStandards',
-    # Classes
-    'BaseLoader',
-    'CSVLoader',
-    'DBLoader',
-    'get_csv_loader',
-    'get_db_loader',
     # Legacy functions
     'load_frameworks_from_csv',
     'load_frameworks_from_db',

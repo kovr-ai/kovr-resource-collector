@@ -696,4 +696,20 @@ def populate_framework_data() -> Tuple[List[FrameworkWithControls], List[Standar
     print("🏗️  **Populating Framework Data**")
     print("=" * 50)
     
-    return populate_framework_data_from_db() 
+    return populate_framework_data_from_db()
+
+
+class BaseLoader(object):
+
+    def _load_meta_data(self, model_class):
+        return table_name, fields
+
+    def _load_data_from_connection(self, model_class, table_name, fields):
+        """
+        returns list of objects of model_class
+        """
+        raise NotImplementedError()
+
+    def _load_data(self, model_class):
+        table_name, fields = self._load_meta_data(model_class)
+        return self._load_data_from_connection(model_class, table_name, fields)
