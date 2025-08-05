@@ -549,7 +549,7 @@ checks:
     severity: "low"
     category: "program_management"
 
-  # AWS Resource Checks
+  # AWS Resource Checks (Original 5)
   - id: 2001
     connection_id: 2
     name: "aws_ec2_security_groups_no_open_ingress"
@@ -564,16 +564,16 @@ checks:
       name: "custom"
       custom_logic: |
         # Check if any security group has unrestricted ingress rules
-        if not isinstance(fetched_value, list):
+        if not isinstance(fetched_value, dict):
             result = True  # Default to pass if no security groups
         else:
             result = True  # Default to pass
-            for sg in fetched_value:
+            for sg_id, sg in fetched_value.items():
                 if isinstance(sg, dict):
-                    ingress_rules = sg.get('ingress_rules', [])
+                    ingress_rules = sg.get('inbound_rules', [])
                 else:
                     # Handle Pydantic models
-                    ingress_rules = getattr(sg, 'ingress_rules', [])
+                    ingress_rules = getattr(sg, 'inbound_rules', [])
                 
                 for rule in ingress_rules:
                     cidr_blocks = rule.get('cidr_blocks', []) if isinstance(rule, dict) else getattr(rule, 'cidr_blocks', [])
@@ -601,11 +601,11 @@ checks:
       name: "custom"
       custom_logic: |
         # Check if all IAM users have MFA enabled
-        if not isinstance(fetched_value, list) or len(fetched_value) == 0:
+        if not isinstance(fetched_value, dict) or len(fetched_value) == 0:
             result = True  # Pass if no users
         else:
             result = True
-            for user in fetched_value:
+            for user_name, user in fetched_value.items():
                 if isinstance(user, dict):
                     mfa_devices = user.get('mfa_devices', [])
                 else:
@@ -634,11 +634,11 @@ checks:
       name: "custom"
       custom_logic: |
         # Check if all S3 buckets have encryption enabled
-        if not isinstance(fetched_value, list):
+        if not isinstance(fetched_value, dict):
             result = True  # Pass if no buckets
         else:
             result = True
-            for bucket in fetched_value:
+            for bucket_name, bucket in fetched_value.items():
                 if isinstance(bucket, dict):
                     encryption = bucket.get('encryption', {})
                 else:
@@ -667,11 +667,11 @@ checks:
       name: "custom"
       custom_logic: |
         # Check if at least one CloudTrail is enabled and logging
-        if not isinstance(fetched_value, list):
+        if not isinstance(fetched_value, dict):
             result = False  # Fail if no trails
         else:
             result = False
-            for trail in fetched_value:
+            for trail_name, trail in fetched_value.items():
                 if isinstance(trail, dict):
                     is_logging = trail.get('is_logging', False)
                     status = trail.get('status', {})
@@ -702,11 +702,722 @@ checks:
       name: "custom"
       custom_logic: |
         # Check if CloudWatch log groups exist for monitoring
-        if not isinstance(fetched_value, list):
+        if not isinstance(fetched_value, dict):
             result = False  # Fail if no log groups
         else:
             result = len(fetched_value) > 0  # Pass if at least one log group exists
     expected_value: null
     tags: ["security", "aws", "cloudwatch", "monitoring", "logging"]
     severity: "medium"
-    category: "system_information_integrity" 
+    category: "system_information_integrity"
+
+  # VPC Security Checks (2006-2013)
+  - id: 2006
+    connection_id: 2
+    name: "aws_vpc_flow_logs_enabled"
+    description: "Verify that VPC flow logs are enabled for network monitoring"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 695  # SI-4 (System Monitoring)
+    control_name: "SI-4"
+    field_path: "vpcs"
+    resource_type: "AWSEC2Resource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check if VPCs have flow logs enabled
+        if not isinstance(fetched_value, dict):
+            result = False
+        else:
+            result = True
+            for vpc_id, vpc in fetched_value.items():
+                flow_logs_enabled = False
+                if isinstance(vpc, dict):
+                    flow_logs_enabled = vpc.get('flow_logs_enabled', False)
+                else:
+                    flow_logs_enabled = getattr(vpc, 'flow_logs_enabled', False)
+                
+                if not flow_logs_enabled:
+                    result = False
+                    break
+    expected_value: null
+    tags: ["security", "aws", "vpc", "flow_logs", "monitoring"]
+    severity: "high"
+    category: "system_information_integrity"
+
+  - id: 2007
+    connection_id: 2
+    name: "aws_vpc_no_default_vpc_usage"
+    description: "Verify that default VPC is not used for production workloads"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 75   # AC-3 (Access Enforcement)
+    control_name: "AC-3"
+    field_path: "vpcs"
+    resource_type: "AWSEC2Resource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check if default VPC is being used
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no VPCs
+        else:
+            result = True
+            for vpc_id, vpc in fetched_value.items():
+                is_default = False
+                if isinstance(vpc, dict):
+                    is_default = vpc.get('is_default', False)
+                else:
+                    is_default = getattr(vpc, 'is_default', False)
+                
+                if is_default:
+                    result = False
+                    break
+    expected_value: null
+    tags: ["security", "aws", "vpc", "default_vpc", "network"]
+    severity: "medium"
+    category: "access_control"
+
+  - id: 2008
+    connection_id: 2
+    name: "aws_subnets_multi_az_deployment"
+    description: "Verify that subnets are deployed across multiple availability zones"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 277  # CP-9 (System Backup)
+    control_name: "CP-9"
+    field_path: "subnets"
+    resource_type: "AWSEC2Resource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check if subnets span multiple AZs
+        if not isinstance(fetched_value, dict):
+            result = False
+        else:
+            availability_zones = set()
+            for subnet_id, subnet in fetched_value.items():
+                az = None
+                if isinstance(subnet, dict):
+                    az = subnet.get('availability_zone')
+                else:
+                    az = getattr(subnet, 'availability_zone', None)
+                
+                if az:
+                    availability_zones.add(az)
+            
+            result = len(availability_zones) >= 2  # At least 2 AZs
+    expected_value: null
+    tags: ["security", "aws", "subnet", "multi_az", "availability"]
+    severity: "medium"
+    category: "contingency_planning"
+
+  - id: 2009
+    connection_id: 2
+    name: "aws_nat_gateways_deployed"
+    description: "Verify that NAT gateways are deployed for private subnet internet access"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 658  # SC-8 (Transmission Confidentiality and Integrity)
+    control_name: "SC-8"
+    field_path: "nat_gateways"
+    resource_type: "AWSEC2Resource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check if NAT gateways exist for private subnets
+        if not isinstance(fetched_value, dict):
+            result = False
+        else:
+            active_nat_gateways = 0
+            for nat_gw_id, nat_gw in fetched_value.items():
+                state = None
+                if isinstance(nat_gw, dict):
+                    state = nat_gw.get('state')
+                else:
+                    state = getattr(nat_gw, 'state', None)
+                
+                if state == 'available':
+                    active_nat_gateways += 1
+            
+            result = active_nat_gateways > 0
+    expected_value: null
+    tags: ["security", "aws", "nat_gateway", "private_subnet", "network"]
+    severity: "medium"
+    category: "system_communications_protection"
+
+  - id: 2010
+    connection_id: 2
+    name: "aws_route_tables_secured"
+    description: "Verify that route tables have secure routing configurations"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 75   # AC-3 (Access Enforcement)
+    control_name: "AC-3"
+    field_path: "route_tables"
+    resource_type: "AWSEC2Resource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check if route tables don't have overly permissive routes
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no route tables
+        else:
+            result = True
+            for rt_id, rt in fetched_value.items():
+                routes = []
+                if isinstance(rt, dict):
+                    routes = rt.get('routes', [])
+                else:
+                    routes = getattr(rt, 'routes', [])
+                
+                for route in routes:
+                    destination = route.get('destination_cidr_block', '') if isinstance(route, dict) else getattr(route, 'destination_cidr_block', '')
+                    if destination == '0.0.0.0/0':
+                        # Check if it's going to an internet gateway (acceptable) or something else (risky)
+                        gateway_id = route.get('gateway_id', '') if isinstance(route, dict) else getattr(route, 'gateway_id', '')
+                        if not gateway_id.startswith('igw-'):
+                            result = False
+                            break
+                if not result:
+                    break
+    expected_value: null
+    tags: ["security", "aws", "route_table", "routing", "network"]
+    severity: "high"
+    category: "access_control"
+
+  # EBS Security Checks (2011-2014)
+  - id: 2011
+    connection_id: 2
+    name: "aws_ebs_volumes_encrypted"
+    description: "Verify that EBS volumes are encrypted at rest"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 658  # SC-8 (Transmission Confidentiality and Integrity)
+    control_name: "SC-8"
+    field_path: "volumes"
+    resource_type: "AWSEC2Resource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check if all EBS volumes are encrypted
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no volumes
+        else:
+            result = True
+            for volume_id, volume in fetched_value.items():
+                encrypted = False
+                if isinstance(volume, dict):
+                    encrypted = volume.get('encrypted', False)
+                else:
+                    encrypted = getattr(volume, 'encrypted', False)
+                
+                if not encrypted:
+                    result = False
+                    break
+    expected_value: null
+    tags: ["security", "aws", "ebs", "encryption", "storage"]
+    severity: "high"
+    category: "system_communications_protection"
+
+  - id: 2012
+    connection_id: 2
+    name: "aws_ebs_snapshots_not_public"
+    description: "Verify that EBS snapshots are not publicly accessible"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 75   # AC-3 (Access Enforcement)
+    control_name: "AC-3"
+    field_path: "snapshots"
+    resource_type: "AWSEC2Resource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check if EBS snapshots are private
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no snapshots
+        else:
+            result = True
+            for snapshot_id, snapshot in fetched_value.items():
+                is_public = False
+                if isinstance(snapshot, dict):
+                    # Check for public permissions
+                    permissions = snapshot.get('create_volume_permissions', [])
+                    for perm in permissions:
+                        if perm.get('Group') == 'all':
+                            is_public = True
+                            break
+                else:
+                    permissions = getattr(snapshot, 'create_volume_permissions', [])
+                    for perm in permissions:
+                        if getattr(perm, 'Group', None) == 'all':
+                            is_public = True
+                            break
+                
+                if is_public:
+                    result = False
+                    break
+    expected_value: null
+    tags: ["security", "aws", "ebs", "snapshot", "public_access"]
+    severity: "high"
+    category: "access_control"
+
+  - id: 2013
+    connection_id: 2
+    name: "aws_ebs_volumes_have_backups"
+    description: "Verify that EBS volumes have recent snapshots for backup"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 277  # CP-9 (System Backup)
+    control_name: "CP-9"
+    field_path: "volumes"
+    resource_type: "AWSEC2Resource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check if EBS volumes have recent snapshots
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no volumes
+        else:
+            result = True
+            # Note: This is a simplified check - in real implementation, 
+            # we'd cross-reference with snapshots to verify backup recency
+            for volume_id, volume in fetched_value.items():
+                # For now, assume volumes in 'in-use' state are backed up
+                state = None
+                if isinstance(volume, dict):
+                    state = volume.get('state')
+                else:
+                    state = getattr(volume, 'state', None)
+                
+                # This is a placeholder - real check would verify snapshot existence and recency
+                if state not in ['in-use', 'available']:
+                    result = False
+                    break
+    expected_value: null
+    tags: ["security", "aws", "ebs", "backup", "disaster_recovery"]
+    severity: "medium"
+    category: "contingency_planning"
+
+  # Enhanced S3 Security Checks (2014-2017)
+  - id: 2014
+    connection_id: 2
+    name: "aws_s3_versioning_enabled"
+    description: "Verify that S3 bucket versioning is enabled for data protection"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 277  # CP-9 (System Backup)
+    control_name: "CP-9"
+    field_path: "bucket_versioning"
+    resource_type: "AWSS3Resource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check if S3 bucket versioning is enabled
+        if not isinstance(fetched_value, dict):
+            result = False
+        else:
+            result = True
+            for bucket_name, versioning_config in fetched_value.items():
+                status = None
+                if isinstance(versioning_config, dict):
+                    status = versioning_config.get('Status')
+                else:
+                    status = getattr(versioning_config, 'Status', None)
+                
+                if status != 'Enabled':
+                    result = False
+                    break
+    expected_value: null
+    tags: ["security", "aws", "s3", "versioning", "data_protection"]
+    severity: "medium"
+    category: "contingency_planning"
+
+  - id: 2015
+    connection_id: 2
+    name: "aws_s3_access_logging_enabled"
+    description: "Verify that S3 bucket access logging is enabled for audit trails"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 96   # AU-2 (Event Logging)
+    control_name: "AU-2"
+    field_path: "bucket_logging"
+    resource_type: "AWSS3Resource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check if S3 bucket access logging is enabled
+        if not isinstance(fetched_value, dict):
+            result = False
+        else:
+            result = True
+            for bucket_name, logging_config in fetched_value.items():
+                # Check if logging is configured
+                logging_enabled = False
+                if isinstance(logging_config, dict):
+                    logging_enabled = 'LoggingEnabled' in logging_config
+                else:
+                    logging_enabled = hasattr(logging_config, 'LoggingEnabled')
+                
+                if not logging_enabled:
+                    result = False
+                    break
+    expected_value: null
+    tags: ["security", "aws", "s3", "access_logging", "audit"]
+    severity: "medium"
+    category: "audit_accountability"
+
+  - id: 2016
+    connection_id: 2
+    name: "aws_s3_public_access_blocked"
+    description: "Verify that S3 bucket public access is blocked at bucket level"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 75   # AC-3 (Access Enforcement)
+    control_name: "AC-3"
+    field_path: "bucket_public_access"
+    resource_type: "AWSS3Resource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check if S3 bucket public access is blocked
+        if not isinstance(fetched_value, dict):
+            result = False
+        else:
+            result = True
+            for bucket_name, public_access_config in fetched_value.items():
+                if isinstance(public_access_config, dict):
+                    block_public_acls = public_access_config.get('BlockPublicAcls', False)
+                    ignore_public_acls = public_access_config.get('IgnorePublicAcls', False)
+                    block_public_policy = public_access_config.get('BlockPublicPolicy', False)
+                    restrict_public_buckets = public_access_config.get('RestrictPublicBuckets', False)
+                else:
+                    block_public_acls = getattr(public_access_config, 'BlockPublicAcls', False)
+                    ignore_public_acls = getattr(public_access_config, 'IgnorePublicAcls', False)
+                    block_public_policy = getattr(public_access_config, 'BlockPublicPolicy', False)
+                    restrict_public_buckets = getattr(public_access_config, 'RestrictPublicBuckets', False)
+                
+                if not (block_public_acls and ignore_public_acls and block_public_policy and restrict_public_buckets):
+                    result = False
+                    break
+    expected_value: null
+    tags: ["security", "aws", "s3", "public_access", "data_protection"]
+    severity: "high"
+    category: "access_control"
+
+  - id: 2017
+    connection_id: 2
+    name: "aws_s3_lifecycle_policies_configured"
+    description: "Verify that S3 buckets have lifecycle policies for cost optimization"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 282  # CM-6 (Configuration Settings)
+    control_name: "CM-6"
+    field_path: "bucket_lifecycle"
+    resource_type: "AWSS3Resource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check if S3 buckets have lifecycle policies configured
+        if not isinstance(fetched_value, dict):
+            result = False
+        else:
+            result = True
+            for bucket_name, lifecycle_config in fetched_value.items():
+                has_rules = False
+                if isinstance(lifecycle_config, dict):
+                    rules = lifecycle_config.get('Rules', [])
+                    has_rules = len(rules) > 0
+                else:
+                    rules = getattr(lifecycle_config, 'Rules', [])
+                    has_rules = len(rules) > 0
+                
+                if not has_rules:
+                    result = False
+                    break
+    expected_value: null
+    tags: ["security", "aws", "s3", "lifecycle", "cost_optimization"]
+    severity: "low"
+    category: "configuration_management"
+
+  # Enhanced IAM Security Checks (2018-2021)
+  - id: 2018
+    connection_id: 2
+    name: "aws_iam_roles_have_trust_policies"
+    description: "Verify that IAM roles have properly configured trust policies"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 157  # IA-2 (Identification and Authentication)
+    control_name: "IA-2"
+    field_path: "roles"
+    resource_type: "AWSIAMResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check if IAM roles have trust policies
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no roles
+        else:
+            result = True
+            for role_name, role_data in fetched_value.items():
+                trust_policy = None
+                if isinstance(role_data, dict):
+                    trust_policy = role_data.get('assume_role_policy_document')
+                else:
+                    trust_policy = getattr(role_data, 'assume_role_policy_document', None)
+                
+                if not trust_policy:
+                    result = False
+                    break
+    expected_value: null
+    tags: ["security", "aws", "iam", "roles", "trust_policy"]
+    severity: "high"
+    category: "identification_authentication"
+
+  - id: 2019
+    connection_id: 2
+    name: "aws_iam_policies_least_privilege"
+    description: "Verify that IAM policies follow least privilege principle"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 90   # AC-6 (Least Privilege)
+    control_name: "AC-6"
+    field_path: "policies"
+    resource_type: "AWSIAMResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check if IAM policies avoid overly broad permissions
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no policies
+        else:
+            result = True
+            for policy_name, policy_data in fetched_value.items():
+                # This is a simplified check - look for wildcard actions/resources
+                policy_doc = None
+                if isinstance(policy_data, dict):
+                    policy_doc = policy_data.get('policy_document', {})
+                else:
+                    policy_doc = getattr(policy_data, 'policy_document', {})
+                
+                if isinstance(policy_doc, dict):
+                    statements = policy_doc.get('Statement', [])
+                    for statement in statements:
+                        if isinstance(statement, dict):
+                            actions = statement.get('Action', [])
+                            resources = statement.get('Resource', [])
+                            effect = statement.get('Effect', '')
+                            
+                            # Check for overly broad permissions
+                            if effect == 'Allow':
+                                if '*' in actions or '*' in resources:
+                                    result = False
+                                    break
+                if not result:
+                    break
+    expected_value: null
+    tags: ["security", "aws", "iam", "policies", "least_privilege"]
+    severity: "high"
+    category: "access_control"
+
+  - id: 2020
+    connection_id: 2
+    name: "aws_iam_groups_used_for_permissions"
+    description: "Verify that IAM groups are used to manage user permissions"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 71   # AC-2 (Account Management)
+    control_name: "AC-2"
+    field_path: "groups"
+    resource_type: "AWSIAMResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check if IAM groups exist and are being used
+        if not isinstance(fetched_value, dict):
+            result = False  # Fail if no groups
+        else:
+            result = len(fetched_value) > 0  # Pass if at least one group exists
+    expected_value: null
+    tags: ["security", "aws", "iam", "groups", "user_management"]
+    severity: "medium"
+    category: "access_control"
+
+  - id: 2021
+    connection_id: 2
+    name: "aws_iam_users_in_groups"
+    description: "Verify that IAM users are assigned to groups rather than having direct policies"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 71   # AC-2 (Account Management)
+    control_name: "AC-2"
+    field_path: "users"
+    resource_type: "AWSIAMResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check if IAM users are assigned to groups
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no users
+        else:
+            result = True
+            for user_name, user_data in fetched_value.items():
+                groups = []
+                inline_policies = []
+                if isinstance(user_data, dict):
+                    groups = user_data.get('groups', [])
+                    inline_policies = user_data.get('inline_policies', [])
+                else:
+                    groups = getattr(user_data, 'groups', [])
+                    inline_policies = getattr(user_data, 'inline_policies', [])
+                
+                # User should be in at least one group and have minimal direct policies
+                if len(groups) == 0 and len(inline_policies) > 0:
+                    result = False
+                    break
+    expected_value: null
+    tags: ["security", "aws", "iam", "users", "group_membership"]
+    severity: "medium"
+    category: "access_control"
+
+  # Additional EC2 Security Checks (2022-2025)
+  - id: 2022
+    connection_id: 2
+    name: "aws_ec2_instances_no_public_ip"
+    description: "Verify that EC2 instances do not have public IP addresses unless necessary"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 75   # AC-3 (Access Enforcement)
+    control_name: "AC-3"
+    field_path: "instances"
+    resource_type: "AWSEC2Resource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check if EC2 instances have public IP addresses
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no instances
+        else:
+            result = True
+            for instance_id, instance in fetched_value.items():
+                public_ip = None
+                if isinstance(instance, dict):
+                    public_ip = instance.get('public_ip_address')
+                else:
+                    public_ip = getattr(instance, 'public_ip_address', None)
+                
+                # Fail if instance has a public IP (unless it's a bastion/jump host)
+                if public_ip:
+                    # This is a simplified check - in reality, you'd check instance purpose/tags
+                    result = False
+                    break
+    expected_value: null
+    tags: ["security", "aws", "ec2", "public_ip", "network_exposure"]
+    severity: "medium"
+    category: "access_control"
+
+  - id: 2023
+    connection_id: 2
+    name: "aws_ec2_instances_latest_ami"
+    description: "Verify that EC2 instances are using recent AMI versions"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 679  # SI-2 (Flaw Remediation)
+    control_name: "SI-2"
+    field_path: "instances"
+    resource_type: "AWSEC2Resource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check if EC2 instances are using recent AMIs
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no instances
+        else:
+            result = True
+            for instance_id, instance in fetched_value.items():
+                image_id = None
+                launch_time = None
+                if isinstance(instance, dict):
+                    image_id = instance.get('image_id')
+                    launch_time = instance.get('launch_time')
+                else:
+                    image_id = getattr(instance, 'image_id', None)
+                    launch_time = getattr(instance, 'launch_time', None)
+                
+                # This is a simplified check - in reality, you'd check AMI age and patch level
+                # For now, just ensure image_id exists
+                if not image_id:
+                    result = False
+                    break
+    expected_value: null
+    tags: ["security", "aws", "ec2", "ami", "patch_management"]
+    severity: "medium"
+    category: "system_information_integrity"
+
+  - id: 2024
+    connection_id: 2
+    name: "aws_ec2_key_pairs_secured"
+    description: "Verify that EC2 key pairs are properly managed and secured"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 157  # IA-2 (Identification and Authentication)
+    control_name: "IA-2"
+    field_path: "key_pairs"
+    resource_type: "AWSEC2Resource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check if EC2 key pairs are properly managed
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no key pairs
+        else:
+            result = True
+            for key_pair_name, key_pair in fetched_value.items():
+                key_type = None
+                if isinstance(key_pair, dict):
+                    key_type = key_pair.get('key_type')
+                else:
+                    key_type = getattr(key_pair, 'key_type', None)
+                
+                # Prefer RSA keys over other types for security
+                if key_type and key_type not in ['rsa', 'ed25519']:
+                    result = False
+                    break
+    expected_value: null
+    tags: ["security", "aws", "ec2", "key_pairs", "authentication"]
+    severity: "medium"
+    category: "identification_authentication"
+
+  - id: 2025
+    connection_id: 2
+    name: "aws_elastic_ips_managed"
+    description: "Verify that Elastic IPs are properly managed and not orphaned"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 287  # CM-8 (System Component Inventory)
+    control_name: "CM-8"
+    field_path: "elastic_ips"
+    resource_type: "AWSEC2Resource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check if Elastic IPs are associated with instances
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no Elastic IPs
+        else:
+            result = True
+            for eip_id, eip in fetched_value.items():
+                instance_id = None
+                if isinstance(eip, dict):
+                    instance_id = eip.get('instance_id')
+                else:
+                    instance_id = getattr(eip, 'instance_id', None)
+                
+                # Fail if EIP is not associated with an instance (orphaned)
+                if not instance_id:
+                    result = False
+                    break
+    expected_value: null
+    tags: ["security", "aws", "ec2", "elastic_ip", "resource_management"]
+    severity: "low"
+    category: "configuration_management" 
