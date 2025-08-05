@@ -6,6 +6,8 @@ from providers.aws.services.s3 import S3Service
 from providers.provider import Provider, provider_class
 from constants import Providers
 import boto3
+import json
+import os
 
 
 @provider_class
@@ -16,8 +18,11 @@ class AWSProvider(Provider):
         self.AWS_SESSION_TOKEN = metadata.get("AWS_SESSION_TOKEN")
         self.ROLE_ARN = metadata.get("AWS_ROLE_ARN")
         self.AWS_EXTERNAL_ID = metadata.get("AWS_EXTERNAL_ID")
-
-        if (
+        
+        # Check if we should use mock mode (if aws_response.json exists)
+        self.use_mock_data = os.path.exists('aws_response.json')
+        
+        if not self.use_mock_data and (
             not self.AWS_ACCESS_KEY_ID
             or not self.AWS_SECRET_ACCESS_KEY
             or not self.AWS_SESSION_TOKEN
@@ -49,6 +54,14 @@ class AWSProvider(Provider):
         return regions
 
     def connect(self):
+        # Skip AWS connection if using mock data
+        if self.use_mock_data:
+            print("🔄 Mock mode detected - skipping AWS connection")
+            self.client = None  # No real client needed for mock data
+            self.REGIONS = self.metadata.get("REGIONS", ["us-west-2"])  # Default regions for mock
+            return
+            
+        # Original AWS connection logic for real API calls
         session_kwargs = {"region_name": "us-east-1"}
         if self.AWS_ACCESS_KEY_ID and self.AWS_SECRET_ACCESS_KEY:
             session_kwargs.update(
@@ -108,6 +121,30 @@ class AWSProvider(Provider):
         )
 
     def process(self):
+        """Process data collection - uses mock data if available, otherwise real AWS API calls"""
+        if self.use_mock_data:
+            return self._process_mock_data()
+        else:
+            return self._process_real_aws_data()
+    
+    def _process_mock_data(self):
+        """Load and return mock data from aws_response.json"""
+        print("🔄 Using mock AWS data from aws_response.json")
+        
+        try:
+            with open('aws_response.json', 'r') as mock_response_file:
+                mock_response = json.load(mock_response_file)
+                
+            print(f"✅ Loaded mock AWS data with {len(mock_response)} regions")
+            return mock_response
+            
+        except Exception as e:
+            print(f"❌ Error loading mock data: {e}")
+            raise RuntimeError(f"Failed to load mock data from aws_response.json: {e}")
+
+    def _process_real_aws_data(self):
+        """Original AWS data collection logic using real API calls"""
+        print("🔄 Collecting real AWS data via API calls")
         data = {}
         for region in self.REGIONS:
             print("Fetching data for region: ", region)
