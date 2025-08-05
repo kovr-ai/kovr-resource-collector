@@ -102,8 +102,8 @@ def params_from_connection_id(
         # Assuming type 1 = github, can be extended for other types
         type_mapping = {
             1: 'github',
+            2: 'aws',
             # Add more mappings as needed
-            # 2: 'aws',
             # 3: 'azure',
         }
         
