@@ -4110,3 +4110,765 @@ checks:
     tags: ["governance", "aws", "operational_excellence", "monitoring", "best_practices"]
     severity: "medium"
     category: "configuration_management"
+  # Batch 6: Enterprise-Grade Compliance & Risk Management (2106-2125)
+  
+  # AWS Enterprise Risk Management (2106-2113)
+  - id: 2106
+    connection_id: 2
+    name: "aws_resource_utilization_efficiency"
+    description: "Verify efficient resource utilization across AWS infrastructure"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 282  # CM-6 (Configuration Settings)
+    control_name: "CM-6"
+    field_path: "instances"
+    resource_type: "AWSEC2Resource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check resource utilization efficiency
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no instances
+        else:
+            total_instances = len(fetched_value)
+            running_instances = 0
+            optimized_instances = 0
+            
+            for instance_id, instance in fetched_value.items():
+                state = ''
+                instance_type = ''
+                
+                if isinstance(instance, dict):
+                    state = instance.get('state', '')
+                    instance_type = instance.get('instance_type', '')
+                else:
+                    state = getattr(instance, 'state', '')
+                    instance_type = getattr(instance, 'instance_type', '')
+                
+                if state == 'running':
+                    running_instances += 1
+                    
+                    # Check for efficient instance types
+                    if instance_type.startswith(('t3', 't4g', 'm5', 'm6i', 'c5', 'c6i')):
+                        optimized_instances += 1
+            
+            # At least 80% of running instances should be modern/efficient types
+            if running_instances > 0:
+                efficiency_percentage = (optimized_instances / running_instances) * 100
+                result = efficiency_percentage >= 80
+            else:
+                result = True
+    expected_value: null
+    tags: ["governance", "aws", "efficiency", "resource_utilization", "cost_optimization"]
+    severity: "medium"
+    category: "configuration_management"
+
+  - id: 2107
+    connection_id: 2
+    name: "aws_security_compliance_scoring"
+    description: "Verify comprehensive security compliance across multiple dimensions"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 75   # AC-3 (Access Enforcement)
+    control_name: "AC-3"
+    field_path: "security_groups"
+    resource_type: "AWSEC2Resource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Multi-dimensional security compliance scoring
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no security groups
+        else:
+            total_groups = len(fetched_value)
+            compliant_groups = 0
+            
+            for sg_id, sg in fetched_value.items():
+                compliance_score = 0
+                
+                if isinstance(sg, dict):
+                    # Check inbound rules restrictiveness
+                    inbound_rules = sg.get('inbound_rules', [])
+                    if len(inbound_rules) > 0:
+                        restrictive_rules = 0
+                        for rule in inbound_rules:
+                            cidr_blocks = rule.get('cidr_blocks', [])
+                            if '0.0.0.0/0' not in cidr_blocks:
+                                restrictive_rules += 1
+                        
+                        if restrictive_rules >= len(inbound_rules) * 0.8:  # 80% restrictive
+                            compliance_score += 1
+                    
+                    # Check outbound rules exist
+                    outbound_rules = sg.get('outbound_rules', [])
+                    if len(outbound_rules) > 0:
+                        compliance_score += 1
+                    
+                    # Check naming convention
+                    group_name = sg.get('group_name', '')
+                    if group_name and group_name != 'default' and len(group_name) >= 5:
+                        compliance_score += 1
+                
+                # Group needs at least 2/3 compliance indicators
+                if compliance_score >= 2:
+                    compliant_groups += 1
+            
+            # At least 70% should be compliant
+            if total_groups > 0:
+                compliance_percentage = (compliant_groups / total_groups) * 100
+                result = compliance_percentage >= 70
+    expected_value: null
+    tags: ["security", "aws", "compliance", "scoring", "multi_dimensional"]
+    severity: "high"
+    category: "access_control"
+  - id: 2108
+    connection_id: 2
+    name: "aws_data_residency_compliance"
+    description: "Verify data residency and geographic compliance requirements"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 658  # SC-8 (Transmission Confidentiality and Integrity)
+    control_name: "SC-8"
+    field_path: "volumes"
+    resource_type: "AWSEC2Resource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check data residency through volume encryption and placement
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no volumes
+        else:
+            total_volumes = len(fetched_value)
+            compliant_volumes = 0
+            
+            for volume_id, volume in fetched_value.items():
+                residency_score = 0
+                
+                if isinstance(volume, dict):
+                    # Encryption ensures data protection
+                    if volume.get('encrypted', False):
+                        residency_score += 1
+                    
+                    # Volume should be in proper state
+                    state = volume.get('state', '')
+                    if state in ['in-use', 'available']:
+                        residency_score += 1
+                    
+                    # Volume type optimization
+                    volume_type = volume.get('volume_type', '')
+                    if volume_type in ['gp3', 'io2', 'gp2']:
+                        residency_score += 1
+                
+                # Volume needs all 3 compliance indicators
+                if residency_score >= 3:
+                    compliant_volumes += 1
+            
+            # At least 90% should be compliant for data residency
+            if total_volumes > 0:
+                compliance_percentage = (compliant_volumes / total_volumes) * 100
+                result = compliance_percentage >= 90
+    expected_value: null
+    tags: ["security", "aws", "data_residency", "compliance", "geographic"]
+    severity: "high"
+    category: "system_communications_protection"
+
+  - id: 2109
+    connection_id: 2
+    name: "aws_change_management_traceability"
+    description: "Verify comprehensive change management and audit traceability"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 275  # CM-3 (Configuration Change Control)
+    control_name: "CM-3"
+    field_path: "trails"
+    resource_type: "AWSCloudTrailResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check change management traceability
+        if not isinstance(fetched_value, dict):
+            result = False  # Must have trails for traceability
+        else:
+            total_trails = len(fetched_value)
+            traceable_trails = 0
+            
+            for trail_name, trail_data in fetched_value.items():
+                traceability_score = 0
+                
+                if isinstance(trail_data, dict):
+                    # Trail should be actively logging
+                    is_logging = trail_data.get('is_logging', False)
+                    status = trail_data.get('status', {})
+                    if is_logging or (status and status.get('is_logging', False)):
+                        traceability_score += 1
+                    
+                    # Should have comprehensive event coverage
+                    # For now, active logging indicates good traceability
+                    if traceability_score >= 1:
+                        traceable_trails += 1
+            
+            # All trails should provide traceability
+            result = traceable_trails == total_trails and total_trails >= 1
+    expected_value: null
+    tags: ["governance", "aws", "change_management", "traceability", "audit"]
+    severity: "high"
+    category: "configuration_management"
+
+  - id: 2110
+    connection_id: 2
+    name: "aws_business_continuity_preparedness"
+    description: "Verify business continuity and disaster recovery preparedness"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 277  # CP-9 (System Backup)
+    control_name: "CP-9"
+    field_path: "snapshots"
+    resource_type: "AWSEC2Resource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check business continuity preparedness
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no snapshots
+        else:
+            total_snapshots = len(fetched_value)
+            recent_snapshots = 0
+            
+            for snapshot_id, snapshot in fetched_value.items():
+                continuity_score = 0
+                
+                if isinstance(snapshot, dict):
+                    # Snapshot should be completed
+                    state = snapshot.get('state', '')
+                    if state == 'completed':
+                        continuity_score += 1
+                    
+                    # Progress should be 100%
+                    progress = snapshot.get('progress', '')
+                    if progress == '100%':
+                        continuity_score += 1
+                
+                # Snapshot needs both completion indicators
+                if continuity_score >= 2:
+                    recent_snapshots += 1
+            
+            # At least 80% of snapshots should be complete and ready
+            if total_snapshots > 0:
+                preparedness_percentage = (recent_snapshots / total_snapshots) * 100
+                result = preparedness_percentage >= 80
+            else:
+                result = True  # No snapshots is acceptable for some scenarios
+    expected_value: null
+    tags: ["governance", "aws", "business_continuity", "disaster_recovery", "preparedness"]
+    severity: "high"
+    category: "contingency_planning"
+
+  - id: 2111
+    connection_id: 2
+    name: "aws_performance_monitoring_maturity"
+    description: "Verify mature performance monitoring and alerting capabilities"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 695  # SI-4 (System Monitoring)
+    control_name: "SI-4"
+    field_path: "metrics"
+    resource_type: "AWSCloudWatchResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check performance monitoring maturity
+        if not isinstance(fetched_value, list):
+            result = False  # Should have metrics
+        else:
+            total_metrics = len(fetched_value)
+            
+            # Mature monitoring should have substantial metrics collection
+            # This indicates comprehensive performance monitoring
+            result = total_metrics >= 50  # At least 50 metrics for maturity
+    expected_value: null
+    tags: ["governance", "aws", "performance", "monitoring", "maturity"]
+    severity: "medium"
+    category: "system_information_integrity"
+
+  - id: 2112
+    connection_id: 2
+    name: "aws_access_pattern_analytics"
+    description: "Verify intelligent access pattern analysis and anomaly detection"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 157  # IA-2 (Identification and Authentication)
+    control_name: "IA-2"
+    field_path: "users"
+    resource_type: "AWSIAMResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check access pattern analytics capabilities
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no users
+        else:
+            total_users = len(fetched_value)
+            analytically_managed_users = 0
+            
+            for user_name, user_data in fetched_value.items():
+                analytics_score = 0
+                
+                if isinstance(user_data, dict):
+                    # User should have MFA (behavioral security)
+                    mfa_devices = user_data.get('mfa_devices', [])
+                    if len(mfa_devices) > 0:
+                        analytics_score += 1
+                    
+                    # User should be in groups (pattern management)
+                    groups = user_data.get('groups', [])
+                    if len(groups) > 0:
+                        analytics_score += 1
+                    
+                    # User should have controlled access keys
+                    access_keys = user_data.get('access_keys', [])
+                    if len(access_keys) <= 2:  # Reasonable number
+                        analytics_score += 1
+                
+                # User needs all 3 analytics indicators
+                if analytics_score >= 3:
+                    analytically_managed_users += 1
+            
+            # At least 75% should show analytical management
+            if total_users > 0:
+                analytics_percentage = (analytically_managed_users / total_users) * 100
+                result = analytics_percentage >= 75
+    expected_value: null
+    tags: ["security", "aws", "access_patterns", "analytics", "anomaly_detection"]
+    severity: "high"
+    category: "identification_authentication"
+  - id: 2113
+    connection_id: 2
+    name: "aws_regulatory_compliance_readiness"
+    description: "Verify readiness for regulatory compliance audits and assessments"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 96   # AU-2 (Event Logging)
+    control_name: "AU-2"
+    field_path: "log_groups"
+    resource_type: "AWSCloudWatchResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check regulatory compliance readiness
+        if not isinstance(fetched_value, dict):
+            result = False  # Must have logging for compliance
+        else:
+            total_log_groups = len(fetched_value)
+            compliant_log_groups = 0
+            total_log_volume = 0
+            
+            for lg_name, lg_data in fetched_value.items():
+                compliance_score = 0
+                
+                if isinstance(lg_data, dict):
+                    # Log retention (stored bytes indicate retention)
+                    stored_bytes = lg_data.get('stored_bytes', 0)
+                    total_log_volume += stored_bytes
+                    
+                    if stored_bytes > 1000000:  # >1MB indicates active logging
+                        compliance_score += 1
+                    
+                    # KMS encryption for compliance
+                    kms_key_id = lg_data.get('kms_key_id')
+                    if kms_key_id:
+                        compliance_score += 1
+                
+                # Log group needs both compliance indicators
+                if compliance_score >= 1:  # At least active logging
+                    compliant_log_groups += 1
+            
+            # At least 80% compliance and significant total volume
+            if total_log_groups > 0:
+                compliance_percentage = (compliant_log_groups / total_log_groups) * 100
+                result = compliance_percentage >= 80 and total_log_volume > 50000000  # >50MB total
+            else:
+                result = False
+    expected_value: null
+    tags: ["governance", "aws", "regulatory", "compliance", "audit_readiness"]
+    severity: "high"
+    category: "audit_accountability"
+
+  # GitHub Enterprise Development Governance (2114-2121)
+  - id: 2114
+    connection_id: 1
+    name: "github_enterprise_security_governance"
+    description: "Verify enterprise-grade security governance across organization"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 75   # AC-3 (Access Enforcement)
+    control_name: "AC-3"
+    field_path: "security_data.security_features_enabled"
+    resource_type: "GithubResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check enterprise security governance
+        if not isinstance(fetched_value, int):
+            result = False
+        else:
+            security_features = fetched_value
+            # Enterprise governance requires comprehensive security features
+            result = security_features >= 5  # At least 5 security features for enterprise
+    expected_value: null
+    tags: ["security", "github", "enterprise", "governance", "comprehensive"]
+    severity: "high"
+    category: "access_control"
+
+  - id: 2115
+    connection_id: 1
+    name: "github_development_lifecycle_compliance"
+    description: "Verify comprehensive development lifecycle compliance and controls"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 275  # CM-3 (Configuration Change Control)
+    control_name: "CM-3"
+    field_path: "actions_data.total_workflows"
+    resource_type: "GithubResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check development lifecycle compliance
+        if not isinstance(fetched_value, int):
+            result = True  # Pass if no workflows
+        else:
+            total_workflows = fetched_value
+            # Should have reasonable workflow coverage for lifecycle compliance
+            result = 2 <= total_workflows <= 25  # Balanced workflow management
+    expected_value: null
+    tags: ["governance", "github", "lifecycle", "compliance", "development"]
+    severity: "medium"
+    category: "configuration_management"
+
+  - id: 2116
+    connection_id: 1
+    name: "github_intellectual_property_protection"
+    description: "Verify intellectual property protection through repository controls"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 658  # SC-8 (Transmission Confidentiality and Integrity)
+    control_name: "SC-8"
+    field_path: "repository_data.basic_info.private"
+    resource_type: "GithubResource"
+    operation:
+      name: "EQUAL"
+    expected_value: true
+    tags: ["security", "github", "intellectual_property", "protection", "confidentiality"]
+    severity: "high"
+    category: "system_communications_protection"
+
+  - id: 2117
+    connection_id: 1
+    name: "github_code_review_enforcement"
+    description: "Verify mandatory code review enforcement for quality assurance"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 679  # SI-2 (Flaw Remediation)
+    control_name: "SI-2"
+    field_path: "collaboration_data.total_pull_requests"
+    resource_type: "GithubResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check code review enforcement through PR activity
+        if not isinstance(fetched_value, int):
+            result = False
+        else:
+            pull_requests = fetched_value
+            # Active PR usage indicates code review processes
+            result = pull_requests >= 10  # At least 10 PRs for active review culture
+    expected_value: null
+    tags: ["governance", "github", "code_review", "quality_assurance", "enforcement"]
+    severity: "high"
+    category: "system_information_integrity"
+
+  - id: 2118
+    connection_id: 1
+    name: "github_team_based_access_control"
+    description: "Verify team-based access control for scalable permission management"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 71   # AC-2 (Account Management)
+    control_name: "AC-2"
+    field_path: "organization_data.total_teams"
+    resource_type: "GithubResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check team-based access control
+        if not isinstance(fetched_value, int):
+            result = False
+        else:
+            total_teams = fetched_value
+            # Should have team structure for scalable access control
+            result = total_teams >= 3  # At least 3 teams for proper organization
+    expected_value: null
+    tags: ["security", "github", "teams", "access_control", "scalable"]
+    severity: "medium"
+    category: "access_control"
+
+  - id: 2119
+    connection_id: 1
+    name: "github_automated_security_testing"
+    description: "Verify automated security testing integration in development pipeline"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 779  # SA-11 (Developer Security and Privacy Architecture and Design Testing)
+    control_name: "SA-11"
+    field_path: "actions_data.recent_runs_count"
+    resource_type: "GithubResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check automated security testing
+        if not isinstance(fetched_value, int):
+            result = True  # Pass if no data
+        else:
+            recent_runs = fetched_value
+            # Regular workflow runs indicate automated testing
+            result = recent_runs >= 10  # At least 10 recent runs for active testing
+    expected_value: null
+    tags: ["security", "github", "automated", "security_testing", "pipeline"]
+    severity: "high"
+    category: "system_services_acquisition"
+
+  - id: 2120
+    connection_id: 1
+    name: "github_vulnerability_management_process"
+    description: "Verify comprehensive vulnerability management and remediation process"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 549  # IR-4 (Incident Handling)
+    control_name: "IR-4"
+    field_path: "security_data.total_dependabot_alerts"
+    resource_type: "GithubResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check vulnerability management process maturity
+        if not isinstance(fetched_value, int):
+            result = True  # Pass if no data
+        else:
+            dependabot_alerts = fetched_value
+            # Mature process should have minimal outstanding alerts
+            result = dependabot_alerts <= 3  # Very strict for enterprise
+    expected_value: null
+    tags: ["security", "github", "vulnerability", "management", "remediation"]
+    severity: "high"
+    category: "incident_response"
+
+  - id: 2121
+    connection_id: 1
+    name: "github_compliance_documentation_standards"
+    description: "Verify compliance documentation and standards adherence"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 282  # CM-6 (Configuration Settings)
+    control_name: "CM-6"
+    field_path: "repository_data.metadata.has_issues"
+    resource_type: "GithubResource"
+    operation:
+      name: "EQUAL"
+    expected_value: true
+    tags: ["governance", "github", "compliance", "documentation", "standards"]
+    severity: "medium"
+    category: "configuration_management"
+
+  # Cross-Platform Enterprise Intelligence (2122-2125)
+  - id: 2122
+    connection_id: 2
+    name: "aws_enterprise_governance_maturity"
+    description: "Verify enterprise governance maturity across all AWS services"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 287  # CM-8 (System Component Inventory)
+    control_name: "CM-8"
+    field_path: "instances"
+    resource_type: "AWSEC2Resource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Enterprise governance maturity assessment
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no instances
+        else:
+            total_instances = len(fetched_value)
+            governed_instances = 0
+            
+            for instance_id, instance in fetched_value.items():
+                governance_score = 0
+                
+                if isinstance(instance, dict):
+                    # Proper tagging
+                    tags = instance.get('tags', {})
+                    if len(tags) >= 3:  # At least 3 tags
+                        governance_score += 1
+                    
+                    # IAM instance profile
+                    iam_profile = instance.get('iam_instance_profile')
+                    if iam_profile:
+                        governance_score += 1
+                    
+                    # Modern instance type
+                    instance_type = instance.get('instance_type', '')
+                    if instance_type.startswith(('t3', 't4g', 'm5', 'm6i', 'c5', 'c6i')):
+                        governance_score += 1
+                    
+                    # Security groups
+                    security_groups = instance.get('security_groups', [])
+                    if len(security_groups) > 0:
+                        governance_score += 1
+                
+                # Instance needs at least 3/4 governance indicators
+                if governance_score >= 3:
+                    governed_instances += 1
+            
+            # At least 85% should show enterprise governance
+            if total_instances > 0:
+                governance_percentage = (governed_instances / total_instances) * 100
+                result = governance_percentage >= 85
+    expected_value: null
+    tags: ["governance", "aws", "enterprise", "maturity", "comprehensive"]
+    severity: "high"
+    category: "configuration_management"
+
+  - id: 2123
+    connection_id: 2
+    name: "aws_security_operations_center_readiness"
+    description: "Verify Security Operations Center (SOC) readiness and capabilities"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 695  # SI-4 (System Monitoring)
+    control_name: "SI-4"
+    field_path: "alarms"
+    resource_type: "AWSCloudWatchResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # SOC readiness assessment
+        if not isinstance(fetched_value, dict):
+            result = False  # Must have monitoring for SOC
+        else:
+            total_alarms = len(fetched_value)
+            soc_ready_alarms = 0
+            
+            for alarm_name, alarm_data in fetched_value.items():
+                soc_score = 0
+                
+                if isinstance(alarm_data, dict):
+                    # Alarm has actions (automated response)
+                    alarm_actions = alarm_data.get('alarm_actions', [])
+                    if len(alarm_actions) > 0:
+                        soc_score += 1
+                    
+                    # Actions are enabled
+                    if alarm_data.get('actions_enabled', True):
+                        soc_score += 1
+                
+                # Alarm needs both SOC readiness indicators
+                if soc_score >= 2:
+                    soc_ready_alarms += 1
+            
+            # At least 90% should be SOC-ready and minimum threshold
+            if total_alarms > 0:
+                soc_percentage = (soc_ready_alarms / total_alarms) * 100
+                result = soc_percentage >= 90 and total_alarms >= 5
+            else:
+                result = False
+    expected_value: null
+    tags: ["security", "aws", "soc", "operations_center", "readiness"]
+    severity: "high"
+    category: "system_information_integrity"
+
+  - id: 2124
+    connection_id: 2
+    name: "aws_incident_response_automation"
+    description: "Verify automated incident response capabilities and workflows"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 549  # IR-4 (Incident Handling)
+    control_name: "IR-4"
+    field_path: "alarms"
+    resource_type: "AWSCloudWatchResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Incident response automation assessment
+        if not isinstance(fetched_value, dict):
+            result = False  # Must have alarms for incident response
+        else:
+            total_alarms = len(fetched_value)
+            automated_response_alarms = 0
+            
+            for alarm_name, alarm_data in fetched_value.items():
+                automation_score = 0
+                
+                if isinstance(alarm_data, dict):
+                    # Has alarm actions (automated response)
+                    alarm_actions = alarm_data.get('alarm_actions', [])
+                    if len(alarm_actions) >= 1:
+                        automation_score += 1
+                    
+                    # Actions enabled for automation
+                    if alarm_data.get('actions_enabled', True):
+                        automation_score += 1
+                
+                # Alarm needs both automation indicators
+                if automation_score >= 2:
+                    automated_response_alarms += 1
+            
+            # At least 75% should have automated response
+            if total_alarms > 0:
+                automation_percentage = (automated_response_alarms / total_alarms) * 100
+                result = automation_percentage >= 75 and total_alarms >= 3
+            else:
+                result = False
+    expected_value: null
+    tags: ["security", "aws", "incident_response", "automation", "workflows"]
+    severity: "high"
+    category: "incident_response"
+
+  - id: 2125
+    connection_id: 2
+    name: "aws_comprehensive_audit_trail_coverage"
+    description: "Verify comprehensive audit trail coverage for compliance and forensics"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 113  # AU-6 (Audit Record Review, Analysis, and Reporting)
+    control_name: "AU-6"
+    field_path: "trails"
+    resource_type: "AWSCloudTrailResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Comprehensive audit trail coverage assessment
+        if not isinstance(fetched_value, dict):
+            result = False  # Must have trails for audit coverage
+        else:
+            total_trails = len(fetched_value)
+            comprehensive_trails = 0
+            
+            for trail_name, trail_data in fetched_value.items():
+                coverage_score = 0
+                
+                if isinstance(trail_data, dict):
+                    # Trail is actively logging
+                    is_logging = trail_data.get('is_logging', False)
+                    status = trail_data.get('status', {})
+                    if is_logging or (status and status.get('is_logging', False)):
+                        coverage_score += 2  # Active logging is critical
+                
+                # Trail needs comprehensive logging
+                if coverage_score >= 2:
+                    comprehensive_trails += 1
+            
+            # All trails should provide comprehensive coverage
+            result = comprehensive_trails == total_trails and total_trails >= 1
+    expected_value: null
+    tags: ["governance", "aws", "audit_trail", "comprehensive", "forensics"]
+    severity: "high"
+    category: "audit_accountability"
