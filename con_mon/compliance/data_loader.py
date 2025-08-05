@@ -702,6 +702,9 @@ def populate_framework_data() -> Tuple[List[FrameworkWithControls], List[Standar
 class BaseLoader(object):
 
     def _load_meta_data(self, model_class):
+        """
+        uses model_class and return the expected meta data
+        """
         return table_name, fields
 
     def _load_data_from_connection(self, model_class, table_name, fields):
@@ -713,3 +716,42 @@ class BaseLoader(object):
     def _load_data(self, model_class):
         table_name, fields = self._load_meta_data(model_class)
         return self._load_data_from_connection(model_class, table_name, fields)
+
+    def load_frameworks(self) -> List[Framework]:
+        """
+        calls _load_data to get list of frameworks and return
+        """
+        return self._load_data(Framework)
+
+    def load_standards(self) -> List[Standard]:
+        """
+        calls _load_data to get list of frameworks and return
+        """
+        return self._load_data(Standard)
+
+    def load_controls(self) -> List[Control]:
+        """
+        calls _load_data to get list of frameworks and return
+        """
+        return self._load_data(Control)
+
+    def list_framework_with_controls(
+            self,
+            frameworks: list[Framework],
+            controls: list[Control],
+    ) -> List[FrameworkWithControls]:
+        """
+        merges controls in frameworks
+        """
+        pass
+
+    def list_controls_and_standards(
+            self,
+            standards: list[Standard],
+            controls: list[Control],
+            standard_control_mapping: list[StandardControlMapping],
+    ) -> Tuple[List[StandardWithControls], List[ControlWithStandards]]:
+        """
+        return tuple of both lists of standards and controls
+        """
+        pass
