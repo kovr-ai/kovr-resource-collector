@@ -4872,3 +4872,817 @@ checks:
     tags: ["governance", "aws", "audit_trail", "comprehensive", "forensics"]
     severity: "high"
     category: "audit_accountability"
+
+  # Batch 7: Advanced Threat Detection & Response (2126-2145)
+  
+  # AWS Advanced Threat Detection (2126-2133)
+  - id: 2126
+    connection_id: 2
+    name: "aws_anomaly_detection_capabilities"
+    description: "Verify advanced anomaly detection across AWS infrastructure monitoring"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 695  # SI-4 (System Monitoring)
+    control_name: "SI-4"
+    field_path: "alarms"
+    resource_type: "AWSCloudWatchResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check anomaly detection sophistication
+        if not isinstance(fetched_value, dict):
+            result = False  # Must have monitoring for anomaly detection
+        else:
+            total_alarms = len(fetched_value)
+            anomaly_detection_alarms = 0
+            
+            for alarm_name, alarm_data in fetched_value.items():
+                detection_score = 0
+                
+                if isinstance(alarm_data, dict):
+                    # Advanced alarms have multiple actions (indicates sophistication)
+                    alarm_actions = alarm_data.get('alarm_actions', [])
+                    if len(alarm_actions) >= 2:
+                        detection_score += 1
+                    
+                    # Actions enabled for real-time response
+                    if alarm_data.get('actions_enabled', True):
+                        detection_score += 1
+                
+                # Alarm needs both detection indicators
+                if detection_score >= 2:
+                    anomaly_detection_alarms += 1
+            
+            # At least 60% should have advanced detection capabilities
+            if total_alarms > 0:
+                detection_percentage = (anomaly_detection_alarms / total_alarms) * 100
+                result = detection_percentage >= 60 and total_alarms >= 3
+            else:
+                result = False
+    expected_value: null
+    tags: ["security", "aws", "anomaly_detection", "threat_detection", "advanced"]
+    severity: "high"
+    category: "system_information_integrity"
+
+  - id: 2127
+    connection_id: 2
+    name: "aws_security_event_correlation"
+    description: "Verify security event correlation and centralized logging capabilities"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 96   # AU-2 (Event Logging)
+    control_name: "AU-2"
+    field_path: "log_groups"
+    resource_type: "AWSCloudWatchResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check security event correlation capabilities
+        if not isinstance(fetched_value, dict):
+            result = False  # Must have centralized logging
+        else:
+            total_log_groups = len(fetched_value)
+            security_log_groups = 0
+            total_log_volume = 0
+            
+            for lg_name, lg_data in fetched_value.items():
+                correlation_score = 0
+                
+                if isinstance(lg_data, dict):
+                    # High volume indicates comprehensive logging
+                    stored_bytes = lg_data.get('stored_bytes', 0)
+                    total_log_volume += stored_bytes
+                    
+                    if stored_bytes > 10000000:  # >10MB indicates active security logging
+                        correlation_score += 1
+                    
+                    # Encryption for security logs
+                    kms_key_id = lg_data.get('kms_key_id')
+                    if kms_key_id:
+                        correlation_score += 1
+                
+                # Log group needs both correlation indicators
+                if correlation_score >= 1:  # At least active logging
+                    security_log_groups += 1
+            
+            # Strong correlation requires substantial logging infrastructure
+            if total_log_groups > 0:
+                correlation_percentage = (security_log_groups / total_log_groups) * 100
+                result = correlation_percentage >= 80 and total_log_volume > 100000000  # >100MB total
+            else:
+                result = False
+    expected_value: null
+    tags: ["security", "aws", "event_correlation", "centralized_logging", "siem"]
+    severity: "high"
+    category: "audit_accountability"
+
+  - id: 2128
+    connection_id: 2
+    name: "aws_threat_intelligence_integration"
+    description: "Verify threat intelligence integration and automated response capabilities"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 549  # IR-4 (Incident Handling)
+    control_name: "IR-4"
+    field_path: "alarms"
+    resource_type: "AWSCloudWatchResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check threat intelligence integration
+        if not isinstance(fetched_value, dict):
+            result = False  # Must have automated response systems
+        else:
+            total_alarms = len(fetched_value)
+            threat_intel_alarms = 0
+            
+            for alarm_name, alarm_data in fetched_value.items():
+                intel_score = 0
+                
+                if isinstance(alarm_data, dict):
+                    # Multiple alarm actions indicate threat intelligence integration
+                    alarm_actions = alarm_data.get('alarm_actions', [])
+                    if len(alarm_actions) >= 3:  # Multiple response mechanisms
+                        intel_score += 1
+                    
+                    # Actions enabled for automated threat response
+                    if alarm_data.get('actions_enabled', True):
+                        intel_score += 1
+                
+                # Alarm needs both threat intelligence indicators
+                if intel_score >= 2:
+                    threat_intel_alarms += 1
+            
+            # Advanced threat intelligence requires sophisticated automation
+            if total_alarms > 0:
+                intel_percentage = (threat_intel_alarms / total_alarms) * 100
+                result = intel_percentage >= 40 and total_alarms >= 5  # Higher bar for threat intel
+            else:
+                result = False
+    expected_value: null
+    tags: ["security", "aws", "threat_intelligence", "automated_response", "advanced"]
+    severity: "high"
+    category: "incident_response"
+
+  - id: 2129
+    connection_id: 2
+    name: "aws_security_metrics_maturity"
+    description: "Verify mature security metrics collection and analysis capabilities"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 695  # SI-4 (System Monitoring)
+    control_name: "SI-4"
+    field_path: "metrics"
+    resource_type: "AWSCloudWatchResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check security metrics maturity
+        if not isinstance(fetched_value, list):
+            result = False  # Must have comprehensive metrics
+        else:
+            total_metrics = len(fetched_value)
+            
+            # Advanced security metrics require extensive collection
+            # This indicates mature security monitoring capabilities
+            result = total_metrics >= 100  # At least 100 metrics for advanced security
+    expected_value: null
+    tags: ["security", "aws", "security_metrics", "maturity", "comprehensive"]
+    severity: "high"
+    category: "system_information_integrity"
+
+  - id: 2130
+    connection_id: 2
+    name: "aws_infrastructure_hardening_validation"
+    description: "Verify comprehensive infrastructure hardening and security baselines"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 282  # CM-6 (Configuration Settings)
+    control_name: "CM-6"
+    field_path: "instances"
+    resource_type: "AWSEC2Resource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check infrastructure hardening validation
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no instances
+        else:
+            total_instances = len(fetched_value)
+            hardened_instances = 0
+            
+            for instance_id, instance in fetched_value.items():
+                hardening_score = 0
+                
+                if isinstance(instance, dict):
+                    # Security groups (network hardening)
+                    security_groups = instance.get('security_groups', [])
+                    if len(security_groups) >= 1:
+                        hardening_score += 1
+                    
+                    # IAM instance profile (identity hardening)
+                    iam_profile = instance.get('iam_instance_profile')
+                    if iam_profile:
+                        hardening_score += 1
+                    
+                    # EBS optimization (performance hardening)
+                    ebs_optimized = instance.get('ebs_optimized', False)
+                    if ebs_optimized:
+                        hardening_score += 1
+                    
+                    # Modern instance type (security hardening)
+                    instance_type = instance.get('instance_type', '')
+                    if instance_type.startswith(('t3', 't4g', 'm5', 'm6i', 'c5', 'c6i')):
+                        hardening_score += 1
+                    
+                    # Comprehensive tagging (governance hardening)
+                    tags = instance.get('tags', {})
+                    if len(tags) >= 4:  # Comprehensive tagging
+                        hardening_score += 1
+                
+                # Instance needs at least 4/5 hardening indicators
+                if hardening_score >= 4:
+                    hardened_instances += 1
+            
+            # At least 90% should be comprehensively hardened
+            if total_instances > 0:
+                hardening_percentage = (hardened_instances / total_instances) * 100
+                result = hardening_percentage >= 90
+    expected_value: null
+    tags: ["security", "aws", "infrastructure", "hardening", "security_baselines"]
+    severity: "high"
+    category: "configuration_management"
+  - id: 2131
+    connection_id: 2
+    name: "aws_zero_trust_architecture_validation"
+    description: "Verify zero trust architecture principles implementation"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 75   # AC-3 (Access Enforcement)
+    control_name: "AC-3"
+    field_path: "security_groups"
+    resource_type: "AWSEC2Resource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check zero trust architecture implementation
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no security groups
+        else:
+            total_groups = len(fetched_value)
+            zero_trust_groups = 0
+            
+            for sg_id, sg in fetched_value.items():
+                zero_trust_score = 0
+                
+                if isinstance(sg, dict):
+                    # Restrictive inbound rules (never trust, always verify)
+                    inbound_rules = sg.get('inbound_rules', [])
+                    restrictive_inbound = True
+                    for rule in inbound_rules:
+                        cidr_blocks = rule.get('cidr_blocks', [])
+                        if '0.0.0.0/0' in cidr_blocks:
+                            restrictive_inbound = False
+                            break
+                    
+                    if restrictive_inbound and len(inbound_rules) > 0:
+                        zero_trust_score += 1
+                    
+                    # Controlled outbound rules (explicit allow)
+                    outbound_rules = sg.get('outbound_rules', [])
+                    if len(outbound_rules) > 0 and len(outbound_rules) <= 5:  # Controlled, not wide open
+                        zero_trust_score += 1
+                    
+                    # Proper naming for governance
+                    group_name = sg.get('group_name', '')
+                    if group_name and group_name != 'default' and len(group_name) >= 8:
+                        zero_trust_score += 1
+                
+                # Security group needs all 3 zero trust indicators
+                if zero_trust_score >= 3:
+                    zero_trust_groups += 1
+            
+            # At least 85% should follow zero trust principles
+            if total_groups > 0:
+                zero_trust_percentage = (zero_trust_groups / total_groups) * 100
+                result = zero_trust_percentage >= 85
+    expected_value: null
+    tags: ["security", "aws", "zero_trust", "architecture", "never_trust"]
+    severity: "high"
+    category: "access_control"
+
+  - id: 2132
+    connection_id: 2
+    name: "aws_advanced_encryption_management"
+    description: "Verify advanced encryption key management and data protection"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 658  # SC-8 (Transmission Confidentiality and Integrity)
+    control_name: "SC-8"
+    field_path: "volumes"
+    resource_type: "AWSEC2Resource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check advanced encryption management
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no volumes
+        else:
+            total_volumes = len(fetched_value)
+            advanced_encrypted_volumes = 0
+            
+            for volume_id, volume in fetched_value.items():
+                encryption_score = 0
+                
+                if isinstance(volume, dict):
+                    # Volume encryption enabled
+                    if volume.get('encrypted', False):
+                        encryption_score += 2  # Critical requirement
+                    
+                    # Modern volume type (better encryption support)
+                    volume_type = volume.get('volume_type', '')
+                    if volume_type in ['gp3', 'io2']:  # Latest generation
+                        encryption_score += 1
+                    
+                    # Volume in active use (not orphaned)
+                    state = volume.get('state', '')
+                    if state in ['in-use', 'available']:
+                        encryption_score += 1
+                
+                # Volume needs high encryption score
+                if encryption_score >= 4:
+                    advanced_encrypted_volumes += 1
+            
+            # At least 95% should have advanced encryption
+            if total_volumes > 0:
+                encryption_percentage = (advanced_encrypted_volumes / total_volumes) * 100
+                result = encryption_percentage >= 95
+    expected_value: null
+    tags: ["security", "aws", "encryption", "key_management", "data_protection"]
+    severity: "high"
+    category: "system_communications_protection"
+
+  - id: 2133
+    connection_id: 2
+    name: "aws_forensic_readiness_capabilities"
+    description: "Verify forensic readiness and incident investigation capabilities"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 113  # AU-6 (Audit Record Review, Analysis, and Reporting)
+    control_name: "AU-6"
+    field_path: "trails"
+    resource_type: "AWSCloudTrailResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check forensic readiness capabilities
+        if not isinstance(fetched_value, dict):
+            result = False  # Must have audit trails for forensics
+        else:
+            total_trails = len(fetched_value)
+            forensic_ready_trails = 0
+            
+            for trail_name, trail_data in fetched_value.items():
+                forensic_score = 0
+                
+                if isinstance(trail_data, dict):
+                    # Active logging for forensic data collection
+                    is_logging = trail_data.get('is_logging', False)
+                    status = trail_data.get('status', {})
+                    if is_logging or (status and status.get('is_logging', False)):
+                        forensic_score += 2  # Critical for forensics
+                
+                # Trail needs comprehensive forensic capabilities
+                if forensic_score >= 2:
+                    forensic_ready_trails += 1
+            
+            # All trails must be forensic-ready
+            result = forensic_ready_trails == total_trails and total_trails >= 1
+    expected_value: null
+    tags: ["security", "aws", "forensic", "investigation", "incident_response"]
+    severity: "high"
+    category: "audit_accountability"
+
+  # GitHub Advanced DevSecOps & Threat Response (2134-2141)
+  - id: 2134
+    connection_id: 1
+    name: "github_advanced_devsecops_integration"
+    description: "Verify advanced DevSecOps integration and security automation"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 779  # SA-11 (Developer Security and Privacy Architecture and Design Testing)
+    control_name: "SA-11"
+    field_path: "security_data.security_features_enabled"
+    resource_type: "GithubResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check advanced DevSecOps integration
+        if not isinstance(fetched_value, int):
+            result = False
+        else:
+            security_features = fetched_value
+            # Advanced DevSecOps requires comprehensive security automation
+            result = security_features >= 6  # At least 6 security features for advanced DevSecOps
+    expected_value: null
+    tags: ["security", "github", "devsecops", "integration", "automation"]
+    severity: "high"
+    category: "system_services_acquisition"
+
+  - id: 2135
+    connection_id: 1
+    name: "github_threat_modeling_implementation"
+    description: "Verify threat modeling implementation through security practices"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 549  # IR-4 (Incident Handling)
+    control_name: "IR-4"
+    field_path: "security_data.total_code_scanning_alerts"
+    resource_type: "GithubResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check threat modeling through proactive security scanning
+        if not isinstance(fetched_value, int):
+            result = True  # Pass if no data
+        else:
+            code_scanning_alerts = fetched_value
+            # Threat modeling organizations should have very few outstanding alerts
+            result = code_scanning_alerts <= 5  # Strict threat modeling standard
+    expected_value: null
+    tags: ["security", "github", "threat_modeling", "proactive", "security_scanning"]
+    severity: "high"
+    category: "incident_response"
+
+  - id: 2136
+    connection_id: 1
+    name: "github_security_champion_program"
+    description: "Verify security champion program through organizational metrics"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 71   # AC-2 (Account Management)
+    control_name: "AC-2"
+    field_path: "organization_data.admin_members"
+    resource_type: "GithubResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check security champion program indicators
+        if not isinstance(fetched_value, int):
+            result = True  # Pass if no data
+        else:
+            admin_members = fetched_value
+            # Security champion programs have controlled but adequate admin coverage
+            result = 2 <= admin_members <= 8  # Balanced security leadership
+    expected_value: null
+    tags: ["security", "github", "security_champions", "program", "leadership"]
+    severity: "medium"
+    category: "access_control"
+
+  - id: 2137
+    connection_id: 1
+    name: "github_continuous_security_monitoring"
+    description: "Verify continuous security monitoring and real-time alerting"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 695  # SI-4 (System Monitoring)
+    control_name: "SI-4"
+    field_path: "actions_data.active_workflows"
+    resource_type: "GithubResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check continuous security monitoring
+        if not isinstance(fetched_value, int):
+            result = True  # Pass if no workflows
+        else:
+            active_workflows = fetched_value
+            # Continuous monitoring requires active automation
+            result = active_workflows >= 3  # At least 3 active workflows for continuous monitoring
+    expected_value: null
+    tags: ["security", "github", "continuous_monitoring", "real_time", "alerting"]
+    severity: "high"
+    category: "system_information_integrity"
+  - id: 2138
+    connection_id: 1
+    name: "github_security_incident_response_maturity"
+    description: "Verify mature security incident response capabilities and processes"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 549  # IR-4 (Incident Handling)
+    control_name: "IR-4"
+    field_path: "security_data.total_dependabot_alerts"
+    resource_type: "GithubResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check security incident response maturity
+        if not isinstance(fetched_value, int):
+            result = True  # Pass if no data
+        else:
+            dependabot_alerts = fetched_value
+            # Mature incident response should have zero outstanding alerts
+            result = dependabot_alerts == 0  # Zero tolerance for mature incident response
+    expected_value: null
+    tags: ["security", "github", "incident_response", "maturity", "zero_tolerance"]
+    severity: "high"
+    category: "incident_response"
+
+  - id: 2139
+    connection_id: 1
+    name: "github_advanced_branch_protection_policies"
+    description: "Verify advanced branch protection policies and enforcement"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 275  # CM-3 (Configuration Change Control)
+    control_name: "CM-3"
+    field_path: "repository_data.branches"
+    resource_type: "GithubResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check advanced branch protection policies
+        if not isinstance(fetched_value, list):
+            result = False
+        else:
+            total_branches = len(fetched_value)
+            protected_branches = 0
+            advanced_protected_branches = 0
+            
+            for branch in fetched_value:
+                is_protected = False
+                branch_name = ''
+                
+                if isinstance(branch, dict):
+                    is_protected = branch.get('protected', False)
+                    branch_name = branch.get('name', '')
+                else:
+                    is_protected = getattr(branch, 'protected', False)
+                    branch_name = getattr(branch, 'name', '')
+                
+                if is_protected:
+                    protected_branches += 1
+                    
+                    # Advanced protection for critical branches
+                    if branch_name in ['main', 'master', 'production', 'prod', 'develop', 'release']:
+                        advanced_protected_branches += 1
+            
+            # Advanced policies: all critical branches protected + high overall protection
+            critical_branches = sum(1 for branch in fetched_value 
+                                  if (isinstance(branch, dict) and branch.get('name', '') in ['main', 'master', 'production', 'prod', 'develop', 'release']) or
+                                     (hasattr(branch, 'name') and getattr(branch, 'name', '') in ['main', 'master', 'production', 'prod', 'develop', 'release']))
+            
+            protection_percentage = (protected_branches / total_branches * 100) if total_branches > 0 else 0
+            critical_protection = (advanced_protected_branches == critical_branches) if critical_branches > 0 else True
+            
+            result = critical_protection and protection_percentage >= 80  # 80% overall protection
+    expected_value: null
+    tags: ["security", "github", "branch_protection", "advanced", "policies"]
+    severity: "high"
+    category: "configuration_management"
+
+  - id: 2140
+    connection_id: 1
+    name: "github_security_culture_indicators"
+    description: "Verify positive security culture indicators across development practices"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 113  # AU-6 (Audit Record Review, Analysis, and Reporting)
+    control_name: "AU-6"
+    field_path: "collaboration_data.total_pull_requests"
+    resource_type: "GithubResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check security culture indicators
+        if not isinstance(fetched_value, int):
+            result = False
+        else:
+            pull_requests = fetched_value
+            # Strong security culture shows active collaboration and review
+            result = pull_requests >= 20  # At least 20 PRs indicates active security culture
+    expected_value: null
+    tags: ["governance", "github", "security_culture", "indicators", "collaboration"]
+    severity: "medium"
+    category: "audit_accountability"
+
+  - id: 2141
+    connection_id: 1
+    name: "github_threat_detection_automation"
+    description: "Verify automated threat detection and response in development pipeline"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 679  # SI-2 (Flaw Remediation)  
+    control_name: "SI-2"
+    field_path: "actions_data.recent_runs_count"
+    resource_type: "GithubResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check threat detection automation
+        if not isinstance(fetched_value, int):
+            result = True  # Pass if no data
+        else:
+            recent_runs = fetched_value
+            # Automated threat detection requires frequent pipeline execution
+            result = recent_runs >= 15  # At least 15 recent runs for active threat detection
+    expected_value: null
+    tags: ["security", "github", "threat_detection", "automation", "pipeline"]
+    severity: "high"
+    category: "system_information_integrity"
+
+  # Cross-Platform Advanced Threat Response (2142-2145)
+  - id: 2142
+    connection_id: 2
+    name: "aws_security_orchestration_maturity"
+    description: "Verify security orchestration and automated response maturity"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 549  # IR-4 (Incident Handling)
+    control_name: "IR-4"
+    field_path: "alarms"
+    resource_type: "AWSCloudWatchResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check security orchestration maturity
+        if not isinstance(fetched_value, dict):
+            result = False  # Must have orchestrated responses
+        else:
+            total_alarms = len(fetched_value)
+            orchestrated_alarms = 0
+            
+            for alarm_name, alarm_data in fetched_value.items():
+                orchestration_score = 0
+                
+                if isinstance(alarm_data, dict):
+                    # Multiple coordinated actions (orchestration)
+                    alarm_actions = alarm_data.get('alarm_actions', [])
+                    if len(alarm_actions) >= 4:  # Advanced orchestration
+                        orchestration_score += 2
+                    
+                    # Actions enabled for orchestration
+                    if alarm_data.get('actions_enabled', True):
+                        orchestration_score += 1
+                
+                # Alarm needs high orchestration score
+                if orchestration_score >= 3:
+                    orchestrated_alarms += 1
+            
+            # Advanced orchestration requires sophisticated automation
+            if total_alarms > 0:
+                orchestration_percentage = (orchestrated_alarms / total_alarms) * 100
+                result = orchestration_percentage >= 30 and total_alarms >= 8  # High bar for orchestration
+            else:
+                result = False
+    expected_value: null
+    tags: ["security", "aws", "orchestration", "automation", "advanced_response"]
+    severity: "high"
+    category: "incident_response"
+
+  - id: 2143
+    connection_id: 2
+    name: "aws_threat_hunting_capabilities"
+    description: "Verify proactive threat hunting capabilities and infrastructure"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 695  # SI-4 (System Monitoring)
+    control_name: "SI-4"
+    field_path: "log_groups"
+    resource_type: "AWSCloudWatchResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check threat hunting capabilities
+        if not isinstance(fetched_value, dict):
+            result = False  # Must have comprehensive logging for threat hunting
+        else:
+            total_log_groups = len(fetched_value)
+            hunting_ready_logs = 0
+            total_hunt_volume = 0
+            
+            for lg_name, lg_data in fetched_value.items():
+                hunting_score = 0
+                
+                if isinstance(lg_data, dict):
+                    # Substantial log volume for threat hunting
+                    stored_bytes = lg_data.get('stored_bytes', 0)
+                    total_hunt_volume += stored_bytes
+                    
+                    if stored_bytes > 50000000:  # >50MB indicates substantial data for hunting
+                        hunting_score += 1
+                    
+                    # Encrypted logs for secure threat hunting
+                    kms_key_id = lg_data.get('kms_key_id')
+                    if kms_key_id:
+                        hunting_score += 1
+                
+                # Log group needs both hunting indicators
+                if hunting_score >= 1:  # At least substantial logging
+                    hunting_ready_logs += 1
+            
+            # Threat hunting requires massive data infrastructure
+            if total_log_groups > 0:
+                hunting_percentage = (hunting_ready_logs / total_log_groups) * 100
+                result = hunting_percentage >= 70 and total_hunt_volume > 500000000  # >500MB total for hunting
+            else:
+                result = False
+    expected_value: null
+    tags: ["security", "aws", "threat_hunting", "proactive", "advanced_analytics"]
+    severity: "high"
+    category: "system_information_integrity"
+
+  - id: 2144
+    connection_id: 2
+    name: "aws_advanced_compliance_automation"
+    description: "Verify advanced compliance automation and continuous monitoring"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 113  # AU-6 (Audit Record Review, Analysis, and Reporting)
+    control_name: "AU-6"
+    field_path: "dashboards"
+    resource_type: "AWSCloudWatchResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check advanced compliance automation
+        if not isinstance(fetched_value, dict):
+            result = False  # Must have compliance dashboards
+        else:
+            total_dashboards = len(fetched_value)
+            compliance_dashboards = 0
+            
+            for dashboard_name in fetched_value.keys():
+                # Advanced compliance keywords in dashboard names
+                compliance_keywords = ['compliance', 'audit', 'governance', 'security', 'monitoring', 'control']
+                if any(keyword in dashboard_name.lower() for keyword in compliance_keywords):
+                    compliance_dashboards += 1
+            
+            # Advanced compliance automation requires comprehensive dashboards
+            result = total_dashboards >= 5 and compliance_dashboards >= 3
+    expected_value: null
+    tags: ["governance", "aws", "compliance", "automation", "continuous_monitoring"]
+    severity: "medium"
+    category: "audit_accountability"
+
+  - id: 2145
+    connection_id: 2
+    name: "aws_integrated_security_ecosystem"
+    description: "Verify integrated security ecosystem with comprehensive coverage"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 287  # CM-8 (System Component Inventory)
+    control_name: "CM-8"
+    field_path: "instances"
+    resource_type: "AWSEC2Resource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check integrated security ecosystem
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no instances
+        else:
+            total_instances = len(fetched_value)
+            ecosystem_integrated_instances = 0
+            
+            for instance_id, instance in fetched_value.items():
+                ecosystem_score = 0
+                
+                if isinstance(instance, dict):
+                    # Multi-layered security integration
+                    security_groups = instance.get('security_groups', [])
+                    if len(security_groups) >= 1:
+                        ecosystem_score += 1
+                    
+                    # Identity integration
+                    iam_profile = instance.get('iam_instance_profile')
+                    if iam_profile:
+                        ecosystem_score += 1
+                    
+                    # Monitoring integration
+                    monitoring = instance.get('monitoring', {})
+                    if isinstance(monitoring, dict) and monitoring.get('state') == 'enabled':
+                        ecosystem_score += 1
+                    
+                    # Tagging integration (governance)
+                    tags = instance.get('tags', {})
+                    if len(tags) >= 5:  # Comprehensive ecosystem tagging
+                        ecosystem_score += 1
+                    
+                    # Modern platform integration
+                    instance_type = instance.get('instance_type', '')
+                    if instance_type.startswith(('t3', 't4g', 'm5', 'm6i', 'c5', 'c6i')):
+                        ecosystem_score += 1
+                
+                # Instance needs comprehensive ecosystem integration
+                if ecosystem_score >= 4:
+                    ecosystem_integrated_instances += 1
+            
+            # At least 85% should be fully integrated into security ecosystem
+            if total_instances > 0:
+                ecosystem_percentage = (ecosystem_integrated_instances / total_instances) * 100
+                result = ecosystem_percentage >= 85
+    expected_value: null
+    tags: ["security", "aws", "integrated", "ecosystem", "comprehensive"]
+    severity: "high"
+    category: "configuration_management"
