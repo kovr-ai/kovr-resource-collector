@@ -8,7 +8,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from con_mon.compliance import populate_framework_data, get_controls_with_standards
+from con_mon.compliance import get_db_loader
 
 
 def main():
@@ -20,8 +20,11 @@ def main():
     print()
     
     try:
+        # Get database loader instance
+        db_loader = get_db_loader()
+        
         # Load all framework data with relationships
-        frameworks, standards, mappings = populate_framework_data()
+        frameworks, standards, controls_with_standards, mappings = db_loader.populate_all_data()
         
         print("\n" + "=" * 80)
         print("📊 **COMPLIANCE OVERVIEW**")
@@ -84,9 +87,6 @@ def main():
         print("🔧 **CONTROL-STANDARD RELATIONSHIPS**")
         print("=" * 80)
         
-        # Load controls with their standards
-        controls_with_standards = get_controls_with_standards()
-        
         # Find controls mapped to multiple standards
         multi_standard_controls = [c for c in controls_with_standards if len(c.standards) > 3]
         multi_standard_controls.sort(key=lambda c: len(c.standards), reverse=True)
@@ -146,6 +146,7 @@ def main():
         print("🎉 All frameworks, standards, and controls loaded with relationships!")
         print("📊 Rich compliance data ready for analysis and reporting!")
         print("🔒 Database-driven compliance management system operational!")
+        print(f"🏗️  Loaded via modern {db_loader.name} architecture!")
         
     except Exception as e:
         print(f"\n❌ **Error loading compliance data:** {e}")

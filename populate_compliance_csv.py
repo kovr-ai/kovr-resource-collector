@@ -8,7 +8,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from con_mon.compliance import populate_framework_data_from_csv, get_controls_with_standards_from_csv
+from con_mon.compliance import get_csv_loader
 
 
 def main():
@@ -36,8 +36,11 @@ def main():
         return 1
     
     try:
+        # Get CSV loader instance
+        csv_loader = get_csv_loader()
+        
         # Load all framework data with relationships from CSV
-        frameworks, standards, mappings = populate_framework_data_from_csv()
+        frameworks, standards, controls_with_standards, mappings = csv_loader.populate_all_data()
         
         print("\n" + "=" * 80)
         print("📊 **COMPLIANCE OVERVIEW (FROM CSV)**")
@@ -103,9 +106,6 @@ def main():
         print("🔧 **CONTROL-STANDARD RELATIONSHIPS (FROM CSV)**")
         print("=" * 80)
         
-        # Load controls with their standards from CSV
-        controls_with_standards = get_controls_with_standards_from_csv()
-        
         # Find controls mapped to multiple standards
         multi_standard_controls = [c for c in controls_with_standards if len(c.standards) > 3]
         multi_standard_controls.sort(key=lambda c: len(c.standards), reverse=True)
@@ -165,6 +165,7 @@ def main():
         print("🎉 All frameworks, standards, and controls loaded with relationships!")
         print("📂 CSV-based compliance data loading fully operational!")
         print("🔒 Offline compliance management system ready!")
+        print(f"🏗️  Loaded via modern {csv_loader.name} architecture!")
         print("\n💡 **Benefits of CSV Loading:**")
         print("   • No database connection required")
         print("   • Faster loading for development/testing")
