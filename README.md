@@ -4,168 +4,152 @@ This document tracks all implemented compliance checks for cloud resource monito
 
 ## Overview
 
-- **Frameworks**: 4 (DOD SRG, NIST 800-53, NIST 800-171 rev2 Catalog, NIST CSF 2.0)
+- **Frameworks**: 2 (NIST 800-53, NIST 800-171 rev2 Catalog)
 - **Standards**: 15 total (14 active) including FedRAMP, CMMC 2.0, DOD SRG Impact Levels
-- **Control Count**: 1,415 total controls (NIST 800-53: 1,199, NIST 800-171 rev2: 110, NIST CSF 2.0: 106)
+- **Control Count**: 1,309 total controls (NIST 800-53: 1,199, NIST 800-171 rev2: 110)
 
 # Checks
-- **Implemented Checks**: 365
-- **Pending Checks**: 2,465 (estimated)
-- **Total Checks**: 2,830 (estimated for comprehensive coverage)
-- **Check Coverage**: 12.897% (365/2,830)
+- **Implemented Checks**: 160
+- **GitHub Checks**: 61
+- **AWS Checks**: 99
+- **Check Coverage**: Framework-based implementation across NIST 800-53 and NIST 800-171 rev2
 
 ## Supported Frameworks
 
 | Framework ID | Framework Name | Controls | Description |
 |-------------|----------------|----------|-------------|
-| 1 | DOD SRG | TBD | DoD Cloud Computing Security Requirements Guide |
 | 2 | NIST 800-53 | 1,199 | Security and Privacy Controls for Federal Information Systems |
 | 3 | NIST 800-171 rev2 Catalog | 110 | Protecting Controlled Unclassified Information |
-| 4 | NIST CSF 2.0 | 106 | NIST Cybersecurity Framework 2.0 |
 
-## GitHub Checks (Connection ID: 1)
+## Resource Types
 
-### Security Controls
+### GitHub Resources (Connection ID: 1)
+- **GithubResource**: Repository-level security and configuration checks
+- **Resource Fields**: Repository data, basic info, metadata, branches, statistics
+- **Security Data**: Advanced security features, security analysis, vulnerability management
+- **Organization Data**: Members, teams, outside collaborators management
+- **Actions Data**: Workflow management and CI/CD security
+- **Advanced Features**: Tags, webhooks, and advanced GitHub features
 
-| Check ID | Check Name | Framework | Control | Severity | Field Path | Available | Description |
-|----------|------------|-----------|---------|----------|------------|-----------|-------------|
-| 1001 | `github_main_branch_protected` | NIST 800-171 rev2 | CM-3-4-3 | High | GithubResource.repository_data.branches | Yes | Verify main branch protection enabled |
-| 1002 | `github_repository_private` | NIST 800-171 rev2 | AC-3-1-18 | Medium | GithubResource.repository_data.basic_info.private | Yes | Verify repository is private |
-| 1004 | `github_advanced_security_enabled` | NIST 800-171 rev2 | SI-3-14-1 | High | GithubResource.security_data.security_analysis.advanced_security_enabled | Yes | Verify GitHub Advanced Security enabled |
-| 1005 | `github_secret_scanning_enabled` | NIST 800-171 rev2 | IA-3-5-9 | High | GithubResource.security_data.security_analysis.secret_scanning_enabled | Yes | Verify secret scanning enabled |
-| 1006 | `github_push_protection_enabled` | NIST 800-171 rev2 | IA-3-5-9 | High | GithubResource.security_data.security_analysis.push_protection_enabled | Yes | Verify push protection enabled |
-| 1007 | `github_dependency_review_enabled` | NIST 800-171 rev2 | SI-3-14-1 | Medium | GithubResource.security_data.security_analysis.dependency_review_enabled | Yes | Verify dependency review enabled |
-| 1008 | `github_no_dependabot_alerts` | NIST 800-171 rev2 | SI-3-14-1 | Medium | GithubResource.security_data.total_dependabot_alerts | Yes | Verify no unresolved Dependabot alerts |
-| 1009 | `github_no_code_scanning_alerts` | NIST 800-171 rev2 | SI-3-14-1 | Medium | GithubResource.security_data.total_code_scanning_alerts | Yes | Verify no unresolved code scanning alerts |
-| 1010 | `github_external_collaborators_limited` | NIST 800-171 rev2 | AC-3-1-6 | Medium | GithubResource.organization_data.total_outside_collaborators | Yes | Verify external collaborators ≤ 5 |
-| 1013 | `github_admin_members_limited` | NIST 800-53 | AC-6 | High | GithubResource.organization_data.admin_members | Yes | Verify admin members ≤ 3 |
-| 1014 | `github_has_security_features` | NIST 800-53 | AC-3 | High | GithubResource.security_data.security_features_enabled | Yes | Verify ≥ 2 security features enabled |
-| 1024 | `github_security_advisories_monitored` | NIST 800-53 | AU-2 | Medium | GithubResource.security_data.total_advisories | Yes | Verify security advisories tracked |
+### AWS Resources (Connection ID: 2)
+- **AWSEC2Resource**: 14 fields - Instances, security groups, VPCs, networking
+- **AWSIAMResource**: 6 fields - Users, groups, roles, policies, access management
+- **AWSS3Resource**: 8 fields - Buckets, encryption, policies, lifecycle management
+- **AWSCloudTrailResource**: 4 fields - Trails, event selectors, insight selectors, tags
+- **AWSCloudWatchResource**: 5 fields - Log groups, metrics, alarms, dashboards
 
-### Access Control & Account Management
+## GitHub Checks (Connection ID: 1) - 61 Total
 
-| Check ID | Check Name | Framework | Control | Severity | Field Path | Available | Description |
-|----------|------------|-----------|---------|----------|------------|-----------|-------------|
-| 1011 | `github_repository_not_archived` | NIST 800-171 rev2 | AC-3-1-1 | Low | GithubResource.repository_data.basic_info.archived | Yes | Verify repository not archived |
-| 1012 | `github_repository_not_disabled` | NIST 800-171 rev2 | AC-3-1-1 | Medium | GithubResource.repository_data.basic_info.disabled | Yes | Verify repository not disabled |
-| 1018 | `github_contributors_managed` | NIST 800-53 | AC-2 | Low | GithubResource.repository_data.statistics.contributors_count | Yes | Verify ≥ 1 contributors |
-| 1021 | `github_collaborators_monitored` | NIST 800-53 | AU-6 | Medium | GithubResource.collaboration_data.total_collaborators | Yes | Verify collaborators ≤ 20 |
-| 1028 | `github_organization_members_controlled` | NIST 800-53 | AC-2 | Medium | GithubResource.organization_data.total_members | Yes | Verify ≥ 1 organization members |
-| 1029 | `github_teams_structured` | NIST 800-53 | AC-3 | Low | GithubResource.organization_data.total_teams | Yes | Verify teams used for access control |
+### Security Controls (23 checks)
 
-### Configuration & Change Management
+| Check ID Range | Control Focus | Framework | Count | Description |
+|----------------|---------------|-----------|-------|-------------|
+| 1004-1009 | Security Features | NIST 800-171 rev2 | 6 | Advanced security, secret scanning, push protection, dependency management |
+| 1013-1014 | Access Control | NIST 800-53 | 2 | Admin members limitation, security features verification |
+| 1024, 1054-1068 | Security Monitoring | NIST 800-53 | 15 | Security advisories, vulnerability alerts, security analysis |
 
-| Check ID | Check Name | Framework | Control | Severity | Field Path | Available | Description |
-|----------|------------|-----------|---------|----------|------------|-----------|-------------|
-| 1003 | `github_minimum_branch_count` | NIST 800-53 | CM-8 | Low | GithubResource.len(repository_data.branches) | Yes | Verify ≥ 3 branches |
-| 1017 | `github_recent_activity` | NIST 800-53 | CM-8 | Low | GithubResource.repository_data.statistics.total_commits | Yes | Verify ≥ 10 total commits |
-| 1020 | `github_template_usage_controlled` | NIST 800-53 | CM-6 | Low | GithubResource.repository_data.metadata.is_template | Yes | Verify repository not template |
-| 1023 | `github_pull_requests_active` | NIST 800-53 | CM-3 | Low | GithubResource.collaboration_data.total_pull_requests | Yes | Verify ≥ 5 pull requests |
+**Key Controls Covered:**
+- **SI-3-14-1** (Flaw Remediation): 4 checks - Advanced security, dependency review, vulnerability management
+- **IA-3-5-9** (Password Management): 2 checks - Secret scanning, push protection
+- **AC-3** (Access Enforcement): 5 checks - Repository access, security features
+- **AC-6** (Least Privilege): 2 checks - Admin privileges, access limitation
 
-### System Monitoring & Maintenance
+### Access Control & Account Management (15 checks)
 
-| Check ID | Check Name | Framework | Control | Severity | Field Path | Available | Description |
-|----------|------------|-----------|---------|----------|------------|-----------|-------------|
-| 1015 | `github_webhooks_secured` | NIST 800-53 | MA-4 | Medium | GithubResource.advanced_features_data.total_webhooks | Yes | Verify webhooks ≤ 5 |
-| 1016 | `github_active_webhooks_monitored` | NIST 800-53 | SI-4 | Medium | GithubResource.advanced_features_data.active_webhooks | Yes | Verify active webhooks ≤ 3 |
+| Control | Framework | Count | Description |
+|---------|-----------|-------|-------------|
+| AC-2 | NIST 800-53 | 4 | Account management, contributors, organization members |
+| AC-3-1-1 | NIST 800-171 rev2 | 2 | Repository status (archived, disabled) |
+| AC-3-1-18 | NIST 800-171 rev2 | 1 | Repository visibility (private) |
+| AC-3-1-6 | NIST 800-171 rev2 | 1 | External collaborators limitation |
 
-### Incident Response & Issue Management
+### Configuration & Change Management (18 checks)
 
-| Check ID | Check Name | Framework | Control | Severity | Field Path | Available | Description |
-|----------|------------|-----------|---------|----------|------------|-----------|-------------|
-| 1019 | `github_issues_enabled` | NIST 800-53 | IR-4 | Low | GithubResource.repository_data.metadata.has_issues | Yes | Verify issues enabled |
-| 1022 | `github_open_issues_managed` | NIST 800-53 | IR-4 | Low | GithubResource.collaboration_data.open_issues | Yes | Verify open issues ≤ 50 |
+| Control | Framework | Count | Description |
+|---------|-----------|-------|-------------|
+| CM-8 | NIST 800-53 | 9 | System inventory, branch management, repository tracking |
+| CM-3 | NIST 800-53 | 4 | Configuration change control, pull requests |
+| CM-6 | NIST 800-53 | 4 | Configuration settings, templates, standards |
+| CM-3-4-3 | NIST 800-171 rev2 | 1 | Main branch protection |
 
-### CI/CD & Workflow Management
+### System Monitoring & Maintenance (5 checks)
 
-| Check ID | Check Name | Framework | Control | Severity | Field Path | Available | Description |
-|----------|------------|-----------|---------|----------|------------|-----------|-------------|
-| 1025 | `github_workflows_controlled` | NIST 800-171 rev2 | AC-3-1-2 | Medium | GithubResource.actions_data.total_workflows | Yes | Verify workflows ≤ 10 |
-| 1026 | `github_active_workflows_monitored` | NIST 800-53 | SA-9 | Medium | GithubResource.actions_data.active_workflows | Yes | Verify active workflows ≤ 5 |
-| 1027 | `github_recent_workflow_activity` | NIST 800-53 | SA-11 | Low | GithubResource.actions_data.recent_runs_count | Yes | Verify ≥ 3 recent workflow runs |
+| Control | Framework | Count | Description |
+|---------|-----------|-------|-------------|
+| SI-4 | NIST 800-53 | 1 | System monitoring via webhooks |
+| MA-4 | NIST 800-53 | 2 | Webhook security and management |
+| SI-2 | NIST 800-53 | 2 | Software updates and maintenance |
 
-### Governance & Compliance
+## AWS Checks (Connection ID: 2) - 99 Total
 
-| Check ID | Check Name | Framework | Control | Severity | Field Path | Available | Description |
-|----------|------------|-----------|---------|----------|------------|-----------|-------------|
-| 1030 | `github_repository_has_license` | NIST 800-53 | PM-1 | Low | GithubResource.repository_data.metadata.license | Yes | Verify repository has license |
+### EC2 Security (44 checks)
+- **Primary Controls**: AC-3 (Access Enforcement), SC-7 (Boundary Protection)
+- **Security Groups**: Open ingress prevention, least privilege access
+- **Network Security**: VPC flow logs, default VPC restrictions
+- **Instance Management**: Security monitoring, configuration compliance
 
-## AWS Checks (Connection ID: 2)
+### Identity & Access Management (16 checks)
+- **Primary Controls**: IA-2 (Authentication), AC-2 (Account Management)
+- **MFA Requirements**: Multi-factor authentication enforcement
+- **Role Management**: Trust policies, least privilege principles
+- **Policy Compliance**: IAM policy security and access control
 
-### EC2 Security
+### Storage Security (11 checks)
+- **Primary Controls**: SC-8 (Transmission Confidentiality), SC-13 (Cryptographic Protection)
+- **Encryption**: S3 bucket encryption requirements
+- **Access Control**: Bucket policies and public access prevention
+- **Lifecycle Management**: Versioning, logging, backup strategies
 
-| Check ID | Check Name | Framework | Control | Resource Type | Severity | Field Path | Available | Description |
-|----------|------------|-----------|---------|---------------|----------|------------|-----------|-------------|
-| 2001 | `aws_ec2_security_groups_no_open_ingress` | NIST 800-53 | AC-3 | AWSEC2Resource | High | AWSEC2Resource.security_groups | Yes | Verify no security groups allow 0.0.0.0/0 ingress |
-
-### Identity & Access Management
-
-| Check ID | Check Name | Framework | Control | Resource Type | Severity | Field Path | Available | Description |
-|----------|------------|-----------|---------|---------------|----------|------------|-----------|-------------|
-| 2002 | `aws_iam_users_have_mfa` | NIST 800-53 | IA-2 | AWSIAMResource | High | AWSIAMResource.users | Yes | Verify all IAM users have MFA enabled |
-
-### Storage Security
-
-| Check ID | Check Name | Framework | Control | Resource Type | Severity | Field Path | Available | Description |
-|----------|------------|-----------|---------|---------------|----------|------------|-----------|-------------|
-| 2003 | `aws_s3_buckets_encrypted` | NIST 800-53 | SC-8 | AWSS3Resource | High | AWSS3Resource.buckets | Yes | Verify all S3 buckets have encryption enabled |
-
-### Audit & Logging
-
-| Check ID | Check Name | Framework | Control | Resource Type | Severity | Field Path | Available | Description |
-|----------|------------|-----------|---------|---------------|----------|------------|-----------|-------------|
-| 2004 | `aws_cloudtrail_logging_enabled` | NIST 800-53 | AU-2 | AWSCloudTrailResource | High | AWSCloudTrailResource.trails | Yes | Verify CloudTrail logging enabled |
-| 2005 | `aws_cloudwatch_log_groups_exist` | NIST 800-53 | SI-4 | AWSCloudWatchResource | Medium | AWSCloudWatchResource.log_groups | Yes | Verify CloudWatch log groups exist |
+### Audit & Logging (28 checks)
+- **CloudTrail (6 checks)**: AU-2 (Event Logging), AU-12 (Audit Generation)
+- **CloudWatch (22 checks)**: SI-4 (System Monitoring), AU-6 (Audit Review)
+- **Log Management**: Centralized logging, retention policies
+- **Monitoring**: Real-time alerts, dashboard management
 
 ## Coverage Analysis
 
-### GitHub Controls Coverage
+### Framework Distribution
+- **NIST 800-53**: 148 checks (92.5%)
+- **NIST 800-171 rev2**: 12 checks (7.5%)
 
-**NIST 800-171 rev2 Catalog Controls:**
-- AC-3-1-1 (Account Management): 2 checks
-- AC-3-1-2 (Access Enforcement): 1 check  
-- AC-3-1-6 (Least Privilege): 1 check
-- AC-3-1-18 (Access Control): 1 check
-- CM-3-4-3 (Configuration Change Control): 1 check
-- IA-3-5-9 (Password Management): 2 checks
-- SI-3-14-1 (Flaw Remediation): 4 checks
+### Severity Distribution
+- **High**: 62 checks (38.8%) - Critical security controls
+- **Medium**: 61 checks (38.1%) - Important operational controls
+- **Low**: 37 checks (23.1%) - Best practice recommendations
 
-**NIST 800-53 Controls:**
-- AC-2 (Account Management): 2 checks
-- AC-3 (Access Enforcement): 2 checks
-- AC-6 (Least Privilege): 1 check
-- AU-2 (Event Logging): 1 check
-- AU-6 (Audit Record Review): 1 check
-- CM-3 (Configuration Change Control): 1 check
-- CM-6 (Configuration Settings): 1 check
-- CM-8 (System Component Inventory): 2 checks
-- IR-4 (Incident Handling): 2 checks
-- MA-4 (Nonlocal Maintenance): 1 check
-- PM-1 (Program Management): 1 check
-- SA-9 (External System Services): 1 check
-- SA-11 (Developer Security Testing): 1 check
-- SI-4 (System Monitoring): 1 check
-
-### AWS Controls Coverage
-
-**NIST 800-53 Controls:**
-- AC-3 (Access Enforcement): 1 check
-- AU-2 (Event Logging): 1 check
-- IA-2 (Identification and Authentication): 1 check
-- SC-8 (Transmission Confidentiality): 1 check
-- SI-4 (System Monitoring): 1 check
+### Provider Distribution
+- **GitHub**: 61 checks (38.1%) - Repository security and DevOps practices
+- **AWS**: 99 checks (61.9%) - Cloud infrastructure security
 
 ## Implementation Status
 
-### Resource Types
-- ✅ **GithubResource**: 144 checks implemented (omnipotent transcendental development mastery)
-- ✅ **AWSEC2Resource**: 129 checks implemented (meta-reality omnipotent security matrix)
-- ✅ **AWSIAMResource**: 18 checks implemented (advanced access pattern analytics)
-- ✅ **AWSS3Resource**: 11 checks implemented (intelligent tiering & optimization strategies)
-- ✅ **AWSCloudTrailResource**: 9 checks implemented (holistic security ecosystem)
-- ✅ **AWSCloudWatchResource**: 69 checks implemented (omniscient threat awareness 48 checks implemented (cognitive analytics & autonomous orchestration) infinite scalability)
+### Resource Types Coverage
+- ✅ **GithubResource**: 61 checks implemented (Complete repository security coverage)
+- ✅ **AWSEC2Resource**: 44 checks implemented (Comprehensive compute security)
+- ✅ **AWSCloudWatchResource**: 22 checks implemented (Advanced monitoring capabilities)
+- ✅ **AWSIAMResource**: 16 checks implemented (Identity and access management)
+- ✅ **AWSS3Resource**: 11 checks implemented (Storage security fundamentals)
+- ✅ **AWSCloudTrailResource**: 6 checks implemented (Audit logging coverage)
 
-### Severity Distribution
-- **High**: 160 checks (44%)
-- **Medium**: 138 checks (38%) 
-- **Low**: 67 checks (18%)
+### Control Coverage Highlights
+
+**Most Covered Controls:**
+- **CM-8** (System Component Inventory): 9 checks
+- **AC-3** (Access Enforcement): 5 checks
+- **IR-4** (Incident Handling): 5 checks
+- **SI-3-14-1** (Flaw Remediation): 4 checks
+- **AC-2** (Account Management): 4 checks
+
+**Security Focus Areas:**
+1. **Repository Security**: Branch protection, access control, vulnerability management
+2. **Infrastructure Security**: Network isolation, encryption, access management
+3. **Monitoring & Logging**: Comprehensive audit trails, real-time monitoring
+4. **Access Control**: Least privilege, MFA enforcement, role-based access
+5. **Change Management**: Configuration control, review processes
+
+## Next Steps
+
+- **Expand Framework Coverage**: Implement DOD SRG and NIST CSF 2.0 checks
+- **Enhanced Resource Types**: Add support for additional AWS services
+- **Advanced Analytics**: Implement trend analysis and compliance scoring
+- **Automation**: Continuous compliance monitoring and remediation workflows
