@@ -173,8 +173,6 @@ aws:
       service: "ec2"
 
       fields:
-        region: "string"
-        account_id: "string"
         # Account-level information
         account:
           limits: "object"
@@ -194,12 +192,6 @@ aws:
         snapshots: "object"
         network_interfaces: "object"
         relationships: "object"
-        # Metadata
-        total_instances: "integer"
-        total_security_groups: "integer"
-        total_vpcs: "integer"
-        total_volumes: "integer"
-        collection_timestamp: "string"
 
     # AWS IAM Resource Schema
     IAMResource:
@@ -209,8 +201,6 @@ aws:
       service: "iam"
 
       fields:
-        region: "string"
-        account_id: "string"
         # Account-level information
         account: "object"
         # IAM resources
@@ -219,12 +209,6 @@ aws:
         roles: "object"
         policies: "object"
         relationships: "object"
-        # Metadata
-        total_users: "integer"
-        total_groups: "integer"
-        total_roles: "integer"
-        total_policies: "integer"
-        collection_timestamp: "string"
 
     # AWS S3 Resource Schema
     S3Resource:
@@ -234,8 +218,6 @@ aws:
       service: "s3"
 
       fields:
-        region: "string"
-        account_id: "string"
         # S3 resources
         buckets: "object"
         bucket_policies: "object"
@@ -245,12 +227,6 @@ aws:
         bucket_public_access: "object"
         bucket_lifecycle: "object"
         bucket_notifications: "object"
-        # Metadata
-        total_buckets: "integer"
-        total_encrypted_buckets: "integer"
-        total_public_buckets: "integer"
-        total_versioned_buckets: "integer"
-        collection_timestamp: "string"
 
     # AWS CloudTrail Resource Schema
     CloudTrailResource:
@@ -260,19 +236,11 @@ aws:
       service: "cloudtrail"
 
       fields:
-        region: "string"
-        account_id: "string"
         # CloudTrail resources
         trails: "object"
         event_selectors: "object"
         insight_selectors: "object"
         tags: "object"
-        # Metadata
-        total_trails: "integer"
-        total_multi_region_trails: "integer"
-        total_logging_trails: "integer"
-        total_organization_trails: "integer"
-        collection_timestamp: "string"
 
     # AWS CloudWatch Resource Schema
     CloudWatchResource:
@@ -282,24 +250,12 @@ aws:
       service: "cloudwatch"
 
       fields:
-        region: "string"
-        account_id: "string"
         # CloudWatch resources
         log_groups: "object"  # Dictionary/map structure
         log_streams: "object"  # Dictionary/map structure
         metrics: "array"  # List of metric objects
         alarms: "object"  # Dictionary/map structure
         dashboards: "object"  # Dictionary/map structure
-        # Additional CloudWatch fields
-        retention_policies: "array"
-        subscription_filters: "array"
-        metric_filters: "array"
-        # Metadata
-        total_log_groups: "integer"
-        total_log_streams: "integer"
-        total_alarms: "integer"
-        total_dashboards: "integer"
-        collection_timestamp: "string"
 
   ResourceCollection:
     name: "aws_collection"
@@ -322,11 +278,6 @@ aws:
         account_id: "string"
         regions: "array"
         services_collected: "array"
-        total_ec2_instances: "integer"
-        total_iam_users: "integer"
-        total_s3_buckets: "integer"
-        total_cloudtrail_trails: "integer"
-        total_cloudwatch_log_groups: "integer"
         collection_errors: "array"
       aws_api_metadata:
         collection_time: "string"
