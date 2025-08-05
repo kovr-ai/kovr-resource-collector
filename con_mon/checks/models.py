@@ -80,10 +80,11 @@ class Check(BaseModel):
     resource_type: Optional[Type[BaseModel]] = Field(None, description="Specific resource class to target (e.g., 'aws.AWSEC2Resource')")
     
     # NIST compliance fields - updated to use IDs from CSV for better performance
-    framework_id: int  # Reference to framework ID from CSV
-    control_id: int    # Reference to control ID from CSV
-    framework_name: str  # Reference to framework name from CSV
-    control_name: str    # Reference to control name from CSV
+    control_ids: List[int]    # Reference to control ID from CSV
+    # framework_id: int  # Reference to framework ID from CSV
+    # control_id: int    # Reference to control ID from CSV
+    # framework_name: str  # Reference to framework name from CSV
+    # control_name: str    # Reference to control name from CSV
     
     # Additional metadata fields from YAML
     tags: Optional[List[str]] = None
