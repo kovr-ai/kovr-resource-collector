@@ -2,119 +2,120 @@
 # Defines resource structures for different providers
 
 github:
-  # Nested data type schemas
-  RepositoryData:
-    name: "repository_data"
-    description: "Repository basic information and metadata"
-    fields:
-      basic_info:
-        id: "integer"
-        name: "string"
-        full_name: "string"
-        description: "string"
-        private: "boolean"
-        owner: "string"
-        html_url: "string"
-        clone_url: "string"
-        ssh_url: "string"
-        size: "integer"
-        language: "string"
-        created_at: "string"
-        updated_at: "string"
-        pushed_at: "string"
-        stargazers_count: "integer"
-        watchers_count: "integer"
-        forks_count: "integer"
-        open_issues_count: "integer"
-        archived: "boolean"
-        disabled: "boolean"
-      metadata:
-        default_branch: "string"
-        topics: "array"
-        has_issues: "boolean"
-        has_projects: "boolean"
-        has_wiki: "boolean"
-        has_pages: "boolean"
-        has_downloads: "boolean"
-        has_discussions: "boolean"
-        is_template: "boolean"
-        license: "string"
-      branches: "array"
-      statistics:
-        total_commits: "integer"
-        contributors_count: "integer"
-        languages: "object"
-        code_frequency: "array"
+  resources_field_schemas:
+    # Nested data type schemas
+    RepositoryData:
+      name: "repository_data"
+      description: "Repository basic information and metadata"
+      fields:
+        basic_info:
+          id: "integer"
+          name: "string"
+          full_name: "string"
+          description: "string"
+          private: "boolean"
+          owner: "string"
+          html_url: "string"
+          clone_url: "string"
+          ssh_url: "string"
+          size: "integer"
+          language: "string"
+          created_at: "string"
+          updated_at: "string"
+          pushed_at: "string"
+          stargazers_count: "integer"
+          watchers_count: "integer"
+          forks_count: "integer"
+          open_issues_count: "integer"
+          archived: "boolean"
+          disabled: "boolean"
+        metadata:
+          default_branch: "string"
+          topics: "array"
+          has_issues: "boolean"
+          has_projects: "boolean"
+          has_wiki: "boolean"
+          has_pages: "boolean"
+          has_downloads: "boolean"
+          has_discussions: "boolean"
+          is_template: "boolean"
+          license: "string"
+        branches: "array"
+        statistics:
+          total_commits: "integer"
+          contributors_count: "integer"
+          languages: "object"
+          code_frequency: "array"
 
-  ActionsData:
-    name: "actions_data"
-    description: "GitHub Actions workflows and runs"
-    fields:
-      workflows: "object"
-      total_workflows: "integer"
-      active_workflows: "integer"
-      recent_runs_count: "integer"
+    ActionsData:
+      name: "actions_data"
+      description: "GitHub Actions workflows and runs"
+      fields:
+        workflows: "object"
+        total_workflows: "integer"
+        active_workflows: "integer"
+        recent_runs_count: "integer"
 
-  CollaborationData:
-    name: "collaboration_data"
-    description: "Collaboration information - issues, PRs, collaborators"
-    fields:
-      issues: "array"
-      pull_requests: "array"
-      collaborators: "array"
-      total_issues: "integer"
-      open_issues: "integer"
-      closed_issues: "integer"
-      total_pull_requests: "integer"
-      open_pull_requests: "integer"
-      merged_pull_requests: "integer"
-      draft_pull_requests: "integer"
-      total_collaborators: "integer"
+    CollaborationData:
+      name: "collaboration_data"
+      description: "Collaboration information - issues, PRs, collaborators"
+      fields:
+        issues: "array"
+        pull_requests: "array"
+        collaborators: "array"
+        total_issues: "integer"
+        open_issues: "integer"
+        closed_issues: "integer"
+        total_pull_requests: "integer"
+        open_pull_requests: "integer"
+        merged_pull_requests: "integer"
+        draft_pull_requests: "integer"
+        total_collaborators: "integer"
 
-  SecurityData:
-    name: "security_data"
-    description: "Security advisories, alerts and analysis"
-    fields:
-      security_advisories: "object"
-      vulnerability_alerts: "object"
-      dependency_graph: "object"
-      security_analysis:
-        advanced_security_enabled: "boolean"
-        secret_scanning_enabled: "boolean"
-        push_protection_enabled: "boolean"
-        dependency_review_enabled: "boolean"
-      code_scanning_alerts: "object"
-      total_advisories: "integer"
-      total_dependabot_alerts: "integer"
-      total_code_scanning_alerts: "integer"
-      security_features_enabled: "integer"
+    SecurityData:
+      name: "security_data"
+      description: "Security advisories, alerts and analysis"
+      fields:
+        security_advisories: "object"
+        vulnerability_alerts: "object"
+        dependency_graph: "object"
+        security_analysis:
+          advanced_security_enabled: "boolean"
+          secret_scanning_enabled: "boolean"
+          push_protection_enabled: "boolean"
+          dependency_review_enabled: "boolean"
+        code_scanning_alerts: "object"
+        total_advisories: "integer"
+        total_dependabot_alerts: "integer"
+        total_code_scanning_alerts: "integer"
+        security_features_enabled: "integer"
 
-  OrganizationData:
-    name: "organization_data"
-    description: "Organization members, teams and collaborators"
-    fields:
-      members: "array"
-      teams: "array"
-      outside_collaborators: "array"
-      total_members: "integer"
-      total_teams: "integer"
-      total_outside_collaborators: "integer"
-      admin_members: "integer"
-      members_error: "string"
-      teams_error: "string"
-      collaborators_error: "string"
+    OrganizationData:
+      name: "organization_data"
+      description: "Organization members, teams and collaborators"
+      fields:
+        members: "array"
+        teams: "array"
+        outside_collaborators: "array"
+        total_members: "integer"
+        total_teams: "integer"
+        total_outside_collaborators: "integer"
+        admin_members: "integer"
+        members_error: "string"
+        teams_error: "string"
+        collaborators_error: "string"
 
-  AdvancedFeaturesData:
-    name: "advanced_features_data"
-    description: "Advanced GitHub features - tags, webhooks"
-    fields:
-      tags: "array"
-      webhooks: "array"
-      total_tags: "integer"
-      total_webhooks: "integer"
-      active_webhooks: "integer"
-      tags_error: "string"
-      webhooks_error: "string"
+    AdvancedFeaturesData:
+      name: "advanced_features_data"
+      description: "Advanced GitHub features - tags, webhooks"
+      fields:
+        tags: "array"
+        webhooks: "array"
+        total_tags: "integer"
+        total_webhooks: "integer"
+        active_webhooks: "integer"
+        tags_error: "string"
+        webhooks_error: "string"
 
   resources:
     # Main resource schemas
