@@ -137,7 +137,6 @@ def params_from_connection_id(
 
 if __name__ == "__main__":
     connection_id = os.environ.get("CONNECTION_ID")
-    connection_id = '2'
     check_ids_str = os.environ.get("CHECK_IDS")
     check_ids = check_ids_str.split(",") if check_ids_str else list()
     main(

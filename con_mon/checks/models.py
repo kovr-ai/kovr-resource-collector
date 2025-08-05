@@ -2,7 +2,7 @@
 Models for checks module - handles resource validation and evaluation.
 """
 from enum import Enum
-from typing import Any, Callable, Optional, List
+from typing import Any, Callable, Optional, List, Type
 from pydantic import BaseModel, Field
 from con_mon.resources.models import Resource
 
@@ -77,6 +77,7 @@ class Check(BaseModel):
     operation: ComparisonOperation
     expected_value: Any
     description: Optional[str] = None
+    resource_type: Optional[Type[BaseModel]] = Field(None, description="Specific resource class to target (e.g., 'aws.AWSEC2Resource')")
     
     # NIST compliance fields - updated to use IDs from CSV for better performance
     framework_id: int  # Reference to framework ID from CSV
@@ -94,13 +95,25 @@ class Check(BaseModel):
         Evaluate this check against a resource's data.
         
         Args:
-            resource_data: Dictionary containing the resource's field values
+            resources: List containing the resources to evaluate
             
         Returns:
-            CheckResult: The result of the check evaluation
+            List[CheckResult]: The results of the check evaluation for each relevant resource
         """
+        # Filter resources by resource_type if specified
+        if self.resource_type:
+            filtered_resources = []
+            for resource in resources:
+                # Check if the resource is an instance of the specified type
+                if isinstance(resource, self.resource_type):
+                    filtered_resources.append(resource)
+            resources_to_check = filtered_resources
+        else:
+            # No filtering - use all resources
+            resources_to_check = resources
+        
         check_results = []
-        for resource in resources:
+        for resource in resources_to_check:
             try:
                 # Try to extract field value - may fail if field is missing
                 actual_value = self._extract_field_value(resource, self.field_path)

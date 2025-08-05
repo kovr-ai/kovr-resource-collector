@@ -11,7 +11,9 @@ checks:
     framework_name: "NIST 800-171 rev2 Catalog"
     control_id: 1240  # CM-3-4-3 (Configuration Change Control)
     control_name: "CM-3-4-3"
+    resource_type: "GithubResource"
     field_path: "repository_data.branches"
+    resource_type: "GithubResource"
     operation:
       name: "custom"
       custom_logic: |
@@ -51,7 +53,9 @@ checks:
     framework_name: "NIST 800-171 rev2 Catalog"
     control_id: 1217  # AC-3-1-18 (Access Control for Mobile Devices)
     control_name: "AC-3-1-18"
+    resource_type: "GithubResource"
     field_path: "repository_data.basic_info.private"
+    resource_type: "GithubResource"
     operation:
       name: "EQUAL"
     expected_value: true
@@ -67,7 +71,9 @@ checks:
     framework_name: "NIST 800-53"
     control_id: 287  # CM-8 (System Component Inventory)
     control_name: "CM-8"
+    resource_type: "GithubResource"
     field_path: "len(repository_data.branches)"
+    resource_type: "GithubResource"
     operation:
       name: "GREATER_THAN_OR_EQUAL"
     expected_value: 3
@@ -84,7 +90,9 @@ checks:
     framework_name: "NIST 800-171 rev2 Catalog"
     control_id: 1303  # SI-3-14-1 (Flaw Remediation)
     control_name: "SI-3-14-1"
+    resource_type: "GithubResource"
     field_path: "security_data.security_analysis.advanced_security_enabled"
+    resource_type: "GithubResource"
     operation:
       name: "EQUAL"
     expected_value: true
@@ -100,7 +108,9 @@ checks:
     framework_name: "NIST 800-171 rev2 Catalog"
     control_id: 1255  # IA-3-5-9 (Password Management)
     control_name: "IA-3-5-9"
+    resource_type: "GithubResource"
     field_path: "security_data.security_analysis.secret_scanning_enabled"
+    resource_type: "GithubResource"
     operation:
       name: "EQUAL"
     expected_value: true
@@ -116,7 +126,9 @@ checks:
     framework_name: "NIST 800-171 rev2 Catalog"
     control_id: 1255  # IA-3-5-9 (Password Management)
     control_name: "IA-3-5-9"
+    resource_type: "GithubResource"
     field_path: "security_data.security_analysis.push_protection_enabled"
+    resource_type: "GithubResource"
     operation:
       name: "EQUAL"
     expected_value: true
@@ -132,7 +144,9 @@ checks:
     framework_name: "NIST 800-171 rev2 Catalog"
     control_id: 1303  # SI-3-14-1 (Flaw Remediation)
     control_name: "SI-3-14-1"
+    resource_type: "GithubResource"
     field_path: "security_data.security_analysis.dependency_review_enabled"
+    resource_type: "GithubResource"
     operation:
       name: "EQUAL"
     expected_value: true
@@ -148,7 +162,9 @@ checks:
     framework_name: "NIST 800-171 rev2 Catalog"
     control_id: 1303  # SI-3-14-1 (Flaw Remediation)
     control_name: "SI-3-14-1"
+    resource_type: "GithubResource"
     field_path: "security_data.total_dependabot_alerts"
+    resource_type: "GithubResource"
     operation:
       name: "EQUAL"
     expected_value: 0
@@ -164,7 +180,9 @@ checks:
     framework_name: "NIST 800-171 rev2 Catalog"
     control_id: 1303  # SI-3-14-1 (Flaw Remediation)
     control_name: "SI-3-14-1"
+    resource_type: "GithubResource"
     field_path: "security_data.total_code_scanning_alerts"
+    resource_type: "GithubResource"
     operation:
       name: "EQUAL"
     expected_value: 0
@@ -180,7 +198,9 @@ checks:
     framework_name: "NIST 800-171 rev2 Catalog"
     control_id: 1205  # AC-3-1-6 (Least Privilege – Privileged Accounts)
     control_name: "AC-3-1-6"
+    resource_type: "GithubResource"
     field_path: "organization_data.total_outside_collaborators"
+    resource_type: "GithubResource"
     operation:
       name: "LESS_THAN_OR_EQUAL"
     expected_value: 5
@@ -196,6 +216,7 @@ checks:
     framework_name: "NIST 800-171 rev2 Catalog"
     control_id: 1200  # AC-3-1-1 (Account Management)
     control_name: "AC-3-1-1"
+    resource_type: "GithubResource"
     field_path: "repository_data.basic_info.archived"
     operation:
       name: "EQUAL"
@@ -212,6 +233,7 @@ checks:
     framework_name: "NIST 800-171 rev2 Catalog"
     control_id: 1200  # AC-3-1-1 (Account Management)
     control_name: "AC-3-1-1"
+    resource_type: "GithubResource"
     field_path: "repository_data.basic_info.disabled"
     operation:
       name: "EQUAL"
@@ -229,6 +251,7 @@ checks:
     framework_name: "NIST 800-53"
     control_id: 90   # AC-6 (Least Privilege)
     control_name: "AC-6"
+    resource_type: "GithubResource"
     field_path: "organization_data.admin_members"
     operation:
       name: "LESS_THAN_OR_EQUAL"
@@ -245,6 +268,7 @@ checks:
     framework_name: "NIST 800-53"
     control_id: 75   # AC-3 (Access Enforcement)
     control_name: "AC-3"
+    resource_type: "GithubResource"
     field_path: "security_data.security_features_enabled"
     operation:
       name: "GREATER_THAN_OR_EQUAL"
@@ -261,6 +285,7 @@ checks:
     framework_name: "NIST 800-53"
     control_id: 473  # MA-4 (Nonlocal Maintenance)
     control_name: "MA-4"
+    resource_type: "GithubResource"
     field_path: "advanced_features_data.total_webhooks"
     operation:
       name: "LESS_THAN_OR_EQUAL"
@@ -277,6 +302,7 @@ checks:
     framework_name: "NIST 800-53"
     control_id: 695  # SI-4 (System Monitoring)
     control_name: "SI-4"
+    resource_type: "GithubResource"
     field_path: "advanced_features_data.active_webhooks"
     operation:
       name: "LESS_THAN_OR_EQUAL"
@@ -293,6 +319,7 @@ checks:
     framework_name: "NIST 800-53"
     control_id: 287  # CM-8 (System Component Inventory)
     control_name: "CM-8"
+    resource_type: "GithubResource"
     field_path: "repository_data.statistics.total_commits"
     operation:
       name: "GREATER_THAN"
@@ -309,6 +336,7 @@ checks:
     framework_name: "NIST 800-53"
     control_id: 71   # AC-2 (Account Management)
     control_name: "AC-2"
+    resource_type: "GithubResource"
     field_path: "repository_data.statistics.contributors_count"
     operation:
       name: "GREATER_THAN"
@@ -325,6 +353,7 @@ checks:
     framework_name: "NIST 800-53"
     control_id: 549  # IR-4 (Incident Handling)
     control_name: "IR-4"
+    resource_type: "GithubResource"
     field_path: "repository_data.metadata.has_issues"
     operation:
       name: "EQUAL"
@@ -341,6 +370,7 @@ checks:
     framework_name: "NIST 800-53"
     control_id: 282  # CM-6 (Configuration Settings)
     control_name: "CM-6"
+    resource_type: "GithubResource"
     field_path: "repository_data.metadata.is_template"
     operation:
       name: "EQUAL"
@@ -357,6 +387,7 @@ checks:
     framework_name: "NIST 800-53"
     control_id: 113  # AU-6 (Audit Record Review, Analysis, and Reporting)
     control_name: "AU-6"
+    resource_type: "GithubResource"
     field_path: "collaboration_data.total_collaborators"
     operation:
       name: "LESS_THAN_OR_EQUAL"
@@ -373,6 +404,7 @@ checks:
     framework_name: "NIST 800-53"
     control_id: 549  # IR-4 (Incident Handling)
     control_name: "IR-4"
+    resource_type: "GithubResource"
     field_path: "collaboration_data.open_issues"
     operation:
       name: "LESS_THAN_OR_EQUAL"
@@ -389,6 +421,7 @@ checks:
     framework_name: "NIST 800-53"
     control_id: 275  # CM-3 (Configuration Change Control)
     control_name: "CM-3"
+    resource_type: "GithubResource"
     field_path: "collaboration_data.total_pull_requests"
     operation:
       name: "GREATER_THAN"
@@ -405,6 +438,7 @@ checks:
     framework_name: "NIST 800-53"
     control_id: 96   # AU-2 (Event Logging)
     control_name: "AU-2"
+    resource_type: "GithubResource"
     field_path: "security_data.total_advisories"
     operation:
       name: "GREATER_THAN_OR_EQUAL"
@@ -421,6 +455,7 @@ checks:
     framework_name: "NIST 800-171 rev2 Catalog"
     control_id: 1201  # AC-3-1-2 (Access Enforcement)
     control_name: "AC-3-1-2"
+    resource_type: "GithubResource"
     field_path: "actions_data.total_workflows"
     operation:
       name: "LESS_THAN_OR_EQUAL"
@@ -437,6 +472,7 @@ checks:
     framework_name: "NIST 800-53"
     control_id: 773  # SA-9 (External System Services)
     control_name: "SA-9"
+    resource_type: "GithubResource"
     field_path: "actions_data.active_workflows"
     operation:
       name: "LESS_THAN_OR_EQUAL"
@@ -453,6 +489,7 @@ checks:
     framework_name: "NIST 800-53"
     control_id: 779  # SA-11 (Developer Security and Privacy Architecture and Design Testing)
     control_name: "SA-11"
+    resource_type: "GithubResource"
     field_path: "actions_data.recent_runs_count"
     operation:
       name: "GREATER_THAN"
@@ -469,6 +506,7 @@ checks:
     framework_name: "NIST 800-53"
     control_id: 71   # AC-2 (Account Management)
     control_name: "AC-2"
+    resource_type: "GithubResource"
     field_path: "organization_data.total_members"
     operation:
       name: "GREATER_THAN"
@@ -485,6 +523,7 @@ checks:
     framework_name: "NIST 800-53"
     control_id: 75   # AC-3 (Access Enforcement)
     control_name: "AC-3"
+    resource_type: "GithubResource"
     field_path: "organization_data.total_teams"
     operation:
       name: "GREATER_THAN"
@@ -501,6 +540,7 @@ checks:
     framework_name: "NIST 800-53"
     control_id: 595  # PM-1 (Program Management Policy and Procedures)
     control_name: "PM-1"
+    resource_type: "GithubResource"
     field_path: "repository_data.metadata.license"
     operation:
       name: "NOT_EQUAL"  
@@ -519,6 +559,7 @@ checks:
     control_id: 75   # AC-3 (Access Enforcement)
     control_name: "AC-3"
     field_path: "security_groups"
+    resource_type: "AWSEC2Resource"
     operation:
       name: "custom"
       custom_logic: |
@@ -555,6 +596,7 @@ checks:
     control_id: 157  # IA-2 (Identification and Authentication)
     control_name: "IA-2"
     field_path: "users"
+    resource_type: "AWSIAMResource"
     operation:
       name: "custom"
       custom_logic: |
@@ -587,6 +629,7 @@ checks:
     control_id: 658  # SC-8 (Transmission Confidentiality and Integrity)
     control_name: "SC-8"
     field_path: "buckets"
+    resource_type: "AWSS3Resource"
     operation:
       name: "custom"
       custom_logic: |
@@ -619,6 +662,7 @@ checks:
     control_id: 96   # AU-2 (Event Logging)
     control_name: "AU-2"
     field_path: "trails"
+    resource_type: "AWSCloudTrailResource"
     operation:
       name: "custom"
       custom_logic: |
@@ -653,6 +697,7 @@ checks:
     control_id: 695  # SI-4 (System Monitoring)
     control_name: "SI-4"
     field_path: "log_groups"
+    resource_type: "AWSCloudWatchResource"
     operation:
       name: "custom"
       custom_logic: |

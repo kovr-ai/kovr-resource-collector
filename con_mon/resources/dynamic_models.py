@@ -557,4 +557,7 @@ def initialize_dynamic_models():
     """Initialize dynamic models on module import."""
     global _dynamic_models
     _dynamic_models = load_and_create_dynamic_models()
-    return _dynamic_models 
+    return _dynamic_models
+
+# Auto-initialize dynamic models when module is imported
+initialize_dynamic_models() 

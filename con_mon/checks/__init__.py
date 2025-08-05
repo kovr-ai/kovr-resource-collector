@@ -3,7 +3,8 @@ Checks module for resource validation and evaluation.
 """
 import yaml
 import os
-from typing import Dict, Any, Callable, List, Tuple, Optional, Union
+from typing import Dict, Any, Callable, List, Tuple, Optional, Union, Type
+from pydantic import BaseModel
 from .models import Check, ComparisonOperation, ComparisonOperationEnum
 
 # Global storage for loaded checks
@@ -26,6 +27,7 @@ def _create_check_from_config(check_id:int, check_name: str, check_config: Dict[
             operation_enum = ComparisonOperationEnum(operation_name)
         except ValueError:
             raise ValueError(f"Unsupported operation '{operation_name}'. Supported operations: {[op.name for op in ComparisonOperationEnum]} or {[op.value for op in ComparisonOperationEnum]}")
+
     
     operation = ComparisonOperation(name=operation_enum)
     
@@ -51,6 +53,22 @@ def _create_check_from_config(check_id:int, check_name: str, check_config: Dict[
         
         operation.custom_function = custom_function
     
+    # Resolve resource_type string to actual model type
+    resource_type = None
+    if 'resource_type' in check_config and check_config['resource_type']:
+        resource_type_name = check_config['resource_type']
+        try:
+            # Import dynamic models to get access to the generated classes
+            from con_mon.resources.dynamic_models import get_dynamic_models
+            dynamic_models = get_dynamic_models()
+            
+            if resource_type_name in dynamic_models:
+                resource_type = dynamic_models[resource_type_name]
+            else:
+                print(f"⚠️ Warning: Resource type '{resource_type_name}' not found in dynamic models")
+        except Exception as e:
+            print(f"⚠️ Warning: Could not resolve resource type '{resource_type_name}': {e}")
+    
     # Create Check object with updated field names for CSV compatibility
     return Check(
         id=check_id,
@@ -60,6 +78,7 @@ def _create_check_from_config(check_id:int, check_name: str, check_config: Dict[
         operation=operation,
         expected_value=check_config['expected_value'],
         description=check_config.get('description'),
+        resource_type=resource_type,  # Actual model type instead of string
         
         # Updated to use both IDs and names from CSV data
         framework_id=check_config['framework_id'],      # Integer ID from CSV (required)
