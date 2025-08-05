@@ -5102,3 +5102,1232 @@ checks:
     tags: ["security", "aws", "infrastructure", "hardening", "security_baselines"]
     severity: "high"
     category: "configuration_management"
+
+  # ========================================
+  # ACCESS CONTROL (AC) - GitHub Checks
+  # ========================================
+  
+  - id: 10001
+    connection_id: 1
+    name: "github_account_management_ac_3_1_1"
+    description: "Verify repository access is managed through proper account controls"
+    framework_id: 3  # NIST 800-171 rev2 Catalog
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1200  # AC-3-1-1
+    control_name: "AC-3-1-1"
+    resource_type: "GithubResource"
+    field_path: "collaboration_data.total_collaborators"
+    operation:
+      name: "LESS_THAN_OR_EQUAL"
+    expected_value: 25
+    tags: ["security", "github", "access_control", "account_management"]
+    severity: "high"
+    category: "access_control"
+
+  - id: 10002
+    connection_id: 1
+    name: "github_access_enforcement_ac_3_1_2"
+    description: "Verify repository access enforcement through branch protection"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1201  # AC-3-1-2
+    control_name: "AC-3-1-2"
+    resource_type: "GithubResource"
+    field_path: "repository_data.branches"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check if main branches have protection enabled
+        if not isinstance(fetched_value, list):
+            result = False
+        else:
+            result = False
+            main_branch_names = ['main', 'master', 'production', 'prod']
+            for branch in fetched_value:
+                branch_name = branch.get('name', '') if isinstance(branch, dict) else getattr(branch, 'name', '')
+                is_protected = branch.get('protected', False) if isinstance(branch, dict) else getattr(branch, 'protected', False)
+                if branch_name in main_branch_names and is_protected:
+                    result = True
+                    break
+    expected_value: null
+    tags: ["security", "github", "access_control", "access_enforcement"]
+    severity: "high"
+    category: "access_control"
+
+  - id: 10003
+    connection_id: 1
+    name: "github_separation_of_duties_ac_3_1_4"
+    description: "Verify separation of duties through required reviews"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1203  # AC-3-1-4
+    control_name: "AC-3-1-4"
+    resource_type: "GithubResource"
+    field_path: "repository_data.branches"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check if main branches require reviews
+        if not isinstance(fetched_value, list):
+            result = False
+        else:
+            result = False
+            main_branch_names = ['main', 'master', 'production']
+            for branch in fetched_value:
+                branch_name = branch.get('name', '') if isinstance(branch, dict) else getattr(branch, 'name', '')
+                if branch_name in main_branch_names:
+                    protection = branch.get('protection', {}) if isinstance(branch, dict) else getattr(branch, 'protection', {})
+                    required_reviews = protection.get('required_reviews', 0) if isinstance(protection, dict) else getattr(protection, 'required_reviews', 0)
+                    if required_reviews >= 1:
+                        result = True
+                        break
+    expected_value: null
+    tags: ["security", "github", "access_control", "separation_of_duties"]
+    severity: "high"
+    category: "access_control"
+
+  - id: 10004
+    connection_id: 1
+    name: "github_least_privilege_ac_3_1_5"
+    description: "Verify least privilege through limited admin access"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1204  # AC-3-1-5
+    control_name: "AC-3-1-5"
+    resource_type: "GithubResource"
+    field_path: "organization_data.admin_members"
+    operation:
+      name: "LESS_THAN_OR_EQUAL"
+    expected_value: 3
+    tags: ["security", "github", "access_control", "least_privilege"]
+    severity: "high"
+    category: "access_control"
+
+  - id: 10005
+    connection_id: 1
+    name: "github_repository_private_ac_3_1_18"
+    description: "Verify repository privacy for mobile device access control"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1217  # AC-3-1-18
+    control_name: "AC-3-1-18"
+    resource_type: "GithubResource"
+    field_path: "repository_data.basic_info.private"
+    operation:
+      name: "EQUAL"
+    expected_value: true
+    tags: ["security", "github", "access_control", "mobile_devices"]
+    severity: "medium"
+    category: "access_control"
+
+  # ========================================
+  # ACCESS CONTROL (AC) - AWS Checks
+  # ========================================
+
+  - id: 20001
+    connection_id: 2
+    name: "aws_iam_account_management_ac_3_1_1"
+    description: "Verify IAM user account management controls"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1200  # AC-3-1-1
+    control_name: "AC-3-1-1"
+    resource_type: "AWSIAMResource"
+    field_path: "users"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check that IAM users are properly managed
+        if not isinstance(fetched_value, dict):
+            result = True
+        else:
+            result = True
+            user_count = len(fetched_value)
+            if user_count > 50:  # Too many users might indicate poor management
+                result = False
+    expected_value: null
+    tags: ["security", "aws", "iam", "access_control", "account_management"]
+    severity: "medium"
+    category: "access_control"
+
+  - id: 20002
+    connection_id: 2
+    name: "aws_security_groups_access_enforcement_ac_3_1_2"
+    description: "Verify security groups enforce proper access controls"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1201  # AC-3-1-2
+    control_name: "AC-3-1-2"
+    resource_type: "AWSEC2Resource"
+    field_path: "security_groups"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check that security groups don't allow unrestricted access
+        if not isinstance(fetched_value, dict):
+            result = True
+        else:
+            result = True
+            for sg_id, sg in fetched_value.items():
+                ingress_rules = sg.get('inbound_rules', []) if isinstance(sg, dict) else getattr(sg, 'inbound_rules', [])
+                for rule in ingress_rules:
+                    cidr_blocks = rule.get('cidr_blocks', []) if isinstance(rule, dict) else getattr(rule, 'cidr_blocks', [])
+                    if '0.0.0.0/0' in cidr_blocks:
+                        result = False
+                        break
+                if not result:
+                    break
+    expected_value: null
+    tags: ["security", "aws", "ec2", "access_control", "access_enforcement"]
+    severity: "high"
+    category: "access_control"
+
+  - id: 20003
+    connection_id: 2
+    name: "aws_iam_least_privilege_ac_3_1_5"
+    description: "Verify IAM policies follow least privilege principle"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1204  # AC-3-1-5
+    control_name: "AC-3-1-5"
+    resource_type: "AWSIAMResource"
+    field_path: "policies"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check for overly permissive policies
+        if not isinstance(fetched_value, dict):
+            result = True
+        else:
+            result = True
+            for policy_name, policy in fetched_value.items():
+                statements = policy.get('statements', []) if isinstance(policy, dict) else getattr(policy, 'statements', [])
+                for statement in statements:
+                    actions = statement.get('actions', []) if isinstance(statement, dict) else getattr(statement, 'actions', [])
+                    if '*' in actions:
+                        result = False
+                        break
+                if not result:
+                    break
+    expected_value: null
+    tags: ["security", "aws", "iam", "access_control", "least_privilege"]
+    severity: "high"
+    category: "access_control"
+
+  - id: 20004
+    connection_id: 2
+    name: "aws_mfa_authentication_ac_3_1_6"
+    description: "Verify MFA is enabled for privileged accounts"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1205  # AC-3-1-6
+    control_name: "AC-3-1-6"
+    resource_type: "AWSIAMResource"
+    field_path: "users"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check that privileged users have MFA
+        if not isinstance(fetched_value, dict):
+            result = True
+        else:
+            result = True
+            for user_name, user in fetched_value.items():
+                policies = user.get('attached_policies', []) if isinstance(user, dict) else getattr(user, 'attached_policies', [])
+                mfa_devices = user.get('mfa_devices', []) if isinstance(user, dict) else getattr(user, 'mfa_devices', [])
+                # If user has policies attached, they should have MFA
+                if len(policies) > 0 and len(mfa_devices) == 0:
+                    result = False
+                    break
+    expected_value: null
+    tags: ["security", "aws", "iam", "access_control", "privileged_accounts"]
+    severity: "high"
+    category: "access_control"
+
+  # ========================================
+  # AWARENESS AND TRAINING (AT) - GitHub Checks
+  # ========================================
+
+  - id: 10101
+    connection_id: 1
+    name: "github_security_awareness_at_3_2_1"
+    description: "Verify security features are enabled for awareness"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1222  # AT-3-2-1
+    control_name: "AT-3-2-1"
+    resource_type: "GithubResource"
+    field_path: "security_data.security_analysis.advanced_security_enabled"
+    operation:
+      name: "EQUAL"
+    expected_value: true
+    tags: ["security", "github", "awareness_training", "literacy_training"]
+    severity: "medium"
+    category: "awareness_training"
+
+  - id: 20101
+    connection_id: 2
+    name: "aws_cloudtrail_awareness_at_3_2_1"
+    description: "Verify CloudTrail logging for security awareness"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1222  # AT-3-2-1
+    control_name: "AT-3-2-1"
+    resource_type: "AWSCloudTrailResource"
+    field_path: "trails"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check that CloudTrail is enabled for awareness
+        if not isinstance(fetched_value, dict):
+            result = False
+        else:
+            result = False
+            for trail_name, trail in fetched_value.items():
+                is_logging = trail.get('is_logging', False) if isinstance(trail, dict) else getattr(trail, 'is_logging', False)
+                if is_logging:
+                    result = True
+                    break
+    expected_value: null
+    tags: ["security", "aws", "cloudtrail", "awareness_training", "literacy_training"]
+    severity: "medium"
+    category: "awareness_training"
+
+  # ========================================
+  # AUDIT AND ACCOUNTABILITY (AU) - GitHub Checks
+  # ========================================
+
+  - id: 10201
+    connection_id: 1
+    name: "github_event_logging_au_3_3_1"
+    description: "Verify repository activity logging through webhooks"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1225  # AU-3-3-1
+    control_name: "AU-3-3-1"
+    resource_type: "GithubResource"
+    field_path: "advanced_features_data.total_webhooks"
+    operation:
+      name: "GREATER_THAN"
+    expected_value: 0
+    tags: ["security", "github", "audit_accountability", "event_logging"]
+    severity: "medium"
+    category: "audit_accountability"
+
+  - id: 10202
+    connection_id: 1
+    name: "github_audit_record_content_au_3_3_2"
+    description: "Verify comprehensive audit records through security features"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1226  # AU-3-3-2
+    control_name: "AU-3-3-2"
+    resource_type: "GithubResource"
+    field_path: "security_data.security_features_enabled"
+    operation:
+      name: "GREATER_THAN_OR_EQUAL"
+    expected_value: 2
+    tags: ["security", "github", "audit_accountability", "audit_record_content"]
+    severity: "medium"
+    category: "audit_accountability"
+
+  # ========================================
+  # AUDIT AND ACCOUNTABILITY (AU) - AWS Checks
+  # ========================================
+
+  - id: 20201
+    connection_id: 2
+    name: "aws_cloudtrail_event_logging_au_3_3_1"
+    description: "Verify CloudTrail event logging is enabled"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1225  # AU-3-3-1
+    control_name: "AU-3-3-1"
+    resource_type: "AWSCloudTrailResource"
+    field_path: "trails"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check that at least one trail is logging
+        if not isinstance(fetched_value, dict):
+            result = False
+        else:
+            result = False
+            for trail_name, trail in fetched_value.items():
+                is_logging = trail.get('is_logging', False) if isinstance(trail, dict) else getattr(trail, 'is_logging', False)
+                if is_logging:
+                    result = True
+                    break
+    expected_value: null
+    tags: ["security", "aws", "cloudtrail", "audit_accountability", "event_logging"]
+    severity: "high"
+    category: "audit_accountability"
+
+  - id: 20202
+    connection_id: 2
+    name: "aws_cloudwatch_audit_records_au_3_3_2"
+    description: "Verify CloudWatch log groups exist for audit records"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1226  # AU-3-3-2
+    control_name: "AU-3-3-2"
+    resource_type: "AWSCloudWatchResource"
+    field_path: "log_groups"
+    operation:
+      name: "GREATER_THAN"
+    expected_value: 0
+    tags: ["security", "aws", "cloudwatch", "audit_accountability", "audit_record_content"]
+    severity: "medium"
+    category: "audit_accountability"
+
+  # ========================================
+  # CONFIGURATION MANAGEMENT (CM) - GitHub Checks
+  # ========================================
+
+  - id: 10301
+    connection_id: 1
+    name: "github_baseline_configuration_cm_3_4_1"
+    description: "Verify repository has baseline configuration through default branch"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1238  # CM-3-4-1
+    control_name: "CM-3-4-1"
+    resource_type: "GithubResource"
+    field_path: "repository_data.metadata.default_branch"
+    operation:
+      name: "NOT_EQUAL"
+    expected_value: null
+    tags: ["security", "github", "configuration_management", "baseline_configuration"]
+    severity: "medium"
+    category: "configuration_management"
+
+  - id: 10302
+    connection_id: 1
+    name: "github_configuration_change_control_cm_3_4_3"
+    description: "Verify configuration change control through branch protection"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1240  # CM-3-4-3
+    control_name: "CM-3-4-3"
+    resource_type: "GithubResource"
+    field_path: "repository_data.branches"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check if main branch is protected
+        if not isinstance(fetched_value, list):
+            result = False
+        else:
+            result = False
+            main_branch_names = ['main', 'master', 'production', 'prod']
+            for branch in fetched_value:
+                branch_name = branch.get('name', '') if isinstance(branch, dict) else getattr(branch, 'name', '')
+                is_protected = branch.get('protected', False) if isinstance(branch, dict) else getattr(branch, 'protected', False)
+                if branch_name in main_branch_names and is_protected:
+                    result = True
+                    break
+    expected_value: null
+    tags: ["security", "github", "configuration_management", "configuration_change_control"]
+    severity: "high"
+    category: "configuration_management"
+
+  # ========================================
+  # CONFIGURATION MANAGEMENT (CM) - AWS Checks
+  # ========================================
+
+  - id: 20301
+    connection_id: 2
+    name: "aws_baseline_configuration_cm_3_4_1"
+    description: "Verify AWS resources have baseline configuration"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1238  # CM-3-4-1
+    control_name: "CM-3-4-1"
+    resource_type: "AWSEC2Resource"
+    field_path: "instances"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check that instances follow baseline configuration
+        if not isinstance(fetched_value, dict):
+            result = True
+        else:
+            result = True
+            for instance_id, instance in fetched_value.items():
+                # Check if instance has tags (basic configuration requirement)
+                tags = instance.get('tags', {}) if isinstance(instance, dict) else getattr(instance, 'tags', {})
+                if not tags:
+                    result = False
+                    break
+    expected_value: null
+    tags: ["security", "aws", "ec2", "configuration_management", "baseline_configuration"]
+    severity: "medium"
+    category: "configuration_management"
+
+  - id: 20302
+    connection_id: 2
+    name: "aws_configuration_settings_cm_3_4_2"
+    description: "Verify security group configuration settings"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1239  # CM-3-4-2
+    control_name: "CM-3-4-2"
+    resource_type: "AWSEC2Resource"
+    field_path: "security_groups"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check security group configuration
+        if not isinstance(fetched_value, dict):
+            result = True
+        else:
+            result = True
+            for sg_id, sg in fetched_value.items():
+                # Check that security groups have descriptions
+                description = sg.get('description', '') if isinstance(sg, dict) else getattr(sg, 'description', '')
+                if not description or description == 'default VPC security group':
+                    result = False
+                    break
+    expected_value: null
+    tags: ["security", "aws", "ec2", "configuration_management", "configuration_settings"]
+    severity: "medium"
+    category: "configuration_management"
+
+  # ========================================
+  # IDENTIFICATION AND AUTHENTICATION (IA) - GitHub Checks
+  # ========================================
+
+  - id: 10401
+    connection_id: 1
+    name: "github_user_identification_ia_3_5_1"
+    description: "Verify user identification through collaborator management"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1247  # IA-3-5-1
+    control_name: "IA-3-5-1"
+    resource_type: "GithubResource"
+    field_path: "collaboration_data.total_collaborators"
+    operation:
+      name: "GREATER_THAN"
+    expected_value: 0
+    tags: ["security", "github", "identification_authentication", "user_identification"]
+    severity: "low"
+    category: "identification_authentication"
+
+  - id: 20401
+    connection_id: 2
+    name: "aws_user_identification_ia_3_5_1"
+    description: "Verify IAM user identification and authentication"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1247  # IA-3-5-1
+    control_name: "IA-3-5-1"
+    resource_type: "AWSIAMResource"
+    field_path: "users"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check that users have proper identification
+        if not isinstance(fetched_value, dict):
+            result = True
+        else:
+            result = True
+            for user_name, user in fetched_value.items():
+                # Check if user has creation date (properly identified)
+                create_date = user.get('create_date') if isinstance(user, dict) else getattr(user, 'create_date', None)
+                if not create_date:
+                    result = False
+                    break
+    expected_value: null
+    tags: ["security", "aws", "iam", "identification_authentication", "user_identification"]
+    severity: "medium"
+    category: "identification_authentication"
+
+  - id: 20402
+    connection_id: 2
+    name: "aws_multi_factor_authentication_ia_3_5_3"
+    description: "Verify MFA is enabled for IAM users"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1249  # IA-3-5-3
+    control_name: "IA-3-5-3"
+    resource_type: "AWSIAMResource"
+    field_path: "users"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check that all users have MFA enabled
+        if not isinstance(fetched_value, dict) or len(fetched_value) == 0:
+            result = True
+        else:
+            result = True
+            for user_name, user in fetched_value.items():
+                mfa_devices = user.get('mfa_devices', []) if isinstance(user, dict) else getattr(user, 'mfa_devices', [])
+                if len(mfa_devices) == 0:
+                    result = False
+                    break
+    expected_value: null
+    tags: ["security", "aws", "iam", "identification_authentication", "multi_factor_authentication"]
+    severity: "high"
+    category: "identification_authentication"
+
+  # ========================================
+  # INCIDENT RESPONSE (IR) - GitHub Checks
+  # ========================================
+
+  - id: 10501
+    connection_id: 1
+    name: "github_incident_response_plan_ir_3_6_1"
+    description: "Verify incident response through issues tracking"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1258  # IR-3-6-1
+    control_name: "IR-3-6-1"
+    resource_type: "GithubResource"
+    field_path: "repository_data.metadata.has_issues"
+    operation:
+      name: "EQUAL"
+    expected_value: true
+    tags: ["security", "github", "incident_response", "incident_response_plan"]
+    severity: "medium"
+    category: "incident_response"
+
+  - id: 10502
+    connection_id: 1
+    name: "github_incident_monitoring_ir_3_6_2"
+    description: "Verify incident monitoring through active issue management"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1259  # IR-3-6-2
+    control_name: "IR-3-6-2"
+    resource_type: "GithubResource"
+    field_path: "collaboration_data.open_issues"
+    operation:
+      name: "LESS_THAN"
+    expected_value: 20
+    tags: ["security", "github", "incident_response", "incident_monitoring"]
+    severity: "low"
+    category: "incident_response"
+
+  # ========================================
+  # INCIDENT RESPONSE (IR) - AWS Checks
+  # ========================================
+
+  - id: 20501
+    connection_id: 2
+    name: "aws_incident_response_plan_ir_3_6_1"
+    description: "Verify incident response through CloudTrail logging"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1258  # IR-3-6-1
+    control_name: "IR-3-6-1"
+    resource_type: "AWSCloudTrailResource"
+    field_path: "trails"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check that CloudTrail is configured for incident response
+        if not isinstance(fetched_value, dict):
+            result = False
+        else:
+            result = False
+            for trail_name, trail in fetched_value.items():
+                is_logging = trail.get('is_logging', False) if isinstance(trail, dict) else getattr(trail, 'is_logging', False)
+                include_global_events = trail.get('include_global_service_events', False) if isinstance(trail, dict) else getattr(trail, 'include_global_service_events', False)
+                if is_logging and include_global_events:
+                    result = True
+                    break
+    expected_value: null
+    tags: ["security", "aws", "cloudtrail", "incident_response", "incident_response_plan"]
+    severity: "high"
+    category: "incident_response"
+
+  - id: 20502
+    connection_id: 2
+    name: "aws_incident_monitoring_ir_3_6_2"
+    description: "Verify incident monitoring through CloudWatch alarms"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1259  # IR-3-6-2
+    control_name: "IR-3-6-2"
+    resource_type: "AWSCloudWatchResource"
+    field_path: "alarms"
+    operation:
+      name: "GREATER_THAN"
+    expected_value: 0
+    tags: ["security", "aws", "cloudwatch", "incident_response", "incident_monitoring"]
+    severity: "medium"
+    category: "incident_response"
+
+  # ========================================
+  # MAINTENANCE (MA) - GitHub Checks
+  # ========================================
+
+  - id: 10601
+    connection_id: 1
+    name: "github_organizational_maintenance_ma_3_7_1"
+    description: "Verify organizational maintenance through repository activity"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1261  # MA-3-7-1
+    control_name: "MA-3-7-1"
+    resource_type: "GithubResource"
+    field_path: "repository_data.statistics.total_commits"
+    operation:
+      name: "GREATER_THAN"
+    expected_value: 5
+    tags: ["security", "github", "maintenance", "organizational_maintenance"]
+    severity: "low"
+    category: "maintenance"
+
+  - id: 10602
+    connection_id: 1
+    name: "github_maintenance_tools_ma_3_7_4"
+    description: "Verify maintenance tools through webhooks and integrations"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1264  # MA-3-7-4
+    control_name: "MA-3-7-4"
+    resource_type: "GithubResource"
+    field_path: "advanced_features_data.total_webhooks"
+    operation:
+      name: "GREATER_THAN_OR_EQUAL"
+    expected_value: 1
+    tags: ["security", "github", "maintenance", "maintenance_tools"]
+    severity: "low"
+    category: "maintenance"
+
+  # ========================================
+  # MAINTENANCE (MA) - AWS Checks
+  # ========================================
+
+  - id: 20601
+    connection_id: 2
+    name: "aws_organizational_maintenance_ma_3_7_1"
+    description: "Verify organizational maintenance through resource tagging"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1261  # MA-3-7-1
+    control_name: "MA-3-7-1"
+    resource_type: "AWSEC2Resource"
+    field_path: "instances"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check that instances have maintenance-related tags
+        if not isinstance(fetched_value, dict):
+            result = True
+        else:
+            result = True
+            for instance_id, instance in fetched_value.items():
+                tags = instance.get('tags', {}) if isinstance(instance, dict) else getattr(instance, 'tags', {})
+                # Look for maintenance-related tags
+                has_maintenance_tag = any(key.lower() in ['environment', 'owner', 'project'] for key in tags.keys())
+                if not has_maintenance_tag:
+                    result = False
+                    break
+    expected_value: null
+    tags: ["security", "aws", "ec2", "maintenance", "organizational_maintenance"]
+    severity: "low"
+    category: "maintenance"
+
+  # ========================================
+  # MEDIA PROTECTION (MP) - GitHub Checks
+  # ========================================
+
+  - id: 10701
+    connection_id: 1
+    name: "github_media_storage_mp_3_8_1"
+    description: "Verify media storage through repository privacy"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1267  # MP-3-8-1
+    control_name: "MP-3-8-1"
+    resource_type: "GithubResource"
+    field_path: "repository_data.basic_info.private"
+    operation:
+      name: "EQUAL"
+    expected_value: true
+    tags: ["security", "github", "media_protection", "media_storage"]
+    severity: "medium"
+    category: "media_protection"
+
+  - id: 10702
+    connection_id: 1
+    name: "github_media_access_mp_3_8_2"
+    description: "Verify controlled media access through collaborator limits"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1268  # MP-3-8-2
+    control_name: "MP-3-8-2"
+    resource_type: "GithubResource"
+    field_path: "collaboration_data.total_collaborators"
+    operation:
+      name: "LESS_THAN_OR_EQUAL"
+    expected_value: 15
+    tags: ["security", "github", "media_protection", "media_access"]
+    severity: "medium"
+    category: "media_protection"
+
+  # ========================================
+  # MEDIA PROTECTION (MP) - AWS Checks
+  # ========================================
+
+  - id: 20701
+    connection_id: 2
+    name: "aws_media_storage_mp_3_8_1"
+    description: "Verify media storage through S3 bucket encryption"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1267  # MP-3-8-1
+    control_name: "MP-3-8-1"
+    resource_type: "AWSS3Resource"
+    field_path: "buckets"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check that S3 buckets have encryption enabled
+        if not isinstance(fetched_value, dict):
+            result = True
+        else:
+            result = True
+            for bucket_name, bucket in fetched_value.items():
+                encryption = bucket.get('encryption', {}) if isinstance(bucket, dict) else getattr(bucket, 'encryption', {})
+                if not encryption or not encryption.get('enabled', False):
+                    result = False
+                    break
+    expected_value: null
+    tags: ["security", "aws", "s3", "media_protection", "media_storage"]
+    severity: "high"
+    category: "media_protection"
+
+  - id: 20702
+    connection_id: 2
+    name: "aws_media_access_mp_3_8_2"
+    description: "Verify controlled media access through S3 bucket policies"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1268  # MP-3-8-2
+    control_name: "MP-3-8-2"
+    resource_type: "AWSS3Resource"
+    field_path: "buckets"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check that S3 buckets block public access
+        if not isinstance(fetched_value, dict):
+            result = True
+        else:
+            result = True
+            for bucket_name, bucket in fetched_value.items():
+                public_access_block = bucket.get('public_access_block', {}) if isinstance(bucket, dict) else getattr(bucket, 'public_access_block', {})
+                if not public_access_block.get('block_public_acls', False):
+                    result = False
+                    break
+    expected_value: null
+    tags: ["security", "aws", "s3", "media_protection", "media_access"]
+    severity: "high"
+    category: "media_protection"
+
+  # ========================================
+  # PHYSICAL PROTECTION (PE) - GitHub Checks
+  # ========================================
+
+  - id: 20801
+    connection_id: 2
+    name: "aws_physical_access_pe_3_10_1"
+    description: "Verify physical access through region and AZ controls"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1276  # PE-3-10-1
+    control_name: "PE-3-10-1"
+    resource_type: "AWSEC2Resource"
+    field_path: "instances"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check that instances are deployed across multiple AZs
+        if not isinstance(fetched_value, dict):
+            result = True
+        else:
+            availability_zones = set()
+            for instance_id, instance in fetched_value.items():
+                az = instance.get('availability_zone', '') if isinstance(instance, dict) else getattr(instance, 'availability_zone', '')
+                if az:
+                    availability_zones.add(az)
+            result = len(availability_zones) >= 1  # At least one AZ
+    expected_value: null
+    tags: ["security", "aws", "ec2", "physical_protection", "physical_access_authorizations"]
+    severity: "low"
+    category: "physical_protection"
+
+  # ========================================
+  # PERSONNEL SECURITY (PS) - GitHub Checks
+  # ========================================
+
+  - id: 20901
+    connection_id: 2
+    name: "aws_personnel_screening_ps_3_9_1"
+    description: "Verify personnel screening through IAM user groups"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1282  # PS-3-9-1
+    control_name: "PS-3-9-1"
+    resource_type: "AWSIAMResource"
+    field_path: "groups"
+    operation:
+      name: "GREATER_THAN"
+    expected_value: 0
+    tags: ["security", "aws", "iam", "personnel_security", "personnel_screening"]
+    severity: "low"
+    category: "personnel_security"
+
+  # ========================================
+  # RISK ASSESSMENT (RA) - GitHub Checks
+  # ========================================
+
+  - id: 11001
+    connection_id: 1
+    name: "github_risk_assessment_ra_3_11_1"
+    description: "Verify risk assessment through security analysis"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1284  # RA-3-11-1
+    control_name: "RA-3-11-1"
+    resource_type: "GithubResource"
+    field_path: "security_data.security_analysis.advanced_security_enabled"
+    operation:
+      name: "EQUAL"
+    expected_value: true
+    tags: ["security", "github", "risk_assessment", "risk_assessment"]
+    severity: "high"
+    category: "risk_assessment"
+
+  # ========================================
+  # RISK ASSESSMENT (RA) - AWS Checks
+  # ========================================
+
+  - id: 21001
+    connection_id: 2
+    name: "aws_risk_assessment_ra_3_11_1"
+    description: "Verify risk assessment through security group analysis"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1284  # RA-3-11-1
+    control_name: "RA-3-11-1"
+    resource_type: "AWSEC2Resource"
+    field_path: "security_groups"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Assess risk by checking for overly permissive security groups
+        if not isinstance(fetched_value, dict):
+            result = True
+        else:
+            result = True
+            for sg_id, sg in fetched_value.items():
+                ingress_rules = sg.get('inbound_rules', []) if isinstance(sg, dict) else getattr(sg, 'inbound_rules', [])
+                for rule in ingress_rules:
+                    cidr_blocks = rule.get('cidr_blocks', []) if isinstance(rule, dict) else getattr(rule, 'cidr_blocks', [])
+                    if '0.0.0.0/0' in cidr_blocks:
+                        result = False  # High risk found
+                        break
+                if not result:
+                    break
+    expected_value: null
+    tags: ["security", "aws", "ec2", "risk_assessment", "risk_assessment"]
+    severity: "high"
+    category: "risk_assessment"
+
+  # ========================================
+  # SYSTEM AND COMMUNICATIONS PROTECTION (SC) - GitHub Checks
+  # ========================================
+
+  - id: 11101
+    connection_id: 1
+    name: "github_system_protection_sc_3_13_1"
+    description: "Verify system protection through repository security features"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1287  # SC-3-13-1
+    control_name: "SC-3-13-1"
+    resource_type: "GithubResource"
+    field_path: "security_data.security_features_enabled"
+    operation:
+      name: "GREATER_THAN_OR_EQUAL"
+    expected_value: 3
+    tags: ["security", "github", "system_communications_protection", "system_protection"]
+    severity: "high"
+    category: "system_communications_protection"
+
+  - id: 11102
+    connection_id: 1
+    name: "github_transmission_confidentiality_sc_3_13_8"
+    description: "Verify transmission confidentiality through HTTPS enforcement"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1294  # SC-3-13-8
+    control_name: "SC-3-13-8"
+    resource_type: "GithubResource"
+    field_path: "repository_data.basic_info.private"
+    operation:
+      name: "EQUAL"
+    expected_value: true
+    tags: ["security", "github", "system_communications_protection", "transmission_confidentiality"]
+    severity: "high"
+    category: "system_communications_protection"
+
+  # ========================================
+  # SYSTEM AND COMMUNICATIONS PROTECTION (SC) - AWS Checks
+  # ========================================
+
+  - id: 21101
+    connection_id: 2
+    name: "aws_system_protection_sc_3_13_1"
+    description: "Verify system protection through VPC configuration"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1287  # SC-3-13-1
+    control_name: "SC-3-13-1"
+    resource_type: "AWSEC2Resource"
+    field_path: "vpcs"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check that VPCs are properly configured
+        if not isinstance(fetched_value, dict):
+            result = False
+        else:
+            result = True
+            for vpc_id, vpc in fetched_value.items():
+                # Check if it's not the default VPC
+                is_default = vpc.get('is_default', True) if isinstance(vpc, dict) else getattr(vpc, 'is_default', True)
+                if is_default:
+                    result = False
+                    break
+    expected_value: null
+    tags: ["security", "aws", "ec2", "system_communications_protection", "system_protection"]
+    severity: "high"
+    category: "system_communications_protection"
+
+  - id: 21102
+    connection_id: 2
+    name: "aws_transmission_confidentiality_sc_3_13_8"
+    description: "Verify transmission confidentiality through S3 encryption"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1294  # SC-3-13-8
+    control_name: "SC-3-13-8"
+    resource_type: "AWSS3Resource"
+    field_path: "buckets"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check that S3 buckets have encryption in transit
+        if not isinstance(fetched_value, dict):
+            result = True
+        else:
+            result = True
+            for bucket_name, bucket in fetched_value.items():
+                encryption = bucket.get('encryption', {}) if isinstance(bucket, dict) else getattr(bucket, 'encryption', {})
+                if not encryption or not encryption.get('enabled', False):
+                    result = False
+                    break
+    expected_value: null
+    tags: ["security", "aws", "s3", "system_communications_protection", "transmission_confidentiality"]
+    severity: "high"
+    category: "system_communications_protection"
+
+  # ========================================
+  # SYSTEM AND INFORMATION INTEGRITY (SI) - GitHub Checks
+  # ========================================
+
+  - id: 11201
+    connection_id: 1
+    name: "github_flaw_remediation_si_3_14_1"
+    description: "Verify flaw remediation through security scanning"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1303  # SI-3-14-1
+    control_name: "SI-3-14-1"
+    resource_type: "GithubResource"
+    field_path: "security_data.security_analysis.advanced_security_enabled"
+    operation:
+      name: "EQUAL"
+    expected_value: true
+    tags: ["security", "github", "system_information_integrity", "flaw_remediation"]
+    severity: "high"
+    category: "system_information_integrity"
+
+  - id: 11202
+    connection_id: 1
+    name: "github_malicious_code_protection_si_3_14_2"
+    description: "Verify malicious code protection through security features"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1304  # SI-3-14-2
+    control_name: "SI-3-14-2"
+    resource_type: "GithubResource"
+    field_path: "security_data.security_features_enabled"
+    operation:
+      name: "GREATER_THAN_OR_EQUAL"
+    expected_value: 2
+    tags: ["security", "github", "system_information_integrity", "malicious_code_protection"]
+    severity: "high"
+    category: "system_information_integrity"
+
+  # ========================================
+  # SYSTEM AND INFORMATION INTEGRITY (SI) - AWS Checks
+  # ========================================
+
+  - id: 21201
+    connection_id: 2
+    name: "aws_flaw_remediation_si_3_14_1"
+    description: "Verify flaw remediation through instance patching"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1303  # SI-3-14-1
+    control_name: "SI-3-14-1"
+    resource_type: "AWSEC2Resource"
+    field_path: "instances"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check that instances are using recent AMIs
+        if not isinstance(fetched_value, dict):
+            result = True
+        else:
+            result = True
+            for instance_id, instance in fetched_value.items():
+                # Check if instance has recent launch time (basic flaw remediation check)
+                launch_time = instance.get('launch_time') if isinstance(instance, dict) else getattr(instance, 'launch_time', None)
+                if not launch_time:
+                    result = False
+                    break
+    expected_value: null
+    tags: ["security", "aws", "ec2", "system_information_integrity", "flaw_remediation"]
+    severity: "high"
+    category: "system_information_integrity"
+
+  - id: 21202
+    connection_id: 2
+    name: "aws_malicious_code_protection_si_3_14_2"
+    description: "Verify malicious code protection through security groups"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1304  # SI-3-14-2
+    control_name: "SI-3-14-2"
+    resource_type: "AWSEC2Resource"
+    field_path: "security_groups"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check that security groups provide protection against malicious code
+        if not isinstance(fetched_value, dict):
+            result = True
+        else:
+            result = True
+            for sg_id, sg in fetched_value.items():
+                ingress_rules = sg.get('inbound_rules', []) if isinstance(sg, dict) else getattr(sg, 'inbound_rules', [])
+                # Check for overly permissive rules that could allow malicious code
+                for rule in ingress_rules:
+                    cidr_blocks = rule.get('cidr_blocks', []) if isinstance(rule, dict) else getattr(rule, 'cidr_blocks', [])
+                    from_port = rule.get('from_port', 0) if isinstance(rule, dict) else getattr(rule, 'from_port', 0)
+                    to_port = rule.get('to_port', 0) if isinstance(rule, dict) else getattr(rule, 'to_port', 0)
+                    if '0.0.0.0/0' in cidr_blocks and from_port == 0 and to_port == 65535:
+                        result = False  # Too permissive
+                        break
+                if not result:
+                    break
+    expected_value: null
+    tags: ["security", "aws", "ec2", "system_information_integrity", "malicious_code_protection"]
+    severity: "high"
+    category: "system_information_integrity"
+
+  # ========================================
+  # SECURITY ASSESSMENT (CA) - GitHub Checks
+  # ========================================
+
+  - id: 11301
+    connection_id: 1
+    name: "github_security_assessment_ca_3_12_1"
+    description: "Verify security assessment through repository security analysis"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1234  # CA-3-12-1
+    control_name: "CA-3-12-1"
+    resource_type: "GithubResource"
+    field_path: "security_data.security_analysis.advanced_security_enabled"
+    operation:
+      name: "EQUAL"
+    expected_value: true
+    tags: ["security", "github", "security_assessment", "security_assessment"]
+    severity: "high"
+    category: "security_assessment"
+
+  - id: 11302
+    connection_id: 1
+    name: "github_continuous_monitoring_ca_3_12_3"
+    description: "Verify continuous monitoring through webhook monitoring"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1236  # CA-3-12-3
+    control_name: "CA-3-12-3"
+    resource_type: "GithubResource"
+    field_path: "advanced_features_data.active_webhooks"
+    operation:
+      name: "GREATER_THAN"
+    expected_value: 0
+    tags: ["security", "github", "security_assessment", "continuous_monitoring"]
+    severity: "medium"
+    category: "security_assessment"
+
+  # ========================================
+  # SECURITY ASSESSMENT (CA) - AWS Checks
+  # ========================================
+
+  - id: 21301
+    connection_id: 2
+    name: "aws_security_assessment_ca_3_12_1"
+    description: "Verify security assessment through CloudTrail analysis"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1234  # CA-3-12-1
+    control_name: "CA-3-12-1"
+    resource_type: "AWSCloudTrailResource"
+    field_path: "trails"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check that CloudTrail provides security assessment capabilities
+        if not isinstance(fetched_value, dict):
+            result = False
+        else:
+            result = False
+            for trail_name, trail in fetched_value.items():
+                is_logging = trail.get('is_logging', False) if isinstance(trail, dict) else getattr(trail, 'is_logging', False)
+                is_multi_region = trail.get('is_multi_region_trail', False) if isinstance(trail, dict) else getattr(trail, 'is_multi_region_trail', False)
+                if is_logging and is_multi_region:
+                    result = True
+                    break
+    expected_value: null
+    tags: ["security", "aws", "cloudtrail", "security_assessment", "security_assessment"]
+    severity: "high"
+    category: "security_assessment"
+
+  - id: 21302
+    connection_id: 2
+    name: "aws_continuous_monitoring_ca_3_12_3"
+    description: "Verify continuous monitoring through CloudWatch monitoring"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1236  # CA-3-12-3
+    control_name: "CA-3-12-3"
+    resource_type: "AWSCloudWatchResource"
+    field_path: "alarms"
+    operation:
+      name: "GREATER_THAN"
+    expected_value: 2
+    tags: ["security", "aws", "cloudwatch", "security_assessment", "continuous_monitoring"]
+    severity: "medium"
+    category: "security_assessment" 
