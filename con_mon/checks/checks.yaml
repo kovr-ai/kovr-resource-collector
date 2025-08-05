@@ -1,12 +1,15 @@
 # GitHub-specific checks configuration
 # Maps to Check model structure in checks/models.py
+# Updated to use framework_id and control_id from CSV data for better performance
 
 checks:
   - id: 1001
     name: "github_main_branch_protected"
     description: "Verify that the main branch in GitHub repository has protection enabled"
-    framework_name: "NIST 800-171 Rev 2"
-    control_name: "3.4.6 (CM-3)"
+    framework_id: 3  # NIST 800-171 rev2 Catalog
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1240  # CM-3-4-3 (Configuration Change Control)
+    control_name: "CM-3-4-3"
     field_path: "repository_data.branches"
     operation:
       name: "custom"
@@ -42,8 +45,10 @@ checks:
   - id: 1002
     name: "github_repository_private"
     description: "Verify that GitHub repository is private"
-    framework_name: "NIST 800-171 Rev 2"
-    control_name: "3.1.18"
+    framework_id: 3  # NIST 800-171 rev2 Catalog
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1217  # AC-3-1-18 (Access Control for Mobile Devices)
+    control_name: "AC-3-1-18"
     field_path: "repository_data.basic_info.private"
     operation:
       name: "EQUAL"
@@ -55,7 +60,9 @@ checks:
   - id: 1003
     name: "github_minimum_branch_count"
     description: "Verify that GitHub repository has at least 3 branches"
-    framework_name: "NIST 800-53 Rev 5"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 287  # CM-8 (System Component Inventory)
     control_name: "CM-8"
     field_path: "len(repository_data.branches)"
     operation:
@@ -69,8 +76,10 @@ checks:
   - id: 1004
     name: "github_advanced_security_enabled"
     description: "Verify that GitHub Advanced Security is enabled"
-    framework_name: "NIST 800-171 Rev 2"
-    control_name: "3.14.1 (SI-2)"
+    framework_id: 3  # NIST 800-171 rev2 Catalog
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1303  # SI-3-14-1 (Flaw Remediation)
+    control_name: "SI-3-14-1"
     field_path: "security_data.security_analysis.advanced_security_enabled"
     operation:
       name: "EQUAL"
@@ -82,8 +91,10 @@ checks:
   - id: 1005
     name: "github_secret_scanning_enabled"
     description: "Verify that secret scanning is enabled to protect authentication info"
-    framework_name: "NIST 800-171 Rev 2"
-    control_name: "3.5.9"
+    framework_id: 3  # NIST 800-171 rev2 Catalog
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1255  # IA-3-5-9 (Password Management)
+    control_name: "IA-3-5-9"
     field_path: "security_data.security_analysis.secret_scanning_enabled"
     operation:
       name: "EQUAL"
@@ -95,8 +106,10 @@ checks:
   - id: 1006
     name: "github_push_protection_enabled"
     description: "Verify that push protection is enabled to prevent secret leaks"
-    framework_name: "NIST 800-171 Rev 2"
-    control_name: "3.5.9"
+    framework_id: 3  # NIST 800-171 rev2 Catalog
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1255  # IA-3-5-9 (Password Management)
+    control_name: "IA-3-5-9"
     field_path: "security_data.security_analysis.push_protection_enabled"
     operation:
       name: "EQUAL"
@@ -108,8 +121,10 @@ checks:
   - id: 1007
     name: "github_dependency_review_enabled"
     description: "Verify that dependency review is enabled for vulnerability management"
-    framework_name: "NIST 800-171 Rev 2"
-    control_name: "3.14.1 (SI-2)"
+    framework_id: 3  # NIST 800-171 rev2 Catalog
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1303  # SI-3-14-1 (Flaw Remediation)
+    control_name: "SI-3-14-1"
     field_path: "security_data.security_analysis.dependency_review_enabled"
     operation:
       name: "EQUAL"
@@ -121,8 +136,10 @@ checks:
   - id: 1008
     name: "github_no_dependabot_alerts"
     description: "Verify that there are no unresolved Dependabot security alerts"
-    framework_name: "NIST 800-171 Rev 2"
-    control_name: "3.14.1 (SI-2)"
+    framework_id: 3  # NIST 800-171 rev2 Catalog
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1303  # SI-3-14-1 (Flaw Remediation)
+    control_name: "SI-3-14-1"
     field_path: "security_data.total_dependabot_alerts"
     operation:
       name: "EQUAL"
@@ -134,8 +151,10 @@ checks:
   - id: 1009
     name: "github_no_code_scanning_alerts"
     description: "Verify that there are no unresolved code scanning alerts"  
-    framework_name: "NIST 800-171 Rev 2"
-    control_name: "3.14.1 (SI-2)"
+    framework_id: 3  # NIST 800-171 rev2 Catalog
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1303  # SI-3-14-1 (Flaw Remediation)
+    control_name: "SI-3-14-1"
     field_path: "security_data.total_code_scanning_alerts"
     operation:
       name: "EQUAL"
@@ -147,8 +166,10 @@ checks:
   - id: 1010
     name: "github_external_collaborators_limited"
     description: "Verify that external collaborators are limited for access control"
-    framework_name: "NIST 800-171 Rev 2"
-    control_name: "3.1.6 (AC-6)"
+    framework_id: 3  # NIST 800-171 rev2 Catalog
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1205  # AC-3-1-6 (Least Privilege – Privileged Accounts)
+    control_name: "AC-3-1-6"
     field_path: "organization_data.total_outside_collaborators"
     operation:
       name: "LESS_THAN_OR_EQUAL"
@@ -160,8 +181,10 @@ checks:
   - id: 1011
     name: "github_repository_not_archived"
     description: "Verify that active repositories are not archived"
-    framework_name: "NIST 800-171 Rev 2"
-    control_name: "3.1.1 (AC-2)"
+    framework_id: 3  # NIST 800-171 rev2 Catalog
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1200  # AC-3-1-1 (Account Management)
+    control_name: "AC-3-1-1"
     field_path: "repository_data.basic_info.archived"
     operation:
       name: "EQUAL"
@@ -173,8 +196,10 @@ checks:
   - id: 1012
     name: "github_repository_not_disabled"
     description: "Verify that repositories are not disabled"
-    framework_name: "NIST 800-171 Rev 2"
-    control_name: "3.1.1 (AC-2)"
+    framework_id: 3  # NIST 800-171 rev2 Catalog
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1200  # AC-3-1-1 (Account Management)
+    control_name: "AC-3-1-1"
     field_path: "repository_data.basic_info.disabled"
     operation:
       name: "EQUAL"
@@ -187,7 +212,9 @@ checks:
   - id: 1013
     name: "github_admin_members_limited"
     description: "Verify that admin privileges are limited (Least Privilege)"
-    framework_name: "NIST 800-53 Rev 5"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 90   # AC-6 (Least Privilege)
     control_name: "AC-6"
     field_path: "organization_data.admin_members"
     operation:
@@ -200,7 +227,9 @@ checks:
   - id: 1014
     name: "github_has_security_features"
     description: "Verify that multiple security features are enabled"
-    framework_name: "NIST 800-53 Rev 5"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 75   # AC-3 (Access Enforcement)
     control_name: "AC-3"
     field_path: "security_data.security_features_enabled"
     operation:
@@ -213,7 +242,9 @@ checks:
   - id: 1015
     name: "github_webhooks_secured"
     description: "Verify that webhooks are properly configured and limited"
-    framework_name: "NIST 800-53 Rev 5"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 473  # MA-4 (Nonlocal Maintenance)
     control_name: "MA-4"
     field_path: "advanced_features_data.total_webhooks"
     operation:
@@ -226,7 +257,9 @@ checks:
   - id: 1016
     name: "github_active_webhooks_monitored"
     description: "Verify that active webhooks are monitored"
-    framework_name: "NIST 800-53 Rev 5"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 695  # SI-4 (System Monitoring)
     control_name: "SI-4"
     field_path: "advanced_features_data.active_webhooks"
     operation:
@@ -239,7 +272,9 @@ checks:
   - id: 1017
     name: "github_recent_activity"
     description: "Verify that repository shows recent development activity"
-    framework_name: "NIST 800-53 Rev 5"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 287  # CM-8 (System Component Inventory)
     control_name: "CM-8"
     field_path: "repository_data.statistics.total_commits"
     operation:
@@ -252,7 +287,9 @@ checks:
   - id: 1018
     name: "github_contributors_managed"
     description: "Verify that repository has appropriate number of contributors"
-    framework_name: "NIST 800-53 Rev 5"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 71   # AC-2 (Account Management)
     control_name: "AC-2"
     field_path: "repository_data.statistics.contributors_count"
     operation:
@@ -265,7 +302,9 @@ checks:
   - id: 1019
     name: "github_issues_enabled"
     description: "Verify that issues are enabled for incident tracking"
-    framework_name: "NIST 800-53 Rev 5"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 549  # IR-4 (Incident Handling)
     control_name: "IR-4"
     field_path: "repository_data.metadata.has_issues"
     operation:
@@ -278,7 +317,9 @@ checks:
   - id: 1020
     name: "github_template_usage_controlled"
     description: "Verify that template repositories are appropriately configured"
-    framework_name: "NIST 800-53 Rev 5"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 282  # CM-6 (Configuration Settings)
     control_name: "CM-6"
     field_path: "repository_data.metadata.is_template"
     operation:
@@ -291,7 +332,9 @@ checks:
   - id: 1021
     name: "github_collaborators_monitored"
     description: "Verify that total collaborators are within acceptable limits"
-    framework_name: "NIST 800-53 Rev 5"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 113  # AU-6 (Audit Record Review, Analysis, and Reporting)
     control_name: "AU-6"
     field_path: "collaboration_data.total_collaborators"
     operation:
@@ -304,7 +347,9 @@ checks:
   - id: 1022
     name: "github_open_issues_managed"
     description: "Verify that open issues are actively managed"
-    framework_name: "NIST 800-53 Rev 5"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 549  # IR-4 (Incident Handling)
     control_name: "IR-4"
     field_path: "collaboration_data.open_issues"
     operation:
@@ -317,7 +362,9 @@ checks:
   - id: 1023
     name: "github_pull_requests_active"
     description: "Verify that pull requests indicate active development"
-    framework_name: "NIST 800-53 Rev 5"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 275  # CM-3 (Configuration Change Control)
     control_name: "CM-3"
     field_path: "collaboration_data.total_pull_requests"
     operation:
@@ -330,7 +377,9 @@ checks:
   - id: 1024
     name: "github_security_advisories_monitored"
     description: "Verify that security advisories are being tracked"
-    framework_name: "NIST 800-53 Rev 5"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 96   # AU-2 (Event Logging)
     control_name: "AU-2"
     field_path: "security_data.total_advisories"
     operation:
@@ -343,8 +392,10 @@ checks:
   - id: 1025
     name: "github_workflows_controlled"
     description: "Verify that GitHub Actions workflows are controlled and limited"
-    framework_name: "NIST 800-171 Rev 2"
-    control_name: "3.1.2"
+    framework_id: 3  # NIST 800-171 rev2 Catalog
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1201  # AC-3-1-2 (Access Enforcement)
+    control_name: "AC-3-1-2"
     field_path: "actions_data.total_workflows"
     operation:
       name: "LESS_THAN_OR_EQUAL"
@@ -356,7 +407,9 @@ checks:
   - id: 1026
     name: "github_active_workflows_monitored"
     description: "Verify that active workflows are monitored for security"
-    framework_name: "NIST 800-53 Rev 5"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 773  # SA-9 (External System Services)
     control_name: "SA-9"
     field_path: "actions_data.active_workflows"
     operation:
@@ -369,7 +422,9 @@ checks:
   - id: 1027
     name: "github_recent_workflow_activity"
     description: "Verify that workflow runs indicate active CI/CD"
-    framework_name: "NIST 800-53 Rev 5"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 779  # SA-11 (Developer Security and Privacy Architecture and Design Testing)
     control_name: "SA-11"
     field_path: "actions_data.recent_runs_count"
     operation:
@@ -382,7 +437,9 @@ checks:
   - id: 1028
     name: "github_organization_members_controlled"
     description: "Verify that organization membership is controlled"
-    framework_name: "NIST 800-53 Rev 5"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 71   # AC-2 (Account Management)
     control_name: "AC-2"
     field_path: "organization_data.total_members"
     operation:
@@ -395,7 +452,9 @@ checks:
   - id: 1029
     name: "github_teams_structured"
     description: "Verify that teams are used for structured access control"
-    framework_name: "NIST 800-53 Rev 5"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 75   # AC-3 (Access Enforcement)
     control_name: "AC-3"
     field_path: "organization_data.total_teams"
     operation:
@@ -408,7 +467,9 @@ checks:
   - id: 1030
     name: "github_repository_has_license"
     description: "Verify that repository has a defined license for compliance"
-    framework_name: "NIST 800-53 Rev 5"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 595  # PM-1 (Program Management Policy and Procedures)
     control_name: "PM-1"
     field_path: "repository_data.metadata.license"
     operation:

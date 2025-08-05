@@ -30,45 +30,28 @@ def _create_check_from_config(check_id:int, check_name: str, check_config: Dict[
     operation = ComparisonOperation(name=operation_enum)
     
     # Handle custom logic if present - execute any logic defined in YAML
-    if operation_name == 'custom' and 'custom_logic' in operation_config:
-        custom_logic_code = operation_config['custom_logic']
+    if operation_enum == ComparisonOperationEnum.CUSTOM and 'custom_logic' in operation_config:
+        custom_logic = operation_config['custom_logic']
         
-        def create_dynamic_custom_function(code: str):
-            """Create a custom function that executes YAML-defined logic."""
-            def custom_function(fetched_value, config_value):
-                # Create a safe namespace for executing the custom logic
-                namespace = {
-                    'fetched_value': fetched_value,
-                    'config_value': config_value,
-                    'isinstance': isinstance,
-                    'list': list,
-                    'dict': dict,
-                    'getattr': getattr,
-                    'len': len,
-                    'any': any,
-                    'all': all,
-                    'True': True,
-                    'False': False,
-                    'None': None,
-                    'result': False  # Default result
-                }
-                
-                try:
-                    # Execute the custom logic code from YAML
-                    exec(code, {"__builtins__": {}}, namespace)
-                    # The custom logic should set the 'result' variable
-                    return namespace.get('result', False)
-                    
-                except Exception as e:
-                    print(f"❌ Error executing custom logic for {check_name}: {e}")
-                    return False
+        def custom_function(fetched_value, config_value):
+            # Create local namespace for the custom logic
+            local_vars = {
+                'fetched_value': fetched_value,
+                'config_value': config_value,
+                'result': False  # Default result
+            }
             
-            return custom_function
+            try:
+                # Execute the custom logic code
+                exec(custom_logic, {"__builtins__": __builtins__}, local_vars)
+                return local_vars.get('result', False)
+            except Exception as e:
+                print(f"❌ Error in custom logic for check '{check_name}': {e}")
+                return False
         
-        # Set the dynamic custom function on the operation
-        operation.custom_function = create_dynamic_custom_function(custom_logic_code)
+        operation.custom_function = custom_function
     
-    # Create Check object
+    # Create Check object with updated field names for CSV compatibility
     return Check(
         id=check_id,
         name=check_name,
@@ -76,10 +59,14 @@ def _create_check_from_config(check_id:int, check_name: str, check_config: Dict[
         operation=operation,
         expected_value=check_config['expected_value'],
         description=check_config.get('description'),
-        # NIST compliance fields
-        framework_name=check_config.get('framework_name'),
-        control_name=check_config.get('control_name'),
-        # Additional metadata fields
+        
+        # Updated to use both IDs and names from CSV data
+        framework_id=check_config['framework_id'],      # Integer ID from CSV (required)
+        control_id=check_config['control_id'],          # Integer ID from CSV (required)
+        framework_name=check_config['framework_name'],  # String name from CSV (required)
+        control_name=check_config['control_name'],      # String name from CSV (required)
+        
+        # Additional metadata
         tags=check_config.get('tags'),
         severity=check_config.get('severity'),
         category=check_config.get('category')
@@ -116,6 +103,7 @@ def load_checks_from_yaml(yaml_file_path: str = None):
             globals()[check_name] = check
         
         print(f"✅ Loaded {len(_loaded_checks)} checks from {yaml_file_path}")
+        print(f"📊 Using framework_id and control_id from CSV data for better performance")
         
     except FileNotFoundError:
         print(f"❌ Checks YAML file not found: {yaml_file_path}")
