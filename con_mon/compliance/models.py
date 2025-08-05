@@ -87,12 +87,11 @@ class FrameworkWithControls(Framework):
     controls: List[Control] = Field(default_factory=list)
 
 
-class ControlWithMappings(Control):
-    """Control with its standard mappings."""
-    framework: Optional[Framework] = None
-    standard_mappings: List[StandardControlMapping] = Field(default_factory=list)
-
-
-class StandardWithMappings(Standard):
+class StandardWithControls(Standard):
     """Standard with its control mappings."""
-    control_mappings: List[StandardControlMapping] = Field(default_factory=list) 
+    controls: List[Control] = Field(default_factory=list)
+
+
+class ControlWithStandards(Control):
+    """Control with its mapped standards."""
+    standards: List[Standard] = Field(default_factory=list) 
