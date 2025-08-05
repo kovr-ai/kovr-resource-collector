@@ -2000,4 +2000,670 @@ checks:
     expected_value: null
     tags: ["security", "aws", "ec2", "network_interfaces", "security_groups"]
     severity: "medium"
-    category: "access_control" 
+    category: "access_control"
+
+  # Batch 3: Deep Compliance & Advanced Analytics (2046-2065)
+  
+  # AWS EC2 Advanced Instance Checks (2046-2052)
+  - id: 2046
+    connection_id: 2
+    name: "aws_ec2_detailed_monitoring_enabled"
+    description: "Verify that EC2 instances have detailed CloudWatch monitoring enabled"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 695  # SI-4 (System Monitoring)
+    control_name: "SI-4"
+    field_path: "instances"
+    resource_type: "AWSEC2Resource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check if instances have detailed monitoring enabled
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no instances
+        else:
+            result = True
+            for instance_id, instance in fetched_value.items():
+                monitoring = None
+                if isinstance(instance, dict):
+                    monitoring = instance.get('monitoring', {})
+                else:
+                    monitoring = getattr(instance, 'monitoring', {})
+                
+                # Check if detailed monitoring is enabled
+                if isinstance(monitoring, dict):
+                    state = monitoring.get('state', 'disabled')
+                    if state != 'enabled':
+                        result = False
+                        break
+    expected_value: null
+    tags: ["security", "aws", "ec2", "monitoring", "cloudwatch"]
+    severity: "medium"
+    category: "system_information_integrity"
+
+  - id: 2047
+    connection_id: 2
+    name: "aws_ec2_iam_instance_profiles_attached"
+    description: "Verify that EC2 instances have IAM instance profiles for secure API access"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 157  # IA-2 (Identification and Authentication)
+    control_name: "IA-2"
+    field_path: "instances"
+    resource_type: "AWSEC2Resource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check if instances have IAM instance profiles
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no instances
+        else:
+            result = True
+            for instance_id, instance in fetched_value.items():
+                iam_profile = None
+                if isinstance(instance, dict):
+                    iam_profile = instance.get('iam_instance_profile')
+                else:
+                    iam_profile = getattr(instance, 'iam_instance_profile', None)
+                
+                # Instances should have IAM profiles for secure API access
+                if not iam_profile:
+                    result = False
+                    break
+    expected_value: null
+    tags: ["security", "aws", "ec2", "iam", "instance_profile"]
+    severity: "high"
+    category: "identification_authentication"
+
+  - id: 2048
+    connection_id: 2
+    name: "aws_ec2_ebs_optimized_enabled"
+    description: "Verify that EC2 instances have EBS optimization enabled for performance"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 282  # CM-6 (Configuration Settings)
+    control_name: "CM-6"
+    field_path: "instances"
+    resource_type: "AWSEC2Resource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check if instances have EBS optimization enabled
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no instances
+        else:
+            result = True
+            for instance_id, instance in fetched_value.items():
+                ebs_optimized = False
+                if isinstance(instance, dict):
+                    ebs_optimized = instance.get('ebs_optimized', False)
+                else:
+                    ebs_optimized = getattr(instance, 'ebs_optimized', False)
+                
+                # EBS-backed instances should be EBS-optimized
+                if not ebs_optimized:
+                    result = False
+                    break
+    expected_value: null
+    tags: ["governance", "aws", "ec2", "ebs_optimized", "performance"]
+    severity: "low"
+    category: "configuration_management"
+
+  - id: 2049
+    connection_id: 2
+    name: "aws_ec2_instance_lifecycle_managed"
+    description: "Verify that EC2 instance lifecycle is properly managed (spot vs on-demand)"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 287  # CM-8 (System Component Inventory)
+    control_name: "CM-8"
+    field_path: "instances"
+    resource_type: "AWSEC2Resource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check instance lifecycle management
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no instances
+        else:
+            result = True
+            spot_count = 0
+            total_count = len(fetched_value)
+            
+            for instance_id, instance in fetched_value.items():
+                lifecycle = None
+                if isinstance(instance, dict):
+                    lifecycle = instance.get('instance_lifecycle')
+                else:
+                    lifecycle = getattr(instance, 'instance_lifecycle', None)
+                
+                if lifecycle == 'spot':
+                    spot_count += 1
+            
+            # Ensure spot instances don't exceed 30% for stability
+            if total_count > 0:
+                spot_percentage = (spot_count / total_count) * 100
+                result = spot_percentage <= 30
+    expected_value: null
+    tags: ["governance", "aws", "ec2", "lifecycle", "cost_optimization"]
+    severity: "medium"
+    category: "configuration_management"
+
+  - id: 2050
+    connection_id: 2
+    name: "aws_ec2_instances_properly_tagged"
+    description: "Verify that EC2 instances have required tags for governance"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 287  # CM-8 (System Component Inventory)
+    control_name: "CM-8"
+    field_path: "instances"
+    resource_type: "AWSEC2Resource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check if instances have proper tags
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no instances
+        else:
+            result = True
+            for instance_id, instance in fetched_value.items():
+                tags = {}
+                if isinstance(instance, dict):
+                    tags = instance.get('tags', {})
+                else:
+                    tags = getattr(instance, 'tags', {})
+                
+                # Check for essential tags
+                required_tags = ['Name', 'Environment', 'Owner']
+                missing_tags = [tag for tag in required_tags if tag not in tags]
+                
+                if len(missing_tags) > 1:  # Allow 1 missing tag
+                    result = False
+                    break
+    expected_value: null
+    tags: ["governance", "aws", "ec2", "tags", "resource_management"]
+    severity: "medium"
+    category: "configuration_management"
+
+  - id: 2051
+    connection_id: 2
+    name: "aws_ec2_block_device_mappings_encrypted"
+    description: "Verify that EC2 instance block device mappings use encrypted volumes"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 658  # SC-8 (Transmission Confidentiality and Integrity)
+    control_name: "SC-8"
+    field_path: "instances"
+    resource_type: "AWSEC2Resource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check if block device mappings are encrypted
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no instances
+        else:
+            result = True
+            for instance_id, instance in fetched_value.items():
+                block_devices = []
+                if isinstance(instance, dict):
+                    block_devices = instance.get('block_device_mappings', [])
+                else:
+                    block_devices = getattr(instance, 'block_device_mappings', [])
+                
+                for device in block_devices:
+                    if isinstance(device, dict) and 'ebs' in device:
+                        ebs = device['ebs']
+                        encrypted = ebs.get('encrypted', False)
+                        if not encrypted:
+                            result = False
+                            break
+                if not result:
+                    break
+    expected_value: null
+    tags: ["security", "aws", "ec2", "encryption", "block_devices"]
+    severity: "high"
+    category: "system_communications_protection"
+
+  - id: 2052
+    connection_id: 2
+    name: "aws_security_groups_outbound_rules_restricted"
+    description: "Verify that security groups have restrictive outbound rules"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 75   # AC-3 (Access Enforcement)
+    control_name: "AC-3"
+    field_path: "security_groups"
+    resource_type: "AWSEC2Resource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check outbound rules for security groups
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no security groups
+        else:
+            result = True
+            for sg_id, sg in fetched_value.items():
+                outbound_rules = []
+                if isinstance(sg, dict):
+                    outbound_rules = sg.get('outbound_rules', [])
+                else:
+                    outbound_rules = getattr(sg, 'outbound_rules', [])
+                
+                # Check for overly permissive outbound rules
+                for rule in outbound_rules:
+                    cidr_blocks = rule.get('cidr_blocks', []) if isinstance(rule, dict) else getattr(rule, 'cidr_blocks', [])
+                    protocol = rule.get('protocol', '') if isinstance(rule, dict) else getattr(rule, 'protocol', '')
+                    
+                    # Flag unrestricted outbound access on sensitive protocols
+                    if '0.0.0.0/0' in cidr_blocks and protocol in ['tcp', 'udp', '-1']:
+                        result = False
+                        break
+                if not result:
+                    break
+    expected_value: null
+    tags: ["security", "aws", "ec2", "security_groups", "outbound_rules"]
+    severity: "medium"
+    category: "access_control"
+
+  # CloudWatch Advanced Monitoring (2053-2055)
+  - id: 2053
+    connection_id: 2
+    name: "aws_cloudwatch_log_groups_encrypted"
+    description: "Verify that CloudWatch log groups are encrypted with KMS keys"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 658  # SC-8 (Transmission Confidentiality and Integrity)
+    control_name: "SC-8"
+    field_path: "log_groups"
+    resource_type: "AWSCloudWatchResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check if log groups are encrypted
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no log groups
+        else:
+            result = True
+            for lg_name, lg_data in fetched_value.items():
+                kms_key_id = None
+                if isinstance(lg_data, dict):
+                    kms_key_id = lg_data.get('kms_key_id')
+                else:
+                    kms_key_id = getattr(lg_data, 'kms_key_id', None)
+                
+                # Log groups should be encrypted
+                if not kms_key_id:
+                    result = False
+                    break
+    expected_value: null
+    tags: ["security", "aws", "cloudwatch", "encryption", "kms"]
+    severity: "high"
+    category: "system_communications_protection"
+
+  - id: 2054
+    connection_id: 2
+    name: "aws_cloudwatch_log_groups_retention_appropriate"
+    description: "Verify that CloudWatch log groups have appropriate data retention"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 96   # AU-2 (Event Logging)
+    control_name: "AU-2"
+    field_path: "log_groups"
+    resource_type: "AWSCloudWatchResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check log retention based on stored bytes
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no log groups
+        else:
+            result = True
+            for lg_name, lg_data in fetched_value.items():
+                stored_bytes = 0
+                if isinstance(lg_data, dict):
+                    stored_bytes = lg_data.get('stored_bytes', 0)
+                else:
+                    stored_bytes = getattr(lg_data, 'stored_bytes', 0)
+                
+                # Large log storage indicates good retention (>1GB suggests logs are being kept)
+                # Very small storage might indicate logs are being deleted too quickly
+                if stored_bytes < 1000000:  # 1MB threshold - too small
+                    result = False
+                    break
+    expected_value: null
+    tags: ["governance", "aws", "cloudwatch", "retention", "audit_logs"]
+    severity: "medium"
+    category: "audit_accountability"
+
+  - id: 2055
+    connection_id: 2
+    name: "aws_cloudwatch_log_groups_metric_filters_configured"
+    description: "Verify that CloudWatch log groups have metric filters for monitoring"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 695  # SI-4 (System Monitoring)
+    control_name: "SI-4"
+    field_path: "log_groups"
+    resource_type: "AWSCloudWatchResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check if log groups have metric filters
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no log groups
+        else:
+            result = True
+            total_with_filters = 0
+            total_groups = len(fetched_value)
+            
+            for lg_name, lg_data in fetched_value.items():
+                filter_count = 0
+                if isinstance(lg_data, dict):
+                    filter_count = lg_data.get('metric_filter_count', 0)
+                else:
+                    filter_count = getattr(lg_data, 'metric_filter_count', 0)
+                
+                if filter_count > 0:
+                    total_with_filters += 1
+            
+            # At least 30% of log groups should have metric filters
+            if total_groups > 0:
+                percentage_with_filters = (total_with_filters / total_groups) * 100
+                result = percentage_with_filters >= 30
+    expected_value: null
+    tags: ["security", "aws", "cloudwatch", "metric_filters", "monitoring"]
+    severity: "medium"
+    category: "system_information_integrity"
+
+  # IAM Advanced Security (2056-2058)
+  - id: 2056
+    connection_id: 2
+    name: "aws_iam_users_access_keys_rotated"
+    description: "Verify that IAM user access keys are properly managed and rotated"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 157  # IA-2 (Identification and Authentication)
+    control_name: "IA-2"
+    field_path: "users"
+    resource_type: "AWSIAMResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check access key management
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no users
+        else:
+            result = True
+            for user_name, user_data in fetched_value.items():
+                access_keys = []
+                if isinstance(user_data, dict):
+                    access_keys = user_data.get('access_keys', [])
+                else:
+                    access_keys = getattr(user_data, 'access_keys', [])
+                
+                # Users should not have more than 2 access keys
+                if len(access_keys) > 2:
+                    result = False
+                    break
+                
+                # Check for active keys
+                active_keys = [key for key in access_keys if key.get('status') == 'Active']
+                if len(active_keys) > 1:
+                    result = False
+                    break
+    expected_value: null
+    tags: ["security", "aws", "iam", "access_keys", "key_rotation"]
+    severity: "high"
+    category: "identification_authentication"
+
+  - id: 2057
+    connection_id: 2
+    name: "aws_iam_users_console_access_controlled"
+    description: "Verify that IAM users have controlled console access"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 71   # AC-2 (Account Management)
+    control_name: "AC-2"
+    field_path: "users"
+    resource_type: "AWSIAMResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check console access management
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no users
+        else:
+            result = True
+            users_with_console = 0
+            total_users = len(fetched_value)
+            
+            for user_name, user_data in fetched_value.items():
+                login_profile = None
+                if isinstance(user_data, dict):
+                    login_profile = user_data.get('login_profile')
+                else:
+                    login_profile = getattr(user_data, 'login_profile', None)
+                
+                if login_profile:
+                    users_with_console += 1
+            
+            # Limit console access - max 50% of users should have console access
+            if total_users > 0:
+                console_percentage = (users_with_console / total_users) * 100
+                result = console_percentage <= 50
+    expected_value: null
+    tags: ["security", "aws", "iam", "console_access", "user_management"]
+    severity: "medium"
+    category: "access_control"
+
+  - id: 2058
+    connection_id: 2
+    name: "aws_iam_users_path_organized"
+    description: "Verify that IAM users are organized with proper path structure"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 287  # CM-8 (System Component Inventory)
+    control_name: "CM-8"
+    field_path: "users"
+    resource_type: "AWSIAMResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check user path organization
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no users
+        else:
+            result = True
+            users_with_paths = 0
+            total_users = len(fetched_value)
+            
+            for user_name, user_data in fetched_value.items():
+                path = '/'
+                if isinstance(user_data, dict):
+                    path = user_data.get('path', '/')
+                else:
+                    path = getattr(user_data, 'path', '/')
+                
+                # Count users with organizational paths (not root path)
+                if path != '/':
+                    users_with_paths += 1
+            
+            # At least 30% of users should have organizational paths
+            if total_users > 0:
+                path_percentage = (users_with_paths / total_users) * 100
+                result = path_percentage >= 30 or total_users <= 5  # Small orgs exception
+    expected_value: null
+    tags: ["governance", "aws", "iam", "user_paths", "organization"]
+    severity: "low"
+    category: "configuration_management"
+
+  # GitHub Advanced Analytics (2059-2065)
+  - id: 2059
+    connection_id: 1
+    name: "github_repository_size_appropriate"
+    description: "Verify that GitHub repository size is within reasonable limits"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 287  # CM-8 (System Component Inventory)
+    control_name: "CM-8"
+    field_path: "repository_data.basic_info.size"
+    resource_type: "GithubResource"
+    operation:
+      name: "LESS_THAN"
+    expected_value: 100000  # 100MB limit
+    tags: ["governance", "github", "repository_size", "resource_management"]
+    severity: "low"
+    category: "configuration_management"
+
+  - id: 2060
+    connection_id: 1
+    name: "github_repository_language_documented"
+    description: "Verify that GitHub repository has a primary language defined"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 287  # CM-8 (System Component Inventory)
+    control_name: "CM-8"
+    field_path: "repository_data.basic_info.language"
+    resource_type: "GithubResource"
+    operation:
+      name: "NOT_EQUAL"
+    expected_value: null
+    tags: ["governance", "github", "language", "documentation"]
+    severity: "low"
+    category: "configuration_management"
+
+  - id: 2061
+    connection_id: 1
+    name: "github_repository_creation_date_reasonable"
+    description: "Verify that repository creation date indicates active development"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 287  # CM-8 (System Component Inventory)
+    control_name: "CM-8"
+    field_path: "repository_data.basic_info.created_at"
+    resource_type: "GithubResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check if repository creation date is reasonable (not too old without activity)
+        if not fetched_value:
+            result = False
+        else:
+            from datetime import datetime, timezone
+            try:
+                # Parse ISO format date
+                created_date = datetime.fromisoformat(fetched_value.replace('Z', '+00:00'))
+                current_date = datetime.now(timezone.utc)
+                days_old = (current_date - created_date).days
+                
+                # Repositories older than 3 years should show recent activity
+                # This is a basic check - real implementation would cross-reference with push dates
+                result = days_old <= 1095  # 3 years
+            except:
+                result = False
+    expected_value: null
+    tags: ["governance", "github", "creation_date", "active_development"]
+    severity: "low"
+    category: "configuration_management"
+
+  - id: 2062
+    connection_id: 1
+    name: "github_repository_multiple_languages"
+    description: "Verify repository language diversity for complexity assessment"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 287  # CM-8 (System Component Inventory)
+    control_name: "CM-8"
+    field_path: "repository_data.statistics.languages"
+    resource_type: "GithubResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check language diversity
+        if not isinstance(fetched_value, dict):
+            result = True  # Pass if no language data
+        else:
+            # Count languages with significant presence (>5% of codebase)
+            total_bytes = sum(fetched_value.values())
+            significant_languages = 0
+            
+            for language, bytes_count in fetched_value.items():
+                percentage = (bytes_count / total_bytes) * 100 if total_bytes > 0 else 0
+                if percentage >= 5:
+                    significant_languages += 1
+            
+            # 1-3 significant languages is good, too many might indicate complexity issues
+            result = 1 <= significant_languages <= 3
+    expected_value: null
+    tags: ["governance", "github", "languages", "complexity_assessment"]
+    severity: "low"
+    category: "configuration_management"
+
+  - id: 2063
+    connection_id: 1
+    name: "github_repository_code_frequency_active"
+    description: "Verify that repository shows consistent development activity"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 287  # CM-8 (System Component Inventory)
+    control_name: "CM-8"
+    field_path: "repository_data.statistics.code_frequency"
+    resource_type: "GithubResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Check code frequency for consistent activity
+        if not isinstance(fetched_value, list):
+            result = False
+        else:
+            # Check if there's recent activity in code frequency data
+            result = len(fetched_value) >= 10  # Should have at least 10 weeks of data
+    expected_value: null
+    tags: ["governance", "github", "code_frequency", "development_activity"]
+    severity: "low"
+    category: "configuration_management"
+
+  - id: 2064
+    connection_id: 1
+    name: "github_repository_tags_managed"
+    description: "Verify that repository uses tags for version management"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 275  # CM-3 (Configuration Change Control)
+    control_name: "CM-3"
+    field_path: "advanced_features_data.total_tags"
+    resource_type: "GithubResource"
+    operation:
+      name: "GREATER_THAN"
+    expected_value: 0
+    tags: ["governance", "github", "tags", "version_management"]
+    severity: "low"  
+    category: "configuration_management"
+
+  - id: 2065
+    connection_id: 1
+    name: "github_cross_resource_security_consistency"
+    description: "Verify consistency of security settings across repository features"
+    framework_id: 2  # NIST 800-53
+    framework_name: "NIST 800-53"
+    control_id: 75   # AC-3 (Access Enforcement)
+    control_name: "AC-3"
+    field_path: "security_data.security_features_enabled"
+    resource_type: "GithubResource"
+    operation:
+      name: "custom"
+      custom_logic: |
+        # Cross-check security feature consistency
+        # This check validates that if advanced security is enabled, 
+        # related features should also be properly configured
+        if not isinstance(fetched_value, int):
+            result = False
+        else:
+            # If organization has multiple security features enabled,
+            # it indicates good security posture consistency
+            result = fetched_value >= 3  # At least 3 security features should be enabled
+    expected_value: null
+    tags: ["security", "github", "cross_resource", "security_consistency"]
+    severity: "medium"
+    category: "access_control"

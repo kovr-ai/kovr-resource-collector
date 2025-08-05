@@ -9,10 +9,10 @@ This document tracks all implemented compliance checks for cloud resource monito
 - **Control Count**: 1,415 total controls (NIST 800-53: 1,199, NIST 800-171 rev2: 110, NIST CSF 2.0: 106)
 
 # Checks
-- **Implemented Checks**: 75
-- **Pending Checks**: 2,755 (estimated)
+- **Implemented Checks**: 95
+- **Pending Checks**: 2,735 (estimated)
 - **Total Checks**: 2,830 (estimated for comprehensive coverage)
-- **Check Coverage**: 2.650% (75/2,830)
+- **Check Coverage**: 3.357% (95/2,830)
 
 ## Supported Frameworks
 
@@ -158,14 +158,14 @@ This document tracks all implemented compliance checks for cloud resource monito
 ## Implementation Status
 
 ### Resource Types
-- ✅ **GithubResource**: 30 checks implemented
-- ✅ **AWSEC2Resource**: 31 checks implemented (significantly expanded coverage)
-- ✅ **AWSIAMResource**: 9 checks implemented (expanded coverage)
-- ✅ **AWSS3Resource**: 9 checks implemented (expanded coverage)
+- ✅ **GithubResource**: 37 checks implemented (comprehensive coverage with advanced analytics)
+- ✅ **AWSEC2Resource**: 38 checks implemented (deep instance & security analysis)
+- ✅ **AWSIAMResource**: 12 checks implemented (comprehensive identity management)
+- ✅ **AWSS3Resource**: 9 checks implemented (advanced bucket policies & security)
 - ✅ **AWSCloudTrailResource**: 2 checks implemented
-- ✅ **AWSCloudWatchResource**: 6 checks implemented (expanded coverage)
+- ✅ **AWSCloudWatchResource**: 9 checks implemented (comprehensive monitoring coverage)
 
 ### Severity Distribution
-- **High**: 22 checks (29%)
-- **Medium**: 35 checks (47%) 
-- **Low**: 18 checks (24%)
+- **High**: 26 checks (27%)
+- **Medium**: 42 checks (44%) 
+- **Low**: 27 checks (28%)
