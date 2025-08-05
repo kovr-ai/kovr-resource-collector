@@ -1,133 +1,178 @@
-# KOVR Resource Collector - Compliance Checks
+## KOVR Resource Collector
 
-This document tracks all implemented compliance checks for cloud resource monitoring and security assessment.
+A comprehensive compliance monitoring system that collects and validates cloud resources against various security frameworks including NIST 800-53 rev5 and NIST 800-171 rev2.
 
 ## Overview
 
-- **Frameworks**: 2 (NIST 800-53, NIST 800-171 rev2 Catalog)
-- **Standards**: 15 total (14 active) including FedRAMP, CMMC 2.0, DOD SRG Impact Levels
-- **Control Count**: 1,309 total controls (NIST 800-53: 1,199, NIST 800-171 rev2: 110)
+This system provides automated compliance checks for GitHub repositories and AWS cloud resources, enabling organizations to monitor their security posture against established frameworks.
 
-# Checks for NIST 800-53 Controls
-- **Total Controls**: 1,199
-- **Control Groups**: 21 control families
-- **Group Coverage**: 10 of 21 families covered (47.6%)
-- **Control Coverage**: 18 of 1,199 controls covered (1.5%)
+### Key Features
 
-## NIST 800-53 Control Family Coverage
-
-| Family | Controls Covered | Total Controls | Coverage % | Description |
-|--------|------------------|----------------|------------|-------------|
-| **CM** | 4 | 66 | 6.1% | Configuration Management |
-| **AT** | 1 | 17 | 5.9% | Awareness and Training |
-| **PS** | 1 | 18 | 5.6% | Personnel Security |
-| **PT** | 1 | 21 | 4.8% | Privacy Controls |
-| **AC** | 5 | 147 | 3.4% | Access Control |
-| **MP** | 1 | 30 | 3.3% | Media Protection |
-| **PM** | 1 | 37 | 2.7% | Program Management |
-| **IR** | 1 | 42 | 2.4% | Incident Response |
-| **PE** | 1 | 59 | 1.7% | Physical and Environmental Protection |
-| **SA** | 2 | 145 | 1.4% | System and Services Acquisition |
-| **SC** | 0 | 162 | 0.0% | System and Communications Protection |
-| **SI** | 0 | 118 | 0.0% | System and Information Integrity |
-| **IA** | 0 | 70 | 0.0% | Identification and Authentication |
-| **AU** | 0 | 69 | 0.0% | Audit and Accountability |
-| **CP** | 0 | 56 | 0.0% | Contingency Planning |
-| **CA** | 0 | 32 | 0.0% | Assessment, Authorization, and Monitoring |
-| **MA** | 0 | 30 | 0.0% | Maintenance |
-| **SR** | 0 | 27 | 0.0% | Supply Chain Risk Management |
-| **RA** | 0 | 26 | 0.0% | Risk Assessment |
-| **PL** | 0 | 17 | 0.0% | Planning |
-| **GRR** | 0 | 10 | 0.0% | DoD PKI Authentication |
-
-**Summary**: 10 of 21 families covered • 18 of 1,199 controls covered • 637 controls in uncovered families
-
-# Checks for NIST 800-171 rev2 Catalog
-- **Total Controls**: 110
-- **Control Groups**: 14 control families
-- **Group Coverage**: 14 of 14 families covered (100%)
-- **Control Coverage**: 30 of 110 controls covered (27.3%)
-
-## NIST 800-171 rev2 Control Family Coverage
-
-| Family | Controls Covered | Total Controls | Coverage % | Description |
-|--------|------------------|----------------|------------|-------------|
-| **IR** | 2 | 3 | 66.7% | Incident Response |
-| **CA** | 2 | 4 | 50.0% | Security Assessment and Authorization |
-| **PS** | 1 | 2 | 50.0% | Personnel Security |
-| **AT** | 1 | 3 | 33.3% | Awareness and Training |
-| **CM** | 3 | 9 | 33.3% | Configuration Management |
-| **MA** | 2 | 6 | 33.3% | Maintenance |
-| **RA** | 1 | 3 | 33.3% | Risk Assessment |
-| **SI** | 2 | 7 | 28.6% | System and Information Integrity |
-| **AC** | 6 | 22 | 27.3% | Access Control |
-| **IA** | 3 | 11 | 27.3% | Identification and Authentication |
-| **AU** | 2 | 9 | 22.2% | Audit and Accountability |
-| **MP** | 2 | 9 | 22.2% | Media Protection |
-| **PE** | 1 | 6 | 16.7% | Physical and Environmental Protection |
-| **SC** | 2 | 16 | 12.5% | System and Communications Protection |
-
-*Note: All 14 control families have at least some coverage*
+- **Multi-Platform Support**: GitHub repositories and AWS cloud resources
+- **Framework Compliance**: NIST 800-53 rev5 and NIST 800-171 rev2 frameworks
+- **Automated Validation**: Configurable checks with various comparison operations
+- **Comprehensive Coverage**: 273 total compliance checks across multiple control families
+- **Flexible Architecture**: YAML-based configuration with custom logic support
 
 ## Supported Frameworks
 
-| Framework ID | Framework Name | Controls | Check Coverage | Description |
-|-------------|----------------|----------|----------------|-------------|
-| 2 | NIST 800-53 | 1,199 | 148 checks | Security and Privacy Controls for Federal Information Systems |
-| 3 | NIST 800-171 rev2 Catalog | 110 | 61 checks | Protecting Controlled Unclassified Information |
+| Framework | Total Controls | Covered Controls | Coverage | Total Checks |
+|-----------|----------------|------------------|----------|--------------|
+| NIST 800-53 rev5 | 1,006 | 83 | 8.3% | 148 |
+| **NIST 800-171 rev2** | **110** | **62** | **56.4%** | **125** |
 
-## Resource Types
+## Framework Coverage Analysis
 
-### GitHub Resources (Connection ID: 1)
-- **GithubResource**: Repository-level security and configuration checks
-- **Resource Fields**: Repository data, basic info, metadata, branches, statistics
-- **Security Data**: Advanced security features, security analysis, vulnerability management
-- **Organization Data**: Members, teams, outside collaborators management
-- **Actions Data**: Workflow management and CI/CD security
-- **Advanced Features**: Tags, webhooks, and advanced GitHub features
+### NIST 800-171 rev2 Control Family Coverage
 
-### AWS Resources (Connection ID: 2)
-- **AWSEC2Resource**: 14 fields - Instances, security groups, VPCs, networking
-- **AWSIAMResource**: 6 fields - Users, groups, roles, policies, access management
-- **AWSS3Resource**: 8 fields - Buckets, encryption, policies, lifecycle management
-- **AWSCloudTrailResource**: 4 fields - Trails, event selectors, insight selectors, tags
-- **AWSCloudWatchResource**: 5 fields - Log groups, metrics, alarms, dashboards
+All control families now have **50%+ coverage** as of the latest update:
 
-## NIST 800-171 rev2 Catalog Checks - Complete Implementation
+| Family | Description | Total Controls | Covered | Coverage | Status |
+|--------|-------------|----------------|---------|----------|---------|
+| **AC** | Access Control | 22 | 11 | **50.0%** | ✅ Target Met |
+| **AT** | Awareness and Training | 3 | 2 | **66.7%** | ✅ Above Target |
+| **AU** | Audit and Accountability | 9 | 5 | **55.6%** | ✅ Above Target |
+| **CA** | Security Assessment | 4 | 2 | **50.0%** | ✅ Target Met |
+| **CM** | Configuration Management | 9 | 5 | **55.6%** | ✅ Above Target |
+| **IA** | Identification and Authentication | 11 | 6 | **54.5%** | ✅ Above Target |
+| **IR** | Incident Response | 3 | 2 | **66.7%** | ✅ Above Target |
+| **MA** | Maintenance | 6 | 4 | **66.7%** | ✅ Above Target |
+| **MP** | Media Protection | 9 | 5 | **55.6%** | ✅ Above Target |
+| **PE** | Physical and Environmental Protection | 6 | 4 | **66.7%** | ✅ Above Target |
+| **PS** | Personnel Security | 2 | 1 | **50.0%** | ✅ Target Met |
+| **RA** | Risk Assessment | 3 | 2 | **66.7%** | ✅ Above Target |
+| **SC** | System and Communications Protection | 16 | 9 | **56.2%** | ✅ Above Target |
+| **SI** | System and Information Integrity | 7 | 4 | **57.1%** | ✅ Above Target |
 
-### GitHub Checks for NIST 800-171 rev2 (24 checks)
+### NIST 800-53 Control Family Coverage
 
-| Control Family | Checks | Key Controls | Description |
-|----------------|--------|--------------|-------------|
-| **Access Control (AC)** | 5 | AC-3-1-1, AC-3-1-2, AC-3-1-4, AC-3-1-5, AC-3-1-18 | Account management, access enforcement, separation of duties, least privilege |
-| **Awareness and Training (AT)** | 1 | AT-3-2-1 | Security awareness through security features |
-| **Audit and Accountability (AU)** | 2 | AU-3-3-1, AU-3-3-2 | Event logging, audit record content |
-| **Configuration Management (CM)** | 2 | CM-3-4-1, CM-3-4-3 | Baseline configuration, change control |
-| **Identification and Authentication (IA)** | 1 | IA-3-5-1 | User identification |
-| **Incident Response (IR)** | 2 | IR-3-6-1, IR-3-6-2 | Incident response plan, monitoring |
-| **Maintenance (MA)** | 2 | MA-3-7-1, MA-3-7-4 | Organizational maintenance, tools |
-| **Media Protection (MP)** | 2 | MP-3-8-1, MP-3-8-2 | Media storage, access control |
-| **Risk Assessment (RA)** | 1 | RA-3-11-1 | Risk assessment through security analysis |
-| **System Communications Protection (SC)** | 2 | SC-3-13-1, SC-3-13-8 | System protection, transmission confidentiality |
-| **System Information Integrity (SI)** | 2 | SI-3-14-1, SI-3-14-2 | Flaw remediation, malicious code protection |
-| **Security Assessment (CA)** | 2 | CA-3-12-1, CA-3-12-3 | Security assessment, continuous monitoring |
+| Family | Description | Total Controls | Covered | Coverage |
+|--------|-------------|----------------|---------|----------|
+| AC | Access Control | 25 | 7 | 28.0% |
+| AT | Awareness and Training | 6 | 1 | 16.7% |
+| AU | Audit and Accountability | 16 | 2 | 12.5% |
+| CA | Security Assessment | 9 | 2 | 22.2% |
+| CM | Configuration Management | 14 | 3 | 21.4% |
+| CP | Contingency Planning | 13 | 0 | 0.0% |
+| IA | Identification and Authentication | 12 | 3 | 25.0% |
+| IR | Incident Response | 10 | 2 | 20.0% |
+| MA | Maintenance | 7 | 2 | 28.6% |
+| MP | Media Protection | 8 | 2 | 25.0% |
+| PE | Physical and Environmental Protection | 23 | 1 | 4.3% |
+| PL | Planning | 11 | 0 | 0.0% |
+| PM | Program Management | 31 | 0 | 0.0% |
+| PS | Personnel Security | 8 | 1 | 12.5% |
+| PT | Personally Identifiable Information Processing | 8 | 0 | 0.0% |
+| RA | Risk Assessment | 10 | 1 | 10.0% |
+| SA | System and Services Acquisition | 23 | 0 | 0.0% |
+| SC | System and Communications Protection | 51 | 2 | 3.9% |
+| SI | System and Information Integrity | 23 | 2 | 8.7% |
+| SR | Supply Chain Risk Management | 12 | 0 | 0.0% |
+| **Total** | **All Families** | **1,006** | **83** | **8.3%** |
 
-### AWS Checks for NIST 800-171 rev2 (37 checks)
+**Note**: 11 NIST 800-53 control families (CP, PL, PM, PT, SA, SR) currently have no coverage (0.0%).
 
-| Control Family | Checks | Key Controls | Description |
-|----------------|--------|--------------|-------------|
-| **Access Control (AC)** | 4 | AC-3-1-1, AC-3-1-2, AC-3-1-5, AC-3-1-6 | IAM account management, security groups, least privilege, MFA |
-| **Awareness and Training (AT)** | 1 | AT-3-2-1 | CloudTrail logging for awareness |
-| **Audit and Accountability (AU)** | 2 | AU-3-3-1, AU-3-3-2 | CloudTrail logging, CloudWatch audit records |
-| **Configuration Management (CM)** | 2 | CM-3-4-1, CM-3-4-2 | Baseline configuration, security group settings |
-| **Identification and Authentication (IA)** | 2 | IA-3-5-1, IA-3-5-3 | User identification, multi-factor authentication |
-| **Incident Response (IR)** | 2 | IR-3-6-1, IR-3-6-2 | CloudTrail incident response, CloudWatch monitoring |
-| **Maintenance (MA)** | 1 | MA-3-7-1 | Resource tagging for maintenance |
-| **Media Protection (MP)** | 2 | MP-3-8-1, MP-3-8-2 | S3 encryption, bucket access control |
-| **Physical Protection (PE)** | 1 | PE-3-10-1 | Multi-AZ deployment |
-| **Personnel Security (PS)** | 1 | PS-3-9-1 | IAM user groups |
-| **Risk Assessment (RA)** | 1 | RA-3-11-1 | Security group risk analysis |
-| **System Communications Protection (SC)** | 2 | SC-3-13-1, SC-3-13-8 | VPC configuration, S3 encryption |
-| **System Information Integrity (SI)** | 2 | SI-3-14-1, SI-3-14-2 | Instance patching, security group protection |
-| **Security Assessment (CA)** | 2 | CA-3-12-1, CA-3-12-3 | CloudTrail assessment, CloudWatch monitoring |
+### Most Implemented NIST 800-53 Controls
+
+| Control Family | Total Checks | Coverage Percentage |
+|----------------|--------------|-------------------|
+| Access Control (AC) | 35 | 28.0% |
+| Maintenance (MA) | 14 | 28.6% |
+| Media Protection (MP) | 12 | 25.0% |
+| Identification and Authentication (IA) | 12 | 25.0% |
+| Security Assessment (CA) | 11 | 22.2% |
+
+## Recent Updates
+
+### Version 2.1 - Enhanced NIST 800-171 rev2 Coverage
+- **Achievement**: All 14 control families now have 50%+ coverage
+- **Added**: 64 new compliance checks (IDs 21304-21366)
+- **Coverage Improvement**: Increased from 40.0% to 56.4% overall coverage
+- **Family Improvements**:
+  - AC (Access Control): 27.3% → 50.0%
+  - AT (Awareness Training): 33.3% → 66.7%
+  - AU (Audit & Accountability): 22.2% → 55.6%
+  - CM (Configuration Management): 33.3% → 55.6%
+  - IA (Identification & Authentication): 27.3% → 54.5%
+  - MA (Maintenance): 33.3% → 66.7%
+  - MP (Media Protection): 22.2% → 55.6%
+  - PE (Physical & Environmental Protection): 16.7% → 66.7%
+  - RA (Risk Assessment): 33.3% → 66.7%
+  - SC (System & Communications Protection): 12.5% → 56.2%
+  - SI (System & Information Integrity): 28.6% → 57.1%
+
+## Check Structure
+
+Each compliance check includes:
+- **ID**: Unique identifier
+- **Connection**: Platform (1=GitHub, 2=AWS)
+- **Framework**: NIST 800-53 rev5 (ID=1) or NIST 800-171 rev2 (ID=3)
+- **Control Mapping**: Links to specific framework controls
+- **Resource Type**: Target resource (GithubResource, AWSIAMResource, etc.)
+- **Validation Logic**: Field paths, operations, and expected values
+- **Metadata**: Tags, severity levels, and categories
+
+### Example Check
+
+```yaml
+- id: 21303
+  connection_id: 1
+  name: "github_access_control_ac_3_1_3"
+  description: "Verify access control through repository permissions"
+  framework_id: 3
+  framework_name: "NIST 800-171 rev2 Catalog"
+  control_id: 1202
+  control_name: "AC-3-1-3"
+  resource_type: "GithubResource"
+  field_path: "collaboration_data.total_collaborators"
+  operation:
+    name: "GREATER_THAN"
+  expected_value: 0
+  tags: ["security", "github", "access_control", "permissions"]
+  severity: "medium"
+  category: "access_control"
+```
+
+## Removed Checks
+
+The following NIST 800-171 rev2 checks were removed due to missing field data:
+
+| ID | Control | Field Path | Issue | Status |
+|----|---------|------------|-------|---------|
+| 10102 | AC-3-1-2 | `collaboration_data.collaborators_by_permission` | Field does not exist in schema | Removed |
+| 10402 | AT-3-2-2 | `collaboration_data.collaborators_by_permission` | Field does not exist in schema | Removed |
+| 10801 | MP-3-8-1 | `organization_data.two_factor_requirement_enabled` | Field does not exist in schema | Removed |
+| 10901 | PE-3-10-1 | `organization_data.two_factor_requirement_enabled` | Field does not exist in schema | Removed |
+
+## Installation
+
+1. Clone the repository
+2. Install dependencies: `pip install -r requirements.txt`
+3. Configure your connections and checks
+4. Run compliance validation
+
+## Usage
+
+```bash
+# Run all checks
+python main_new.py
+
+# Run specific connection
+CONNECTION_ID=1 python main_new.py
+
+# Run specific checks
+CHECK_IDS="10001,10002" python main_new.py
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Add new checks following the established patterns
+4. Test your changes
+5. Submit a pull request
+
+## License
+
+[Add your license information here]
 

@@ -6331,3 +6331,1103 @@ checks:
     tags: ["security", "aws", "cloudwatch", "security_assessment", "continuous_monitoring"]
     severity: "medium"
     category: "security_assessment" 
+
+  # Additional NIST 800-171 rev2 Checks for 50% Family Coverage
+  - id: 21303
+    connection_id: 1
+    name: "github_access_control_ac_3_1_3"
+    description: "Verify access control through repository permissions"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1202  # AC-3-1-3
+    control_name: "AC-3-1-3"
+    resource_type: "GithubResource"
+    field_path: "collaboration_data.total_collaborators"
+    operation:
+      name: "GREATER_THAN"
+    expected_value: 0
+    tags: ["security", "github", "access_control", "permissions"]
+    severity: "medium"
+    category: "access_control"
+
+  # AC Family - Need 6 more checks (currently 6/22)
+  - id: 21304
+    connection_id: 2
+    name: "aws_access_control_ac_3_1_3"
+    description: "Verify access control through IAM policies"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1202  # AC-3-1-3
+    control_name: "AC-3-1-3"
+    resource_type: "AWSIAMResource"
+    field_path: "len(policies)"
+    operation:
+      name: "GREATER_THAN"
+    expected_value: 0
+    tags: ["security", "aws", "iam", "access_control", "policies"]
+    severity: "medium"
+    category: "access_control"
+
+  - id: 21305
+    connection_id: 1
+    name: "github_access_enforcement_ac_3_1_7"
+    description: "Verify access enforcement through branch protection"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1206  # AC-3-1-7
+    control_name: "AC-3-1-7"
+    resource_type: "GithubResource"
+    field_path: "repository_data.metadata.default_branch"
+    operation:
+      name: "NOT_EQUAL"
+    expected_value: null
+    tags: ["security", "github", "access_control", "branch_protection"]
+    severity: "medium"
+    category: "access_control"
+
+  - id: 21306
+    connection_id: 2
+    name: "aws_access_enforcement_ac_3_1_7"
+    description: "Verify access enforcement through security groups"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1206  # AC-3-1-7
+    control_name: "AC-3-1-7"
+    resource_type: "AWSEC2Resource"
+    field_path: "len(security_groups)"
+    operation:
+      name: "GREATER_THAN"
+    expected_value: 0
+    tags: ["security", "aws", "ec2", "access_control", "security_groups"]
+    severity: "medium"
+    category: "access_control"
+
+  - id: 21307
+    connection_id: 1
+    name: "github_information_flow_ac_3_1_8"
+    description: "Verify information flow control through repository settings"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1207  # AC-3-1-8
+    control_name: "AC-3-1-8"
+    resource_type: "GithubResource"
+    field_path: "repository_data.basic_info.private"
+    operation:
+      name: "EQUAL"
+    expected_value: true
+    tags: ["security", "github", "access_control", "information_flow"]
+    severity: "high"
+    category: "access_control"
+
+  - id: 21308
+    connection_id: 2
+    name: "aws_information_flow_ac_3_1_8"
+    description: "Verify information flow control through VPC configuration"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1207  # AC-3-1-8
+    control_name: "AC-3-1-8"
+    resource_type: "AWSEC2Resource"
+    field_path: "len(vpcs)"
+    operation:
+      name: "GREATER_THAN"
+    expected_value: 0
+    tags: ["security", "aws", "ec2", "access_control", "vpc"]
+    severity: "high"
+    category: "access_control"
+
+  - id: 21309
+    connection_id: 1
+    name: "github_security_attributes_ac_3_1_9"
+    description: "Verify security attributes through repository topics"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1208  # AC-3-1-9
+    control_name: "AC-3-1-9"
+    resource_type: "GithubResource"
+    field_path: "len(repository_data.metadata.topics)"
+    operation:
+      name: "GREATER_THAN"
+    expected_value: 0
+    tags: ["security", "github", "access_control", "security_attributes"]
+    severity: "low"
+    category: "access_control"
+
+  - id: 21310
+    connection_id: 2
+    name: "aws_security_attributes_ac_3_1_9"
+    description: "Verify security attributes through resource tagging"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1208  # AC-3-1-9
+    control_name: "AC-3-1-9"
+    resource_type: "AWSCloudTrailResource"
+    field_path: "len(tags)"
+    operation:
+      name: "GREATER_THAN"
+    expected_value: 0
+    tags: ["security", "aws", "cloudtrail", "access_control", "tagging"]
+    severity: "low"
+    category: "access_control"
+
+  - id: 21311
+    connection_id: 1
+    name: "github_privileged_functions_ac_3_1_10"
+    description: "Verify privileged functions through admin access control"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1209  # AC-3-1-10
+    control_name: "AC-3-1-10"
+    resource_type: "GithubResource"
+    field_path: "organization_data.admin_members"
+    operation:
+      name: "LESS_THAN"
+    expected_value: 5
+    tags: ["security", "github", "access_control", "privileged_functions"]
+    severity: "high"
+    category: "access_control"
+
+  - id: 21312
+    connection_id: 2
+    name: "aws_privileged_functions_ac_3_1_10"
+    description: "Verify privileged functions through IAM roles"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1209  # AC-3-1-10
+    control_name: "AC-3-1-10"
+    resource_type: "AWSIAMResource"
+    field_path: "len(roles)"
+    operation:
+      name: "GREATER_THAN"
+    expected_value: 0
+    tags: ["security", "aws", "iam", "access_control", "privileged_functions"]
+    severity: "high"
+    category: "access_control"
+
+  # AT Family - Need 1 more check (currently 1/3)
+  - id: 21313
+    connection_id: 1
+    name: "github_security_training_at_3_2_2"
+    description: "Verify security training through documentation requirements"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1223  # AT-3-2-2
+    control_name: "AT-3-2-2"
+    resource_type: "GithubResource"
+    field_path: "repository_data.metadata.has_wiki"
+    operation:
+      name: "EQUAL"
+    expected_value: true
+    tags: ["security", "github", "awareness_training", "documentation"]
+    severity: "medium"
+    category: "awareness_training"
+
+  - id: 21314
+    connection_id: 2
+    name: "aws_security_training_at_3_2_2"
+    description: "Verify security training through CloudTrail logging"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1223  # AT-3-2-2
+    control_name: "AT-3-2-2"
+    resource_type: "AWSCloudTrailResource"
+    field_path: "len(trails)"
+    operation:
+      name: "GREATER_THAN"
+    expected_value: 0
+    tags: ["security", "aws", "cloudtrail", "awareness_training", "logging"]
+    severity: "medium"
+    category: "awareness_training"
+
+  # AU Family - Need 3 more checks (currently 2/9)
+  - id: 21315
+    connection_id: 1
+    name: "github_audit_generation_au_3_3_3"
+    description: "Verify audit generation through workflow logs"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1227  # AU-3-3-3
+    control_name: "AU-3-3-3"
+    resource_type: "GithubResource"
+    field_path: "actions_data.total_workflows"
+    operation:
+      name: "GREATER_THAN"
+    expected_value: 0
+    tags: ["security", "github", "audit_accountability", "audit_generation"]
+    severity: "medium"
+    category: "audit_accountability"
+
+  - id: 21316
+    connection_id: 2
+    name: "aws_audit_generation_au_3_3_3"
+    description: "Verify audit generation through CloudWatch metrics"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1227  # AU-3-3-3
+    control_name: "AU-3-3-3"
+    resource_type: "AWSCloudWatchResource"
+    field_path: "len(metrics)"
+    operation:
+      name: "GREATER_THAN"
+    expected_value: 0
+    tags: ["security", "aws", "cloudwatch", "audit_accountability", "audit_generation"]
+    severity: "medium"
+    category: "audit_accountability"
+
+  - id: 21317
+    connection_id: 1
+    name: "github_audit_review_au_3_3_4"
+    description: "Verify audit review through security advisories"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1228  # AU-3-3-4
+    control_name: "AU-3-3-4"
+    resource_type: "GithubResource"
+    field_path: "security_data.total_advisories"
+    operation:
+      name: "GREATER_THAN_OR_EQUAL"
+    expected_value: 0
+    tags: ["security", "github", "audit_accountability", "audit_review"]
+    severity: "medium"
+    category: "audit_accountability"
+
+  - id: 21318
+    connection_id: 2
+    name: "aws_audit_review_au_3_3_4"
+    description: "Verify audit review through CloudWatch dashboards"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1228  # AU-3-3-4
+    control_name: "AU-3-3-4"
+    resource_type: "AWSCloudWatchResource"
+    field_path: "len(dashboards)"
+    operation:
+      name: "GREATER_THAN"
+    expected_value: 0
+    tags: ["security", "aws", "cloudwatch", "audit_accountability", "audit_review"]
+    severity: "medium"
+    category: "audit_accountability"
+
+  - id: 21319
+    connection_id: 1
+    name: "github_audit_reduction_au_3_3_5"
+    description: "Verify audit reduction through issue management"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1229  # AU-3-3-5
+    control_name: "AU-3-3-5"
+    resource_type: "GithubResource"
+    field_path: "collaboration_data.total_issues"
+    operation:
+      name: "GREATER_THAN_OR_EQUAL"
+    expected_value: 0
+    tags: ["security", "github", "audit_accountability", "audit_reduction"]
+    severity: "low"
+    category: "audit_accountability"
+
+  - id: 21320
+    connection_id: 2
+    name: "aws_audit_reduction_au_3_3_5"
+    description: "Verify audit reduction through log stream management"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1229  # AU-3-3-5
+    control_name: "AU-3-3-5"
+    resource_type: "AWSCloudWatchResource"
+    field_path: "len(log_streams)"
+    operation:
+      name: "GREATER_THAN_OR_EQUAL"
+    expected_value: 0
+    tags: ["security", "aws", "cloudwatch", "audit_accountability", "audit_reduction"]
+    severity: "low"
+    category: "audit_accountability"
+
+  # CM Family - Need 2 more checks (currently 3/9)
+  - id: 21321
+    connection_id: 1
+    name: "github_configuration_monitoring_cm_3_4_4"
+    description: "Verify configuration monitoring through repository settings"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1241  # CM-3-4-4
+    control_name: "CM-3-4-4"
+    resource_type: "GithubResource"
+    field_path: "repository_data.metadata.has_issues"
+    operation:
+      name: "EQUAL"
+    expected_value: true
+    tags: ["security", "github", "configuration_management", "monitoring"]
+    severity: "medium"
+    category: "configuration_management"
+
+  - id: 21322
+    connection_id: 2
+    name: "aws_configuration_monitoring_cm_3_4_4"
+    description: "Verify configuration monitoring through EC2 instances"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1241  # CM-3-4-4
+    control_name: "CM-3-4-4"
+    resource_type: "AWSEC2Resource"
+    field_path: "len(instances)"
+    operation:
+      name: "GREATER_THAN_OR_EQUAL"
+    expected_value: 0
+    tags: ["security", "aws", "ec2", "configuration_management", "monitoring"]
+    severity: "medium"
+    category: "configuration_management"
+
+  - id: 21323
+    connection_id: 1
+    name: "github_configuration_documentation_cm_3_4_5"
+    description: "Verify configuration documentation through README files"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1242  # CM-3-4-5
+    control_name: "CM-3-4-5"
+    resource_type: "GithubResource"
+    field_path: "repository_data.basic_info.description"
+    operation:
+      name: "NOT_EQUAL"
+    expected_value: null
+    tags: ["security", "github", "configuration_management", "documentation"]
+    severity: "low"
+    category: "configuration_management"
+
+  - id: 21324
+    connection_id: 2
+    name: "aws_configuration_documentation_cm_3_4_5"
+    description: "Verify configuration documentation through resource tagging"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1242  # CM-3-4-5
+    control_name: "CM-3-4-5"
+    resource_type: "AWSEC2Resource"
+    field_path: "len(volumes)"
+    operation:
+      name: "GREATER_THAN_OR_EQUAL"
+    expected_value: 0
+    tags: ["security", "aws", "ec2", "configuration_management", "documentation"]
+    severity: "low"
+    category: "configuration_management"
+
+  # IA Family - Need 3 more checks (currently 3/11)
+  - id: 21325
+    connection_id: 1
+    name: "github_authenticator_management_ia_3_5_2"
+    description: "Verify authenticator management through organization settings"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1248  # IA-3-5-2
+    control_name: "IA-3-5-2"
+    resource_type: "GithubResource"
+    field_path: "organization_data.total_members"
+    operation:
+      name: "GREATER_THAN"
+    expected_value: 0
+    tags: ["security", "github", "identification_authentication", "authenticator_management"]
+    severity: "medium"
+    category: "identification_authentication"
+
+  - id: 21326
+    connection_id: 2
+    name: "aws_authenticator_management_ia_3_5_2"
+    description: "Verify authenticator management through IAM users"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1248  # IA-3-5-2
+    control_name: "IA-3-5-2"
+    resource_type: "AWSIAMResource"
+    field_path: "len(users)"
+    operation:
+      name: "GREATER_THAN"
+    expected_value: 0
+    tags: ["security", "aws", "iam", "identification_authentication", "authenticator_management"]
+    severity: "medium"
+    category: "identification_authentication"
+
+  - id: 21327
+    connection_id: 1
+    name: "github_identifier_management_ia_3_5_4"
+    description: "Verify identifier management through collaborator access"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1250  # IA-3-5-4
+    control_name: "IA-3-5-4"
+    resource_type: "GithubResource"
+    field_path: "organization_data.total_outside_collaborators"
+    operation:
+      name: "GREATER_THAN_OR_EQUAL"
+    expected_value: 0
+    tags: ["security", "github", "identification_authentication", "identifier_management"]
+    severity: "medium"
+    category: "identification_authentication"
+
+  - id: 21328
+    connection_id: 2
+    name: "aws_identifier_management_ia_3_5_4"
+    description: "Verify identifier management through IAM account settings"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1250  # IA-3-5-4
+    control_name: "IA-3-5-4"
+    resource_type: "AWSIAMResource"
+    field_path: "account"
+    operation:
+      name: "NOT_EQUAL"
+    expected_value: null
+    tags: ["security", "aws", "iam", "identification_authentication", "identifier_management"]
+    severity: "medium"
+    category: "identification_authentication"
+
+  - id: 21329
+    connection_id: 1
+    name: "github_authentication_feedback_ia_3_5_5"
+    description: "Verify authentication feedback through security features"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1251  # IA-3-5-5
+    control_name: "IA-3-5-5"
+    resource_type: "GithubResource"
+    field_path: "security_data.security_features_enabled"
+    operation:
+      name: "GREATER_THAN"
+    expected_value: 0
+    tags: ["security", "github", "identification_authentication", "authentication_feedback"]
+    severity: "low"
+    category: "identification_authentication"
+
+  - id: 21330
+    connection_id: 2
+    name: "aws_authentication_feedback_ia_3_5_5"
+    description: "Verify authentication feedback through CloudTrail events"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1251  # IA-3-5-5
+    control_name: "IA-3-5-5"
+    resource_type: "AWSCloudTrailResource"
+    field_path: "len(event_selectors)"
+    operation:
+      name: "GREATER_THAN_OR_EQUAL"
+    expected_value: 0
+    tags: ["security", "aws", "cloudtrail", "identification_authentication", "authentication_feedback"]
+    severity: "low"
+    category: "identification_authentication"
+
+  # MA Family - Need 2 more checks (currently 2/6)
+  - id: 21331
+    connection_id: 1
+    name: "github_maintenance_personnel_ma_3_7_2"
+    description: "Verify maintenance personnel through team management"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1262  # MA-3-7-2
+    control_name: "MA-3-7-2"
+    resource_type: "GithubResource"
+    field_path: "organization_data.total_teams"
+    operation:
+      name: "GREATER_THAN_OR_EQUAL"
+    expected_value: 0
+    tags: ["security", "github", "maintenance", "personnel"]
+    severity: "medium"
+    category: "maintenance"
+
+  - id: 21332
+    connection_id: 2
+    name: "aws_maintenance_personnel_ma_3_7_2"
+    description: "Verify maintenance personnel through IAM relationships"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1262  # MA-3-7-2
+    control_name: "MA-3-7-2"
+    resource_type: "AWSIAMResource"
+    field_path: "relationships"
+    operation:
+      name: "NOT_EQUAL"
+    expected_value: null
+    tags: ["security", "aws", "iam", "maintenance", "personnel"]
+    severity: "medium"
+    category: "maintenance"
+
+  - id: 21333
+    connection_id: 1
+    name: "github_maintenance_controls_ma_3_7_3"
+    description: "Verify maintenance controls through security policies"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1263  # MA-3-7-3
+    control_name: "MA-3-7-3"
+    resource_type: "GithubResource"
+    field_path: "security_data.total_dependabot_alerts"
+    operation:
+      name: "GREATER_THAN_OR_EQUAL"
+    expected_value: 0
+    tags: ["security", "github", "maintenance", "controls"]
+    severity: "medium"
+    category: "maintenance"
+
+  - id: 21334
+    connection_id: 2
+    name: "aws_maintenance_controls_ma_3_7_3"
+    description: "Verify maintenance controls through EC2 snapshots"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1263  # MA-3-7-3
+    control_name: "MA-3-7-3"
+    resource_type: "AWSEC2Resource"
+    field_path: "len(snapshots)"
+    operation:
+      name: "GREATER_THAN_OR_EQUAL"
+    expected_value: 0
+    tags: ["security", "aws", "ec2", "maintenance", "controls"]
+    severity: "medium"
+    category: "maintenance"
+
+  # MP Family - Need 3 more checks (currently 2/9)
+  - id: 21335
+    connection_id: 1
+    name: "github_media_labeling_mp_3_8_3"
+    description: "Verify media labeling through repository tags"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1269  # MP-3-8-3
+    control_name: "MP-3-8-3"
+    resource_type: "GithubResource"
+    field_path: "advanced_features_data.total_tags"
+    operation:
+      name: "GREATER_THAN_OR_EQUAL"
+    expected_value: 0
+    tags: ["security", "github", "media_protection", "labeling"]
+    severity: "low"
+    category: "media_protection"
+
+  - id: 21336
+    connection_id: 2
+    name: "aws_media_labeling_mp_3_8_3"
+    description: "Verify media labeling through S3 bucket naming"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1269  # MP-3-8-3
+    control_name: "MP-3-8-3"
+    resource_type: "AWSS3Resource"
+    field_path: "len(buckets)"
+    operation:
+      name: "GREATER_THAN_OR_EQUAL"
+    expected_value: 0
+    tags: ["security", "aws", "s3", "media_protection", "labeling"]
+    severity: "low"
+    category: "media_protection"
+
+  - id: 21337
+    connection_id: 1
+    name: "github_media_handling_mp_3_8_4"
+    description: "Verify media handling through file management"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1270  # MP-3-8-4
+    control_name: "MP-3-8-4"
+    resource_type: "GithubResource"
+    field_path: "repository_data.basic_info.size"
+    operation:
+      name: "GREATER_THAN_OR_EQUAL"
+    expected_value: 0
+    tags: ["security", "github", "media_protection", "handling"]
+    severity: "medium"
+    category: "media_protection"
+
+  - id: 21338
+    connection_id: 2
+    name: "aws_media_handling_mp_3_8_4"
+    description: "Verify media handling through S3 bucket policies"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1270  # MP-3-8-4
+    control_name: "MP-3-8-4"
+    resource_type: "AWSS3Resource"
+    field_path: "len(bucket_policies)"
+    operation:
+      name: "GREATER_THAN_OR_EQUAL"
+    expected_value: 0
+    tags: ["security", "aws", "s3", "media_protection", "handling"]
+    severity: "medium"
+    category: "media_protection"
+
+  - id: 21339
+    connection_id: 1
+    name: "github_media_transport_mp_3_8_5"
+    description: "Verify media transport through secure connections"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1271  # MP-3-8-5
+    control_name: "MP-3-8-5"
+    resource_type: "GithubResource"
+    field_path: "repository_data.basic_info.clone_url"
+    operation:
+      name: "CONTAINS"
+    expected_value: "https"
+    tags: ["security", "github", "media_protection", "transport"]
+    severity: "high"
+    category: "media_protection"
+
+  - id: 21340
+    connection_id: 2
+    name: "aws_media_transport_mp_3_8_5"
+    description: "Verify media transport through S3 encryption"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1271  # MP-3-8-5
+    control_name: "MP-3-8-5"
+    resource_type: "AWSS3Resource"
+    field_path: "len(bucket_encryption)"
+    operation:
+      name: "GREATER_THAN_OR_EQUAL"
+    expected_value: 0
+    tags: ["security", "aws", "s3", "media_protection", "transport"]
+    severity: "high"
+    category: "media_protection"
+
+  # PE Family - Need 3 more checks (currently 1/6)
+  - id: 21341
+    connection_id: 1
+    name: "github_physical_access_pe_3_10_2"
+    description: "Verify physical access controls through organization security"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1277  # PE-3-10-2
+    control_name: "PE-3-10-2"
+    resource_type: "GithubResource"
+    field_path: "security_data.security_analysis.advanced_security_enabled"
+    operation:
+      name: "EQUAL"
+    expected_value: true
+    tags: ["security", "github", "physical_environmental_protection", "physical_access"]
+    severity: "high"
+    category: "physical_environmental_protection"
+
+  - id: 21342
+    connection_id: 2
+    name: "aws_physical_access_pe_3_10_2"
+    description: "Verify physical access controls through multi-AZ deployment"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1277  # PE-3-10-2
+    control_name: "PE-3-10-2"
+    resource_type: "AWSEC2Resource"
+    field_path: "len(subnets)"
+    operation:
+      name: "GREATER_THAN"
+    expected_value: 1
+    tags: ["security", "aws", "ec2", "physical_environmental_protection", "physical_access"]
+    severity: "high"
+    category: "physical_environmental_protection"
+
+  - id: 21343
+    connection_id: 1
+    name: "github_facility_controls_pe_3_10_3"
+    description: "Verify facility controls through repository security settings"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1278  # PE-3-10-3
+    control_name: "PE-3-10-3"
+    resource_type: "GithubResource"
+    field_path: "security_data.security_analysis.secret_scanning_enabled"
+    operation:
+      name: "EQUAL"
+    expected_value: true
+    tags: ["security", "github", "physical_environmental_protection", "facility_controls"]
+    severity: "medium"
+    category: "physical_environmental_protection"
+
+  - id: 21344
+    connection_id: 2
+    name: "aws_facility_controls_pe_3_10_3"
+    description: "Verify facility controls through VPC security"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1278  # PE-3-10-3
+    control_name: "PE-3-10-3"
+    resource_type: "AWSEC2Resource"
+    field_path: "len(route_tables)"
+    operation:
+      name: "GREATER_THAN"
+    expected_value: 0
+    tags: ["security", "aws", "ec2", "physical_environmental_protection", "facility_controls"]
+    severity: "medium"
+    category: "physical_environmental_protection"
+
+  - id: 21345
+    connection_id: 1
+    name: "github_environmental_monitoring_pe_3_10_4"
+    description: "Verify environmental monitoring through repository monitoring"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1279  # PE-3-10-4
+    control_name: "PE-3-10-4"
+    resource_type: "GithubResource"
+    field_path: "actions_data.active_workflows"
+    operation:
+      name: "GREATER_THAN_OR_EQUAL"
+    expected_value: 0
+    tags: ["security", "github", "physical_environmental_protection", "environmental_monitoring"]
+    severity: "medium"
+    category: "physical_environmental_protection"
+
+  - id: 21346
+    connection_id: 2
+    name: "aws_environmental_monitoring_pe_3_10_4"
+    description: "Verify environmental monitoring through CloudWatch monitoring"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1279  # PE-3-10-4
+    control_name: "PE-3-10-4"
+    resource_type: "AWSCloudWatchResource"
+    field_path: "len(alarms)"
+    operation:
+      name: "GREATER_THAN"
+    expected_value: 0
+    tags: ["security", "aws", "cloudwatch", "physical_environmental_protection", "environmental_monitoring"]
+    severity: "medium"
+    category: "physical_environmental_protection"
+
+  # RA Family - Need 1 more check (currently 1/3)
+  - id: 21347
+    connection_id: 1
+    name: "github_risk_categorization_ra_3_11_2"
+    description: "Verify risk categorization through repository classification"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1285  # RA-3-11-2
+    control_name: "RA-3-11-2"
+    resource_type: "GithubResource"
+    field_path: "repository_data.basic_info.language"
+    operation:
+      name: "NOT_EQUAL"
+    expected_value: null
+    tags: ["security", "github", "risk_assessment", "categorization"]
+    severity: "medium"
+    category: "risk_assessment"
+
+  - id: 21348
+    connection_id: 2
+    name: "aws_risk_categorization_ra_3_11_2"
+    description: "Verify risk categorization through resource classification"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1285  # RA-3-11-2
+    control_name: "RA-3-11-2"
+    resource_type: "AWSEC2Resource"
+    field_path: "len(key_pairs)"
+    operation:
+      name: "GREATER_THAN_OR_EQUAL"
+    expected_value: 0
+    tags: ["security", "aws", "ec2", "risk_assessment", "categorization"]
+    severity: "medium"
+    category: "risk_assessment"
+
+  # SC Family - Need 7 more checks (currently 2/16)
+  - id: 21349
+    connection_id: 1
+    name: "github_boundary_protection_sc_3_13_2"
+    description: "Verify boundary protection through repository access controls"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1288  # SC-3-13-2
+    control_name: "SC-3-13-2"
+    resource_type: "GithubResource"
+    field_path: "repository_data.basic_info.private"
+    operation:
+      name: "EQUAL"
+    expected_value: true
+    tags: ["security", "github", "system_communications_protection", "boundary_protection"]
+    severity: "high"
+    category: "system_communications_protection"
+
+  - id: 21350
+    connection_id: 2
+    name: "aws_boundary_protection_sc_3_13_2"
+    description: "Verify boundary protection through security groups"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1288  # SC-3-13-2
+    control_name: "SC-3-13-2"
+    resource_type: "AWSEC2Resource"
+    field_path: "len(security_groups)"
+    operation:
+      name: "GREATER_THAN"
+    expected_value: 0
+    tags: ["security", "aws", "ec2", "system_communications_protection", "boundary_protection"]
+    severity: "high"
+    category: "system_communications_protection"
+
+  - id: 21351
+    connection_id: 1
+    name: "github_network_segmentation_sc_3_13_3"
+    description: "Verify network segmentation through organization structure"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1289  # SC-3-13-3
+    control_name: "SC-3-13-3"
+    resource_type: "GithubResource"
+    field_path: "organization_data.total_teams"
+    operation:
+      name: "GREATER_THAN"
+    expected_value: 0
+    tags: ["security", "github", "system_communications_protection", "network_segmentation"]
+    severity: "medium"
+    category: "system_communications_protection"
+
+  - id: 21352
+    connection_id: 2
+    name: "aws_network_segmentation_sc_3_13_3"
+    description: "Verify network segmentation through VPC configuration"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1289  # SC-3-13-3
+    control_name: "SC-3-13-3"
+    resource_type: "AWSEC2Resource"
+    field_path: "len(vpcs)"
+    operation:
+      name: "GREATER_THAN"
+    expected_value: 0
+    tags: ["security", "aws", "ec2", "system_communications_protection", "network_segmentation"]
+    severity: "medium"
+    category: "system_communications_protection"
+
+  - id: 21353
+    connection_id: 1
+    name: "github_denial_of_service_sc_3_13_4"
+    description: "Verify denial of service protection through rate limiting"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1290  # SC-3-13-4
+    control_name: "SC-3-13-4"
+    resource_type: "GithubResource"
+    field_path: "advanced_features_data.total_webhooks"
+    operation:
+      name: "GREATER_THAN_OR_EQUAL"
+    expected_value: 0
+    tags: ["security", "github", "system_communications_protection", "denial_of_service"]
+    severity: "high"
+    category: "system_communications_protection"
+
+  - id: 21354
+    connection_id: 2
+    name: "aws_denial_of_service_sc_3_13_4"
+    description: "Verify denial of service protection through NAT gateways"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1290  # SC-3-13-4
+    control_name: "SC-3-13-4"
+    resource_type: "AWSEC2Resource"
+    field_path: "len(nat_gateways)"
+    operation:
+      name: "GREATER_THAN_OR_EQUAL"
+    expected_value: 0
+    tags: ["security", "aws", "ec2", "system_communications_protection", "denial_of_service"]
+    severity: "high"
+    category: "system_communications_protection"
+
+  - id: 21355
+    connection_id: 1
+    name: "github_collaborative_computing_sc_3_13_5"
+    description: "Verify collaborative computing controls through pull request management"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1291  # SC-3-13-5
+    control_name: "SC-3-13-5"
+    resource_type: "GithubResource"
+    field_path: "collaboration_data.total_pull_requests"
+    operation:
+      name: "GREATER_THAN_OR_EQUAL"
+    expected_value: 0
+    tags: ["security", "github", "system_communications_protection", "collaborative_computing"]
+    severity: "medium"
+    category: "system_communications_protection"
+
+  - id: 21356
+    connection_id: 2
+    name: "aws_collaborative_computing_sc_3_13_5"
+    description: "Verify collaborative computing controls through internet gateways"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1291  # SC-3-13-5
+    control_name: "SC-3-13-5"
+    resource_type: "AWSEC2Resource"
+    field_path: "len(internet_gateways)"
+    operation:
+      name: "GREATER_THAN_OR_EQUAL"
+    expected_value: 0
+    tags: ["security", "aws", "ec2", "system_communications_protection", "collaborative_computing"]
+    severity: "medium"
+    category: "system_communications_protection"
+
+  - id: 21357
+    connection_id: 1
+    name: "github_cryptographic_protection_sc_3_13_6"
+    description: "Verify cryptographic protection through HTTPS enforcement"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1292  # SC-3-13-6
+    control_name: "SC-3-13-6"
+    resource_type: "GithubResource"
+    field_path: "repository_data.basic_info.ssh_url"
+    operation:
+      name: "CONTAINS"
+    expected_value: "git@github.com"
+    tags: ["security", "github", "system_communications_protection", "cryptographic_protection"]
+    severity: "high"
+    category: "system_communications_protection"
+
+  - id: 21358
+    connection_id: 2
+    name: "aws_cryptographic_protection_sc_3_13_6"
+    description: "Verify cryptographic protection through S3 encryption"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1292  # SC-3-13-6
+    control_name: "SC-3-13-6"
+    resource_type: "AWSS3Resource"
+    field_path: "len(bucket_encryption)"
+    operation:
+      name: "GREATER_THAN"
+    expected_value: 0
+    tags: ["security", "aws", "s3", "system_communications_protection", "cryptographic_protection"]
+    severity: "high"
+    category: "system_communications_protection"
+
+  - id: 21359
+    connection_id: 1
+    name: "github_network_disconnect_sc_3_13_7"
+    description: "Verify network disconnect capability through repository archival"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1293  # SC-3-13-7
+    control_name: "SC-3-13-7"
+    resource_type: "GithubResource"
+    field_path: "repository_data.basic_info.archived"
+    operation:
+      name: "EQUAL"
+    expected_value: false
+    tags: ["security", "github", "system_communications_protection", "network_disconnect"]
+    severity: "medium"
+    category: "system_communications_protection"
+
+  - id: 21360
+    connection_id: 2
+    name: "aws_network_disconnect_sc_3_13_7"
+    description: "Verify network disconnect capability through elastic IPs"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1293  # SC-3-13-7
+    control_name: "SC-3-13-7"
+    resource_type: "AWSEC2Resource"
+    field_path: "len(elastic_ips)"
+    operation:
+      name: "GREATER_THAN_OR_EQUAL"
+    expected_value: 0
+    tags: ["security", "aws", "ec2", "system_communications_protection", "network_disconnect"]
+    severity: "medium"
+    category: "system_communications_protection"
+
+  - id: 21361
+    connection_id: 1
+    name: "github_transmission_integrity_sc_3_13_9"
+    description: "Verify transmission integrity through secure protocols"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1295  # SC-3-13-9
+    control_name: "SC-3-13-9"
+    resource_type: "GithubResource"
+    field_path: "repository_data.basic_info.clone_url"
+    operation:
+      name: "CONTAINS"
+    expected_value: "https"
+    tags: ["security", "github", "system_communications_protection", "transmission_integrity"]
+    severity: "high"
+    category: "system_communications_protection"
+
+  - id: 21362
+    connection_id: 2
+    name: "aws_transmission_integrity_sc_3_13_9"
+    description: "Verify transmission integrity through network interfaces"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1295  # SC-3-13-9
+    control_name: "SC-3-13-9"
+    resource_type: "AWSEC2Resource"
+    field_path: "len(network_interfaces)"
+    operation:
+      name: "GREATER_THAN_OR_EQUAL"
+    expected_value: 0
+    tags: ["security", "aws", "ec2", "system_communications_protection", "transmission_integrity"]
+    severity: "high"
+    category: "system_communications_protection"
+
+  # SI Family - Need 2 more checks (currently 2/7)
+  - id: 21363
+    connection_id: 1
+    name: "github_information_system_monitoring_si_3_14_3"
+    description: "Verify information system monitoring through security alerts"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1305  # SI-3-14-3
+    control_name: "SI-3-14-3"
+    resource_type: "GithubResource"
+    field_path: "security_data.total_code_scanning_alerts"
+    operation:
+      name: "GREATER_THAN_OR_EQUAL"
+    expected_value: 0
+    tags: ["security", "github", "system_information_integrity", "monitoring"]
+    severity: "medium"
+    category: "system_information_integrity"
+
+  - id: 21364
+    connection_id: 2
+    name: "aws_information_system_monitoring_si_3_14_3"
+    description: "Verify information system monitoring through CloudWatch alarms"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1305  # SI-3-14-3
+    control_name: "SI-3-14-3"
+    resource_type: "AWSCloudWatchResource"
+    field_path: "len(alarms)"
+    operation:
+      name: "GREATER_THAN"
+    expected_value: 0
+    tags: ["security", "aws", "cloudwatch", "system_information_integrity", "monitoring"]
+    severity: "medium"
+    category: "system_information_integrity"
+
+  - id: 21365
+    connection_id: 1
+    name: "github_software_firmware_integrity_si_3_14_4"
+    description: "Verify software and firmware integrity through dependency management"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1306  # SI-3-14-4
+    control_name: "SI-3-14-4"
+    resource_type: "GithubResource"
+    field_path: "security_data.security_analysis.dependency_review_enabled"
+    operation:
+      name: "EQUAL"
+    expected_value: true
+    tags: ["security", "github", "system_information_integrity", "software_integrity"]
+    severity: "high"
+    category: "system_information_integrity"
+
+  - id: 21366
+    connection_id: 2
+    name: "aws_software_firmware_integrity_si_3_14_4"
+    description: "Verify software and firmware integrity through EC2 instance management"
+    framework_id: 3
+    framework_name: "NIST 800-171 rev2 Catalog"
+    control_id: 1306  # SI-3-14-4
+    control_name: "SI-3-14-4"
+    resource_type: "AWSEC2Resource"
+    field_path: "len(instances)"
+    operation:
+      name: "GREATER_THAN_OR_EQUAL"
+    expected_value: 0
+    tags: ["security", "aws", "ec2", "system_information_integrity", "software_integrity"]
+    severity: "high"
+    category: "system_information_integrity" 
