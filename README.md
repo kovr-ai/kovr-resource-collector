@@ -7,8 +7,8 @@ This document tracks all implemented compliance checks for cloud resource monito
 - **Frameworks**: 2 (NIST 800-53, NIST 800-171 rev2 Catalog)
 - **Standards**: 15 total (14 active) including FedRAMP, CMMC 2.0, DOD SRG Impact Levels
 - **Control Count**: 1,309 total controls (NIST 800-53: 1,199, NIST 800-171 rev2: 110)
-- **Total Checks**: 267 implemented checks with LLM-analyzed mappings
-- **Control Mappings**: 587 total control mappings (avg 2.20 controls per check)
+- **Total Checks**: 354 implemented checks with LLM-analyzed mappings
+- **Control Mappings**: 779 total control mappings (avg 2.20 controls per check)
 - **Unique Controls Covered**: 92 controls across both frameworks
 
 # Checks for NIST 800-53 Controls
@@ -43,7 +43,7 @@ This document tracks all implemented compliance checks for cloud resource monito
 | **PL** | 0 | 17 | 0.0% | Planning |
 | **GRR** | 0 | 10 | 0.0% | DoD PKI Authentication |
 
-**Summary**: 12 of 21 families covered • 29 of 1,199 controls covered • 570 controls in uncovered families
+**Summary**: 12 of 21 families covered • 29 of 1,199 controls covered • 515 controls in uncovered families
 
 # Checks for NIST 800-171 rev2 Catalog
 - **Total Controls**: 110
@@ -76,8 +76,8 @@ This document tracks all implemented compliance checks for cloud resource monito
 
 | Framework ID | Framework Name | Controls | Check Coverage | Description |
 |-------------|----------------|----------|----------------|-------------|
-| 2 | NIST 800-53 | 1,199 | 160 checks | Security and Privacy Controls for Federal Information Systems |
-| 3 | NIST 800-171 rev2 Catalog | 110 | 107 checks | Protecting Controlled Unclassified Information |
+| 2 | NIST 800-53 | 1,199 | 241 checks | Security and Privacy Controls for Federal Information Systems |
+| 3 | NIST 800-171 rev2 Catalog | 110 | 113 checks | Protecting Controlled Unclassified Information |
 
 ## Resource Types
 
@@ -98,7 +98,7 @@ This document tracks all implemented compliance checks for cloud resource monito
 
 ## NIST 800-171 rev2 Catalog Checks - Complete Implementation
 
-### GitHub Checks for NIST 800-171 rev2 (30 checks)
+### GitHub Checks for NIST 800-171 rev2 (64 checks)
 
 | Control Family | Checks | Key Controls | Description |
 |----------------|--------|--------------|-------------|
@@ -115,7 +115,7 @@ This document tracks all implemented compliance checks for cloud resource monito
 | **System Information Integrity (SI)** | 2 | SI-3-14-1, SI-3-14-2 | Flaw remediation, malicious code protection |
 | **Security Assessment (CA)** | 2 | CA-3-12-1, CA-3-12-3 | Security assessment, continuous monitoring |
 
-### AWS Checks for NIST 800-171 rev2 (130 checks)
+### AWS Checks for NIST 800-171 rev2 (177 checks)
 
 | Control Family | Checks | Key Controls | Description |
 |----------------|--------|--------------|-------------|
