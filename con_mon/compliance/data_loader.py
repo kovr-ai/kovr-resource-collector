@@ -1,757 +1,455 @@
 """
 Data loader for cybersecurity frameworks - loads data from database and CSV files.
+Modern class-based architecture with no backward compatibility.
 """
 
 import csv
 import os
+from abc import ABC, abstractmethod
 from typing import List, Dict, Tuple, Optional
 from datetime import datetime
-from con_mon.compliance.models import Framework, Control, Standard, StandardControlMapping, FrameworkWithControls, StandardWithControls, ControlWithStandards
+from con_mon.compliance.models import (
+    BaseModel, Framework, Control, Standard, StandardControlMapping, 
+    FrameworkWithControls, StandardWithControls, ControlWithStandards
+)
 from con_mon.utils.db import get_db
 
 
-def _parse_datetime(date_string: str) -> Optional[datetime]:
-    """Parse ISO datetime string, return None if invalid."""
-    if not date_string or date_string == 'None':
-        return None
-    try:
-        return datetime.fromisoformat(date_string.replace('Z', '+00:00'))
-    except (ValueError, AttributeError):
-        return None
-
-
-def _parse_bool(value: str) -> bool:
-    """Parse boolean string value."""
-    if isinstance(value, bool):
-        return value
-    return str(value).lower() in ('true', '1', 'yes', 'on')
-
-
-def load_frameworks_from_table_csv(csv_file_path: str = "data/csv/framework.csv") -> List[Framework]:
+class BaseLoader(ABC):
     """
-    Load frameworks from exported framework table CSV file.
-    
-    Args:
-        csv_file_path: Path to framework CSV file
-        
-    Returns:
-        List of Framework objects
+    Abstract base class for compliance data loaders.
+    Defines the interface that all data loaders must implement.
     """
-    frameworks = []
     
-    print(f"📁 Loading frameworks from CSV: {csv_file_path}")
+    def __init__(self):
+        self.name = self.__class__.__name__
     
-    try:
-        with open(csv_file_path, 'r', encoding='utf-8') as file:
-            csv_reader = csv.DictReader(file)
-            
-            for row in csv_reader:
-                framework = Framework(
-                    id=int(row['id']) if row['id'] else None,
-                    name=row['name'],
-                    version=row['version'] if row['version'] != 'None' else None,
-                    description=row['description'] if row['description'] != 'None' else None,
-                    issuing_organization=None,  # Not in exported table
-                    publication_date=None,      # Not in exported table
-                    status='active' if _parse_bool(row['active']) else 'inactive',
-                    created_at=_parse_datetime(row['created_at']),
-                    updated_at=_parse_datetime(row['updated_at'])
-                )
-                frameworks.append(framework)
-        
-        print(f"✅ Successfully loaded {len(frameworks)} frameworks from CSV")
-        return frameworks
-        
-    except FileNotFoundError:
-        print(f"❌ Framework CSV file not found: {csv_file_path}")
-        raise
-    except Exception as e:
-        print(f"❌ Error loading frameworks from CSV: {e}")
-        raise
-
-
-def load_controls_from_table_csv(csv_file_path: str = "data/csv/control.csv") -> List[Control]:
-    """
-    Load controls from exported control table CSV file.
-    
-    Args:
-        csv_file_path: Path to control CSV file
-        
-    Returns:
-        List of Control objects
-    """
-    controls = []
-    
-    print(f"📁 Loading controls from CSV: {csv_file_path}")
-    
-    try:
-        with open(csv_file_path, 'r', encoding='utf-8') as file:
-            csv_reader = csv.DictReader(file)
-            
-            for row in csv_reader:
-                control = Control(
-                    id=int(row['id']) if row['id'] else None,
-                    framework_id=int(row['framework_id']),
-                    control_id=row['control_name'],
-                    name=row['control_long_name'] or row['control_name'],
-                    description=row['control_text'] or row['control_discussion'] or '',
-                    control_family=row['family_name'] if row['family_name'] != 'None' else None,
-                    priority='medium',  # Default priority since not in DB
-                    implementation_guidance=row['control_discussion'] if row['control_discussion'] != 'None' else None,
-                    github_check_required=None,  # Not in DB schema
-                    created_at=_parse_datetime(row['created_at']),
-                    updated_at=_parse_datetime(row['updated_at'])
-                )
-                controls.append(control)
-        
-        print(f"✅ Successfully loaded {len(controls)} controls from CSV")
-        return controls
-        
-    except FileNotFoundError:
-        print(f"❌ Control CSV file not found: {csv_file_path}")
-        raise
-    except Exception as e:
-        print(f"❌ Error loading controls from CSV: {e}")
-        raise
-
-
-def load_standards_from_table_csv(csv_file_path: str = "data/csv/standard.csv") -> List[Standard]:
-    """
-    Load standards from exported standard table CSV file.
-    
-    Args:
-        csv_file_path: Path to standard CSV file
-        
-    Returns:
-        List of Standard objects
-    """
-    standards = []
-    
-    print(f"📁 Loading standards from CSV: {csv_file_path}")
-    
-    try:
-        with open(csv_file_path, 'r', encoding='utf-8') as file:
-            csv_reader = csv.DictReader(file)
-            
-            for row in csv_reader:
-                standard = Standard(
-                    id=int(row['id']) if row['id'] else None,
-                    name=row['name'],
-                    version=None,  # Not in DB schema
-                    description=row['long_description'] or row['short_description'] if row.get('long_description') != 'None' else None,
-                    issuing_organization=None,  # Not in DB schema
-                    scope=None,  # Not in DB schema
-                    status='active' if _parse_bool(row['active']) else 'inactive',
-                    created_at=_parse_datetime(row['created_at']),
-                    updated_at=_parse_datetime(row['updated_at'])
-                )
-                standards.append(standard)
-        
-        print(f"✅ Successfully loaded {len(standards)} standards from CSV")
-        return standards
-        
-    except FileNotFoundError:
-        print(f"❌ Standard CSV file not found: {csv_file_path}")
-        raise
-    except Exception as e:
-        print(f"❌ Error loading standards from CSV: {e}")
-        raise
-
-
-def load_standard_control_mappings_from_table_csv(csv_file_path: str = "data/csv/standard_control_mapping.csv") -> List[StandardControlMapping]:
-    """
-    Load standard-control mappings from exported mapping table CSV file.
-    
-    Args:
-        csv_file_path: Path to mapping CSV file
-        
-    Returns:
-        List of StandardControlMapping objects
-    """
-    mappings = []
-    
-    print(f"📁 Loading mappings from CSV: {csv_file_path}")
-    
-    try:
-        with open(csv_file_path, 'r', encoding='utf-8') as file:
-            csv_reader = csv.DictReader(file)
-            
-            for row in csv_reader:
-                mapping = StandardControlMapping(
-                    id=int(row['id']) if row['id'] else None,
-                    standard_id=int(row['standard_id']),
-                    control_id=int(row['control_id']),
-                    mapping_type='direct',  # Default since not in DB
-                    compliance_level=None,  # Not in DB schema
-                    notes=row['additional_guidance'] if row.get('additional_guidance') != 'None' else None,
-                    created_at=_parse_datetime(row['created_at']),
-                    updated_at=_parse_datetime(row['updated_at'])
-                )
-                mappings.append(mapping)
-        
-        print(f"✅ Successfully loaded {len(mappings)} mappings from CSV")
-        return mappings
-        
-    except FileNotFoundError:
-        print(f"❌ Mapping CSV file not found: {csv_file_path}")
-        raise
-    except Exception as e:
-        print(f"❌ Error loading mappings from CSV: {e}")
-        raise
-
-
-def populate_framework_data_from_csv(csv_dir: str = "data/csv") -> Tuple[List[FrameworkWithControls], List[StandardWithControls], List[StandardControlMapping]]:
-    """
-    Load and organize all framework data with relationships from CSV files.
-    
-    Args:
-        csv_dir: Directory containing CSV files
-        
-    Returns:
-        Tuple of (frameworks_with_controls, standards_with_controls, mappings)
-    """
-    print("🏗️  **Populating Framework Data from CSV Files**")
-    print("=" * 50)
-    
-    # Load base data from CSV files
-    frameworks = load_frameworks_from_table_csv(os.path.join(csv_dir, "framework.csv"))
-    controls = load_controls_from_table_csv(os.path.join(csv_dir, "control.csv"))
-    standards = load_standards_from_table_csv(os.path.join(csv_dir, "standard.csv"))
-    mappings = load_standard_control_mappings_from_table_csv(os.path.join(csv_dir, "standard_control_mapping.csv"))
-    
-    # Organize controls by framework
-    frameworks_with_controls = []
-    for framework in frameworks:
-        framework_controls = [c for c in controls if c.framework_id == framework.id]
-        
-        framework_with_controls = FrameworkWithControls(
-            **framework.dict(),
-            controls=framework_controls
-        )
-        frameworks_with_controls.append(framework_with_controls)
-    
-    # Organize controls by standard
-    standards_with_controls = []
-    for standard in standards:
-        # Find controls mapped to this standard
-        standard_control_ids = [m.control_id for m in mappings if m.standard_id == standard.id]
-        standard_controls = [c for c in controls if c.id in standard_control_ids]
-        
-        standard_with_controls = StandardWithControls(
-            **standard.dict(),
-            controls=standard_controls
-        )
-        standards_with_controls.append(standard_with_controls)
-    
-    print(f"✅ Populated framework data from CSV files:")
-    print(f"   • {len(frameworks_with_controls)} frameworks with controls")
-    print(f"   • {len(standards_with_controls)} standards with controls")
-    print(f"   • {len(mappings)} standard-control mappings")
-    
-    return frameworks_with_controls, standards_with_controls, mappings
-
-
-def get_controls_with_standards_from_csv(csv_dir: str = "data/csv") -> List[ControlWithStandards]:
-    """
-    Load controls with their associated standards from CSV files.
-    
-    Args:
-        csv_dir: Directory containing CSV files
-    
-    Returns:
-        List of ControlWithStandards objects
-    """
-    # Load base data from CSV files
-    frameworks = load_frameworks_from_table_csv(os.path.join(csv_dir, "framework.csv"))
-    controls = load_controls_from_table_csv(os.path.join(csv_dir, "control.csv"))
-    standards = load_standards_from_table_csv(os.path.join(csv_dir, "standard.csv"))
-    mappings = load_standard_control_mappings_from_table_csv(os.path.join(csv_dir, "standard_control_mapping.csv"))
-    
-    # Organize standards by control
-    controls_with_standards = []
-    for control in controls:
-        # Find standards mapped to this control
-        control_standard_ids = [m.standard_id for m in mappings if m.control_id == control.id]
-        control_standards = [s for s in standards if s.id in control_standard_ids]
-        
-        control_with_standards = ControlWithStandards(
-            **control.dict(),
-            standards=control_standards
-        )
-        controls_with_standards.append(control_with_standards)
-    
-    return controls_with_standards
-
-
-def load_frameworks_from_csv(csv_file_path: str = None) -> Tuple[List[Framework], List[Control]]:
-    """
-    Load frameworks and controls from NIST CSV file.
-    
-    Args:
-        csv_file_path: Path to CSV file, defaults to con_mon/nist.csv
-        
-    Returns:
-        Tuple of (frameworks_list, controls_list)
-    """
-    if csv_file_path is None:
-        # Default to nist.csv in con_mon directory
-        current_dir = os.path.dirname(os.path.dirname(__file__))  # Go up to con_mon/
-        csv_file_path = os.path.join(current_dir, 'nist.csv')
-    
-    frameworks = {}  # Use dict to avoid duplicates
-    controls = []
-    
-    print(f"📁 Loading framework data from: {csv_file_path}")
-    
-    try:
-        with open(csv_file_path, 'r', encoding='utf-8') as file:
-            csv_reader = csv.DictReader(file)
-            
-            for row_num, row in enumerate(csv_reader, start=2):  # Start at 2 since CSV has header
-                try:
-                    framework_name = row['Framework'].strip()
-                    control_name = row['Control Name'].strip()
-                    control_description = row['Control Description'].strip()
-                    github_check_required = row['GitHub Check Required'].strip()
-                    
-                    # Parse framework information
-                    framework_version = None
-                    issuing_org = "NIST"  # Default since this is NIST data
-                    
-                    # Extract version from framework name if present
-                    if "Rev " in framework_name:
-                        parts = framework_name.split(" Rev ")
-                        framework_base = parts[0]
-                        framework_version = f"Rev {parts[1]}"
-                    else:
-                        framework_base = framework_name
-                    
-                    # Create framework if not exists
-                    if framework_name not in frameworks:
-                        framework_id = len(frameworks) + 1
-                        frameworks[framework_name] = Framework(
-                            id=framework_id,
-                            name=framework_name,
-                            version=framework_version,
-                            description=f"Framework for {framework_base} cybersecurity controls",
-                            issuing_organization=issuing_org,
-                            status="active"
-                        )
-                    
-                    # Determine control family based on control ID
-                    control_family = _determine_control_family(control_name)
-                    
-                    # Create control
-                    control = Control(
-                        id=len(controls) + 1,
-                        framework_id=frameworks[framework_name].id,
-                        control_id=control_name,
-                        name=_extract_control_title(control_name, control_description),
-                        description=control_description,
-                        control_family=control_family,
-                        priority=_determine_priority(control_name),
-                        implementation_guidance=f"GitHub Implementation: {github_check_required}",
-                        github_check_required=github_check_required
-                    )
-                    
-                    controls.append(control)
-                    
-                except KeyError as e:
-                    print(f"⚠️  Row {row_num}: Missing required column {e}")
-                    continue
-                except Exception as e:
-                    print(f"⚠️  Row {row_num}: Error processing row - {e}")
-                    continue
-        
-        frameworks_list = list(frameworks.values())
-        
-        print(f"✅ Successfully loaded:")
-        print(f"   • {len(frameworks_list)} frameworks")
-        print(f"   • {len(controls)} controls")
-        
-        return frameworks_list, controls
-        
-    except FileNotFoundError:
-        print(f"❌ CSV file not found: {csv_file_path}")
-        raise
-    except Exception as e:
-        print(f"❌ Error loading CSV file: {e}")
-        raise
-
-
-def load_frameworks_from_db() -> Tuple[List[Framework], List[Control]]:
-    """
-    Load frameworks and controls from database tables.
-    
-    Returns:
-        Tuple of (frameworks_list, controls_list)
-    """
-    db = get_db()
-    
-    print("🗄️  Loading framework data from database...")
-    
-    # Load frameworks from database
-    frameworks_query = """
-        SELECT id, name, version, description, 
-               created_at, updated_at, active
-        FROM framework 
-        ORDER BY id
-    """
-    framework_rows = db.execute_query(frameworks_query)
-    
-    frameworks = []
-    for row in framework_rows:
-        framework = Framework(
-            id=row['id'],
-            name=row['name'],
-            version=str(row['version']) if row['version'] is not None else None,
-            description=row['description'],
-            issuing_organization=None,  # Not in DB schema
-            publication_date=None,      # Not in DB schema
-            status='active' if row['active'] else 'inactive',
-            created_at=row['created_at'],
-            updated_at=row['updated_at']
-        )
-        frameworks.append(framework)
-    
-    # Load controls from database
-    controls_query = """
-        SELECT id, framework_id, control_name, family_name, 
-               control_long_name, control_text, control_discussion,
-               created_at, updated_at
-        FROM control 
-        ORDER BY framework_id, control_name
-    """
-    control_rows = db.execute_query(controls_query)
-    
-    controls = []
-    for row in control_rows:
-        control = Control(
-            id=row['id'],
-            framework_id=row['framework_id'],
-            control_id=row['control_name'],
-            name=row['control_long_name'] or row['control_name'],
-            description=row['control_text'] or row['control_discussion'] or '',
-            control_family=row['family_name'],
-            priority='medium',  # Default priority since not in DB
-            implementation_guidance=row['control_discussion'],
-            github_check_required=None,  # Not in DB schema
-            created_at=row['created_at'],
-            updated_at=row['updated_at']
-        )
-        controls.append(control)
-    
-    print(f"✅ Successfully loaded from database:")
-    print(f"   • {len(frameworks)} frameworks")
-    print(f"   • {len(controls)} controls")
-    
-    return frameworks, controls
-
-
-def load_standards_from_db() -> List[Standard]:
-    """
-    Load standards from database.
-    
-    Returns:
-        List of Standard objects
-    """
-    db = get_db()
-    
-    standards_query = """
-        SELECT id, name, short_description, long_description, 
-               created_at, updated_at, active
-        FROM standard 
-        ORDER BY id
-    """
-    standard_rows = db.execute_query(standards_query)
-    
-    standards = []
-    for row in standard_rows:
-        standard = Standard(
-            id=row['id'],
-            name=row['name'],
-            version=None,  # Not in DB schema
-            description=row['long_description'] or row['short_description'],
-            issuing_organization=None,  # Not in DB schema
-            scope=None,  # Not in DB schema
-            status='active' if row['active'] else 'inactive',
-            created_at=row['created_at'],
-            updated_at=row['updated_at']
-        )
-        standards.append(standard)
-    
-    print(f"✅ Successfully loaded {len(standards)} standards from database")
-    return standards
-
-
-def load_standard_control_mappings_from_db() -> List[StandardControlMapping]:
-    """
-    Load standard-control mappings from database.
-    
-    Returns:
-        List of StandardControlMapping objects
-    """
-    db = get_db()
-    
-    mappings_query = """
-        SELECT id, standard_id, control_id, 
-               additional_selection_parameters, additional_guidance,
-               created_at, updated_at
-        FROM standard_control_mapping 
-        ORDER BY standard_id, control_id
-    """
-    mapping_rows = db.execute_query(mappings_query)
-    
-    mappings = []
-    for row in mapping_rows:
-        mapping = StandardControlMapping(
-            id=row['id'],
-            standard_id=row['standard_id'],
-            control_id=row['control_id'],
-            mapping_type='direct',  # Default since not in DB
-            compliance_level=None,  # Not in DB schema
-            notes=row['additional_guidance'],
-            created_at=row['created_at'],
-            updated_at=row['updated_at']
-        )
-        mappings.append(mapping)
-    
-    print(f"✅ Successfully loaded {len(mappings)} standard-control mappings from database")
-    return mappings
-
-
-def populate_framework_data_from_db() -> Tuple[List[FrameworkWithControls], List[StandardWithControls], List[StandardControlMapping]]:
-    """
-    Load and organize all framework data with relationships from database.
-    
-    Returns:
-        Tuple of (frameworks_with_controls, standards_with_controls, mappings)
-    """
-    print("🏗️  **Populating Framework Data from Database**")
-    print("=" * 50)
-    
-    # Load base data from database
-    frameworks, controls = load_frameworks_from_db()
-    standards = load_standards_from_db()
-    mappings = load_standard_control_mappings_from_db()
-    
-    # Organize controls by framework
-    frameworks_with_controls = []
-    for framework in frameworks:
-        framework_controls = [c for c in controls if c.framework_id == framework.id]
-        
-        framework_with_controls = FrameworkWithControls(
-            **framework.dict(),
-            controls=framework_controls
-        )
-        frameworks_with_controls.append(framework_with_controls)
-    
-    # Organize controls by standard
-    standards_with_controls = []
-    for standard in standards:
-        # Find controls mapped to this standard
-        standard_control_ids = [m.control_id for m in mappings if m.standard_id == standard.id]
-        standard_controls = [c for c in controls if c.id in standard_control_ids]
-        
-        standard_with_controls = StandardWithControls(
-            **standard.dict(),
-            controls=standard_controls
-        )
-        standards_with_controls.append(standard_with_controls)
-    
-    print(f"✅ Populated framework data from database:")
-    print(f"   • {len(frameworks_with_controls)} frameworks with controls")
-    print(f"   • {len(standards_with_controls)} standards with controls")
-    print(f"   • {len(mappings)} standard-control mappings")
-    
-    return frameworks_with_controls, standards_with_controls, mappings
-
-
-def get_controls_with_standards() -> List[ControlWithStandards]:
-    """
-    Load controls with their associated standards from database.
-    
-    Returns:
-        List of ControlWithStandards objects
-    """
-    # Load base data from database
-    frameworks, controls = load_frameworks_from_db()
-    standards = load_standards_from_db()
-    mappings = load_standard_control_mappings_from_db()
-    
-    # Organize standards by control
-    controls_with_standards = []
-    for control in controls:
-        # Find standards mapped to this control
-        control_standard_ids = [m.standard_id for m in mappings if m.control_id == control.id]
-        control_standards = [s for s in standards if s.id in control_standard_ids]
-        
-        control_with_standards = ControlWithStandards(
-            **control.dict(),
-            standards=control_standards
-        )
-        controls_with_standards.append(control_with_standards)
-    
-    return controls_with_standards
-
-
-def _determine_control_family(control_id: str) -> str:
-    """Determine control family based on control ID."""
-    control_id_upper = control_id.upper()
-    
-    # NIST 800-53 control families
-    if control_id_upper.startswith('AC'):
-        return 'Access Control'
-    elif control_id_upper.startswith('AU'):
-        return 'Audit and Accountability'
-    elif control_id_upper.startswith('CM'):
-        return 'Configuration Management'
-    elif control_id_upper.startswith('IA'):
-        return 'Identification and Authentication'
-    elif control_id_upper.startswith('IR'):
-        return 'Incident Response'
-    elif control_id_upper.startswith('MA'):
-        return 'Maintenance'
-    elif control_id_upper.startswith('PM'):
-        return 'Program Management'
-    elif control_id_upper.startswith('SC'):
-        return 'System and Communications Protection'
-    elif control_id_upper.startswith('SI'):
-        return 'System and Information Integrity'
-    elif control_id_upper.startswith('SA'):
-        return 'System and Services Acquisition'
-    elif control_id_upper.startswith('CP'):
-        return 'Contingency Planning'
-    # NIST 800-171 control families (numerical)
-    elif '3.1.' in control_id:
-        return 'Access Control'
-    elif '3.3.' in control_id:
-        return 'Audit and Accountability'
-    elif '3.4.' in control_id:
-        return 'Configuration Management'
-    elif '3.5.' in control_id:
-        return 'Identification and Authentication'
-    elif '3.13.' in control_id:
-        return 'System and Communications Protection'
-    elif '3.14.' in control_id:
-        return 'System and Information Integrity'
-    else:
-        return 'Other'
-
-
-def _extract_control_title(control_id: str, description: str) -> str:
-    """Extract a concise title from control ID and description."""
-    # Use first part of description as title, limit to reasonable length
-    title_parts = description.split('.')
-    title = title_parts[0].strip()
-    
-    # Limit title length for readability
-    if len(title) > 80:
-        title = title[:77] + "..."
-    
-    return title
-
-
-def _determine_priority(control_id: str) -> str:
-    """Determine control priority based on control ID and common criticality."""
-    control_id_upper = control_id.upper()
-    
-    # High priority controls (security-critical)
-    high_priority = [
-        'AC-2', 'AC-3', 'AC-6',  # Access control fundamentals
-        'AU-2', 'AU-6',          # Audit fundamentals
-        'IA-2', 'IA-5',          # Authentication fundamentals
-        'SC-8', 'SC-12',         # Crypto and transmission security
-        'SI-2', 'SI-4',          # System integrity and monitoring
-        '3.1.1', '3.1.2', '3.1.6',  # 800-171 access control
-        '3.5.3', '3.5.9',           # 800-171 authentication
-        '3.14.1'                     # 800-171 system integrity
-    ]
-    
-    # Medium priority controls (important but not critical)
-    medium_priority = [
-        'CM-3', 'CM-6', 'CM-8',  # Configuration management
-        'IR-4', 'MA-4',          # Incident response, maintenance
-        'SA-9', 'SA-11',         # Acquisition controls
-        '3.3.1', '3.3.2',        # 800-171 audit
-        '3.4.6', '3.13.8'        # 800-171 config mgmt and boundary protection
-    ]
-    
-    if any(control_id_upper.startswith(hc) or hc in control_id_upper for hc in high_priority):
-        return 'high'
-    elif any(control_id_upper.startswith(mc) or mc in control_id_upper for mc in medium_priority):
-        return 'medium'
-    else:
-        return 'low'
-
-
-def populate_framework_data() -> Tuple[List[FrameworkWithControls], List[StandardWithControls], List[StandardControlMapping]]:
-    """
-    Load and organize all framework data with relationships.
-    Uses database loading by default, with CSV fallback.
-    
-    Returns:
-        Tuple of (frameworks_with_controls, standards, mappings)
-    """
-    print("🏗️  **Populating Framework Data**")
-    print("=" * 50)
-    
-    return populate_framework_data_from_db()
-
-
-class BaseLoader(object):
-
     def _load_meta_data(self, model_class):
         """
-        uses model_class and return the expected meta data
+        Uses model_class and returns the expected meta data.
+        
+        Args:
+            model_class: Pydantic model class (Framework, Control, etc.)
+            
+        Returns:
+            Tuple of (table_name, field_mapping_dict)
         """
+        table_name = model_class.get_table_name()
+        
+        # Define field mappings for each model type
+        field_mappings = {
+            'framework': {
+                'id': 'id',
+                'name': 'name', 
+                'version': 'version',
+                'description': 'description',
+                'created_at': 'created_at',
+                'updated_at': 'updated_at',
+                'active': 'active'
+            },
+            'control': {
+                'id': 'id',
+                'framework_id': 'framework_id',
+                'control_id': 'control_name',
+                'name': 'control_long_name',
+                'description': 'control_text',
+                'control_family': 'family_name',
+                'implementation_guidance': 'control_discussion',
+                'created_at': 'created_at',
+                'updated_at': 'updated_at'
+            },
+            'standard': {
+                'id': 'id',
+                'name': 'name',
+                'description': 'long_description',
+                'created_at': 'created_at', 
+                'updated_at': 'updated_at',
+                'active': 'active'
+            },
+            'standard_control_mapping': {
+                'id': 'id',
+                'standard_id': 'standard_id',
+                'control_id': 'control_id',
+                'notes': 'additional_guidance',
+                'created_at': 'created_at',
+                'updated_at': 'updated_at'
+            }
+        }
+        
+        fields = field_mappings.get(table_name, {})
         return table_name, fields
 
-    def _load_data_from_connection(self, model_class, table_name, fields):
+    def _parse_rows_from_connection(
+        self, model_class, table_name, fields, rows
+    ):
+
+        # Convert rows to model instances
+        instances = []
+        # TODO: this piece seems common with CSV too. extract in base class
+        for row in rows:
+            model_data = self._parse_row_from_connection(
+                model_class, table_name, fields, row
+            )
+            instance = model_class(**model_data)
+            instances.append(instance)
+
+        print(f"✅ Loaded {len(instances)} {model_class.__name__} records from {self.name.lower()}")
+        return instances
+
+    def _parse_row_from_connection(
+        self, model_class, table_name, fields, row
+    ):
+        # Create model data dict with proper field names
+        model_data = {}
+        for model_field, db_field in fields.items():
+            value = row.get(db_field)
+
+            # Handle special field processing
+            if model_field == 'status' and db_field == 'active':
+                model_data[model_field] = 'active' if value else 'inactive'
+            elif model_field == 'version' and value is not None:
+                model_data[model_field] = str(value)
+            elif model_field == 'name' and model_class == Control and db_field == 'control_long_name':
+                # Use control_long_name if available, fallback to control_name
+                model_data[model_field] = value or row.get('control_name', '')
+            elif model_field == 'description' and model_class == Control:
+                # Combine control_text and control_discussion
+                control_text = row.get('control_text', '')
+                control_discussion = row.get('control_discussion', '')
+                model_data[model_field] = control_text or control_discussion or ''
+            elif model_field == 'description' and model_class == Standard:
+                # Use long_description, fallback to short_description
+                long_desc = row.get('long_description')
+                short_desc = row.get('short_description', '')
+                model_data[model_field] = long_desc or short_desc
+            else:
+                model_data[model_field] = value
+
+        # Set default values for fields not in database
+        if model_class == Framework:
+            model_data.setdefault('issuing_organization', None)
+            model_data.setdefault('publication_date', None)
+            model_data.setdefault('status', 'active' if row.get('active', True) else 'inactive')
+        elif model_class == Control:
+            model_data.setdefault('priority', 'medium')
+            model_data.setdefault('github_check_required', None)
+        elif model_class == Standard:
+            model_data.setdefault('version', None)
+            model_data.setdefault('issuing_organization', None)
+            model_data.setdefault('scope', None)
+            model_data.setdefault('status', 'active' if row.get('active', True) else 'inactive')
+        elif model_class == StandardControlMapping:
+            model_data.setdefault('mapping_type', 'direct')
+            model_data.setdefault('compliance_level', None)
+        return model_data
+
+    @abstractmethod
+    def _load_data_from_connection(self, model_class, table_name: str, fields: Dict[str, str]) -> List[BaseModel]:
         """
-        returns list of objects of model_class
+        Returns list of objects of model_class.
+        
+        Args:
+            model_class: Pydantic model class
+            table_name: Database/CSV table name
+            fields: Field mapping dictionary
+            
+        Returns:
+            List of model instances
         """
         raise NotImplementedError()
-
+    
     def _load_data(self, model_class):
+        """
+        Load data for a specific model class.
+        
+        Args:
+            model_class: Pydantic model class
+            
+        Returns:
+            List of model instances
+        """
         table_name, fields = self._load_meta_data(model_class)
-        return self._load_data_from_connection(model_class, table_name, fields)
-
+        rows = self._load_data_from_connection(model_class, table_name, fields)
+        return self._parse_rows_from_connection(model_class, table_name, fields, rows)
+    
     def load_frameworks(self) -> List[Framework]:
-        """
-        calls _load_data to get list of frameworks and return
-        """
+        """Load frameworks from data source."""
         return self._load_data(Framework)
-
+    
     def load_standards(self) -> List[Standard]:
-        """
-        calls _load_data to get list of frameworks and return
-        """
+        """Load standards from data source.""" 
         return self._load_data(Standard)
-
+    
     def load_controls(self) -> List[Control]:
-        """
-        calls _load_data to get list of frameworks and return
-        """
+        """Load controls from data source."""
         return self._load_data(Control)
-
+    
+    def load_standard_control_mappings(self) -> List[StandardControlMapping]:
+        """Load standard-control mappings from data source."""
+        return self._load_data(StandardControlMapping)
+    
     def list_framework_with_controls(
             self,
-            frameworks: list[Framework],
-            controls: list[Control],
+            frameworks: List[Framework],
+            controls: List[Control],
     ) -> List[FrameworkWithControls]:
         """
-        merges controls in frameworks
+        Merge controls into frameworks.
+        
+        Args:
+            frameworks: List of Framework objects
+            controls: List of Control objects
+            
+        Returns:
+            List of FrameworkWithControls objects
         """
-        pass
-
+        frameworks_with_controls = []
+        for framework in frameworks:
+            framework_controls = [c for c in controls if c.framework_id == framework.id]
+            
+            framework_with_controls = FrameworkWithControls(
+                **framework.dict(),
+                controls=framework_controls
+            )
+            frameworks_with_controls.append(framework_with_controls)
+        
+        return frameworks_with_controls
+    
     def list_controls_and_standards(
             self,
-            standards: list[Standard],
-            controls: list[Control],
-            standard_control_mapping: list[StandardControlMapping],
+            standards: List[Standard],
+            controls: List[Control],
+            standard_control_mappings: List[StandardControlMapping],
     ) -> Tuple[List[StandardWithControls], List[ControlWithStandards]]:
         """
-        return tuple of both lists of standards and controls
+        Return tuple of both lists of standards with controls and controls with standards.
+        
+        Args:
+            standards: List of Standard objects
+            controls: List of Control objects  
+            standard_control_mappings: List of StandardControlMapping objects
+            
+        Returns:
+            Tuple of (standards_with_controls, controls_with_standards)
         """
-        pass
+        # Create standards with controls
+        standards_with_controls = []
+        for standard in standards:
+            # Find controls mapped to this standard
+            standard_control_ids = [m.control_id for m in standard_control_mappings if m.standard_id == standard.id]
+            standard_controls = [c for c in controls if c.id in standard_control_ids]
+            
+            standard_with_controls = StandardWithControls(
+                **standard.dict(),
+                controls=standard_controls
+            )
+            standards_with_controls.append(standard_with_controls)
+        
+        # Create controls with standards
+        controls_with_standards = []
+        for control in controls:
+            # Find standards mapped to this control
+            control_standard_ids = [m.standard_id for m in standard_control_mappings if m.control_id == control.id]
+            control_standards = [s for s in standards if s.id in control_standard_ids]
+            
+            control_with_standards = ControlWithStandards(
+                **control.dict(),
+                standards=control_standards
+            )
+            controls_with_standards.append(control_with_standards)
+        
+        return standards_with_controls, controls_with_standards
+    
+    def populate_all_data(self) -> Tuple[List[FrameworkWithControls], List[StandardWithControls], List[ControlWithStandards], List[StandardControlMapping]]:
+        """
+        Load and organize all compliance data with relationships.
+        
+        Returns:
+            Tuple of (frameworks_with_controls, standards_with_controls, controls_with_standards, mappings)
+        """
+        print(f"🏗️  **Loading All Compliance Data from {self.name}**")
+        print("=" * 60)
+        
+        # Load base data
+        frameworks = self.load_frameworks()
+        controls = self.load_controls()
+        standards = self.load_standards()
+        mappings = self.load_standard_control_mappings()
+        
+        print(f"📊 Loaded base data:")
+        print(f"   • {len(frameworks)} frameworks")
+        print(f"   • {len(controls)} controls") 
+        print(f"   • {len(standards)} standards")
+        print(f"   • {len(mappings)} mappings")
+        
+        # Create relationships
+        frameworks_with_controls = self.list_framework_with_controls(frameworks, controls)
+        standards_with_controls, controls_with_standards = self.list_controls_and_standards(
+            standards, controls, mappings
+        )
+        
+        print(f"🔗 Created relationships:")
+        print(f"   • {len(frameworks_with_controls)} frameworks with controls")
+        print(f"   • {len(standards_with_controls)} standards with controls") 
+        print(f"   • {len(controls_with_standards)} controls with standards")
+        print("✅ All compliance data loaded successfully!")
+        
+        return frameworks_with_controls, standards_with_controls, controls_with_standards, mappings
+
+
+class DBLoader(BaseLoader):
+    """
+    Database-based data loader for compliance data.
+    Loads data directly from PostgreSQL database.
+    """
+    
+    def __init__(self):
+        super().__init__()
+        self.name = "Database"
+        self.db = get_db()
+
+    def _load_data_from_connection(self, model_class, table_name: str, fields: Dict[str, str]) -> List[Dict]:
+        """
+        Load data from database connection.
+        
+        Args:
+            model_class: Pydantic model class
+            table_name: Database table name
+            fields: Field mapping dictionary
+            
+        Returns:
+            List of model instances
+        """
+        print(f"🗄️  Loading {model_class.__name__} from database table '{table_name}'...")
+        
+        # Build SELECT query
+        db_fields = list(fields.values())
+        query = f"SELECT {', '.join(db_fields)} FROM {table_name} ORDER BY id"
+        
+        return self.db.execute_query(query)
+
+
+class CSVLoader(BaseLoader):
+    """
+    CSV-based data loader for compliance data.
+    Loads data from exported CSV files.
+    """
+    
+    def __init__(self, csv_dir: str = "data/csv"):
+        super().__init__()
+        self.name = "CSV Files"
+        self.csv_dir = csv_dir
+    
+    def _load_data_from_connection(self, model_class, table_name: str, fields: Dict[str, str]) -> List[Dict]:
+        """
+        Load data from CSV files.
+        
+        Args:
+            model_class: Pydantic model class
+            table_name: CSV file name (without .csv extension)
+            fields: Field mapping dictionary
+            
+        Returns:
+            List of row dictionaries
+        """
+        csv_file_path = os.path.join(self.csv_dir, f"{table_name}.csv")
+        print(f"📁 Loading {model_class.__name__} from CSV file '{csv_file_path}'...")
+        
+        if not os.path.exists(csv_file_path):
+            raise FileNotFoundError(f"CSV file not found: {csv_file_path}")
+        
+        rows = []
+        with open(csv_file_path, 'r', encoding='utf-8') as file:
+            csv_reader = csv.DictReader(file)
+            rows = list(csv_reader)
+        
+        return rows
+    
+    def _parse_row_from_connection(self, model_class, table_name, fields, row):
+        """Override to handle CSV-specific field processing."""
+        # Create model data dict with proper field names
+        model_data = {}
+        for model_field, csv_field in fields.items():
+            value = row.get(csv_field, '')
+            
+            # Handle CSV-specific field processing
+            if model_field == 'status' and csv_field == 'active':
+                model_data[model_field] = 'active' if BaseModel._parse_bool(value) else 'inactive'
+            elif model_field in ['created_at', 'updated_at']:
+                model_data[model_field] = BaseModel._parse_datetime(value)
+            elif model_field == 'id' and value:
+                model_data[model_field] = int(value)
+            elif model_field in ['framework_id', 'standard_id'] and value:
+                model_data[model_field] = int(value)
+            elif model_field == 'control_id' and value:
+                # Handle control_id differently based on model type
+                if model_class == StandardControlMapping:
+                    # For mappings, control_id is a foreign key integer
+                    model_data[model_field] = int(value)
+                else:
+                    # For Control model, control_id is the control identifier string (e.g., 'AC-1')
+                    model_data[model_field] = value
+            elif model_field == 'version' and value and value != 'None':
+                model_data[model_field] = value
+            elif model_field == 'name' and model_class == Control:
+                # Use control_long_name if available, fallback to control_name
+                long_name = row.get('control_long_name', '')
+                short_name = row.get('control_name', '')
+                model_data[model_field] = long_name or short_name or value
+            elif model_field == 'description' and model_class == Control:
+                # Combine control_text and control_discussion
+                control_text = row.get('control_text', '')
+                control_discussion = row.get('control_discussion', '')
+                model_data[model_field] = control_text or control_discussion or ''
+            elif model_field == 'description' and model_class == Standard:
+                # Use long_description, fallback to short_description
+                long_desc = row.get('long_description', '')
+                short_desc = row.get('short_description', '')
+                model_data[model_field] = long_desc or short_desc
+            elif value and value != 'None':
+                model_data[model_field] = value
+            else:
+                model_data[model_field] = None
+        
+        # Set default values for fields not in CSV
+        if model_class == Framework:
+            model_data.setdefault('issuing_organization', None)
+            model_data.setdefault('publication_date', None)
+            if 'status' not in model_data:
+                model_data['status'] = 'active' if BaseModel._parse_bool(row.get('active', 'true')) else 'inactive'
+        elif model_class == Control:
+            model_data.setdefault('priority', 'medium')
+            model_data.setdefault('github_check_required', None)
+            model_data.setdefault('control_family', row.get('family_name') if row.get('family_name') != 'None' else None)
+            model_data.setdefault('implementation_guidance', row.get('control_discussion') if row.get('control_discussion') != 'None' else None)
+        elif model_class == Standard:
+            model_data.setdefault('version', None)
+            model_data.setdefault('issuing_organization', None)
+            model_data.setdefault('scope', None)
+            if 'status' not in model_data:
+                model_data['status'] = 'active' if BaseModel._parse_bool(row.get('active', 'true')) else 'inactive'
+        elif model_class == StandardControlMapping:
+            model_data.setdefault('mapping_type', 'direct')
+            model_data.setdefault('compliance_level', None)
+            model_data.setdefault('notes', row.get('additional_guidance') if row.get('additional_guidance') != 'None' else None)
+        
+        return model_data
+
+
+# Singleton instances for global access
+_db_loader = None
+_csv_loader = None
+
+def get_db_loader() -> DBLoader:
+    """Get or create singleton DBLoader instance."""
+    global _db_loader
+    if _db_loader is None:
+        _db_loader = DBLoader()
+    return _db_loader
+
+def get_csv_loader(csv_dir: str = "data/csv") -> CSVLoader:
+    """Get or create singleton CSVLoader instance."""
+    global _csv_loader
+    if _csv_loader is None:
+        _csv_loader = CSVLoader(csv_dir)
+    return _csv_loader

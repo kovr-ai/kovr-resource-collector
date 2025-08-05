@@ -1,25 +1,10 @@
 """
 Compliance module for con_mon - manages cybersecurity frameworks, controls, and standards.
+Modern class-based architecture with no backward compatibility.
 """
 
 from .models import BaseModel, Framework, Control, Standard, StandardControlMapping, FrameworkWithControls, StandardWithControls, ControlWithStandards
-from .data_loader import (
-    # Legacy functions
-    load_frameworks_from_csv, 
-    load_frameworks_from_db,
-    load_standards_from_db,
-    load_standard_control_mappings_from_db,
-    get_controls_with_standards,
-    populate_framework_data,
-    populate_framework_data_from_db,
-    # CSV table loading functions
-    load_frameworks_from_table_csv,
-    load_controls_from_table_csv,
-    load_standards_from_table_csv,
-    load_standard_control_mappings_from_table_csv,
-    populate_framework_data_from_csv,
-    get_controls_with_standards_from_csv
-)
+from .data_loader import BaseLoader, DBLoader, CSVLoader, get_db_loader, get_csv_loader
 
 __all__ = [
     # Models
@@ -31,19 +16,11 @@ __all__ = [
     'FrameworkWithControls',
     'StandardWithControls', 
     'ControlWithStandards',
-    # Legacy functions
-    'load_frameworks_from_csv',
-    'load_frameworks_from_db',
-    'load_standards_from_db', 
-    'load_standard_control_mappings_from_db',
-    'get_controls_with_standards',
-    'populate_framework_data',
-    'populate_framework_data_from_db',
-    # CSV table loading functions
-    'load_frameworks_from_table_csv',
-    'load_controls_from_table_csv',
-    'load_standards_from_table_csv',
-    'load_standard_control_mappings_from_table_csv',
-    'populate_framework_data_from_csv',
-    'get_controls_with_standards_from_csv'
+    # Loader Classes
+    'BaseLoader',
+    'DBLoader',
+    'CSVLoader',
+    # Singleton Functions
+    'get_db_loader',
+    'get_csv_loader'
 ] 
