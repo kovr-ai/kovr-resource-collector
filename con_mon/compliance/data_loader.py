@@ -23,8 +23,9 @@ class BaseLoader(ABC):
     
     def __init__(self):
         self.name = self.__class__.__name__
-    
-    def _load_meta_data(self, model_class):
+
+    @classmethod
+    def _load_meta_data(cls, model_class):
         """
         Uses model_class and returns the expected meta data.
         
@@ -364,77 +365,6 @@ class CSVLoader(BaseLoader):
             rows = list(csv_reader)
         
         return rows
-    
-    def _parse_row_from_connection(self, model_class, table_name, fields, row):
-        """Override to handle CSV-specific field processing."""
-        # Create model data dict with proper field names
-        model_data = {}
-        for model_field, csv_field in fields.items():
-            value = row.get(csv_field, '')
-            
-            # Handle CSV-specific field processing
-            if model_field == 'status' and csv_field == 'active':
-                model_data[model_field] = 'active' if BaseModel._parse_bool(value) else 'inactive'
-            elif model_field in ['created_at', 'updated_at']:
-                model_data[model_field] = BaseModel._parse_datetime(value)
-            elif model_field == 'id' and value:
-                model_data[model_field] = int(value)
-            elif model_field in ['framework_id', 'standard_id'] and value:
-                model_data[model_field] = int(value)
-            elif model_field == 'control_id' and value:
-                # Handle control_id differently based on model type
-                if model_class == StandardControlMapping:
-                    # For mappings, control_id is a foreign key integer
-                    model_data[model_field] = int(value)
-                else:
-                    # For Control model, control_id is the control identifier string (e.g., 'AC-1')
-                    model_data[model_field] = value
-            elif model_field == 'version' and value and value != 'None':
-                model_data[model_field] = value
-            elif model_field == 'name' and model_class == Control:
-                # Use control_long_name if available, fallback to control_name
-                long_name = row.get('control_long_name', '')
-                short_name = row.get('control_name', '')
-                model_data[model_field] = long_name or short_name or value
-            elif model_field == 'description' and model_class == Control:
-                # Combine control_text and control_discussion
-                control_text = row.get('control_text', '')
-                control_discussion = row.get('control_discussion', '')
-                model_data[model_field] = control_text or control_discussion or ''
-            elif model_field == 'description' and model_class == Standard:
-                # Use long_description, fallback to short_description
-                long_desc = row.get('long_description', '')
-                short_desc = row.get('short_description', '')
-                model_data[model_field] = long_desc or short_desc
-            elif value and value != 'None':
-                model_data[model_field] = value
-            else:
-                model_data[model_field] = None
-        
-        # Set default values for fields not in CSV
-        if model_class == Framework:
-            model_data.setdefault('issuing_organization', None)
-            model_data.setdefault('publication_date', None)
-            if 'status' not in model_data:
-                model_data['status'] = 'active' if BaseModel._parse_bool(row.get('active', 'true')) else 'inactive'
-        elif model_class == Control:
-            model_data.setdefault('priority', 'medium')
-            model_data.setdefault('github_check_required', None)
-            model_data.setdefault('control_family', row.get('family_name') if row.get('family_name') != 'None' else None)
-            model_data.setdefault('implementation_guidance', row.get('control_discussion') if row.get('control_discussion') != 'None' else None)
-        elif model_class == Standard:
-            model_data.setdefault('version', None)
-            model_data.setdefault('issuing_organization', None)
-            model_data.setdefault('scope', None)
-            if 'status' not in model_data:
-                model_data['status'] = 'active' if BaseModel._parse_bool(row.get('active', 'true')) else 'inactive'
-        elif model_class == StandardControlMapping:
-            model_data.setdefault('mapping_type', 'direct')
-            model_data.setdefault('compliance_level', None)
-            model_data.setdefault('notes', row.get('additional_guidance') if row.get('additional_guidance') != 'None' else None)
-        
-        return model_data
-
 
 # Singleton instances for global access
 _db_loader = None
