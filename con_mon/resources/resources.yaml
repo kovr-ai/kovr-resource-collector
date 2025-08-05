@@ -285,11 +285,15 @@ aws:
         region: "string"
         account_id: "string"
         # CloudWatch resources
-        log_groups: "object"
-        log_streams: "object"
-        metrics: "object"
-        alarms: "object"
-        dashboards: "object"
+        log_groups: "object"  # Dictionary/map structure
+        log_streams: "object"  # Dictionary/map structure
+        metrics: "array"  # List of metric objects
+        alarms: "object"  # Dictionary/map structure
+        dashboards: "object"  # Dictionary/map structure
+        # Additional CloudWatch fields
+        retention_policies: "array"
+        subscription_filters: "array"
+        metric_filters: "array"
         # Metadata
         total_log_groups: "integer"
         total_log_streams: "integer"
