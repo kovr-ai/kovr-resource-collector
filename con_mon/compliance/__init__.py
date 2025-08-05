@@ -10,7 +10,14 @@ from .data_loader import (
     load_standard_control_mappings_from_db,
     get_controls_with_standards,
     populate_framework_data,
-    populate_framework_data_from_db
+    populate_framework_data_from_db,
+    # New CSV table loading functions
+    load_frameworks_from_table_csv,
+    load_controls_from_table_csv,
+    load_standards_from_table_csv,
+    load_standard_control_mappings_from_table_csv,
+    populate_framework_data_from_csv,
+    get_controls_with_standards_from_csv
 )
 
 __all__ = [
@@ -27,5 +34,12 @@ __all__ = [
     'load_standard_control_mappings_from_db',
     'get_controls_with_standards',
     'populate_framework_data',
-    'populate_framework_data_from_db'
+    'populate_framework_data_from_db',
+    # New CSV table loading functions
+    'load_frameworks_from_table_csv',
+    'load_controls_from_table_csv',
+    'load_standards_from_table_csv',
+    'load_standard_control_mappings_from_table_csv',
+    'populate_framework_data_from_csv',
+    'get_controls_with_standards_from_csv'
 ] 

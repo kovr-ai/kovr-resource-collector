@@ -1,5 +1,5 @@
 """
-Data loader for cybersecurity frameworks - loads data from database and creates framework models.
+Data loader for cybersecurity frameworks - loads data from database and CSV files.
 """
 
 import csv
@@ -8,6 +8,279 @@ from typing import List, Dict, Tuple, Optional
 from datetime import datetime
 from con_mon.compliance.models import Framework, Control, Standard, StandardControlMapping, FrameworkWithControls, StandardWithControls, ControlWithStandards
 from con_mon.utils.db import get_db
+
+
+def _parse_datetime(date_string: str) -> Optional[datetime]:
+    """Parse ISO datetime string, return None if invalid."""
+    if not date_string or date_string == 'None':
+        return None
+    try:
+        return datetime.fromisoformat(date_string.replace('Z', '+00:00'))
+    except (ValueError, AttributeError):
+        return None
+
+
+def _parse_bool(value: str) -> bool:
+    """Parse boolean string value."""
+    if isinstance(value, bool):
+        return value
+    return str(value).lower() in ('true', '1', 'yes', 'on')
+
+
+def load_frameworks_from_table_csv(csv_file_path: str = "data/csv/framework.csv") -> List[Framework]:
+    """
+    Load frameworks from exported framework table CSV file.
+    
+    Args:
+        csv_file_path: Path to framework CSV file
+        
+    Returns:
+        List of Framework objects
+    """
+    frameworks = []
+    
+    print(f"📁 Loading frameworks from CSV: {csv_file_path}")
+    
+    try:
+        with open(csv_file_path, 'r', encoding='utf-8') as file:
+            csv_reader = csv.DictReader(file)
+            
+            for row in csv_reader:
+                framework = Framework(
+                    id=int(row['id']) if row['id'] else None,
+                    name=row['name'],
+                    version=row['version'] if row['version'] != 'None' else None,
+                    description=row['description'] if row['description'] != 'None' else None,
+                    issuing_organization=None,  # Not in exported table
+                    publication_date=None,      # Not in exported table
+                    status='active' if _parse_bool(row['active']) else 'inactive',
+                    created_at=_parse_datetime(row['created_at']),
+                    updated_at=_parse_datetime(row['updated_at'])
+                )
+                frameworks.append(framework)
+        
+        print(f"✅ Successfully loaded {len(frameworks)} frameworks from CSV")
+        return frameworks
+        
+    except FileNotFoundError:
+        print(f"❌ Framework CSV file not found: {csv_file_path}")
+        raise
+    except Exception as e:
+        print(f"❌ Error loading frameworks from CSV: {e}")
+        raise
+
+
+def load_controls_from_table_csv(csv_file_path: str = "data/csv/control.csv") -> List[Control]:
+    """
+    Load controls from exported control table CSV file.
+    
+    Args:
+        csv_file_path: Path to control CSV file
+        
+    Returns:
+        List of Control objects
+    """
+    controls = []
+    
+    print(f"📁 Loading controls from CSV: {csv_file_path}")
+    
+    try:
+        with open(csv_file_path, 'r', encoding='utf-8') as file:
+            csv_reader = csv.DictReader(file)
+            
+            for row in csv_reader:
+                control = Control(
+                    id=int(row['id']) if row['id'] else None,
+                    framework_id=int(row['framework_id']),
+                    control_id=row['control_name'],
+                    name=row['control_long_name'] or row['control_name'],
+                    description=row['control_text'] or row['control_discussion'] or '',
+                    control_family=row['family_name'] if row['family_name'] != 'None' else None,
+                    priority='medium',  # Default priority since not in DB
+                    implementation_guidance=row['control_discussion'] if row['control_discussion'] != 'None' else None,
+                    github_check_required=None,  # Not in DB schema
+                    created_at=_parse_datetime(row['created_at']),
+                    updated_at=_parse_datetime(row['updated_at'])
+                )
+                controls.append(control)
+        
+        print(f"✅ Successfully loaded {len(controls)} controls from CSV")
+        return controls
+        
+    except FileNotFoundError:
+        print(f"❌ Control CSV file not found: {csv_file_path}")
+        raise
+    except Exception as e:
+        print(f"❌ Error loading controls from CSV: {e}")
+        raise
+
+
+def load_standards_from_table_csv(csv_file_path: str = "data/csv/standard.csv") -> List[Standard]:
+    """
+    Load standards from exported standard table CSV file.
+    
+    Args:
+        csv_file_path: Path to standard CSV file
+        
+    Returns:
+        List of Standard objects
+    """
+    standards = []
+    
+    print(f"📁 Loading standards from CSV: {csv_file_path}")
+    
+    try:
+        with open(csv_file_path, 'r', encoding='utf-8') as file:
+            csv_reader = csv.DictReader(file)
+            
+            for row in csv_reader:
+                standard = Standard(
+                    id=int(row['id']) if row['id'] else None,
+                    name=row['name'],
+                    version=None,  # Not in DB schema
+                    description=row['long_description'] or row['short_description'] if row.get('long_description') != 'None' else None,
+                    issuing_organization=None,  # Not in DB schema
+                    scope=None,  # Not in DB schema
+                    status='active' if _parse_bool(row['active']) else 'inactive',
+                    created_at=_parse_datetime(row['created_at']),
+                    updated_at=_parse_datetime(row['updated_at'])
+                )
+                standards.append(standard)
+        
+        print(f"✅ Successfully loaded {len(standards)} standards from CSV")
+        return standards
+        
+    except FileNotFoundError:
+        print(f"❌ Standard CSV file not found: {csv_file_path}")
+        raise
+    except Exception as e:
+        print(f"❌ Error loading standards from CSV: {e}")
+        raise
+
+
+def load_standard_control_mappings_from_table_csv(csv_file_path: str = "data/csv/standard_control_mapping.csv") -> List[StandardControlMapping]:
+    """
+    Load standard-control mappings from exported mapping table CSV file.
+    
+    Args:
+        csv_file_path: Path to mapping CSV file
+        
+    Returns:
+        List of StandardControlMapping objects
+    """
+    mappings = []
+    
+    print(f"📁 Loading mappings from CSV: {csv_file_path}")
+    
+    try:
+        with open(csv_file_path, 'r', encoding='utf-8') as file:
+            csv_reader = csv.DictReader(file)
+            
+            for row in csv_reader:
+                mapping = StandardControlMapping(
+                    id=int(row['id']) if row['id'] else None,
+                    standard_id=int(row['standard_id']),
+                    control_id=int(row['control_id']),
+                    mapping_type='direct',  # Default since not in DB
+                    compliance_level=None,  # Not in DB schema
+                    notes=row['additional_guidance'] if row.get('additional_guidance') != 'None' else None,
+                    created_at=_parse_datetime(row['created_at']),
+                    updated_at=_parse_datetime(row['updated_at'])
+                )
+                mappings.append(mapping)
+        
+        print(f"✅ Successfully loaded {len(mappings)} mappings from CSV")
+        return mappings
+        
+    except FileNotFoundError:
+        print(f"❌ Mapping CSV file not found: {csv_file_path}")
+        raise
+    except Exception as e:
+        print(f"❌ Error loading mappings from CSV: {e}")
+        raise
+
+
+def populate_framework_data_from_csv(csv_dir: str = "data/csv") -> Tuple[List[FrameworkWithControls], List[StandardWithControls], List[StandardControlMapping]]:
+    """
+    Load and organize all framework data with relationships from CSV files.
+    
+    Args:
+        csv_dir: Directory containing CSV files
+        
+    Returns:
+        Tuple of (frameworks_with_controls, standards_with_controls, mappings)
+    """
+    print("🏗️  **Populating Framework Data from CSV Files**")
+    print("=" * 50)
+    
+    # Load base data from CSV files
+    frameworks = load_frameworks_from_table_csv(os.path.join(csv_dir, "framework.csv"))
+    controls = load_controls_from_table_csv(os.path.join(csv_dir, "control.csv"))
+    standards = load_standards_from_table_csv(os.path.join(csv_dir, "standard.csv"))
+    mappings = load_standard_control_mappings_from_table_csv(os.path.join(csv_dir, "standard_control_mapping.csv"))
+    
+    # Organize controls by framework
+    frameworks_with_controls = []
+    for framework in frameworks:
+        framework_controls = [c for c in controls if c.framework_id == framework.id]
+        
+        framework_with_controls = FrameworkWithControls(
+            **framework.dict(),
+            controls=framework_controls
+        )
+        frameworks_with_controls.append(framework_with_controls)
+    
+    # Organize controls by standard
+    standards_with_controls = []
+    for standard in standards:
+        # Find controls mapped to this standard
+        standard_control_ids = [m.control_id for m in mappings if m.standard_id == standard.id]
+        standard_controls = [c for c in controls if c.id in standard_control_ids]
+        
+        standard_with_controls = StandardWithControls(
+            **standard.dict(),
+            controls=standard_controls
+        )
+        standards_with_controls.append(standard_with_controls)
+    
+    print(f"✅ Populated framework data from CSV files:")
+    print(f"   • {len(frameworks_with_controls)} frameworks with controls")
+    print(f"   • {len(standards_with_controls)} standards with controls")
+    print(f"   • {len(mappings)} standard-control mappings")
+    
+    return frameworks_with_controls, standards_with_controls, mappings
+
+
+def get_controls_with_standards_from_csv(csv_dir: str = "data/csv") -> List[ControlWithStandards]:
+    """
+    Load controls with their associated standards from CSV files.
+    
+    Args:
+        csv_dir: Directory containing CSV files
+    
+    Returns:
+        List of ControlWithStandards objects
+    """
+    # Load base data from CSV files
+    frameworks = load_frameworks_from_table_csv(os.path.join(csv_dir, "framework.csv"))
+    controls = load_controls_from_table_csv(os.path.join(csv_dir, "control.csv"))
+    standards = load_standards_from_table_csv(os.path.join(csv_dir, "standard.csv"))
+    mappings = load_standard_control_mappings_from_table_csv(os.path.join(csv_dir, "standard_control_mapping.csv"))
+    
+    # Organize standards by control
+    controls_with_standards = []
+    for control in controls:
+        # Find standards mapped to this control
+        control_standard_ids = [m.standard_id for m in mappings if m.control_id == control.id]
+        control_standards = [s for s in standards if s.id in control_standard_ids]
+        
+        control_with_standards = ControlWithStandards(
+            **control.dict(),
+            standards=control_standards
+        )
+        controls_with_standards.append(control_with_standards)
+    
+    return controls_with_standards
 
 
 def load_frameworks_from_csv(csv_file_path: str = None) -> Tuple[List[Framework], List[Control]]:
