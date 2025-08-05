@@ -61,21 +61,14 @@ def insert_check_results(executed_check_results: List[Tuple[int, str, List[Any]]
         failed_resources = []
         
         for result in check_results:
-            if hasattr(result.resource, 'model_dump'):
-                resource_dict = result.resource.model_dump()
-            elif hasattr(result.resource, 'dict'):
-                resource_dict = result.resource.dict()
-            else:
-                resource_dict = result.resource.__dict__
-                
             if result.passed:
-                success_resources.append(resource_dict)
+                success_resources.append(result.resource.id)
             else:
-                failed_resources.append(resource_dict)
-        
+                failed_resources.append(result.resource.id)
+
         # Determine overall result
         if failure_count == 0:
-            overall_result = 'PASS'
+            overall_result = 'SUCCESS'
             result_message = f"Check '{check_name}' passed for all {success_count} resources"
         elif success_count == 0:
             overall_result = 'FAIL'  
@@ -89,6 +82,8 @@ def insert_check_results(executed_check_results: List[Tuple[int, str, List[Any]]
         if failure_count > 0:
             for result in check_results:
                 if not result.passed:
+                    if result.error:
+                        overall_result = 'ERROR'
                     failure_details.append({
                         'resource_id': result.resource.id,
                         'resource_name': result.resource.name,

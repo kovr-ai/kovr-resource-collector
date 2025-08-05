@@ -37,7 +37,7 @@ def main(
         executed_check_results=executed_check_results,
     )
 
-    return
+    # return
     # Print comprehensive summary
     sql.insert_check_results(
         executed_check_results,
