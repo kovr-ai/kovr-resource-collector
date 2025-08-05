@@ -14,42 +14,42 @@ This document tracks all implemented compliance checks for cloud resource monito
 # Checks for NIST 800-53 Controls
 - **Total Controls**: 1,199
 - **Control Groups**: 21 control families
-- **Group Coverage**: 10 of 21 families covered (47.6%)
-- **Control Coverage**: 18 of 1,199 controls covered (1.5%)
+- **Group Coverage**: 12 of 21 families covered (57.1%)
+- **Control Coverage**: 29 of 1,199 controls covered (2.4%)
 
 ## NIST 800-53 Control Family Coverage
 
 | Family | Controls Covered | Total Controls | Coverage % | Description |
 |--------|------------------|----------------|------------|-------------|
-| **CM** | 4 | 66 | 6.1% | Configuration Management |
+| **PM** | 3 | 37 | 8.1% | Program Management |
+| **CM** | 5 | 66 | 7.6% | Configuration Management |
+| **AC** | 10 | 147 | 6.8% | Access Control |
 | **AT** | 1 | 17 | 5.9% | Awareness and Training |
 | **PS** | 1 | 18 | 5.6% | Personnel Security |
 | **PT** | 1 | 21 | 4.8% | Privacy Controls |
-| **AC** | 5 | 147 | 3.4% | Access Control |
 | **MP** | 1 | 30 | 3.3% | Media Protection |
-| **PM** | 1 | 37 | 2.7% | Program Management |
+| **CA** | 1 | 32 | 3.1% | Assessment, Authorization, and Monitoring |
+| **IA** | 2 | 70 | 2.9% | Identification and Authentication |
 | **IR** | 1 | 42 | 2.4% | Incident Response |
 | **PE** | 1 | 59 | 1.7% | Physical and Environmental Protection |
 | **SA** | 2 | 145 | 1.4% | System and Services Acquisition |
 | **SC** | 0 | 162 | 0.0% | System and Communications Protection |
 | **SI** | 0 | 118 | 0.0% | System and Information Integrity |
-| **IA** | 0 | 70 | 0.0% | Identification and Authentication |
 | **AU** | 0 | 69 | 0.0% | Audit and Accountability |
 | **CP** | 0 | 56 | 0.0% | Contingency Planning |
-| **CA** | 0 | 32 | 0.0% | Assessment, Authorization, and Monitoring |
 | **MA** | 0 | 30 | 0.0% | Maintenance |
 | **SR** | 0 | 27 | 0.0% | Supply Chain Risk Management |
 | **RA** | 0 | 26 | 0.0% | Risk Assessment |
 | **PL** | 0 | 17 | 0.0% | Planning |
 | **GRR** | 0 | 10 | 0.0% | DoD PKI Authentication |
 
-**Summary**: 10 of 21 families covered • 18 of 1,199 controls covered • 637 controls in uncovered families
+**Summary**: 12 of 21 families covered • 29 of 1,199 controls covered • 570 controls in uncovered families
 
 # Checks for NIST 800-171 rev2 Catalog
 - **Total Controls**: 110
 - **Control Groups**: 14 control families
 - **Group Coverage**: 14 of 14 families covered (100%)
-- **Control Coverage**: 62 of 110 controls covered (56.4%)
+- **Control Coverage**: 63 of 110 controls covered (57.3%)
 
 ## NIST 800-171 rev2 Control Family Coverage
 
