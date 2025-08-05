@@ -424,24 +424,24 @@ def load_and_create_dynamic_models(yaml_file_path: str = None) -> Dict[str, Type
             if not isinstance(provider_config, dict):
                 continue
                 
-            # Handle the new structure with resources: section
+            # Get the structured sections
+            resources_field_schemas = provider_config.get('resources_field_schemas', {})
             resources_section = provider_config.get('resources', {})
             main_collection = provider_config.get('ResourceCollection')
             
             # Determine creation order within this provider
-            data_models = []      # Models like RepositoryData, ActionsData, etc.
-            resource_models = []  # Resource models like Resource, EC2Resource, IAMResource, etc.
+            data_models = []      # Models from resources_field_schemas
+            resource_models = []  # Resource models from resources section
             
-            for model_name, model_config in resources_section.items():
-                if not isinstance(model_config, dict):
-                    continue
-                    
-                if model_name.endswith('Resource'):
-                    # These are resource models (Resource, EC2Resource, IAMResource, etc.)
-                    resource_models.append((model_name, model_config))
-                else:
-                    # These are nested data models (RepositoryData, ActionsData, etc.)
+            # First, get data models from resources_field_schemas section
+            for model_name, model_config in resources_field_schemas.items():
+                if isinstance(model_config, dict):
                     data_models.append((model_name, model_config))
+            
+            # Then, get resource models from resources section
+            for model_name, model_config in resources_section.items():
+                if isinstance(model_config, dict):
+                    resource_models.append((model_name, model_config))
             
             # First pass: Create nested data models
             for model_name, model_config in data_models:
@@ -534,7 +534,6 @@ def load_and_create_dynamic_models(yaml_file_path: str = None) -> Dict[str, Type
                 model_class.__provider__ = provider_name
                 model_class.__description__ = main_collection.get('description', '')
         
-        print(f"✅ Created {len(dynamic_models)} dynamic Pydantic models from {yaml_file_path}")
         return dynamic_models
         
     except FileNotFoundError:
