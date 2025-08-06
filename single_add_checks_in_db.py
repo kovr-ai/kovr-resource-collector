@@ -12,9 +12,12 @@ Features:
 - Time tracking with ETA calculations
 - Comprehensive error handling and logging
 - Support for both GitHub and AWS resources
+- Colorful console output with progress bars
+- Secondary progress monitoring command
 
 Usage:
-    python single_add_checks_in_db.py [--dry-run] [--resume] [--log-file progress.csv]
+    python single_add_checks_in_db.py [--dry-run] [--log-file progress.csv] [--resource-types github aws]
+    python single_add_checks_in_db.py --progress [--log-file progress.csv]  # Monitor from another terminal
 """
 
 import argparse
@@ -26,27 +29,90 @@ import time
 from datetime import datetime, timedelta
 from typing import Dict, Any, List, Tuple, Optional
 
+# Console coloring
+try:
+    from colorama import init, Fore, Back, Style
+    init(autoreset=True)
+    COLORS_AVAILABLE = True
+except ImportError:
+    # Fallback if colorama not available
+    class MockColor:
+        RED = GREEN = YELLOW = BLUE = MAGENTA = CYAN = WHITE = RESET = ""
+        BRIGHT = ""
+    
+    Fore = Back = Style = MockColor()
+    COLORS_AVAILABLE = False
+
+# Progress bar
+try:
+    from tqdm import tqdm
+    TQDM_AVAILABLE = True
+except ImportError:
+    TQDM_AVAILABLE = False
+
 # Add the project root to Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from con_mon.utils.db import get_db
 from generate_checks_with_llm import (
-    get_control_from_db,
     call_llm_for_check,
     process_response_to_check,
     validate_check_execution
 )
 
-# Set up logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('single_add_checks.log'),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger(__name__)
+# Color-enhanced logging formatter
+class ColoredFormatter(logging.Formatter):
+    """Custom formatter with colors."""
+    
+    COLORS = {
+        'DEBUG': Fore.CYAN,
+        'INFO': Fore.GREEN,
+        'WARNING': Fore.YELLOW,
+        'ERROR': Fore.RED,
+        'CRITICAL': Fore.MAGENTA + Style.BRIGHT,
+    }
+
+    def format(self, record):
+        if COLORS_AVAILABLE:
+            color = self.COLORS.get(record.levelname, '')
+            record.levelname = f"{color}{record.levelname}{Style.RESET_ALL}"
+        return super().format(record)
+
+# Set up logging with colors
+def setup_logging():
+    """Setup colored logging."""
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+    
+    # Clear existing handlers
+    logger.handlers.clear()
+    
+    # Console handler with colors
+    console_handler = logging.StreamHandler()
+    console_formatter = ColoredFormatter('%(asctime)s - %(levelname)s - %(message)s')
+    console_handler.setFormatter(console_formatter)
+    
+    # File handler without colors
+    file_handler = logging.FileHandler('single_add_checks.log')
+    file_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    file_handler.setFormatter(file_formatter)
+    
+    logger.addHandler(console_handler)
+    logger.addHandler(file_handler)
+    
+    return logger
+
+logger = setup_logging()
+
+
+def print_colored(message: str, color: str = "", style: str = ""):
+    """Print colored message."""
+    if COLORS_AVAILABLE:
+        color_code = getattr(Fore, color.upper(), "") if color else ""
+        style_code = getattr(Style, style.upper(), "") if style else ""
+        print(f"{color_code}{style_code}{message}{Style.RESET_ALL}")
+    else:
+        print(message)
 
 
 class CheckGenerationProgress:
@@ -60,6 +126,7 @@ class CheckGenerationProgress:
         self.successful_count = 0
         self.failed_count = 0
         self.skipped_count = 0
+        self.progress_bar = None
         
         # CSV headers
         self.headers = [
@@ -81,7 +148,7 @@ class CheckGenerationProgress:
         with open(self.log_file, 'w', newline='') as f:
             writer = csv.writer(f)
             writer.writerow(self.headers)
-        logger.info(f"📊 Created progress log: {self.log_file}")
+        print_colored(f"📊 Created progress log: {self.log_file}", "green")
     
     def _load_completed_tasks(self) -> set:
         """Load already completed tasks from CSV."""
@@ -102,15 +169,15 @@ class CheckGenerationProgress:
                     elif row['status'] == 'skipped':
                         self.skipped_count += 1
                         
-            logger.info(f"📋 Loaded {len(completed)} completed tasks from {self.log_file}")
-            logger.info(f"   ✅ Successful: {self.successful_count}")
-            logger.info(f"   ❌ Failed: {self.failed_count}")
-            logger.info(f"   ⏭️  Skipped: {self.skipped_count}")
+            print_colored(f"📋 Loaded {len(completed)} completed tasks from {self.log_file}", "blue")
+            print_colored(f"   ✅ Successful: {self.successful_count}", "green")
+            print_colored(f"   ❌ Failed: {self.failed_count}", "red")
+            print_colored(f"   ⏭️  Skipped: {self.skipped_count}", "yellow")
             
         except FileNotFoundError:
-            logger.info("📋 No existing progress file found, starting fresh")
+            print_colored("📋 No existing progress file found, starting fresh", "blue")
         except Exception as e:
-            logger.warning(f"⚠️  Error loading progress: {e}")
+            print_colored(f"⚠️  Error loading progress: {e}", "yellow")
             
         return completed
     
@@ -118,6 +185,19 @@ class CheckGenerationProgress:
         """Check if a task is already completed."""
         task_key = f"{control_id}-{resource_type}-{connection_id}"
         return task_key in self.completed_tasks
+    
+    def setup_progress_bar(self, total: int):
+        """Setup progress bar if tqdm is available."""
+        if TQDM_AVAILABLE:
+            remaining = total - len(self.completed_tasks)
+            self.progress_bar = tqdm(
+                total=total,
+                initial=len(self.completed_tasks),
+                desc="Processing Controls",
+                unit="task",
+                colour="green",
+                bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]"
+            )
     
     def log_task_start(self, control_id: int, control_name: str, resource_type: str, connection_id: int):
         """Log the start of a task."""
@@ -128,7 +208,11 @@ class CheckGenerationProgress:
             'connection_id': connection_id,
             'start_time': datetime.now()
         }
-        logger.info(f"🔄 Starting: {control_name} ({resource_type}) - Connection {connection_id}")
+        
+        if self.progress_bar:
+            self.progress_bar.set_description(f"Processing: {control_name} ({resource_type})")
+        else:
+            print_colored(f"🔄 Starting: {control_name} ({resource_type}) - Connection {connection_id}", "blue")
     
     def log_task_completion(
         self, 
@@ -193,26 +277,49 @@ class CheckGenerationProgress:
         task_key = f"{self.current_task['control_id']}-{self.current_task['resource_type']}-{self.current_task['connection_id']}"
         self.completed_tasks.add(task_key)
         
-        # Log status
-        status_emoji = {"completed": "✅", "failed": "❌", "skipped": "⏭️"}.get(status, "❓")
-        logger.info(f"{status_emoji} {status.title()}: {self.current_task['control_name']} ({self.current_task['resource_type']}) - {duration:.1f}s")
-        
-        if error_message:
-            logger.error(f"   Error: {error_message}")
-        
-        # Progress update
-        self._log_progress_update(eta_hms)
+        # Update progress bar
+        if self.progress_bar:
+            self.progress_bar.update(1)
+            # Set postfix with current stats
+            self.progress_bar.set_postfix({
+                'Success': self.successful_count,
+                'Failed': self.failed_count,
+                'ETA': eta_hms
+            })
+        else:
+            # Log status with colors
+            status_info = {
+                "completed": ("✅", "green"),
+                "failed": ("❌", "red"), 
+                "skipped": ("⏭️", "yellow")
+            }
+            emoji, color = status_info.get(status, ("❓", "white"))
+            
+            print_colored(
+                f"{emoji} {status.title()}: {self.current_task['control_name']} "
+                f"({self.current_task['resource_type']}) - {duration:.1f}s", 
+                color
+            )
+            
+            if error_message:
+                print_colored(f"   Error: {error_message}", "red")
+            
+            # Progress update
+            self._log_progress_update(eta_hms)
     
     def _log_progress_update(self, eta_hms: str):
         """Log overall progress update."""
+        if self.progress_bar:
+            return  # Progress bar handles this
+            
         progress_pct = (self.processed_count / self.total_count * 100) if self.total_count > 0 else 0
         
-        logger.info(f"📊 Progress: {self.processed_count}/{self.total_count} ({progress_pct:.1f}%)")
-        logger.info(f"   ✅ Successful: {self.successful_count}")
-        logger.info(f"   ❌ Failed: {self.failed_count}")
-        logger.info(f"   ⏭️  Skipped: {self.skipped_count}")
-        logger.info(f"   ⏱️  ETA: {eta_hms}")
-        logger.info("-" * 60)
+        print_colored(f"📊 Progress: {self.processed_count}/{self.total_count} ({progress_pct:.1f}%)", "cyan")
+        print_colored(f"   ✅ Successful: {self.successful_count}", "green")
+        print_colored(f"   ❌ Failed: {self.failed_count}", "red")
+        print_colored(f"   ⏭️  Skipped: {self.skipped_count}", "yellow")
+        print_colored(f"   ⏱️  ETA: {eta_hms}", "magenta")
+        print_colored("-" * 60, "cyan")
     
     def _seconds_to_hms(self, seconds: float) -> str:
         """Convert seconds to HH:MM:SS format."""
@@ -224,7 +331,100 @@ class CheckGenerationProgress:
         """Set the total number of tasks."""
         self.total_count = total
         remaining = total - len(self.completed_tasks)
-        logger.info(f"📋 Total tasks: {total}, Remaining: {remaining}")
+        print_colored(f"📋 Total tasks: {total}, Remaining: {remaining}", "blue")
+        
+        # Setup progress bar
+        self.setup_progress_bar(total)
+    
+    def close_progress_bar(self):
+        """Close progress bar."""
+        if self.progress_bar:
+            self.progress_bar.close()
+
+
+def show_progress_monitor(log_file: str = "check_generation_progress.csv"):
+    """Show live progress monitoring from CSV file."""
+    print_colored("🔍 Progress Monitor - Live View", "cyan", "bright")
+    print_colored("=" * 60, "cyan")
+    
+    if not os.path.exists(log_file):
+        print_colored(f"❌ Progress file not found: {log_file}", "red")
+        return
+    
+    last_count = 0
+    start_time = None
+    
+    try:
+        while True:
+            try:
+                # Read current progress
+                with open(log_file, 'r') as f:
+                    reader = csv.DictReader(f)
+                    rows = list(reader)
+                
+                if not rows:
+                    print_colored("📋 No progress data yet...", "yellow")
+                    time.sleep(5)
+                    continue
+                
+                # Calculate stats
+                total_tasks = len(rows)
+                completed = sum(1 for row in rows if row['status'] == 'completed')
+                failed = sum(1 for row in rows if row['status'] == 'failed')
+                skipped = sum(1 for row in rows if row['status'] == 'skipped')
+                
+                # Get latest task info
+                latest_row = rows[-1]
+                latest_control = latest_row['control_name']
+                latest_resource = latest_row['resource_type']
+                latest_status = latest_row['status']
+                
+                # Calculate progress
+                progress_pct = (total_tasks / 100) if total_tasks > 0 else 0  # Assuming ~100 total controls
+                
+                # Get timing info
+                if latest_row['total_runtime_hms']:
+                    runtime = latest_row['total_runtime_hms']
+                    eta = latest_row['estimated_completion_hms']
+                else:
+                    runtime = "00:00:00"
+                    eta = "unknown"
+                
+                # Clear screen and show progress
+                os.system('clear' if os.name == 'posix' else 'cls')
+                
+                print_colored("🔍 LIVE PROGRESS MONITOR", "cyan", "bright")
+                print_colored("=" * 60, "cyan")
+                print_colored(f"📊 Tasks Processed: {total_tasks}", "blue")
+                print_colored(f"✅ Successful: {completed}", "green")
+                print_colored(f"❌ Failed: {failed}", "red")
+                print_colored(f"⏭️  Skipped: {skipped}", "yellow")
+                print_colored(f"⏱️  Runtime: {runtime}", "magenta")
+                print_colored(f"🎯 ETA: {eta}", "magenta")
+                print_colored("-" * 60, "cyan")
+                print_colored(f"🔄 Latest: {latest_control} ({latest_resource}) - {latest_status}", "white")
+                
+                # Show progress bar
+                if total_tasks > 0:
+                    bar_length = 40
+                    filled_length = int(bar_length * progress_pct / 100)
+                    bar = '█' * filled_length + '░' * (bar_length - filled_length)
+                    print_colored(f"Progress: |{bar}| {progress_pct:.1f}%", "green")
+                
+                print_colored("\n⏹️  Press Ctrl+C to exit monitor", "yellow")
+                
+                last_count = total_tasks
+                time.sleep(5)  # Update every 5 seconds
+                
+            except FileNotFoundError:
+                print_colored("📋 Waiting for progress file...", "yellow")
+                time.sleep(5)
+            except Exception as e:
+                print_colored(f"⚠️  Error reading progress: {e}", "red")
+                time.sleep(5)
+                
+    except KeyboardInterrupt:
+        print_colored("\n👋 Progress monitor stopped", "green")
 
 
 def get_all_controls() -> List[Dict[str, Any]]:
@@ -398,7 +598,8 @@ def process_single_control_resource(
     
     # Check if already completed
     if progress.is_task_completed(control_id, resource_type, connection_id):
-        logger.info(f"⏭️  Skipping {control_name} ({resource_type}) - already completed")
+        if not progress.progress_bar:
+            print_colored(f"⏭️  Skipping {control_name} ({resource_type}) - already completed", "yellow")
         return True
     
     # Start task logging
@@ -480,7 +681,31 @@ def process_single_control_resource(
 
 def main():
     """Main function."""
-    parser = argparse.ArgumentParser(description="Single Add Checks in DB with Validation")
+    parser = argparse.ArgumentParser(
+        description="Single Add Checks in DB with Validation",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Process both GitHub and AWS (default)
+  python single_add_checks_in_db.py
+  
+  # Process only GitHub
+  python single_add_checks_in_db.py --resource-types github
+  
+  # Process only AWS  
+  python single_add_checks_in_db.py --resource-types aws
+  
+  # Dry run mode
+  python single_add_checks_in_db.py --dry-run
+  
+  # Monitor progress from another terminal
+  python single_add_checks_in_db.py --progress
+  
+  # Run with nohup and monitor separately
+  nohup python single_add_checks_in_db.py > output.log 2>&1 &
+  python single_add_checks_in_db.py --progress
+        """
+    )
     parser.add_argument("--dry-run", action="store_true", 
                        help="Run without actually inserting to database")
     parser.add_argument("--log-file", default="check_generation_progress.csv",
@@ -489,18 +714,41 @@ def main():
                        help="Connection ID for GitHub resources (default: 1)")
     parser.add_argument("--aws-connection-id", type=int, default=2,
                        help="Connection ID for AWS resources (default: 2)")
-    parser.add_argument("--resource-types", nargs='+', default=['github', 'aws'],
+    parser.add_argument("--resource-types", nargs='+', 
                        choices=['github', 'aws'],
-                       help="Resource types to process (default: github aws)")
+                       help="Resource types to process. Default: both github and aws. "
+                            "Use --resource-types github for GitHub only, "
+                            "--resource-types aws for AWS only")
+    parser.add_argument("--progress", action="store_true",
+                       help="Show live progress monitor (run from another terminal)")
     
     args = parser.parse_args()
     
-    print("🚀 Single Add Checks in DB - Autonomous Processing")
-    print("=" * 60)
+    # Handle progress monitor mode
+    if args.progress:
+        show_progress_monitor(args.log_file)
+        return 0
+    
+    # Set default resource types if not specified
+    if not args.resource_types:
+        args.resource_types = ['github', 'aws']
+    
+    print_colored("🚀 Single Add Checks in DB - Autonomous Processing", "cyan", "bright")
+    print_colored("=" * 60, "cyan")
     
     if args.dry_run:
-        print("🧪 DRY RUN MODE - No database insertions will be made")
-        print("-" * 60)
+        print_colored("🧪 DRY RUN MODE - No database insertions will be made", "yellow", "bright")
+        print_colored("-" * 60, "yellow")
+    
+    print_colored(f"🎯 Resource types: {', '.join(args.resource_types)}", "blue")
+    print_colored(f"📄 Progress log: {args.log_file}", "blue")
+    
+    if TQDM_AVAILABLE:
+        print_colored("📊 Progress bar enabled", "green")
+    else:
+        print_colored("📊 Install 'tqdm' for progress bar: pip install tqdm", "yellow")
+    
+    print_colored("-" * 60, "cyan")
     
     # Initialize progress tracking
     progress = CheckGenerationProgress(args.log_file)
@@ -508,7 +756,7 @@ def main():
     # Get all controls
     controls = get_all_controls()
     if not controls:
-        logger.error("❌ No controls found. Exiting.")
+        print_colored("❌ No controls found. Exiting.", "red")
         return 1
     
     # Calculate total tasks
@@ -524,45 +772,53 @@ def main():
     successful_tasks = 0
     failed_tasks = 0
     
-    for control_data in controls:
-        for resource_type in args.resource_types:
-            connection_id = connection_mapping[resource_type]
-            
-            success = process_single_control_resource(
-                control_data=control_data,
-                resource_type=resource_type,
-                connection_id=connection_id,
-                progress=progress,
-                dry_run=args.dry_run
-            )
-            
-            if success:
-                successful_tasks += 1
-            else:
-                failed_tasks += 1
-            
-            # Small delay to avoid overwhelming the LLM service
-            time.sleep(1)
+    try:
+        for control_data in controls:
+            for resource_type in args.resource_types:
+                connection_id = connection_mapping[resource_type]
+                
+                success = process_single_control_resource(
+                    control_data=control_data,
+                    resource_type=resource_type,
+                    connection_id=connection_id,
+                    progress=progress,
+                    dry_run=args.dry_run
+                )
+                
+                if success:
+                    successful_tasks += 1
+                else:
+                    failed_tasks += 1
+                
+                # Small delay to avoid overwhelming the LLM service
+                time.sleep(1)
+    
+    except KeyboardInterrupt:
+        print_colored("\n⏹️  Process interrupted by user", "yellow")
+    
+    finally:
+        # Close progress bar
+        progress.close_progress_bar()
     
     # Final summary
     total_time = datetime.now() - progress.start_time
     total_time_hms = progress._seconds_to_hms(total_time.total_seconds())
     
-    print("\n" + "=" * 60)
-    print("🏁 FINAL SUMMARY")
-    print("=" * 60)
-    print(f"⏱️  Total runtime: {total_time_hms}")
-    print(f"📊 Total tasks: {progress.processed_count}")
-    print(f"✅ Successful: {progress.successful_count}")
-    print(f"❌ Failed: {progress.failed_count}")
-    print(f"⏭️  Skipped: {progress.skipped_count}")
-    print(f"📄 Progress log: {args.log_file}")
+    print_colored("\n" + "=" * 60, "cyan")
+    print_colored("🏁 FINAL SUMMARY", "cyan", "bright")
+    print_colored("=" * 60, "cyan")
+    print_colored(f"⏱️  Total runtime: {total_time_hms}", "magenta")
+    print_colored(f"📊 Total tasks: {progress.processed_count}", "blue")
+    print_colored(f"✅ Successful: {progress.successful_count}", "green")
+    print_colored(f"❌ Failed: {progress.failed_count}", "red")
+    print_colored(f"⏭️  Skipped: {progress.skipped_count}", "yellow")
+    print_colored(f"📄 Progress log: {args.log_file}", "blue")
     
     if args.dry_run:
-        print("🧪 DRY RUN completed - no database changes made")
+        print_colored("🧪 DRY RUN completed - no database changes made", "yellow")
     
     success_rate = (progress.successful_count / progress.processed_count * 100) if progress.processed_count > 0 else 0
-    print(f"📈 Success rate: {success_rate:.1f}%")
+    print_colored(f"📈 Success rate: {success_rate:.1f}%", "green" if success_rate > 80 else "yellow" if success_rate > 60 else "red")
     
     return 0 if failed_tasks == 0 else 1
 
