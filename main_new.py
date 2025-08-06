@@ -38,10 +38,13 @@ def main(
     )
 
     return
+    check_dicts = get_checks_by_ids(
+        executed_check_results,
+        resource_collection=resource_collection
+    )
     # Print comprehensive summary
     sql.insert_check_results(
-        executed_check_results,
-        resource_collection=resource_collection,
+        check_dicts,
         customer_id=customer_id,
         connection_id=connection_id,
     )

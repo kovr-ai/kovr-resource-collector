@@ -20,8 +20,93 @@ def safe_json_dumps(data, indent=None):
     return json.dumps(data, cls=DateTimeEncoder, indent=indent)
 
 
-def insert_check_results(executed_check_results: List[Tuple[int, str, List[Any]]],
-                        resource_collection: Any,
+def get_check_dicts(
+    executed_check_results: List[Tuple[int, str, List[Any]]],
+    resource_collection: Any,
+):
+    # Process each check result
+    processed_results = []
+
+    for check_id, check_name, check_results in executed_check_results:
+        # Count successes and failures
+        success_count = sum(1 for result in check_results if result.passed)
+        failure_count = sum(1 for result in check_results if not result.passed)
+        total_count = len(check_results)
+        success_percentage = int((success_count / total_count * 100)) if total_count > 0 else 0
+
+        # Collect full Resource objects (as dicts)
+        success_resources = []
+        failed_resources = []
+
+        for result in check_results:
+            if result.passed:
+                success_resources.append(result.resource.id)
+            else:
+                failed_resources.append(result.resource.id)
+
+        # Determine overall result
+        if failure_count == 0:
+            overall_result = 'SUCCESS'
+            result_message = f"Check '{check_name}' passed for all {success_count} resources"
+        elif success_count == 0:
+            overall_result = 'FAIL'
+            result_message = f"Check '{check_name}' failed for all {failure_count} resources"
+        else:
+            overall_result = 'MIXED'
+            result_message = f"Check '{check_name}' passed for {success_count} resources, failed for {failure_count} resources"
+
+        # Add detailed failure messages with proper formatting
+        failure_details = []
+        if failure_count > 0:
+            for result in check_results:
+                if not result.passed:
+                    if result.error:
+                        overall_result = 'ERROR'
+                    failure_details.append({
+                        'resource_id': result.resource.id,
+                        'resource_name': result.resource.name,
+                        'message': result.message,
+                        'error': result.error if result.error else None
+                    })
+
+            # Format failure details with proper line breaks
+            if len(failure_details) == 1:
+                # Single failure - keep it concise
+                fd = failure_details[0]
+                if fd['error']:
+                    result_message += f"\n• Failure: {fd['resource_name']} - {fd['message']}\n• Error: {fd['error']}"
+                else:
+                    result_message += f"\n• Failure: {fd['resource_name']} - {fd['message']}"
+            else:
+                # Multiple failures - format as a list
+                result_message += f"\n• Failures ({len(failure_details)} resources):"
+                for i, fd in enumerate(failure_details[:5]):  # Limit to first 5 for readability
+                    if fd['error']:
+                        result_message += f"\n  {i + 1}. {fd['resource_name']}: {fd['message']} (Error: {fd['error']})"
+                    else:
+                        result_message += f"\n  {i + 1}. {fd['resource_name']}: {fd['message']}"
+
+                # Add summary if there are more failures
+                if len(failure_details) > 5:
+                    result_message += f"\n  ... and {len(failure_details) - 5} more failures"
+
+        # Store processed result
+        processed_results.append({
+            'check_id': check_id,
+            'check_name': check_name,
+            'overall_result': overall_result,
+            'result_message': result_message,
+            'success_count': success_count,
+            'failure_count': failure_count,
+            'success_percentage': success_percentage,
+            'success_resources': success_resources,
+            'failed_resources': failed_resources,
+            'resource_collection_dict': resource_collection.model_dump()
+        })
+    return processed_results
+
+
+def insert_check_results(processed_results,
                         customer_id: str,
                         connection_id: int,
                         output_dir: Optional[str] = None,
@@ -37,95 +122,7 @@ def insert_check_results(executed_check_results: List[Tuple[int, str, List[Any]]
         output_dir: Directory to write SQL files. If None, insert directly into database.
         **kwargs: Additional keyword arguments (ignored, for compatibility)
     """
-    
-    # Get ResourceCollection as dict for resource_json
-    if hasattr(resource_collection, 'model_dump'):
-        resource_collection_dict = resource_collection.model_dump()
-    elif hasattr(resource_collection, 'dict'):
-        resource_collection_dict = resource_collection.dict()
-    else:
-        resource_collection_dict = resource_collection.__dict__
-    
-    # Process each check result
-    processed_results = []
-    
-    for check_id, check_name, check_results in executed_check_results:
-        # Count successes and failures
-        success_count = sum(1 for result in check_results if result.passed)
-        failure_count = sum(1 for result in check_results if not result.passed)
-        total_count = len(check_results)
-        success_percentage = int((success_count / total_count * 100)) if total_count > 0 else 0
-        
-        # Collect full Resource objects (as dicts)
-        success_resources = []
-        failed_resources = []
-        
-        for result in check_results:
-            if result.passed:
-                success_resources.append(result.resource.id)
-            else:
-                failed_resources.append(result.resource.id)
 
-        # Determine overall result
-        if failure_count == 0:
-            overall_result = 'SUCCESS'
-            result_message = f"Check '{check_name}' passed for all {success_count} resources"
-        elif success_count == 0:
-            overall_result = 'FAIL'  
-            result_message = f"Check '{check_name}' failed for all {failure_count} resources"
-        else:
-            overall_result = 'MIXED'
-            result_message = f"Check '{check_name}' passed for {success_count} resources, failed for {failure_count} resources"
-        
-        # Add detailed failure messages with proper formatting
-        failure_details = []
-        if failure_count > 0:
-            for result in check_results:
-                if not result.passed:
-                    if result.error:
-                        overall_result = 'ERROR'
-                    failure_details.append({
-                        'resource_id': result.resource.id,
-                        'resource_name': result.resource.name,
-                        'message': result.message,
-                        'error': result.error if result.error else None
-                    })
-            
-            # Format failure details with proper line breaks
-            if len(failure_details) == 1:
-                # Single failure - keep it concise
-                fd = failure_details[0]
-                if fd['error']:
-                    result_message += f"\n• Failure: {fd['resource_name']} - {fd['message']}\n• Error: {fd['error']}"
-                else:
-                    result_message += f"\n• Failure: {fd['resource_name']} - {fd['message']}"
-            else:
-                # Multiple failures - format as a list
-                result_message += f"\n• Failures ({len(failure_details)} resources):"
-                for i, fd in enumerate(failure_details[:5]):  # Limit to first 5 for readability
-                    if fd['error']:
-                        result_message += f"\n  {i+1}. {fd['resource_name']}: {fd['message']} (Error: {fd['error']})"
-                    else:
-                        result_message += f"\n  {i+1}. {fd['resource_name']}: {fd['message']}"
-                
-                # Add summary if there are more failures
-                if len(failure_details) > 5:
-                    result_message += f"\n  ... and {len(failure_details) - 5} more failures"
-        
-        # Store processed result
-        processed_results.append({
-            'check_id': check_id,
-            'check_name': check_name,
-            'overall_result': overall_result,
-            'result_message': result_message,
-            'success_count': success_count,
-            'failure_count': failure_count,
-            'success_percentage': success_percentage,
-            'success_resources': success_resources,
-            'failed_resources': failed_resources,
-            'resource_collection_dict': resource_collection_dict
-        })
-    
     # Choose output method based on output_dir parameter
     if output_dir is not None:
         # Generate SQL files
