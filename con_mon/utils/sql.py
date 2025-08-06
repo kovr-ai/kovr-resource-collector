@@ -6,6 +6,7 @@ import os
 from datetime import datetime
 from typing import List, Tuple, Any, Optional
 from .helpers import generate_result_message
+from .db import get_db
 
 
 class DateTimeEncoder(json.JSONEncoder):
@@ -182,8 +183,6 @@ INSERT INTO con_mon_results (
 
 def _insert_into_database(processed_results: List[dict], customer_id: str, connection_id: int):
     """Insert check results into both history and current results tables using bulk operations."""
-    from .db import get_db
-    
     database = get_db()
     
     if not database._connection_pool:
@@ -200,7 +199,7 @@ def _insert_into_database(processed_results: List[dict], customer_id: str, conne
     all_params = []
     check_ids_to_delete = []
     
-    for result in processed_results:
+    for result in processed_results[:10]:
         params = (
             customer_id,
             connection_id,
