@@ -509,7 +509,12 @@ aws:
             kms_key_id: "string"
             tags: "object"
         log_streams: "object"  # Dictionary/map structure
-        metrics: "array"  # List of metric objects
+        metrics: 
+          type: "array"  # List of metric objects
+          structure:
+            namespace: "string"
+            metric_name: "string"  
+            dimensions: "array"
         alarms:
           type: "object"  # Dictionary/map of alarm_name -> alarm_data
           structure:
