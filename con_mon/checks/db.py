@@ -180,11 +180,23 @@ def _create_operation_from_metadata(metadata: Dict[str, Any]) -> ComparisonOpera
                     'bool': bool,
                     'list': list,
                     'dict': dict,
+                    'set': set,  # Added missing built-in
+                    'tuple': tuple,  # Added missing built-in
                     'any': any,
                     'all': all,
+                    'max': max,  # Added missing built-in
+                    'min': min,  # Added missing built-in
+                    'sum': sum,  # Added missing built-in
+                    'sorted': sorted,  # Added missing built-in
+                    'reversed': reversed,  # Added missing built-in
+                    'enumerate': enumerate,  # Added missing built-in
+                    'zip': zip,  # Added missing built-in
+                    'range': range,  # Added missing built-in
                     'isinstance': isinstance,
                     'hasattr': hasattr,
                     'getattr': getattr,
+                    'abs': abs,  # Added missing built-in
+                    'round': round,  # Added missing built-in
                 }
             }
             
