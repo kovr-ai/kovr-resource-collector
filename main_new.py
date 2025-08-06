@@ -40,6 +40,7 @@ def main(
         executed_check_results,
         resource_collection=resource_collection
     )
+    return
     # Print comprehensive summary
     sql.insert_check_results(
         check_dicts,
