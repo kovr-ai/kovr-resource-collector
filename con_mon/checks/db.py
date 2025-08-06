@@ -6,9 +6,10 @@ to Check model objects for use in the checks module.
 """
 
 import logging
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union, Tuple
+from datetime import datetime
 from con_mon.utils.db import get_db
-from .models import Check, ComparisonOperation, ComparisonOperationEnum
+from .models import Check, ComparisonOperation, ComparisonOperationEnum, CheckMetadata, CheckResultStatement, CheckFailureFix
 
 logger = logging.getLogger(__name__)
 
@@ -82,24 +83,67 @@ def _create_check_from_db_row(row: Dict[str, Any]) -> Optional[Check]:
         # Get resource_type from metadata
         resource_type = _resolve_resource_type(metadata.get('resource_type'))
         
-        # Get control_ids from metadata (convert strings to ints if needed)
-        control_ids = []
-        metadata_control_ids = metadata.get('control_ids', [])
-        for cid in metadata_control_ids:
+        # Create nested objects with proper type conversion
+        check_metadata = CheckMetadata(
+            tags=metadata.get('tags', []),
+            severity=metadata.get('severity'),
+            category=metadata.get('category')
+        )
+        
+        # Create output_statements object
+        output_data = row.get('output_statements', {})
+        if isinstance(output_data, dict) and output_data:
             try:
-                if isinstance(cid, str):
-                    # Try to convert string control names to numeric IDs if possible
-                    # For now, just use a hash or keep as 0
-                    control_ids.append(hash(cid) % 10000)  # Simple hash to int
-                else:
-                    control_ids.append(int(cid))
-            except (ValueError, TypeError):
-                logger.warning(f"Could not convert control_id {cid} to int")
-                continue
+                output_statements = CheckResultStatement(**output_data)
+            except Exception:
+                # If data doesn't match expected structure, use default
+                output_statements = CheckResultStatement(success="", failure="", partial="")
+        else:
+            output_statements = CheckResultStatement(success="", failure="", partial="")
+        
+        # Create fix_details object  
+        fix_data = row.get('fix_details', {})
+        if isinstance(fix_data, dict) and fix_data:
+            try:
+                fix_details = CheckFailureFix(**fix_data)
+            except Exception:
+                # If data doesn't match expected structure, use default
+                fix_details = CheckFailureFix(
+                    description="", 
+                    instructions=[], 
+                    estimated_date="",
+                    automation_available=False
+                )
+        else:
+            fix_details = CheckFailureFix(
+                description="", 
+                instructions=[], 
+                estimated_date="",
+                automation_available=False
+            )
+        
+        # Handle datetime conversion
+        created_at = row.get('created_at')
+        if isinstance(created_at, str):
+            try:
+                created_at = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+            except Exception:
+                created_at = datetime.now()
+        elif not isinstance(created_at, datetime):
+            created_at = datetime.now()
+            
+        updated_at = row.get('updated_at')
+        if isinstance(updated_at, str):
+            try:
+                updated_at = datetime.fromisoformat(updated_at.replace('Z', '+00:00'))
+            except Exception:
+                updated_at = datetime.now()
+        elif not isinstance(updated_at, datetime):
+            updated_at = datetime.now()
         
         # Create Check object
         check = Check(
-            id=int(row['id']) if row['id'].isdigit() else hash(row['id']) % 100000,  # Convert string ID to int
+            id=int(row['id']) if str(row['id']).isdigit() else hash(str(row['id'])) % 100000,  # Convert to int safely
             connection_id=connection_id,
             name=row['name'],
             field_path=field_path,
@@ -107,10 +151,15 @@ def _create_check_from_db_row(row: Dict[str, Any]) -> Optional[Check]:
             expected_value=expected_value,
             description=row.get('description'),
             resource_type=resource_type,
-            control_ids=control_ids,
-            tags=metadata.get('tags', []),
-            severity=metadata.get('severity'),
-            category=row.get('category')
+            # Database-specific fields with proper type conversion
+            output_statements=output_statements,
+            fix_details=fix_details,
+            created_by=row.get('created_by', 'system'),
+            updated_by=row.get('updated_by', 'system'),
+            created_at=created_at,
+            updated_at=updated_at,
+            is_deleted=row.get('is_deleted', False),
+            metadata=check_metadata
         )
         
         return check
@@ -260,6 +309,19 @@ def _resolve_resource_type(resource_type_name: Optional[str]):
         return None
 
 
+def get_connection_name(connection_id: int) -> str:
+    """
+    Get human-readable connection name.
+    
+    Args:
+        connection_id: Connection ID
+        
+    Returns:
+        Human-readable connection name
+    """
+    return "GitHub" if connection_id == 1 else "AWS" if connection_id == 2 else f"Connection {connection_id}"
+
+
 def get_checks_by_connection_id(connection_id: int, loaded_checks: Dict[str, Check]) -> List[Check]:
     """
     Filter loaded checks by connection ID.
@@ -280,28 +342,68 @@ def get_checks_by_connection_id(connection_id: int, loaded_checks: Dict[str, Che
 def get_checks_by_ids(
     connection_id: int,
     loaded_checks: Dict[str, Check],
-    check_ids: Optional[List[int]] = None
-) -> List[Check]:
+    check_ids: Optional[Union[List[int], int]] = None
+) -> List[Tuple[int, str, Check]]:
     """
-    Get checks by their IDs filtered by connection_id.
+    Get checks by their IDs filtered by connection_id, or return all checks for connection if check_ids is None or empty list.
     
     Args:
-        connection_id: Connection ID to filter by
+        connection_id: Connection ID to filter by (1=GitHub, 2=AWS)
         loaded_checks: Dictionary of loaded checks
-        check_ids: List of check IDs to filter by, or None for all
+        check_ids: List of check IDs to filter by, single check ID, None or empty list to return all checks for connection
         
     Returns:
-        List of Check objects
+        List of tuples in format (check_id, check_name, check_object)
+        
+    Examples:
+        # Get all GitHub checks (connection_id=1)
+        all_github_checks = get_checks_by_ids(1, loaded_checks)
+        all_github_checks = get_checks_by_ids(1, loaded_checks, None)
+        all_github_checks = get_checks_by_ids(1, loaded_checks, [])
+        
+        # Get specific GitHub checks by ID
+        selected_github_checks = get_checks_by_ids(1, loaded_checks, [1001, 1002])
+        
+        # Get single AWS check by ID
+        single_aws_check = get_checks_by_ids(2, loaded_checks, 2001)
     """
+    # Convert single int to list for consistent processing
+    if isinstance(check_ids, int):
+        check_ids = [check_ids]
+    
+    # Treat empty list the same as None (return all checks)
+    if check_ids is not None and len(check_ids) == 0:
+        check_ids = None
+    
     # First filter by connection_id
     connection_checks = get_checks_by_connection_id(connection_id, loaded_checks)
     
     # If no specific IDs requested, return all for connection
-    if check_ids is None or len(check_ids) == 0:
-        return connection_checks
+    if check_ids is None:
+        filtered_checks = connection_checks
+    else:
+        # Filter by specific IDs
+        filtered_checks = [
+            check for check in connection_checks
+            if check.id in check_ids
+        ]
     
-    # Filter by specific IDs
-    return [
-        check for check in connection_checks
-        if check.id in check_ids
-    ] 
+    # Convert to the expected tuple format
+    result = [(check.id, check.name, check) for check in filtered_checks]
+    
+    # Sort by check ID for consistent ordering
+    result.sort(key=lambda x: x[0])
+    
+    # Log what checks were returned
+    connection_name = get_connection_name(connection_id)
+    if check_ids is None:
+        logger.info(f"📋 Retrieved all {len(result)} available {connection_name} checks")
+    else:
+        found_ids = [check_id for check_id, _, _ in result]
+        missing_ids = [cid for cid in check_ids if cid not in found_ids]
+        
+        logger.info(f"📋 Retrieved {len(result)} {connection_name} checks matching IDs: {found_ids}")
+        if missing_ids:
+            logger.warning(f"⚠️ Warning: {connection_name} check IDs not found: {missing_ids}")
+    
+    return result
