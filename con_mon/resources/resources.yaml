@@ -49,7 +49,6 @@ github:
             name: "string"
             sha: "string"
             protected: "boolean"
-            protection_details: "object"
         statistics:
           total_commits: "integer"
           contributors_count: "integer"
@@ -244,7 +243,6 @@ github:
         total_collaborators: "integer"
         total_tags: "integer"
         total_active_webhooks: "integer"
-        rate_limit_info: "object"
       github_api_metadata:
         collection_time: "string"
         api_version: "string"
@@ -262,7 +260,15 @@ aws:
       fields:
         # Account-level information
         account:
-          limits: "object"
+          limits:
+            type: "object"  # Dictionary of limit_name -> limit_value
+            structure:
+              supported-platforms: "string"
+              vpc-max-security-groups-per-interface: "string"
+              max-elastic-ips: "string"
+              max-instances: "string"
+              vpc-max-elastic-ips: "string"
+              default-vpc: "string"
           reserved_instances: "array"
           spot_instances: "array"
         # EC2 resources
@@ -279,7 +285,11 @@ aws:
             key_name: "string"
             platform: "string"
             monitoring: "string"
-            iam_instance_profile: "object"
+            iam_instance_profile:
+              type: "object"
+              structure:
+                Arn: "string"
+                Id: "string"
             ebs_optimized: "boolean"
             instance_lifecycle: "string"
             security_groups: "array"
@@ -293,7 +303,6 @@ aws:
             vpc_id: "string"
             inbound_rules: "array"
             outbound_rules: "array"
-            tags: "object"
         vpcs:
           type: "object"  # Dictionary/map of vpc_id -> vpc_data
           structure:
@@ -303,17 +312,53 @@ aws:
             instance_tenancy: "string"
             is_default: "boolean"
             cidr_block_association_set: "array"
-            tags: "object"
-        subnets: "object"
-        route_tables: "object"
-        internet_gateways: "object"
-        nat_gateways: "object"
-        elastic_ips: "object"
-        key_pairs: "object"
-        volumes: "object"
-        snapshots: "object"
-        network_interfaces: "object"
-        relationships: "object"
+        subnets:
+          type: "object"  # Dictionary/map of subnet_id -> subnet_data
+          structure:
+            vpc_id: "string"
+            availability_zone: "string"
+            availability_zone_id: "string"
+            cidr_block: "string"
+            state: "string"
+        route_tables:
+          type: "object"  # Dictionary/map of route_table_id -> route_table_data
+          structure:
+            vpc_id: "string"
+            routes: "array"
+            associations: "array"
+        nat_gateways:
+          type: "object"  # Dictionary/map of nat_gateway_id -> nat_gateway_data
+          structure:
+            state: "string"
+            subnet_id: "string"
+            vpc_id: "string"
+            create_time: "string"
+            delete_time: "string"
+        elastic_ips:
+          type: "object"  # Dictionary/map of allocation_id -> eip_data
+          structure:
+            public_ip: "string"
+            domain: "string"
+            instance_id: "string"
+            network_interface_id: "string"
+            private_ip_address: "string"
+        key_pairs:
+          type: "object"  # Dictionary/map of key_name -> key_pair_data
+          structure:
+            key_fingerprint: "string"
+            key_type: "string"
+        snapshots:
+          type: "object"  # Dictionary/map of snapshot_id -> snapshot_data
+          structure:
+            volume_id: "string"
+            volume_size: "integer"
+            state: "string"
+            start_time: "string"
+            progress: "string"
+        relationships:
+          type: "object"  # Dictionary/map of relationship_type -> instance_list
+          structure:
+            instance_security_groups: "array"
 
     # AWS IAM Resource Schema
     IAMResource:
@@ -323,8 +368,6 @@ aws:
       service: "iam"
 
       fields:
-        # Account-level information
-        account: "object"
         # IAM resources
         users:
           type: "object"  # Dictionary/map of user_arn -> user_data
@@ -335,9 +378,6 @@ aws:
             path: "string"
             access_keys: "array"
             mfa_devices: "array"
-            login_profile: "object"
-        groups: "object"  # Dictionary/map structure (if present)
-        roles: "object"   # Dictionary/map structure (if present)
         policies:
           type: "object"  # Dictionary/map of policy_arn -> policy_data
           structure:
@@ -355,7 +395,6 @@ aws:
               VersionId: "string"
               IsDefaultVersion: "boolean"
               CreateDate: "string"
-        relationships: "object"
 
     # AWS S3 Resource Schema
     S3Resource:
@@ -372,20 +411,6 @@ aws:
             name: "string"
             creation_date: "string"
             region: "string"
-            versioning: "object"
-            encryption: "object"
-            public_access_block: "object"
-            logging: "object"
-            lifecycle: "object"
-            notification: "object"
-            tags: "object"
-        bucket_policies: "object"
-        bucket_encryption: "object"
-        bucket_versioning: "object"
-        bucket_logging: "object"
-        bucket_public_access: "object"
-        bucket_lifecycle: "object"
-        bucket_notifications: "object"
 
     # AWS CloudTrail Resource Schema
     CloudTrailResource:
@@ -409,10 +434,6 @@ aws:
             insight_selectors: "array"
             is_logging: "boolean"
             kms_key_id: "string"
-            tags: "object"
-        event_selectors: "object"
-        insight_selectors: "object"
-        tags: "object"
 
     # AWS CloudWatch Resource Schema
     CloudWatchResource:
@@ -433,8 +454,6 @@ aws:
             arn: "string"
             stored_bytes: "integer"
             kms_key_id: "string"
-            tags: "object"
-        log_streams: "object"  # Dictionary/map structure
         metrics: 
           type: "array"  # List of metric objects
           structure:
@@ -461,7 +480,6 @@ aws:
             evaluation_periods: "integer"
             threshold: "number"
             comparison_operator: "string"
-            tags: "object"
         dashboards:
           type: "object"  # Dictionary/map of dashboard_name -> dashboard_data
           structure:
