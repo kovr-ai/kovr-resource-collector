@@ -40,18 +40,50 @@ github:
           has_discussions: "boolean"
           is_template: "boolean"
           license: "string"
-        branches: "array"
+          visibility: "string"
+          allow_forking: "boolean"
+          web_commit_signoff_required: "boolean"
+        branches:
+          type: "array"  # List of branch objects
+          structure:
+            name: "string"
+            commit:
+              sha: "string"
+              url: "string"
+            protected: "boolean"
+            protection:
+              enabled: "boolean"
+              required_status_checks: "object"
+              enforce_admins: "boolean"
+              required_pull_request_reviews: "object"
+              restrictions: "object"
         statistics:
           total_commits: "integer"
           contributors_count: "integer"
-          languages: "object"
+          languages:
+            type: "object"  # Dictionary of language -> bytes
+            structure:
+              Python: "integer"
+              JavaScript: "integer"
+              # ... other languages
           code_frequency: "array"
 
     ActionsData:
       name: "actions_data"
       description: "GitHub Actions workflows and runs"
       fields:
-        workflows: "object"
+        workflows:
+          type: "object"  # Dictionary/map of workflow_id -> workflow_data
+          structure:
+            id: "integer"
+            name: "string"
+            path: "string"
+            state: "string"
+            created_at: "string"
+            updated_at: "string"
+            url: "string"
+            html_url: "string"
+            badge_url: "string"
         total_workflows: "integer"
         active_workflows: "integer"
         recent_runs_count: "integer"
@@ -60,9 +92,45 @@ github:
       name: "collaboration_data"
       description: "Collaboration information - issues, PRs, collaborators"
       fields:
-        issues: "array"
-        pull_requests: "array"
-        collaborators: "array"
+        issues:
+          type: "array"  # List of issue objects
+          structure:
+            id: "integer"
+            number: "integer"
+            title: "string"
+            state: "string"
+            created_at: "string"
+            updated_at: "string"
+            closed_at: "string"
+            user: "object"
+            assignees: "array"
+            labels: "array"
+        pull_requests:
+          type: "array"  # List of pull request objects
+          structure:
+            id: "integer"
+            number: "integer"
+            title: "string"
+            state: "string"
+            created_at: "string"
+            updated_at: "string"
+            closed_at: "string"
+            merged_at: "string"
+            user: "object"
+            assignees: "array"
+            reviewers: "array"
+        collaborators:
+          type: "array"  # List of collaborator objects
+          structure:
+            login: "string"
+            id: "integer"
+            type: "string"
+            permissions:
+              admin: "boolean"
+              maintain: "boolean"
+              push: "boolean"
+              triage: "boolean"
+              pull: "boolean"
         total_issues: "integer"
         open_issues: "integer"
         closed_issues: "integer"
@@ -76,15 +144,38 @@ github:
       name: "security_data"
       description: "Security advisories, alerts and analysis"
       fields:
-        security_advisories: "object"
-        vulnerability_alerts: "object"
-        dependency_graph: "object"
+        security_advisories:
+          type: "object"
+          structure:
+            error: "string"  # May contain error message
+            advisories: "array"
+        vulnerability_alerts:
+          type: "object"
+          structure:
+            enabled: "boolean"
+            dependabot_alerts: "array"
+            error: "string"
+        dependency_graph:
+          type: "object"
+          structure:
+            has_vulnerability_alerts_enabled: "boolean"
+            security_and_analysis:
+              advanced_security:
+                status: "string"
+              secret_scanning:
+                status: "string"
+              secret_scanning_push_protection:
+                status: "string"
         security_analysis:
           advanced_security_enabled: "boolean"
           secret_scanning_enabled: "boolean"
           push_protection_enabled: "boolean"
           dependency_review_enabled: "boolean"
-        code_scanning_alerts: "object"
+        code_scanning_alerts:
+          type: "object"
+          structure:
+            error: "string"
+            alerts: "array"
         total_advisories: "integer"
         total_dependabot_alerts: "integer"
         total_code_scanning_alerts: "integer"
@@ -94,9 +185,31 @@ github:
       name: "organization_data"
       description: "Organization members, teams and collaborators"
       fields:
-        members: "array"
-        teams: "array"
-        outside_collaborators: "array"
+        members:
+          type: "array"  # List of member objects
+          structure:
+            login: "string"
+            id: "integer"
+            type: "string"
+            role: "string"  # "admin", "member", etc.
+            permissions: "object"
+        teams:
+          type: "array"  # List of team objects
+          structure:
+            id: "integer"
+            name: "string"
+            slug: "string"
+            description: "string"
+            privacy: "string"
+            permission: "string"
+            members_count: "integer"
+        outside_collaborators:
+          type: "array"  # List of collaborator objects
+          structure:
+            login: "string"
+            id: "integer"
+            type: "string"
+            permissions: "object"
         total_members: "integer"
         total_teams: "integer"
         total_outside_collaborators: "integer"
@@ -109,8 +222,29 @@ github:
       name: "advanced_features_data"
       description: "Advanced GitHub features - tags, webhooks"
       fields:
-        tags: "array"
-        webhooks: "array"
+        tags:
+          type: "array"  # List of tag objects
+          structure:
+            name: "string"
+            commit:
+              sha: "string"
+              url: "string"
+            zipball_url: "string"
+            tarball_url: "string"
+        webhooks:
+          type: "array"  # List of webhook objects
+          structure:
+            id: "integer"
+            name: "string"
+            active: "boolean"
+            events: "array"
+            config:
+              url: "string"
+              content_type: "string"
+              secret: "string"
+              insecure_ssl: "string"
+            created_at: "string"
+            updated_at: "string"
         total_tags: "integer"
         total_webhooks: "integer"
         active_webhooks: "integer"
@@ -179,9 +313,39 @@ aws:
           reserved_instances: "array"
           spot_instances: "array"
         # EC2 resources
-        instances: "object"
-        security_groups: "object"
-        vpcs: "object"
+        instances:
+          type: "object"  # Dictionary/map of instance_id -> instance_data
+          structure:
+            instance_type: "string"
+            state: "string"
+            launch_time: "string"
+            image_id: "string"
+            vpc_id: "string"
+            subnet_id: "string"
+            private_ip_address: "string"
+            public_ip_address: "string"
+            key_name: "string"
+            security_groups: "array"
+            tags: "object"
+        security_groups:
+          type: "object"  # Dictionary/map of group_id -> security_group_data
+          structure:
+            group_name: "string"
+            description: "string"
+            vpc_id: "string"
+            inbound_rules: "array"
+            outbound_rules: "array"
+            tags: "object"
+        vpcs:
+          type: "object"  # Dictionary/map of vpc_id -> vpc_data
+          structure:
+            cidr_block: "string"
+            state: "string"
+            dhcp_options_id: "string"
+            instance_tenancy: "string"
+            is_default: "boolean"
+            cidr_block_association_set: "array"
+            tags: "object"
         subnets: "object"
         route_tables: "object"
         internet_gateways: "object"
@@ -204,10 +368,67 @@ aws:
         # Account-level information
         account: "object"
         # IAM resources
-        users: "object"
-        groups: "object"
-        roles: "object"
-        policies: "object"
+        users:
+          type: "object"  # Dictionary/map of user_arn -> user_data
+          structure:
+            arn: "string"
+            user_id: "string"
+            user_name: "string"
+            create_date: "string"
+            path: "string"
+            access_keys: "array"
+            mfa_devices: "array"
+            login_profile: "object"
+            attached_policies: "array"
+            inline_policies: "array"
+            groups: "array"
+            tags: "object"
+        groups:
+          type: "object"  # Dictionary/map of group_arn -> group_data
+          structure:
+            arn: "string"
+            group_id: "string"
+            group_name: "string"
+            create_date: "string"
+            path: "string"
+            attached_policies: "array"
+            inline_policies: "array"
+            users: "array"
+        roles:
+          type: "object"  # Dictionary/map of role_arn -> role_data
+          structure:
+            arn: "string"
+            role_id: "string"
+            role_name: "string"
+            create_date: "string"
+            path: "string"
+            assume_role_policy_document:
+              Version: "string"
+              Statement: "array"
+            instance_profiles: "array"
+            attached_policies: "array"
+            inline_policies: "array"
+            tags: "object"
+        policies:
+          type: "object"  # Dictionary/map of policy_arn -> policy_data
+          structure:
+            policy_name: "string"
+            policy_id: "string"
+            arn: "string"
+            create_date: "string"
+            update_date: "string"
+            path: "string"
+            default_version_id: "string"
+            attachment_count: "integer"
+            default_version:
+              Document:
+                Version: "string"
+                Statement: "array"
+              VersionId: "string"
+              IsDefaultVersion: "boolean"
+              CreateDate: "string"
+            attached_entities: "object"
+            tags: "object"
         relationships: "object"
 
     # AWS S3 Resource Schema
@@ -219,7 +440,19 @@ aws:
 
       fields:
         # S3 resources
-        buckets: "object"
+        buckets:
+          type: "object"  # Dictionary/map of bucket_name -> bucket_data
+          structure:
+            name: "string"
+            creation_date: "string"
+            region: "string"
+            versioning: "object"
+            encryption: "object"
+            public_access_block: "object"
+            logging: "object"
+            lifecycle: "object"
+            notification: "object"
+            tags: "object"
         bucket_policies: "object"
         bucket_encryption: "object"
         bucket_versioning: "object"
@@ -237,7 +470,20 @@ aws:
 
       fields:
         # CloudTrail resources
-        trails: "object"
+        trails:
+          type: "object"  # Dictionary/map of trail_name -> trail_data
+          structure:
+            name: "string"
+            s3_bucket_name: "string"
+            s3_key_prefix: "string"
+            include_global_service_events: "boolean"
+            is_multi_region_trail: "boolean"
+            enable_log_file_validation: "boolean"
+            event_selectors: "array"
+            insight_selectors: "array"
+            is_logging: "boolean"
+            kms_key_id: "string"
+            tags: "object"
         event_selectors: "object"
         insight_selectors: "object"
         tags: "object"
@@ -251,11 +497,48 @@ aws:
 
       fields:
         # CloudWatch resources
-        log_groups: "object"  # Dictionary/map structure
+        log_groups:
+          type: "object"  # Dictionary/map of log_group_name -> log_group_data
+          structure:
+            log_group_name: "string"
+            creation_time: "integer"
+            retention_in_days: "integer"
+            metric_filter_count: "integer"
+            arn: "string"
+            stored_bytes: "integer"
+            kms_key_id: "string"
+            tags: "object"
         log_streams: "object"  # Dictionary/map structure
         metrics: "array"  # List of metric objects
-        alarms: "object"  # Dictionary/map structure
-        dashboards: "object"  # Dictionary/map structure
+        alarms:
+          type: "object"  # Dictionary/map of alarm_name -> alarm_data
+          structure:
+            alarm_name: "string"
+            alarm_description: "string"
+            actions_enabled: "boolean"
+            ok_actions: "array"
+            alarm_actions: "array"
+            insufficient_data_actions: "array"
+            state_value: "string"
+            state_reason: "string"
+            state_updated_timestamp: "string"
+            metric_name: "string"
+            namespace: "string"
+            statistic: "string"
+            dimensions: "array"
+            period: "integer"
+            evaluation_periods: "integer"
+            threshold: "number"
+            comparison_operator: "string"
+            tags: "object"
+        dashboards:
+          type: "object"  # Dictionary/map of dashboard_name -> dashboard_data
+          structure:
+            dashboard_name: "string"
+            dashboard_arn: "string"
+            dashboard_body: "string"
+            size: "integer"
+            last_modified: "string"
 
   ResourceCollection:
     name: "aws_collection"

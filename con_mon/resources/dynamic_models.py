@@ -33,9 +33,17 @@ def create_nested_model(name: str, fields_definition: Dict[str, Any], available_
     
     for field_name, field_def in fields_definition.items():
         if isinstance(field_def, dict):
-            # This is a nested object
-            nested_model = create_nested_model(f"{name}_{field_name.title()}", field_def, available_models)
-            pydantic_fields[field_name] = (nested_model, Field(default_factory=dict))
+            # Check if this is the new format with 'type' and 'structure'
+            if 'type' in field_def and field_def['type'] == 'array':
+                # This is an array field in the new format - use List[dict] for structured arrays
+                pydantic_fields[field_name] = (List[dict], Field(default_factory=list))
+            elif 'type' in field_def and field_def['type'] == 'object':
+                # This is an object field in the new format - treat as dict
+                pydantic_fields[field_name] = (Optional[dict], None)
+            else:
+                # Legacy nested object format
+                nested_model = create_nested_model(f"{name}_{field_name.title()}", field_def, available_models)
+                pydantic_fields[field_name] = (nested_model, Field(default_factory=dict))
         elif isinstance(field_def, list) and len(field_def) > 0:
             # This is an array with nested objects
             if isinstance(field_def[0], dict):
@@ -46,8 +54,13 @@ def create_nested_model(name: str, fields_definition: Dict[str, Any], available_
                 pydantic_fields[field_name] = (List[item_type], Field(default_factory=list))
         else:
             # Simple field - check if it's a model reference
-            field_type = yaml_type_to_python_type(field_def, available_models)
-            pydantic_fields[field_name] = (Optional[field_type], None)
+            if field_def == 'array':
+                pydantic_fields[field_name] = (List[str], Field(default_factory=list))
+            elif field_def == 'object':
+                pydantic_fields[field_name] = (Optional[dict], None)
+            else:
+                field_type = yaml_type_to_python_type(field_def, available_models)
+                pydantic_fields[field_name] = (Optional[field_type], None)
     
     # Create and return the nested model
     return create_model(name, **pydantic_fields)
@@ -73,11 +86,19 @@ def create_resource_model_from_schema(resource_name: str, schema_definition: Dic
     fields_definition = schema_definition.get('fields', {})
     for field_name, field_def in fields_definition.items():
         if isinstance(field_def, dict):
-            # Nested object
-            nested_model = create_nested_model(f"{resource_name}_{field_name.title()}", field_def, available_models)
-            base_fields[field_name] = (nested_model, Field(default_factory=dict))
+            # Check if this is the new format with 'type' and 'structure'
+            if 'type' in field_def and field_def['type'] == 'array':
+                # This is an array field in the new format - use List[dict] for structured arrays
+                base_fields[field_name] = (List[dict], Field(default_factory=list))
+            elif 'type' in field_def and field_def['type'] == 'object':
+                # This is an object field in the new format - treat as dict
+                base_fields[field_name] = (Optional[dict], None)
+            else:
+                # Legacy nested object format
+                nested_model = create_nested_model(f"{resource_name}_{field_name.title()}", field_def, available_models)
+                base_fields[field_name] = (nested_model, Field(default_factory=dict))
         elif isinstance(field_def, list) and len(field_def) > 0:
-            # Array
+            # Legacy array format
             if isinstance(field_def[0], dict):
                 item_model = create_nested_model(f"{resource_name}_{field_name.title()}Item", field_def[0], available_models)
                 base_fields[field_name] = (List[item_model], Field(default_factory=list))
@@ -89,6 +110,12 @@ def create_resource_model_from_schema(resource_name: str, schema_definition: Dic
             if field_def == 'github_resource_array':
                 # This will be resolved later after all models are created
                 base_fields[field_name] = (List[Any], Field(default_factory=list, description="List of GitHub resources"))
+            elif field_def == 'array':
+                # Simple array type - default to List[str] for simple arrays like scope, tags, etc.
+                base_fields[field_name] = (List[str], Field(default_factory=list))
+            elif field_def == 'object':
+                # Simple object type
+                base_fields[field_name] = (Optional[dict], None)
             else:
                 # Simple field or model reference
                 field_type = yaml_type_to_python_type(field_def, available_models)
