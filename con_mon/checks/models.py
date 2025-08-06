@@ -67,7 +67,7 @@ class ComparisonOperation(BaseModel):
             raise ValueError(f"Unsupported operation: {self.name}")
 
 
-class CheckMeta(BaseModel):
+class CheckMetadata(BaseModel):
     # Additional metadata fields from YAML
     tags: Optional[List[str]] = None
     severity: Optional[str] = None
@@ -129,7 +129,7 @@ class Check(BaseModel):
         default=False,
         description="Soft delete flag"
     )
-    metadata: CheckMeta = Field(
+    metadata: CheckMetadata = Field(
         default_factory=dict,
         description="Additional metadata and execution parameters"
     )
