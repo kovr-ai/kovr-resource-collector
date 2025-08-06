@@ -246,6 +246,7 @@ def _create_operation_from_metadata(metadata: Dict[str, Any]) -> ComparisonOpera
                     'getattr': getattr,
                     'abs': abs,  # Added missing built-in
                     'round': round,  # Added missing built-in
+                    'Exception': Exception,
                 }
             }
             
@@ -254,6 +255,7 @@ def _create_operation_from_metadata(metadata: Dict[str, Any]) -> ComparisonOpera
                 exec(custom_logic, safe_globals, local_vars)
                 return local_vars.get('result', False)
             except Exception as e:
+                print(custom_logic)
                 logger.error(f"❌ Error in custom logic execution: {e}")
                 return False
         

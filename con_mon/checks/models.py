@@ -94,11 +94,11 @@ class Check(BaseModel):
     id: int
     connection_id: int = Field(..., description="ID of the connection/provider this check belongs to (1=GitHub, 2=AWS)")
     name: str
+    resource_type: Type[BaseModel] = Field(None, description="Specific resource class to target (e.g., 'aws.AWSEC2Resource')")
     field_path: str = Field(..., description="e.g., 'price', 'metadata.status', 'tags[0]'")
     operation: ComparisonOperation
     expected_value: Any
     description: Optional[str] = None
-    resource_type: Optional[Type[BaseModel]] = Field(None, description="Specific resource class to target (e.g., 'aws.AWSEC2Resource')")
 
     # Database-specific fields (these are completely new)
     output_statements: CheckResultStatement = Field(

@@ -202,7 +202,7 @@ def process_response_to_check(
                         'all': all, 'max': max, 'min': min, 'sum': sum, 'sorted': sorted,
                         'reversed': reversed, 'enumerate': enumerate, 'zip': zip, 'range': range,
                         'isinstance': isinstance, 'hasattr': hasattr, 'getattr': getattr,
-                        'abs': abs, 'round': round,
+                        'abs': abs, 'round': round, 'Exception': Exception,
                     }
                 }
                 try:
@@ -290,10 +290,45 @@ def process_response_to_check(
         try:
             from con_mon.resources.dynamic_models import get_dynamic_models
             dynamic_models = get_dynamic_models()
-            resource_class_name = f"{resource_type.title()}Resource"
-            resource_type_class = dynamic_models.get(resource_class_name)
+            
+            # Try to get the resource type from the YAML data first
+            yaml_resource_type = check_data.get("resource_type")
+            if yaml_resource_type and yaml_resource_type in dynamic_models:
+                resource_type_class = dynamic_models[yaml_resource_type]
+            else:
+                # Fallback: try to construct resource type name
+                if resource_type.lower() == "github":
+                    resource_class_name = "GithubResource"
+                elif resource_type.lower() == "aws":
+                    # For AWS, we need to infer the service type from field_path
+                    field_path = check_data.get("field_path", "")
+                    if field_path in ["policies", "users", "roles", "groups"]:
+                        resource_class_name = "AWSIAMResource"
+                    elif field_path in ["instances", "security_groups", "vpcs", "subnets"]:
+                        resource_class_name = "AWSEC2Resource"
+                    elif field_path in ["buckets", "bucket_policies", "bucket_encryption"]:
+                        resource_class_name = "AWSS3Resource"
+                    elif field_path in ["trails", "event_selectors"]:
+                        resource_class_name = "AWSCloudTrailResource"
+                    elif field_path in ["dashboards", "alarms", "log_groups", "metrics"]:
+                        resource_class_name = "AWSCloudWatchResource"
+                    else:
+                        resource_class_name = "AWSIAMResource"  # Default fallback for AWS
+                else:
+                    resource_class_name = f"{resource_type.title()}Resource"
+                
+                resource_type_class = dynamic_models.get(resource_class_name)
+                
         except Exception as e:
             logger.warning(f"Could not resolve resource type: {e}")
+            try:
+                dynamic_models = get_dynamic_models()
+                if resource_type.lower() == "github":
+                    resource_type_class = dynamic_models.get("GithubResource")
+                elif resource_type.lower() == "aws":
+                    resource_type_class = dynamic_models.get("AWSIAMResource")
+            except:
+                pass
         
         # Create Check object
         check = Check(

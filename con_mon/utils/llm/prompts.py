@@ -332,7 +332,13 @@ class ChecksYamlPrompt(BasePrompt):
 1. Generate a complete YAML check entry following the exact format shown in the example
 2. Create a descriptive name using snake_case format
 3. Write a clear description explaining what the check validates
-4. Set appropriate resource_type (GithubResource, AwsResource, etc.)
+4. Set appropriate resource_type:
+   - For GitHub: GithubResource
+   - For AWS IAM checks: AWSIAMResource
+   - For AWS EC2 checks: AWSEC2Resource  
+   - For AWS S3 checks: AWSS3Resource
+   - For AWS CloudTrail checks: AWSCloudTrailResource
+   - For AWS CloudWatch checks: AWSCloudWatchResource
 5. Determine the correct field_path for the resource data
 6. Generate Python code for the custom_logic that validates compliance
 7. Set expected_value to null for custom logic checks
@@ -349,7 +355,7 @@ checks:
 - connection_id: {connection_id}
   name: {resource_type_lower}_{control_name_lower}_compliance
   description: Verify compliance with NIST 800-53 {control_name}: {control_title}
-  resource_type: {resource_type}Resource
+  resource_type: # Choose specific resource type (GithubResource, AWSIAMResource, AWSEC2Resource, etc.)
   field_path: # Choose appropriate path from the guidelines above
   operation:
     name: custom
@@ -399,24 +405,25 @@ checks:
   • collaboration_data.pull_requests (pull requests)
 
 - AWS: field_path examples:
-  • iam.policies (IAM policies - use this for access control checks)
-  • iam.users (IAM users - use this for user management checks)
-  • iam.roles (IAM roles)
-  • iam.groups (IAM groups)
-  • ec2.instances (EC2 instances)
-  • ec2.security_groups (security groups)
-  • ec2.vpcs (VPC configurations)
-  • s3.buckets (S3 buckets)
-  • s3.bucket_policies (S3 bucket policies)
-  • cloudtrail.trails (CloudTrail configuration)
-  • cloudwatch.dashboards (CloudWatch dashboards)
-  • cloudwatch.alarms (CloudWatch alarms)
+  • policies (for AWSIAMResource - IAM policies)
+  • users (for AWSIAMResource - IAM users) 
+  • roles (for AWSIAMResource - IAM roles)
+  • groups (for AWSIAMResource - IAM groups)
+  • instances (for AWSEC2Resource - EC2 instances)
+  • security_groups (for AWSEC2Resource - security groups)
+  • vpcs (for AWSEC2Resource - VPC configurations)
+  • buckets (for AWSS3Resource - S3 buckets)
+  • bucket_policies (for AWSS3Resource - S3 bucket policies)
+  • trails (for AWSCloudTrailResource - CloudTrail configuration)
+  • dashboards (for AWSCloudWatchResource - CloudWatch dashboards)
+  • alarms (for AWSCloudWatchResource - CloudWatch alarms)
 
 **IMPORTANT FIELD PATH CORRECTIONS:**
-- For AWS IAM checks, use "iam.policies" NOT "iam_data.policies"
-- For AWS IAM users, use "iam.users" NOT "iam_data.users"
-- For GitHub repository info, use "repository_data.basic_info" NOT "repository_data.settings"
-- For GitHub branches, use "repository_data.branches" NOT "repository_data.settings"
+- For AWSIAMResource checks, use "policies" NOT "iam.policies"
+- For AWSIAMResource user checks, use "users" NOT "iam.users"
+- For AWSEC2Resource checks, use "instances" NOT "ec2.instances"
+- For AWSS3Resource checks, use "buckets" NOT "s3.buckets"
+- Field paths are direct fields on service-specific resource types
 
 **Severity Guidelines:**
 - Critical: System-wide security failures, data exposure risks
