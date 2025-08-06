@@ -14,10 +14,12 @@ from .prompts import (
     ComplianceCheckPrompt,
     ControlAnalysisPrompt,
     GeneralPrompt,
+    ChecksYamlPrompt,
     PromptResult,
     generate_compliance_check,
     analyze_control,
-    generate_text
+    generate_text,
+    generate_checks_yaml
 )
 
 __all__ = [
@@ -26,8 +28,10 @@ __all__ = [
     'ComplianceCheckPrompt',
     'ControlAnalysisPrompt',
     'GeneralPrompt',
+    'ChecksYamlPrompt',
     'PromptResult',
     'generate_compliance_check',
     'analyze_control',
-    'generate_text'
+    'generate_text',
+    'generate_checks_yaml'
 ] 

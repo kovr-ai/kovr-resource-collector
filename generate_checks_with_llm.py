@@ -18,8 +18,10 @@ from con_mon.utils.llm import (
     get_llm_client,
     ComplianceCheckPrompt,
     ControlAnalysisPrompt,
+    ChecksYamlPrompt,
     generate_compliance_check,
-    analyze_control
+    analyze_control,
+    generate_checks_yaml
 )
 from con_mon.utils.db import get_db
 
@@ -150,6 +152,62 @@ def analyze_control_requirements(control_name: str) -> Dict[str, Any]:
         return {}
 
 
+def generate_yaml_check_for_control(
+    control_name: str, 
+    resource_type: str = "github",
+    connection_id: int = 1,
+    suggested_check_id: int = None
+) -> str:
+    """
+    Generate complete YAML check entry for a control.
+    
+    Args:
+        control_name: Control identifier
+        resource_type: Target resource type
+        connection_id: Connection ID for the check
+        suggested_check_id: Suggested ID for the check
+        
+    Returns:
+        Generated YAML content
+    """
+    print(f"🔍 Fetching control data for {control_name}...")
+    
+    # Get control from database
+    control_data = get_control_from_db(control_name)
+    if not control_data:
+        return ""
+    
+    print(f"📋 Control: {control_data['control_long_name']}")
+    print(f"🏷️ Family: {control_data['family_name']}")
+    
+    # Generate suggested check ID if not provided
+    if suggested_check_id is None:
+        suggested_check_id = 1000 + control_data['id']
+    
+    # Generate complete YAML check
+    print(f"🤖 Generating complete YAML check entry...")
+    
+    try:
+        yaml_content = generate_checks_yaml(
+            control_name=control_name,
+            control_text=control_data['control_text'],
+            control_title=control_data['control_long_name'],
+            resource_type=resource_type,
+            connection_id=connection_id,
+            control_id=control_data['id'],
+            suggested_check_id=suggested_check_id,
+            max_tokens=1200,
+            temperature=0.1
+        )
+        
+        print(f"✅ Generated {len(yaml_content)} characters of YAML")
+        return yaml_content
+        
+    except Exception as e:
+        logger.error(f"Failed to generate YAML check: {e}")
+        return ""
+
+
 def main():
     """Main function."""
     parser = argparse.ArgumentParser(description="Generate compliance checks with LLM")
@@ -159,6 +217,12 @@ def main():
                        help="Target resource type")
     parser.add_argument("--analyze", action="store_true", 
                        help="Analyze control instead of generating code")
+    parser.add_argument("--yaml", action="store_true",
+                       help="Generate complete YAML check entry instead of just code")
+    parser.add_argument("--connection-id", type=int, default=1,
+                       help="Connection ID for the check (default: 1)")
+    parser.add_argument("--check-id", type=int,
+                       help="Suggested check ID (auto-generated if not provided)")
     parser.add_argument("--output", help="Output file path")
     
     args = parser.parse_args()
@@ -203,9 +267,29 @@ def main():
                 with open(args.output, 'w') as f:
                     json.dump(analysis, f, indent=2)
                 print(f"\n💾 Analysis saved to {args.output}")
+    
+    elif args.yaml:
+        # Generate complete YAML check
+        yaml_content = generate_yaml_check_for_control(
+            args.control, 
+            args.resource_type,
+            args.connection_id,
+            args.check_id
+        )
+        
+        if yaml_content:
+            print("\n📄 Generated YAML Check Entry:")
+            print("-" * 40)
+            print(yaml_content)
+            
+            # Save to file if requested
+            if args.output:
+                with open(args.output, 'w') as f:
+                    f.write(yaml_content)
+                print(f"\n💾 YAML saved to {args.output}")
         
     else:
-        # Generate compliance check
+        # Generate compliance check code only
         code = generate_check_for_control(args.control, args.resource_type)
         
         if code:
