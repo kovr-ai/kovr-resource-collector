@@ -913,9 +913,6 @@ aws:
 
 Generate ONLY the YAML check entry, no explanations or additional text:
     """
-
-    TEMPLATE = """You are a cybersecurity compliance expert. Generate a complete checks.yaml entry for automated compliance validation.
-"""
     
     def format_prompt(
         self,
@@ -997,7 +994,8 @@ Generate ONLY the YAML check entry, no explanations or additional text:
         )
         
         # Assemble the complete prompt
-        complete_prompt = f"""{self.TEMPLATE}
+        complete_prompt = f"""
+You are a cybersecurity compliance expert. Generate a complete checks.yaml entry for automated compliance validation.
 {control_info}
 {instructions}
 {resource_schema}
