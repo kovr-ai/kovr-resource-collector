@@ -367,7 +367,7 @@ def show_progress_monitor(log_file: str = "check_generation_progress.csv"):
                     continue
                 
                 # Calculate stats
-                total_tasks = len(rows)
+                total_processed = len(rows)
                 completed = sum(1 for row in rows if row['status'] == 'completed')
                 failed = sum(1 for row in rows if row['status'] == 'failed')
                 skipped = sum(1 for row in rows if row['status'] == 'skipped')
@@ -378,8 +378,51 @@ def show_progress_monitor(log_file: str = "check_generation_progress.csv"):
                 latest_resource = latest_row['resource_type']
                 latest_status = latest_row['status']
                 
-                # Calculate progress
-                progress_pct = (total_tasks / 100) if total_tasks > 0 else 0  # Assuming ~100 total controls
+                # Calculate actual progress based on ETA data from CSV
+                progress_pct = 0
+                estimated_total = total_processed  # Default fallback
+                
+                # Try to extract estimated total from ETA calculation
+                # Look for the most recent row that has ETA data
+                for row in reversed(rows):
+                    if row['estimated_completion_hms'] and row['estimated_completion_hms'] != 'unknown':
+                        try:
+                            # Calculate estimated total based on current progress and ETA
+                            current_runtime = row['total_runtime_hms']
+                            eta = row['estimated_completion_hms']
+                            
+                            if current_runtime and eta:
+                                # Convert HMS to seconds for calculation
+                                def hms_to_seconds(hms_str):
+                                    parts = hms_str.split(':')
+                                    return int(parts[0]) * 3600 + int(parts[1]) * 60 + int(parts[2])
+                                
+                                runtime_seconds = hms_to_seconds(current_runtime)
+                                eta_seconds = hms_to_seconds(eta)
+                                total_estimated_seconds = runtime_seconds + eta_seconds
+                                
+                                if total_estimated_seconds > 0:
+                                    progress_pct = (runtime_seconds / total_estimated_seconds) * 100
+                                    # Estimate total tasks based on current progress
+                                    if progress_pct > 0:
+                                        estimated_total = int(total_processed / (progress_pct / 100))
+                                break
+                        except (ValueError, ZeroDivisionError):
+                            continue
+                
+                # Fallback: if we can't calculate from ETA, use simple ratio
+                if progress_pct == 0 and total_processed > 0:
+                    # Look for patterns in control names to estimate total
+                    unique_controls = set(row['control_name'] for row in rows)
+                    resource_types = set(row['resource_type'] for row in rows)
+                    
+                    # If we see multiple resource types per control, estimate accordingly
+                    if len(resource_types) > 1:
+                        estimated_total = len(unique_controls) * len(resource_types)
+                        progress_pct = (total_processed / estimated_total) * 100
+                    else:
+                        # Single resource type, assume we're processing all controls
+                        progress_pct = min(100, (total_processed / max(50, total_processed)) * 100)  # Conservative estimate
                 
                 # Get timing info
                 if latest_row['total_runtime_hms']:
@@ -394,7 +437,9 @@ def show_progress_monitor(log_file: str = "check_generation_progress.csv"):
                 
                 print_colored("🔍 LIVE PROGRESS MONITOR", "cyan", "bright")
                 print_colored("=" * 60, "cyan")
-                print_colored(f"📊 Tasks Processed: {total_tasks}", "blue")
+                print_colored(f"📊 Tasks Processed: {total_processed}", "blue")
+                if estimated_total > total_processed:
+                    print_colored(f"📈 Estimated Total: {estimated_total}", "blue")
                 print_colored(f"✅ Successful: {completed}", "green")
                 print_colored(f"❌ Failed: {failed}", "red")
                 print_colored(f"⏭️  Skipped: {skipped}", "yellow")
@@ -404,15 +449,17 @@ def show_progress_monitor(log_file: str = "check_generation_progress.csv"):
                 print_colored(f"🔄 Latest: {latest_control} ({latest_resource}) - {latest_status}", "white")
                 
                 # Show progress bar
-                if total_tasks > 0:
+                if progress_pct > 0:
                     bar_length = 40
-                    filled_length = int(bar_length * progress_pct / 100)
+                    filled_length = int(bar_length * min(progress_pct, 100) / 100)
                     bar = '█' * filled_length + '░' * (bar_length - filled_length)
                     print_colored(f"Progress: |{bar}| {progress_pct:.1f}%", "green")
+                else:
+                    print_colored(f"Progress: Processing... ({total_processed} tasks completed)", "yellow")
                 
                 print_colored("\n⏹️  Press Ctrl+C to exit monitor", "yellow")
                 
-                last_count = total_tasks
+                last_count = total_processed
                 time.sleep(5)  # Update every 5 seconds
                 
             except FileNotFoundError:
@@ -699,6 +746,54 @@ def process_single_control_resource(
         return False
 
 
+def fresh_start_cleanup(log_file: str = "check_generation_progress.csv"):
+    """Clean database tables and CSV file for a fresh start."""
+    print_colored("🧹 FRESH START - Cleaning Database and Progress", "yellow", "bright")
+    print_colored("=" * 60, "yellow")
+    
+    db = get_db()
+    
+    try:
+        with db.get_connection() as conn:
+            with conn.cursor() as cursor:
+                print_colored("🗑️  Cleaning control_checks_mapping table...", "yellow")
+                cursor.execute("DELETE FROM control_checks_mapping;")
+                deleted_mappings = cursor.rowcount
+                print_colored(f"   ✅ Deleted {deleted_mappings} control-check mappings", "green")
+                
+                print_colored("🗑️  Cleaning checks table...", "yellow")
+                cursor.execute("DELETE FROM checks;")
+                deleted_checks = cursor.rowcount
+                print_colored(f"   ✅ Deleted {deleted_checks} checks", "green")
+                
+                print_colored("🔄 Resetting checks table sequence...", "yellow")
+                cursor.execute("ALTER SEQUENCE checks_id_seq RESTART WITH 1;")
+                print_colored("   ✅ Reset checks ID sequence to 1", "green")
+                
+                conn.commit()
+                print_colored("✅ Database cleanup completed", "green")
+        
+        # Clean CSV file
+        if os.path.exists(log_file):
+            print_colored(f"🗑️  Cleaning progress file: {log_file}", "yellow")
+            os.remove(log_file)
+            print_colored(f"   ✅ Deleted progress file", "green")
+        else:
+            print_colored(f"   ℹ️  Progress file {log_file} doesn't exist", "blue")
+        
+        print_colored("=" * 60, "green")
+        print_colored("🎉 FRESH START COMPLETE - Ready for new processing!", "green", "bright")
+        print_colored("=" * 60, "green")
+        
+    except Exception as e:
+        print_colored(f"❌ Error during fresh start cleanup: {e}", "red")
+        import traceback
+        traceback.print_exc()
+        return False
+    
+    return True
+
+
 def main():
     """Main function."""
     parser = argparse.ArgumentParser(
@@ -718,8 +813,11 @@ Examples:
   # Process only first 5 controls
   python single_add_checks_in_db.py --limit 5
   
-  # Process specific controls
-  python single_add_checks_in_db.py --control-filter AC-1 AC-2 AC-3
+  # Fresh start - clean database and CSV file
+  python single_add_checks_in_db.py --fresh-start
+  
+  # Fresh start and process with limit
+  python single_add_checks_in_db.py --fresh-start --limit 10
   
   # Dry run mode
   python single_add_checks_in_db.py --dry-run
@@ -749,8 +847,21 @@ Examples:
                        help="Show live progress monitor (run from another terminal)")
     parser.add_argument("--limit", type=int,
                        help="Limit number of controls to process (useful for testing)")
+    parser.add_argument("--fresh-start", action="store_true",
+                       help="Clean database tables and CSV file for a fresh start")
     
     args = parser.parse_args()
+    
+    # Handle fresh start
+    if args.fresh_start:
+        if not fresh_start_cleanup(args.log_file):
+            print_colored("❌ Fresh start cleanup failed. Exiting.", "red")
+            return 1
+        
+        # If only fresh start was requested, exit
+        if not any([args.dry_run, args.resource_types, args.limit]):
+            print_colored("✅ Fresh start complete. Use other options to start processing.", "green")
+            return 0
     
     # Handle progress monitor mode
     if args.progress:
@@ -773,7 +884,7 @@ Examples:
     
     if args.limit:
         print_colored(f"🔢 Processing limit: {args.limit} controls", "blue")
-
+    
     if TQDM_AVAILABLE:
         print_colored("📊 Progress bar enabled", "green")
     else:
@@ -781,7 +892,7 @@ Examples:
     
     print_colored("-" * 60, "cyan")
     
-    # Initialize progress tracking
+    # Initialize progress tracking (after potential fresh start)
     progress = CheckGenerationProgress(args.log_file)
     
     # Get controls with optional filtering

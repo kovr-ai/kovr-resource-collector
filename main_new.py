@@ -20,6 +20,7 @@ def main(
     # Initialize GitHub connector
     connector_input = ConnectorInput(**credentials)
     resource_collection = connector_service.fetch_data(connector_input)
+    # from pdb import set_trace;set_trace()
 
     print(f"✅ Retrieved {len(resource_collection.resources)} {connector_type} resources")
 

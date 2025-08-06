@@ -16,7 +16,6 @@ from typing import Dict, Any, Optional
 
 from con_mon.utils.llm import (
     get_llm_client,
-    generate_compliance_check,
     analyze_control,
     generate_checks_yaml
 )
@@ -650,17 +649,27 @@ def validate_check_execution(
             
             # Navigate through the resource to get the field value
             current_value = resource_instance
-            for part in field_parts:
+            print(f"🔍 Starting field extraction for path: {field_path}")
+            print(f"🔍 Initial value type: {type(current_value).__name__}")
+            
+            for i, part in enumerate(field_parts):
+                print(f"🔍 Step {i+1}: Accessing '{part}' on {type(current_value).__name__}")
+                
                 if hasattr(current_value, part):
                     current_value = getattr(current_value, part)
+                    print(f"🔍   -> Got {type(current_value).__name__}: {current_value.__class__.__module__ if hasattr(current_value, '__class__') else 'N/A'}")
                 elif isinstance(current_value, dict) and part in current_value:
                     current_value = current_value[part]
+                    print(f"🔍   -> Got dict value: {type(current_value).__name__}")
                 else:
+                    print(f"🔍   -> FAILED: Field '{part}' not found")
                     validation_result["error"] = f"Field path '{field_path}' not found in resource. Failed at part: '{part}'"
                     return validation_result
             
             fetched_value = current_value
             print(f"✅ Extracted field value from path: {field_path}")
+            print(f"🔍 Final value type: {type(fetched_value).__name__}")
+            print(f"🔍 Final value module: {fetched_value.__class__.__module__ if hasattr(fetched_value, '__class__') else 'N/A'}")
             
         except Exception as e:
             validation_result["error"] = f"Failed to extract field value: {e}"
@@ -786,48 +795,6 @@ def generate_sql_check_for_control(
     sql_query = generate_sql_from_check(check, control_data['id'])
     
     return sql_query
-
-
-def generate_check_for_control(control_name: str, resource_type: str = "github") -> str:
-    """
-    Generate compliance check code for a control.
-    
-    Args:
-        control_name: Control identifier
-        resource_type: Target resource type
-        
-    Returns:
-        Generated Python code
-    """
-    print(f"🔍 Fetching control data for {control_name}...")
-    
-    # Get control from database
-    control_data = get_control_from_db(control_name)
-    if not control_data:
-        return ""
-    
-    print(f"📋 Control: {control_data['control_long_name']}")
-    print(f"🏷️ Family: {control_data['family_name']}")
-    
-    # Generate compliance check
-    print(f"🤖 Generating compliance check code...")
-    
-    try:
-        code = generate_compliance_check(
-            control_name=control_name,
-            control_text=control_data['control_text'],
-            resource_type=resource_type,
-            control_title=control_data['control_long_name'],
-            max_tokens=800,
-            temperature=0.1
-        )
-        
-        print(f"✅ Generated {len(code)} characters of code")
-        return code
-        
-    except Exception as e:
-        logger.error(f"Failed to generate compliance check: {e}")
-        return ""
 
 
 def analyze_control_requirements(control_name: str) -> Dict[str, Any]:

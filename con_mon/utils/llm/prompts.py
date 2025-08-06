@@ -106,112 +106,6 @@ class GeneralPrompt(BasePrompt):
         return response.content.strip()
 
 
-class ComplianceCheckPrompt(BasePrompt):
-    """
-    Prompt for generating compliance check code.
-    
-    Generates Python code that can be used in the checks.yaml files
-    for automated compliance validation.
-    """
-    
-    TEMPLATE = """You are a cybersecurity compliance expert. Generate Python code for an automated compliance check.
-
-**Control Information:**
-- Control ID: {control_name}
-- Control Title: {control_title}
-- Resource Type: {resource_type}
-
-**Control Requirement:**
-{control_text}
-
-**Instructions:**
-1. Generate Python code that validates compliance with this control
-2. The code should work with {resource_type} data structures
-3. Set a boolean variable 'result' to True if compliant, False if not
-4. Add comments explaining the logic
-5. Handle edge cases and missing data gracefully
-6. Use only standard Python libraries and basic data operations
-
-**Data Context:**
-The variable 'resource_data' contains the {resource_type} resource information to validate.
-
-**Example Structure:**
-```python
-# Check for [specific requirement]
-try:
-    # Your validation logic here
-    if [condition]:
-        result = True
-    else:
-        result = False
-except Exception as e:
-    # Handle errors gracefully
-    result = False
-```
-
-Generate ONLY the Python code, no explanations or markdown formatting:"""
-    
-    def format_prompt(
-        self, 
-        control_name: str,
-        control_text: str,
-        resource_type: str = "github",
-        control_title: Optional[str] = None,
-        **kwargs
-    ) -> str:
-        """
-        Format compliance check prompt.
-        
-        Args:
-            control_name: Control identifier (e.g., "AC-2")
-            control_text: Full control description/requirement
-            resource_type: Target resource type (github, aws, etc.)
-            control_title: Optional control title
-            **kwargs: Additional parameters (ignored)
-            
-        Returns:
-            Formatted prompt string
-        """
-        return self.TEMPLATE.format(
-            control_name=control_name,
-            control_title=control_title or "Control Compliance Check",
-            control_text=control_text,
-            resource_type=resource_type.title()
-        )
-    
-    def process_response(self, response: LLMResponse) -> str:
-        """
-        Process compliance check response and extract Python code.
-        
-        Args:
-            response: LLM response object
-            
-        Returns:
-            Cleaned Python code ready for execution
-        """
-        content = response.content.strip()
-        
-        # Remove markdown code blocks if present
-        content = re.sub(r'```python\s*\n?', '', content)
-        content = re.sub(r'```\s*$', '', content, flags=re.MULTILINE)
-        
-        # Remove any leading/trailing whitespace
-        content = content.strip()
-        
-        # Ensure the code sets a result variable
-        if 'result =' not in content and 'result=' not in content:
-            # Look for return statements and convert them
-            if 'return True' in content:
-                content = content.replace('return True', 'result = True')
-            elif 'return False' in content:
-                content = content.replace('return False', 'result = False')
-            else:
-                # Add a default result assignment if none found
-                content += '\n\n# Default result if not set above\nif "result" not in locals():\n    result = False'
-        
-        return content
-
-
 class ControlAnalysisPrompt(BasePrompt):
     """
     Prompt for analyzing control requirements.
@@ -339,7 +233,7 @@ class ChecksYamlPrompt(BasePrompt):
 5.1 field_path can only be one of fields in the selected resource_type
 6. Generate Python code for the custom_logic that validates compliance
 6.1 the value at resource_type.field_path would be stored in fetched_value
-6.2 infer the type of fetched_value using the resources structure below5. Determine the correct field_path for the resource data using the resources structure below
+6.2 fetched_value would be a pydantic class or primitive type
 6. Generate Python code for the custom_logic that validates compliance
 7. Set expected_value to null for custom logic checks
 8. Add relevant tags for categorization
@@ -360,14 +254,16 @@ checks:
   operation:
     name: custom
     custom_logic: |
-      # Your Python validation code here
-      # Set result = True if compliant, False if not
-      result = False
-      try:
-          # Your logic here
-          if condition:
-              result = True
-      except Exception as e:
+      # CRITICAL: Custom logic rules:
+      # 1. NEVER use 'return' statements - this is not a function!
+      # 2. ALWAYS set 'result = True' for compliance, 'result = False' for non-compliance
+      # 3. Use 'fetched_value' variable to access the field data
+      
+      result = False  # Default to non-compliant
+      # Your validation logic here using fetched_value
+      if fetched_value and some_condition:
+          result = True
+      else:
           result = False
   expected_value: null
   tags:
@@ -444,7 +340,6 @@ github:
             name: "string"
             sha: "string"
             protected: "boolean"
-            protection_details: "object"
         statistics:
           total_commits: "integer"
           contributors_count: "integer"
@@ -639,12 +534,11 @@ github:
         total_collaborators: "integer"
         total_tags: "integer"
         total_active_webhooks: "integer"
-        rate_limit_info: "object"
       github_api_metadata:
         collection_time: "string"
         api_version: "string"
         scope: "array"
-        """,
+""",
         'aws': """
 **Resource Schema:**
 aws:
@@ -659,7 +553,15 @@ aws:
       fields:
         # Account-level information
         account:
-          limits: "object"
+          limits:
+            type: "object"  # Dictionary of limit_name -> limit_value
+            structure:
+              supported-platforms: "string"
+              vpc-max-security-groups-per-interface: "string"
+              max-elastic-ips: "string"
+              max-instances: "string"
+              vpc-max-elastic-ips: "string"
+              default-vpc: "string"
           reserved_instances: "array"
           spot_instances: "array"
         # EC2 resources
@@ -676,7 +578,11 @@ aws:
             key_name: "string"
             platform: "string"
             monitoring: "string"
-            iam_instance_profile: "object"
+            iam_instance_profile:
+              type: "object"
+              structure:
+                Arn: "string"
+                Id: "string"
             ebs_optimized: "boolean"
             instance_lifecycle: "string"
             security_groups: "array"
@@ -690,7 +596,6 @@ aws:
             vpc_id: "string"
             inbound_rules: "array"
             outbound_rules: "array"
-            tags: "object"
         vpcs:
           type: "object"  # Dictionary/map of vpc_id -> vpc_data
           structure:
@@ -700,17 +605,53 @@ aws:
             instance_tenancy: "string"
             is_default: "boolean"
             cidr_block_association_set: "array"
-            tags: "object"
-        subnets: "object"
-        route_tables: "object"
-        internet_gateways: "object"
-        nat_gateways: "object"
-        elastic_ips: "object"
-        key_pairs: "object"
-        volumes: "object"
-        snapshots: "object"
-        network_interfaces: "object"
-        relationships: "object"
+        subnets:
+          type: "object"  # Dictionary/map of subnet_id -> subnet_data
+          structure:
+            vpc_id: "string"
+            availability_zone: "string"
+            availability_zone_id: "string"
+            cidr_block: "string"
+            state: "string"
+        route_tables:
+          type: "object"  # Dictionary/map of route_table_id -> route_table_data
+          structure:
+            vpc_id: "string"
+            routes: "array"
+            associations: "array"
+        nat_gateways:
+          type: "object"  # Dictionary/map of nat_gateway_id -> nat_gateway_data
+          structure:
+            state: "string"
+            subnet_id: "string"
+            vpc_id: "string"
+            create_time: "string"
+            delete_time: "string"
+        elastic_ips:
+          type: "object"  # Dictionary/map of allocation_id -> eip_data
+          structure:
+            public_ip: "string"
+            domain: "string"
+            instance_id: "string"
+            network_interface_id: "string"
+            private_ip_address: "string"
+        key_pairs:
+          type: "object"  # Dictionary/map of key_name -> key_pair_data
+          structure:
+            key_fingerprint: "string"
+            key_type: "string"
+        snapshots:
+          type: "object"  # Dictionary/map of snapshot_id -> snapshot_data
+          structure:
+            volume_id: "string"
+            volume_size: "integer"
+            state: "string"
+            start_time: "string"
+            progress: "string"
+        relationships:
+          type: "object"  # Dictionary/map of relationship_type -> instance_list
+          structure:
+            instance_security_groups: "array"
 
     # AWS IAM Resource Schema
     IAMResource:
@@ -720,8 +661,6 @@ aws:
       service: "iam"
 
       fields:
-        # Account-level information
-        account: "object"
         # IAM resources
         users:
           type: "object"  # Dictionary/map of user_arn -> user_data
@@ -732,9 +671,6 @@ aws:
             path: "string"
             access_keys: "array"
             mfa_devices: "array"
-            login_profile: "object"
-        groups: "object"  # Dictionary/map structure (if present)
-        roles: "object"   # Dictionary/map structure (if present)
         policies:
           type: "object"  # Dictionary/map of policy_arn -> policy_data
           structure:
@@ -752,7 +688,6 @@ aws:
               VersionId: "string"
               IsDefaultVersion: "boolean"
               CreateDate: "string"
-        relationships: "object"
 
     # AWS S3 Resource Schema
     S3Resource:
@@ -769,20 +704,6 @@ aws:
             name: "string"
             creation_date: "string"
             region: "string"
-            versioning: "object"
-            encryption: "object"
-            public_access_block: "object"
-            logging: "object"
-            lifecycle: "object"
-            notification: "object"
-            tags: "object"
-        bucket_policies: "object"
-        bucket_encryption: "object"
-        bucket_versioning: "object"
-        bucket_logging: "object"
-        bucket_public_access: "object"
-        bucket_lifecycle: "object"
-        bucket_notifications: "object"
 
     # AWS CloudTrail Resource Schema
     CloudTrailResource:
@@ -806,10 +727,6 @@ aws:
             insight_selectors: "array"
             is_logging: "boolean"
             kms_key_id: "string"
-            tags: "object"
-        event_selectors: "object"
-        insight_selectors: "object"
-        tags: "object"
 
     # AWS CloudWatch Resource Schema
     CloudWatchResource:
@@ -830,8 +747,6 @@ aws:
             arn: "string"
             stored_bytes: "integer"
             kms_key_id: "string"
-            tags: "object"
-        log_streams: "object"  # Dictionary/map structure
         metrics: 
           type: "array"  # List of metric objects
           structure:
@@ -858,7 +773,6 @@ aws:
             evaluation_periods: "integer"
             threshold: "number"
             comparison_operator: "string"
-            tags: "object"
         dashboards:
           type: "object"  # Dictionary/map of dashboard_name -> dashboard_data
           structure:
@@ -895,7 +809,7 @@ aws:
         api_version: "string"
         services: "array"
         regions_scanned: "array"
-        """
+"""
     }
     GUIDELINES = """
 **Severity Guidelines:**
@@ -910,6 +824,12 @@ aws:
 - monitoring: Logging, auditing, alerting
 - data_protection: Encryption, data handling
 - network_security: Firewall, network controls
+
+**Custom Logic Rules (CRITICAL):**
+- NEVER use 'return' statements in custom_logic - this causes execution errors
+- ALWAYS use 'result = True' for compliance, 'result = False' for non-compliance
+- Use 'fetched_value' variable to access the extracted field data
+- Default 'result = False' for safety (non-compliant by default)
 
 Generate ONLY the YAML check entry, no explanations or additional text:
     """
@@ -1048,34 +968,6 @@ class PromptResult(BaseModel):
 
 
 # Convenience functions for quick access to common prompts
-
-def generate_compliance_check(
-    control_name: str,
-    control_text: str,
-    resource_type: str = "github",
-    **kwargs
-) -> str:
-    """
-    Quick function to generate compliance check code.
-    
-    Args:
-        control_name: Control identifier
-        control_text: Control requirement text
-        resource_type: Target resource type
-        **kwargs: Additional LLM parameters
-        
-    Returns:
-        Generated Python code
-    """
-    prompt = ComplianceCheckPrompt()
-    return prompt.generate(
-        control_name=control_name,
-        control_text=control_text,
-        resource_type=resource_type,
-        **kwargs
-    )
-
-
 def analyze_control(
     control_name: str,
     control_text: str,
