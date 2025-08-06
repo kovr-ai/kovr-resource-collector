@@ -323,7 +323,7 @@ class ChecksYamlPrompt(BasePrompt):
 **Control Information:**
 - Control ID: {control_name}
 - Control Title: {control_title}
-- Resource Type: {resource_type}
+- Connector Type: {connector_type}
 
 **Control Requirement:**
 {control_text}
@@ -509,168 +509,6 @@ aws:
         services: "array"
         regions_scanned: "array"
 
-github:
-  resources_field_schemas:
-    # Nested data type schemas
-    RepositoryData:
-      name: "repository_data"
-      description: "Repository basic information and metadata"
-      fields:
-        basic_info:
-          id: "integer"
-          name: "string"
-          full_name: "string"
-          description: "string"
-          private: "boolean"
-          owner: "string"
-          html_url: "string"
-          clone_url: "string"
-          ssh_url: "string"
-          size: "integer"
-          language: "string"
-          created_at: "string"
-          updated_at: "string"
-          pushed_at: "string"
-          stargazers_count: "integer"
-          watchers_count: "integer"
-          forks_count: "integer"
-          open_issues_count: "integer"
-          archived: "boolean"
-          disabled: "boolean"
-        metadata:
-          default_branch: "string"
-          topics: "array"
-          has_issues: "boolean"
-          has_projects: "boolean"
-          has_wiki: "boolean"
-          has_pages: "boolean"
-          has_downloads: "boolean"
-          has_discussions: "boolean"
-          is_template: "boolean"
-          license: "string"
-        branches: "array"
-        statistics:
-          total_commits: "integer"
-          contributors_count: "integer"
-          languages: "object"
-          code_frequency: "array"
-
-    ActionsData:
-      name: "actions_data"
-      description: "GitHub Actions workflows and runs"
-      fields:
-        workflows: "object"
-        total_workflows: "integer"
-        active_workflows: "integer"
-        recent_runs_count: "integer"
-
-    CollaborationData:
-      name: "collaboration_data"
-      description: "Collaboration information - issues, PRs, collaborators"
-      fields:
-        issues: "array"
-        pull_requests: "array"
-        collaborators: "array"
-        total_issues: "integer"
-        open_issues: "integer"
-        closed_issues: "integer"
-        total_pull_requests: "integer"
-        open_pull_requests: "integer"
-        merged_pull_requests: "integer"
-        draft_pull_requests: "integer"
-        total_collaborators: "integer"
-
-    SecurityData:
-      name: "security_data"
-      description: "Security advisories, alerts and analysis"
-      fields:
-        security_advisories: "object"
-        vulnerability_alerts: "object"
-        dependency_graph: "object"
-        security_analysis:
-          advanced_security_enabled: "boolean"
-          secret_scanning_enabled: "boolean"
-          push_protection_enabled: "boolean"
-          dependency_review_enabled: "boolean"
-        code_scanning_alerts: "object"
-        total_advisories: "integer"
-        total_dependabot_alerts: "integer"
-        total_code_scanning_alerts: "integer"
-        security_features_enabled: "integer"
-
-    OrganizationData:
-      name: "organization_data"
-      description: "Organization members, teams and collaborators"
-      fields:
-        members: "array"
-        teams: "array"
-        outside_collaborators: "array"
-        total_members: "integer"
-        total_teams: "integer"
-        total_outside_collaborators: "integer"
-        admin_members: "integer"
-        members_error: "string"
-        teams_error: "string"
-        collaborators_error: "string"
-
-    AdvancedFeaturesData:
-      name: "advanced_features_data"
-      description: "Advanced GitHub features - tags, webhooks"
-      fields:
-        tags: "array"
-        webhooks: "array"
-        total_tags: "integer"
-        total_webhooks: "integer"
-        active_webhooks: "integer"
-        tags_error: "string"
-        webhooks_error: "string"
-
-  resources:
-    # Main resource schemas
-    Resource:
-      name: "github"
-      description: "GitHub repository resource"
-      provider: "github"
-
-      # Define the structure that matches GitHub API response with all data types
-      fields:
-        name: "string"  # Repository name for easy identification
-        repository_data: "RepositoryData"  # Nested Pydantic model
-        actions_data: "ActionsData"        # Nested Pydantic model
-        collaboration_data: "CollaborationData"  # Nested Pydantic model
-        security_data: "SecurityData"      # Nested Pydantic model
-        organization_data: "OrganizationData"    # Nested Pydantic model
-        advanced_features_data: "AdvancedFeaturesData"  # Nested Pydantic model
-
-  ResourceCollection:
-    name: "github_collection"
-    description: "Collection of GitHub repository resources from a single connector call"
-    provider: "github"
-    collection_type: "GithubResource"
-
-    # Define the structure for GitHub resource collections
-    fields:
-      resources:
-        - "github.resources.Resource"
-      source_connector: "string"
-      total_count: "integer"
-      fetched_at: "string"
-      collection_metadata:
-        authenticated_user: "string"
-        total_repositories: "integer"
-        total_workflows: "integer"
-        total_issues: "integer"
-        total_pull_requests: "integer"
-        total_security_alerts: "integer"
-        total_collaborators: "integer"
-        total_tags: "integer"
-        total_active_webhooks: "integer"
-        rate_limit_info: "object"
-      github_api_metadata:
-        collection_time: "string"
-        api_version: "string"
-        scope: "array"
-
 **Severity Guidelines:**
 - Critical: System-wide security failures, data exposure risks
 - High: Access control violations, authentication issues
@@ -741,7 +579,7 @@ Generate ONLY the YAML check entry, no explanations or additional text:"""
             control_name=control_name,
             control_title=control_title or "Compliance Check",
             control_text=control_text,
-            resource_type=resource_type,
+            connector_type=resource_type,
             connection_id=connection_id,
             resource_type_lower=resource_type_lower,
             control_name_lower=control_name_lower,

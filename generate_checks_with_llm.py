@@ -225,9 +225,9 @@ def process_response_to_check(
         output_data = check_data.get("output_statements", {})
         if isinstance(output_data, dict) and output_data:
             output_statements = CheckResultStatement(
-                success=output_data.get("success", "Check passed successfully"),
-                failure=output_data.get("failure", "Check failed"),
-                partial=output_data.get("partial", "Check partially passed")
+                success=output_data.get("success") or "Check passed successfully",
+                failure=output_data.get("failure") or "Check failed",
+                partial=output_data.get("partial") or "Check partially passed"
             )
         else:
             output_statements = CheckResultStatement(

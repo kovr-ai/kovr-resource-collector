@@ -257,6 +257,7 @@ def _create_operation_from_metadata(metadata: Dict[str, Any]) -> ComparisonOpera
             except Exception as e:
                 print(custom_logic)
                 logger.error(f"❌ Error in custom logic execution: {e}")
+                from pdb import set_trace;set_trace()
                 return False
         
         operation.custom_function = custom_function
