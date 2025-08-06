@@ -13,7 +13,7 @@ def main(
     check_ids: list[int] | None = None,
     metadata: dict | None = None,
 ):
-    checks_to_run = get_checks_by_ids(check_ids)
+    checks_to_run = get_checks_by_ids(connection_id, check_ids)
     connector_service = get_connector_by_id(connector_type)
     ConnectorInput = get_connector_input_by_id(connector_service)
 
@@ -25,8 +25,10 @@ def main(
 
     # Execute checks and collect results
     executed_check_results = []
+    
     for check_id, check_name, check_function in checks_to_run:
-        check_results = check_function.evaluate(resource_collection)
+        # Execute the check against all resources
+        check_results = check_function.evaluate(resource_collection.resources)
         executed_check_results.append((check_id, check_name, check_results))
 
     # Generate SQL files from executed check results
@@ -34,10 +36,13 @@ def main(
         executed_check_results=executed_check_results,
     )
 
+    check_dicts = sql.get_check_dicts(
+        executed_check_results,
+        resource_collection=resource_collection
+    )
     # Print comprehensive summary
     sql.insert_check_results(
-        executed_check_results,
-        resource_collection=resource_collection,
+        check_dicts,
         customer_id=customer_id,
         connection_id=connection_id,
     )
@@ -99,8 +104,8 @@ def params_from_connection_id(
         # Assuming type 1 = github, can be extended for other types
         type_mapping = {
             1: 'github',
+            2: 'aws',
             # Add more mappings as needed
-            # 2: 'aws',
             # 3: 'azure',
         }
         

@@ -54,6 +54,9 @@ def load_connectors_from_yaml(yaml_file_path: str = None):
         current_dir = os.path.dirname(__file__)
         yaml_file_path = os.path.join(current_dir, 'connectors.yaml')
     
+    loaded_connector_names = []
+    loaded_input_classes = []
+    
     try:
         with open(yaml_file_path, 'r') as file:
             yaml_data = yaml.safe_load(file)
@@ -72,6 +75,7 @@ def load_connectors_from_yaml(yaml_file_path: str = None):
                         input_class_name
                     )
                     globals()[input_class_name] = input_class
+                    loaded_input_classes.append(input_class_name)
                 
                 # Import provider module
                 provider_service_path = connector_config['provider_service']
@@ -116,14 +120,29 @@ def load_connectors_from_yaml(yaml_file_path: str = None):
                         
                         # Make connector available as module attribute
                         globals()[connector_name] = connector_service
+                        loaded_connector_names.append(connector_name)
                         
                     else:
                         print(f"❌ Provider class or method '{method_name}' not found in {provider_service_path}")
-                        
+                    
+                except ImportError as e:
+                    print(f"❌ Could not import provider service: {provider_service_path}. Error: {e}")
                 except Exception as e:
-                    print(f"❌ Error loading provider {provider_service_path}: {e}")
+                    print(f"❌ Error creating connector service for '{connector_name}': {e}")
         
         print(f"✅ Loaded {len(_loaded_connectors)} connectors from {yaml_file_path}")
+        
+        # Update __all__ dynamically
+        globals()['__all__'] = [
+            'ConnectorService', 
+            'ConnectorType', 
+            'get_loaded_connectors',
+            'get_connector_by_id',
+            'get_connector_input_by_id'
+        ] + loaded_connector_names + loaded_input_classes
+        
+        print(f"📦 Available connectors: {loaded_connector_names}")
+        print(f"📦 Available input classes: {loaded_input_classes}")
         
     except FileNotFoundError:
         print(f"❌ Connectors YAML file not found: {yaml_file_path}")
@@ -185,12 +204,4 @@ def get_connector_input_by_id(connector_service_or_id):
 load_connectors_from_yaml()
 
 # Export main components
-__all__ = [
-    'ConnectorService', 
-    'ConnectorType', 
-    'get_loaded_connectors',
-    'get_connector_by_id',
-    'get_connector_input_by_id',
-    'github', 
-    'GithubConnectorInput'
-]
+# __all__ is now dynamically populated by load_connectors_from_yaml

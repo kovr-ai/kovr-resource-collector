@@ -1,0 +1,5 @@
+id,name,description,path,version,created_at,updated_at,active
+1,DOD SRG,"The Cloud Computing Security Requirements Guide (CC SRG) outlines the security model for DoD's use of cloud computing, detailing the necessary security controls and requirements for cloud-based solutions.",/path/to/nist80053,1,2024-12-23T18:17:51.163987,2024-12-23T18:17:51.163987,True
+2,NIST 800-53,NIST cybersecurity framework is a powerful tool to organize and improve cybersecurity program,/path/to/nist80053,1,2024-12-27T17:07:04.781064,2024-12-27T17:07:04.781064,True
+3,NIST 800-171 rev2 Catalog,,/path/to/nist800171,1,2025-02-03T05:55:26.488802,2025-02-03T05:55:26.488802,True
+4,NIST CSF 2.0,NIST CSF 2.0 cybersecurity framework,/path/to/nistcsf2.0,1,2025-08-05T00:09:45.417264,2025-08-05T00:09:45.417280,True

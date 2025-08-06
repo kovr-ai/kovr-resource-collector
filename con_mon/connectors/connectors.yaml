@@ -12,3 +12,18 @@ github:
   # Input specification for this connector
   input:
     GITHUB_TOKEN: "string"
+
+aws:
+  connectors:
+    name: "aws"
+    description: "Collect AWS cloud resources (EC2, IAM, S3, CloudTrail, CloudWatch)"
+    connector_type: "aws"
+    provider_service: "providers.aws.aws_provider"
+    method: "process"
+
+  # Input specification for this connector
+  input:
+    AWS_ROLE_ARN: "string"
+    AWS_ACCESS_KEY_ID: "string"
+    AWS_SECRET_ACCESS_KEY: "string"
+    AWS_SESSION_TOKEN: "string"

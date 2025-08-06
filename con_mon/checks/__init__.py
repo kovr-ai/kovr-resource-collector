@@ -3,7 +3,8 @@ Checks module for resource validation and evaluation.
 """
 import yaml
 import os
-from typing import Dict, Any, Callable, List, Tuple, Optional, Union
+from typing import Dict, Any, Callable, List, Tuple, Optional, Union, Type
+from pydantic import BaseModel
 from .models import Check, ComparisonOperation, ComparisonOperationEnum
 
 # Global storage for loaded checks
@@ -26,56 +27,70 @@ def _create_check_from_config(check_id:int, check_name: str, check_config: Dict[
             operation_enum = ComparisonOperationEnum(operation_name)
         except ValueError:
             raise ValueError(f"Unsupported operation '{operation_name}'. Supported operations: {[op.name for op in ComparisonOperationEnum]} or {[op.value for op in ComparisonOperationEnum]}")
+
     
     operation = ComparisonOperation(name=operation_enum)
     
     # Handle custom logic if present - execute any logic defined in YAML
-    if operation_name == 'custom' and 'custom_logic' in operation_config:
-        custom_logic_code = operation_config['custom_logic']
+    if operation_enum == ComparisonOperationEnum.CUSTOM and 'custom_logic' in operation_config:
+        custom_logic = operation_config['custom_logic']
         
-        def create_dynamic_custom_function(code: str):
-            """Create a custom function that executes YAML-defined logic."""
-            def custom_function(fetched_value, config_value):
-                # Create a safe namespace for executing the custom logic
-                namespace = {
-                    'fetched_value': fetched_value,
-                    'config_value': config_value,
-                    'isinstance': isinstance,
-                    'list': list,
-                    'dict': dict,
-                    'getattr': getattr,
-                    'len': len,
-                    'any': any,
-                    'all': all,
-                    'True': True,
-                    'False': False,
-                    'None': None,
-                    'result': False  # Default result
-                }
-                
-                try:
-                    # Execute the custom logic code from YAML
-                    exec(code, {"__builtins__": {}}, namespace)
-                    # The custom logic should set the 'result' variable
-                    return namespace.get('result', False)
-                    
-                except Exception as e:
-                    print(f"❌ Error executing custom logic for {check_name}: {e}")
-                    return False
+        def custom_function(fetched_value, config_value):
+            # Create local namespace for the custom logic
+            local_vars = {
+                'fetched_value': fetched_value,
+                'config_value': config_value,
+                'result': False  # Default result
+            }
             
-            return custom_function
+            try:
+                # Execute the custom logic code
+                exec(custom_logic, {"__builtins__": __builtins__}, local_vars)
+                return local_vars.get('result', False)
+            except Exception as e:
+                print(f"❌ Error in custom logic for check '{check_name}': {e}")
+                return False
         
-        # Set the dynamic custom function on the operation
-        operation.custom_function = create_dynamic_custom_function(custom_logic_code)
+        operation.custom_function = custom_function
     
-    # Create Check object
+    # Resolve resource_type string to actual model type
+    resource_type = None
+    if 'resource_type' in check_config and check_config['resource_type']:
+        resource_type_name = check_config['resource_type']
+        try:
+            # Import dynamic models to get access to the generated classes
+            from con_mon.resources.dynamic_models import get_dynamic_models
+            dynamic_models = get_dynamic_models()
+            
+            if resource_type_name in dynamic_models:
+                resource_type = dynamic_models[resource_type_name]
+            else:
+                print(f"⚠️ Warning: Resource type '{resource_type_name}' not found in dynamic models")
+        except Exception as e:
+            print(f"⚠️ Warning: Could not resolve resource type '{resource_type_name}': {e}")
+    
+    # Create Check object with updated field names for CSV compatibility
     return Check(
         id=check_id,
+        connection_id=check_config['connection_id'],        # Connection ID from YAML
         name=check_name,
         field_path=check_config['field_path'],
         operation=operation,
         expected_value=check_config['expected_value'],
-        description=check_config.get('description')
+        description=check_config.get('description'),
+        resource_type=resource_type,  # Actual model type instead of string
+        
+        # Updated to use both IDs and names from CSV data
+        control_ids=check_config['control_ids'],          # Integer ID from CSV (required)
+        # framework_id=check_config['framework_id'],      # Integer ID from CSV (required)
+        # control_id=check_config['control_id'],          # Integer ID from CSV (required)
+        # framework_name=check_config['framework_name'],  # String name from CSV (required)
+        # control_name=check_config['control_name'],      # String name from CSV (required)
+        
+        # Additional metadata
+        tags=check_config.get('tags'),
+        severity=check_config.get('severity'),
+        category=check_config.get('category')
     )
 
 def load_checks_from_yaml(yaml_file_path: str = None):
@@ -109,6 +124,7 @@ def load_checks_from_yaml(yaml_file_path: str = None):
             globals()[check_name] = check
         
         print(f"✅ Loaded {len(_loaded_checks)} checks from {yaml_file_path}")
+        print(f"📊 Using framework_id and control_id from CSV data for better performance")
         
     except FileNotFoundError:
         print(f"❌ Checks YAML file not found: {yaml_file_path}")
@@ -119,27 +135,31 @@ def get_loaded_checks() -> Dict[str, Check]:
     """Get all loaded checks."""
     return _loaded_checks.copy()
 
-def get_checks_by_ids(check_ids: Optional[Union[List[int], int]] = None) -> List[Tuple[int, str, Check]]:
+def get_checks_by_ids(
+    connection_id: int,
+    check_ids: Optional[Union[List[int], int]] = None
+) -> List[Tuple[int, str, Check]]:
     """
-    Get checks by their IDs or return all checks if check_ids is None or empty list.
+    Get checks by their IDs filtered by connection_id, or return all checks for connection if check_ids is None or empty list.
     
     Args:
-        check_ids: List of check IDs to filter by, single check ID, None or empty list to return all checks
+        connection_id: Connection ID to filter by (1=GitHub, 2=AWS)
+        check_ids: List of check IDs to filter by, single check ID, None or empty list to return all checks for connection
         
     Returns:
         List of tuples in format (check_id, check_name, check_object)
         
     Examples:
-        # Get all checks (any of these work)
-        all_checks = get_checks_by_ids()
-        all_checks = get_checks_by_ids(None)
-        all_checks = get_checks_by_ids([])
+        # Get all GitHub checks (connection_id=1)
+        all_github_checks = get_checks_by_ids(1)
+        all_github_checks = get_checks_by_ids(1, None)
+        all_github_checks = get_checks_by_ids(1, [])
         
-        # Get specific checks by ID
-        selected_checks = get_checks_by_ids([1001, 1002])
+        # Get specific GitHub checks by ID
+        selected_github_checks = get_checks_by_ids(1, [1001, 1002])
         
-        # Get single check by ID
-        single_check = get_checks_by_ids(1001)
+        # Get single AWS check by ID
+        single_aws_check = get_checks_by_ids(2, 2001)
     """
     # Convert single int to list for consistent processing
     if isinstance(check_ids, int):
@@ -152,7 +172,11 @@ def get_checks_by_ids(check_ids: Optional[Union[List[int], int]] = None) -> List
     result = []
     
     for check_name, check_obj in _loaded_checks.items():
-        # If no specific IDs requested, include all checks
+        # First filter by connection_id
+        if check_obj.connection_id != connection_id:
+            continue
+            
+        # If no specific IDs requested, include all checks for this connection
         if check_ids is None:
             result.append((check_obj.id, check_name, check_obj))
         # If specific IDs requested, include only matching checks
@@ -163,15 +187,16 @@ def get_checks_by_ids(check_ids: Optional[Union[List[int], int]] = None) -> List
     result.sort(key=lambda x: x[0])
     
     # Log what checks were returned
+    connection_name = "GitHub" if connection_id == 1 else "AWS" if connection_id == 2 else f"Connection {connection_id}"
     if check_ids is None:
-        print(f"📋 Retrieved all {len(result)} available checks")
+        print(f"📋 Retrieved all {len(result)} available {connection_name} checks")
     else:
         found_ids = [check_id for check_id, _, _ in result]
         missing_ids = [cid for cid in check_ids if cid not in found_ids]
         
-        print(f"📋 Retrieved {len(result)} checks matching IDs: {found_ids}")
+        print(f"📋 Retrieved {len(result)} {connection_name} checks matching IDs: {found_ids}")
         if missing_ids:
-            print(f"⚠️ Warning: Check IDs not found: {missing_ids}")
+            print(f"⚠️ Warning: {connection_name} check IDs not found: {missing_ids}")
     
     return result
 

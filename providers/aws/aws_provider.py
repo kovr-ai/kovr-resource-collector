@@ -4,8 +4,19 @@ from providers.aws.services.ec2 import EC2Service
 from providers.aws.services.iam import IAMService
 from providers.aws.services.s3 import S3Service
 from providers.provider import Provider, provider_class
+from con_mon.resources import (
+    AWSEC2Resource, 
+    AWSIAMResource, 
+    AWSS3Resource, 
+    AWSCloudTrailResource, 
+    AWSCloudWatchResource,
+    AWSResourceCollection
+)
 from constants import Providers
 import boto3
+import json
+import os
+from datetime import datetime
 
 
 @provider_class
@@ -16,8 +27,11 @@ class AWSProvider(Provider):
         self.AWS_SESSION_TOKEN = metadata.get("AWS_SESSION_TOKEN")
         self.ROLE_ARN = metadata.get("AWS_ROLE_ARN")
         self.AWS_EXTERNAL_ID = metadata.get("AWS_EXTERNAL_ID")
-
-        if (
+        
+        # Check if we should use mock mode (if aws_response.json exists)
+        self.use_mock_data = os.path.exists('aws_response.json')
+        
+        if not self.use_mock_data and (
             not self.AWS_ACCESS_KEY_ID
             or not self.AWS_SECRET_ACCESS_KEY
             or not self.AWS_SESSION_TOKEN
@@ -49,6 +63,14 @@ class AWSProvider(Provider):
         return regions
 
     def connect(self):
+        # Skip AWS connection if using mock data
+        if self.use_mock_data:
+            print("🔄 Mock mode detected - skipping AWS connection")
+            self.client = None  # No real client needed for mock data
+            self.REGIONS = self.metadata.get("REGIONS", ["us-west-2"])  # Default regions for mock
+            return
+            
+        # Original AWS connection logic for real API calls
         session_kwargs = {"region_name": "us-east-1"}
         if self.AWS_ACCESS_KEY_ID and self.AWS_SECRET_ACCESS_KEY:
             session_kwargs.update(
@@ -107,7 +129,33 @@ class AWSProvider(Provider):
             aws_session_token=aws_session_token,
         )
 
-    def process(self):
+    def process(self) -> AWSResourceCollection:
+        """Process data collection - uses mock data if available, otherwise real AWS API calls"""
+        if self.use_mock_data:
+            return self._process_mock_data()
+        else:
+            return self._process_real_aws_data()
+    
+    def _process_mock_data(self) -> AWSResourceCollection:
+        """Load and return mock data from aws_response.json as AWSResourceCollection"""
+        print("🔄 Using mock AWS data from aws_response.json")
+        
+        try:
+            with open('aws_response.json', 'r') as mock_response_file:
+                mock_response = json.load(mock_response_file)
+                
+            print(f"✅ Loaded mock AWS data with {len(mock_response)} regions")
+            
+            # Use the shared helper method to create AWSResourceCollection
+            return self._create_resource_collection_from_data(mock_response)
+            
+        except Exception as e:
+            print(f"❌ Error loading mock data: {e}")
+            raise RuntimeError(f"Failed to load mock data from aws_response.json: {e}")
+
+    def _process_real_aws_data(self) -> AWSResourceCollection:
+        """Original AWS data collection logic using real API calls - returns AWSResourceCollection"""
+        print("🔄 Collecting real AWS data via API calls")
         data = {}
         for region in self.REGIONS:
             print("Fetching data for region: ", region)
@@ -127,4 +175,129 @@ class AWSProvider(Provider):
                     data[region] = {}
                 data[region][name] = instance.process()
 
-        return data
+        # Convert the raw data to AWSResourceCollection using the same logic as mock data
+        return self._create_resource_collection_from_data(data)
+    
+    def _create_resource_collection_from_data(self, aws_data: dict) -> AWSResourceCollection:
+        """Helper method to create AWSResourceCollection from raw AWS data"""
+        aws_resources = []
+        
+        # Process each region's data
+        for region_name, region_data in aws_data.items():
+            try:
+                # Create EC2 resource if EC2 data exists
+                if 'ec2' in region_data:
+                    ec2_resource_data = {
+                        'region': region_name,
+                        'instances': region_data['ec2'].get('instances', []),
+                        'security_groups': region_data['ec2'].get('security_groups', []),
+                        'vpcs': region_data['ec2'].get('vpcs', []),
+                        'subnets': region_data['ec2'].get('subnets', []),
+                        'volumes': region_data['ec2'].get('volumes', []),
+                        'snapshots': region_data['ec2'].get('snapshots', []),
+                        'key_pairs': region_data['ec2'].get('key_pairs', []),
+                        'elastic_ips': region_data['ec2'].get('elastic_ips', []),
+                        'load_balancers': region_data['ec2'].get('load_balancers', []),
+                        'auto_scaling_groups': region_data['ec2'].get('auto_scaling_groups', []),
+                        # Add required base Resource fields
+                        'id': f"aws-ec2-{region_name}",
+                        'source_connector': 'aws'
+                    }
+                    ec2_resource = AWSEC2Resource(**ec2_resource_data)
+                    aws_resources.append(ec2_resource)
+                
+                # Create IAM resource if IAM data exists
+                if 'iam' in region_data:
+                    iam_resource_data = {
+                        'users': region_data['iam'].get('users', []),
+                        'groups': region_data['iam'].get('groups', []),
+                        'roles': region_data['iam'].get('roles', []),
+                        'policies': region_data['iam'].get('policies', []),
+                        'managed_policies': region_data['iam'].get('managed_policies', []),
+                        'access_keys': region_data['iam'].get('access_keys', []),
+                        'mfa_devices': region_data['iam'].get('mfa_devices', []),
+                        'password_policy': region_data['iam'].get('password_policy', {}),
+                        'account_summary': region_data['iam'].get('account_summary', {}),
+                        'credential_report': region_data['iam'].get('credential_report', []),
+                        # Add required base Resource fields
+                        'id': f"aws-iam-{region_name}",
+                        'source_connector': 'aws'
+                    }
+                    iam_resource = AWSIAMResource(**iam_resource_data)
+                    aws_resources.append(iam_resource)
+                
+                # Create S3 resource if S3 data exists
+                if 's3' in region_data:
+                    s3_resource_data = {
+                        'buckets': region_data['s3'].get('buckets', []),
+                        'bucket_policies': region_data['s3'].get('bucket_policies', []),
+                        'bucket_acls': region_data['s3'].get('bucket_acls', []),
+                        'encryption': region_data['s3'].get('encryption', []),
+                        'versioning': region_data['s3'].get('versioning', []),
+                        'logging': region_data['s3'].get('logging', []),
+                        'lifecycle': region_data['s3'].get('lifecycle', []),
+                        'replication': region_data['s3'].get('replication', []),
+                        'website': region_data['s3'].get('website', []),
+                        'cors': region_data['s3'].get('cors', []),
+                        # Add required base Resource fields
+                        'id': f"aws-s3-{region_name}",
+                        'source_connector': 'aws'
+                    }
+                    s3_resource = AWSS3Resource(**s3_resource_data)
+                    aws_resources.append(s3_resource)
+                
+                # Create CloudTrail resource if CloudTrail data exists
+                if 'cloudtrail' in region_data:
+                    cloudtrail_resource_data = {
+                        'trails': region_data['cloudtrail'].get('trails', []),
+                        'trail_status': region_data['cloudtrail'].get('trail_status', []),
+                        'event_selectors': region_data['cloudtrail'].get('event_selectors', []),
+                        'insight_selectors': region_data['cloudtrail'].get('insight_selectors', []),
+                        'data_events': region_data['cloudtrail'].get('data_events', []),
+                        'management_events': region_data['cloudtrail'].get('management_events', []),
+                        # Add required base Resource fields
+                        'id': f"aws-cloudtrail-{region_name}",
+                        'source_connector': 'aws'
+                    }
+                    cloudtrail_resource = AWSCloudTrailResource(**cloudtrail_resource_data)
+                    aws_resources.append(cloudtrail_resource)
+                
+                # Create CloudWatch resource if CloudWatch data exists
+                if 'cloudwatch' in region_data:
+                    cloudwatch_resource_data = {
+                        'log_groups': region_data['cloudwatch'].get('log_groups', []),
+                        'log_streams': region_data['cloudwatch'].get('log_streams', []),
+                        'metrics': region_data['cloudwatch'].get('metrics', []),
+                        'alarms': region_data['cloudwatch'].get('alarms', []),
+                        'dashboards': region_data['cloudwatch'].get('dashboards', []),
+                        'retention_policies': region_data['cloudwatch'].get('retention_policies', []),
+                        'subscription_filters': region_data['cloudwatch'].get('subscription_filters', []),
+                        'metric_filters': region_data['cloudwatch'].get('metric_filters', []),
+                        # Add required base Resource fields
+                        'id': f"aws-cloudwatch-{region_name}",
+                        'source_connector': 'aws'
+                    }
+                    cloudwatch_resource = AWSCloudWatchResource(**cloudwatch_resource_data)
+                    aws_resources.append(cloudwatch_resource)
+                    
+            except Exception as e:
+                print(f"Error converting AWS data for region {region_name}: {e}")
+                continue
+        
+        # Create and return AWSResourceCollection
+        return AWSResourceCollection(
+            resources=aws_resources,
+            source_connector='aws',
+            total_count=len(aws_resources),
+            fetched_at=datetime.now().isoformat(),
+            collection_metadata={
+                'account_id': 'aws-account',
+                'regions': list(aws_data.keys()),
+                'services_collected': ['ec2', 'iam', 's3', 'cloudtrail', 'cloudwatch'],
+                'total_ec2_instances': sum(len(region_data.get('ec2', {}).get('instances', [])) for region_data in aws_data.values()),
+                'total_iam_users': sum(len(region_data.get('iam', {}).get('users', [])) for region_data in aws_data.values()),
+                'total_s3_buckets': sum(len(region_data.get('s3', {}).get('buckets', [])) for region_data in aws_data.values()),
+                'total_cloudtrail_trails': sum(len(region_data.get('cloudtrail', {}).get('trails', [])) for region_data in aws_data.values()),
+                'total_cloudwatch_log_groups': sum(len(region_data.get('cloudwatch', {}).get('log_groups', [])) for region_data in aws_data.values())
+            }
+        )
