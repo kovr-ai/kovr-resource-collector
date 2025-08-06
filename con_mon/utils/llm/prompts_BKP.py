@@ -351,6 +351,15 @@ checks:
   description: Verify compliance with NIST 800-53 {control_name}: {control_title}
   resource_type: {resource_type}Resource
   field_path: {suggested_field_path}
+  output_statements:
+    success: Compliance with NIST 800-53 {control_name}: {control_title} verified
+    failure: Compliance with NIST 800-53 {control_name}: {control_title} failed
+    partial: Compliance with NIST 800-53 {control_name}: {control_title} partially verified
+  fix_details:
+    description: str
+    instructions: List[str]
+    estimated_date: str
+    automation_available: bool = False
   operation:
     name: custom
     custom_logic: |
