@@ -47,16 +47,9 @@ github:
           type: "array"  # List of branch objects
           structure:
             name: "string"
-            commit:
-              sha: "string"
-              url: "string"
+            sha: "string"
             protected: "boolean"
-            protection:
-              enabled: "boolean"
-              required_status_checks: "object"
-              enforce_admins: "boolean"
-              required_pull_request_reviews: "object"
-              restrictions: "object"
+            protection_details: "object"
         statistics:
           total_commits: "integer"
           contributors_count: "integer"
@@ -95,42 +88,40 @@ github:
         issues:
           type: "array"  # List of issue objects
           structure:
-            id: "integer"
             number: "integer"
             title: "string"
             state: "string"
+            user: "string"
             created_at: "string"
             updated_at: "string"
             closed_at: "string"
-            user: "object"
-            assignees: "array"
             labels: "array"
+            assignees: "array"
+            comments_count: "integer"
+            is_pull_request: "boolean"
         pull_requests:
           type: "array"  # List of pull request objects
           structure:
-            id: "integer"
             number: "integer"
             title: "string"
             state: "string"
+            user: "string"
             created_at: "string"
             updated_at: "string"
             closed_at: "string"
             merged_at: "string"
-            user: "object"
-            assignees: "array"
-            reviewers: "array"
+            base_branch: "string"
         collaborators:
           type: "array"  # List of collaborator objects
           structure:
             login: "string"
-            id: "integer"
-            type: "string"
             permissions:
               admin: "boolean"
               maintain: "boolean"
               push: "boolean"
-              triage: "boolean"
               pull: "boolean"
+              triage: "boolean"
+            role_name: "string"
         total_issues: "integer"
         open_issues: "integer"
         closed_issues: "integer"
@@ -185,31 +176,9 @@ github:
       name: "organization_data"
       description: "Organization members, teams and collaborators"
       fields:
-        members:
-          type: "array"  # List of member objects
-          structure:
-            login: "string"
-            id: "integer"
-            type: "string"
-            role: "string"  # "admin", "member", etc.
-            permissions: "object"
-        teams:
-          type: "array"  # List of team objects
-          structure:
-            id: "integer"
-            name: "string"
-            slug: "string"
-            description: "string"
-            privacy: "string"
-            permission: "string"
-            members_count: "integer"
-        outside_collaborators:
-          type: "array"  # List of collaborator objects
-          structure:
-            login: "string"
-            id: "integer"
-            type: "string"
-            permissions: "object"
+        members: "array"  # List of member objects (often empty)
+        teams: "array"   # List of team objects (often empty)
+        outside_collaborators: "array"  # List of collaborator objects (often empty)
         total_members: "integer"
         total_teams: "integer"
         total_outside_collaborators: "integer"
@@ -226,25 +195,9 @@ github:
           type: "array"  # List of tag objects
           structure:
             name: "string"
-            commit:
-              sha: "string"
-              url: "string"
-            zipball_url: "string"
-            tarball_url: "string"
-        webhooks:
-          type: "array"  # List of webhook objects
-          structure:
-            id: "integer"
-            name: "string"
-            active: "boolean"
-            events: "array"
-            config:
-              url: "string"
-              content_type: "string"
-              secret: "string"
-              insecure_ssl: "string"
-            created_at: "string"
-            updated_at: "string"
+            commit_sha: "string"
+            commit_date: "string"
+        webhooks: "array"  # List of webhook objects (often empty)
         total_tags: "integer"
         total_webhooks: "integer"
         active_webhooks: "integer"
@@ -322,11 +275,16 @@ aws:
             image_id: "string"
             vpc_id: "string"
             subnet_id: "string"
-            private_ip_address: "string"
-            public_ip_address: "string"
+            availability_zone: "string"
             key_name: "string"
+            platform: "string"
+            monitoring: "string"
+            iam_instance_profile: "object"
+            ebs_optimized: "boolean"
+            instance_lifecycle: "string"
             security_groups: "array"
-            tags: "object"
+            network_interfaces: "array"
+            block_device_mappings: "array"
         security_groups:
           type: "object"  # Dictionary/map of group_id -> security_group_data
           structure:
@@ -373,48 +331,18 @@ aws:
           structure:
             arn: "string"
             user_id: "string"
-            user_name: "string"
             create_date: "string"
             path: "string"
             access_keys: "array"
             mfa_devices: "array"
             login_profile: "object"
-            attached_policies: "array"
-            inline_policies: "array"
-            groups: "array"
-            tags: "object"
-        groups:
-          type: "object"  # Dictionary/map of group_arn -> group_data
-          structure:
-            arn: "string"
-            group_id: "string"
-            group_name: "string"
-            create_date: "string"
-            path: "string"
-            attached_policies: "array"
-            inline_policies: "array"
-            users: "array"
-        roles:
-          type: "object"  # Dictionary/map of role_arn -> role_data
-          structure:
-            arn: "string"
-            role_id: "string"
-            role_name: "string"
-            create_date: "string"
-            path: "string"
-            assume_role_policy_document:
-              Version: "string"
-              Statement: "array"
-            instance_profiles: "array"
-            attached_policies: "array"
-            inline_policies: "array"
-            tags: "object"
+        groups: "object"  # Dictionary/map structure (if present)
+        roles: "object"   # Dictionary/map structure (if present)
         policies:
           type: "object"  # Dictionary/map of policy_arn -> policy_data
           structure:
             policy_name: "string"
             policy_id: "string"
-            arn: "string"
             create_date: "string"
             update_date: "string"
             path: "string"
@@ -427,8 +355,6 @@ aws:
               VersionId: "string"
               IsDefaultVersion: "boolean"
               CreateDate: "string"
-            attached_entities: "object"
-            tags: "object"
         relationships: "object"
 
     # AWS S3 Resource Schema
