@@ -350,7 +350,7 @@ checks:
   name: {resource_type_lower}_{control_name_lower}_compliance
   description: Verify compliance with NIST 800-53 {control_name}: {control_title}
   resource_type: {resource_type}Resource
-  field_path: {suggested_field_path}
+  field_path: # Choose appropriate path from the guidelines above
   operation:
     name: custom
     custom_logic: |
@@ -373,13 +373,50 @@ checks:
   category: {suggested_category}
   control_ids:
   - {control_id}
+  output_statements:
+    success: "Check passed: [describe what was verified]"
+    failure: "Check failed: [describe what was missing or incorrect]" 
+    partial: "Check partially passed: [describe partial compliance]"
+  fix_details:
+    description: "Steps to fix the compliance issue"
+    instructions:
+    - "Step 1: [specific action]"
+    - "Step 2: [specific action]"
+    estimated_date: "2024-12-31"
+    automation_available: false
 ```
 
 **Resource Type Guidelines:**
-- GitHub: field_path examples: repository_data.branches, repository_data.settings, repository_data.collaborators
-- AWS: field_path examples: iam_data.policies, iam_data.users, ec2_data.instances
-- Azure: field_path examples: resource_data.policies, resource_data.rbac
-- GCP: field_path examples: project_data.iam, project_data.resources
+- GitHub: field_path examples:
+  • repository_data.basic_info (name, private, owner, etc.)
+  • repository_data.metadata (default_branch, topics, has_issues, etc.)
+  • repository_data.branches (branch list with protection info)
+  • security_data.vulnerabilities (security alerts)
+  • security_data.secret_scanning (secret scanning results)
+  • organization_data.members (organization members)
+  • actions_data.workflows (GitHub Actions workflows)
+  • collaboration_data.issues (repository issues)
+  • collaboration_data.pull_requests (pull requests)
+
+- AWS: field_path examples:
+  • iam.policies (IAM policies - use this for access control checks)
+  • iam.users (IAM users - use this for user management checks)
+  • iam.roles (IAM roles)
+  • iam.groups (IAM groups)
+  • ec2.instances (EC2 instances)
+  • ec2.security_groups (security groups)
+  • ec2.vpcs (VPC configurations)
+  • s3.buckets (S3 buckets)
+  • s3.bucket_policies (S3 bucket policies)
+  • cloudtrail.trails (CloudTrail configuration)
+  • cloudwatch.dashboards (CloudWatch dashboards)
+  • cloudwatch.alarms (CloudWatch alarms)
+
+**IMPORTANT FIELD PATH CORRECTIONS:**
+- For AWS IAM checks, use "iam.policies" NOT "iam_data.policies"
+- For AWS IAM users, use "iam.users" NOT "iam_data.users"
+- For GitHub repository info, use "repository_data.basic_info" NOT "repository_data.settings"
+- For GitHub branches, use "repository_data.branches" NOT "repository_data.settings"
 
 **Severity Guidelines:**
 - Critical: System-wide security failures, data exposure risks
@@ -425,12 +462,6 @@ Generate ONLY the YAML check entry, no explanations or additional text:"""
         resource_type_lower = resource_type.lower()
         control_name_lower = control_name.lower().replace('-', '_')
         
-        # Suggest field path based on resource type and control
-        field_path_suggestions = {
-            "github": self._suggest_github_field_path(control_name, control_text),
-            "aws": self._suggest_aws_field_path(control_name, control_text),
-        }
-        
         # Suggest severity based on control family
         severity_suggestions = {
             "AC": "high",  # Access Control
@@ -461,44 +492,11 @@ Generate ONLY the YAML check entry, no explanations or additional text:"""
             connection_id=connection_id,
             resource_type_lower=resource_type_lower,
             control_name_lower=control_name_lower,
-            suggested_field_path=field_path_suggestions.get(resource_type_lower, "resource_data"),
             control_family_tag=control_family.lower(),
             suggested_severity=severity_suggestions.get(control_family, "medium"),
             suggested_category=category_suggestions.get(control_family, "configuration"),
             control_id=control_id
         )
-    
-    def _suggest_github_field_path(self, control_name: str, control_text: str) -> str:
-        """Suggest GitHub field path based on control content."""
-        text_lower = control_text.lower()
-        
-        if any(term in text_lower for term in ['branch', 'protection', 'merge']):
-            return "repository_data.branches"
-        elif any(term in text_lower for term in ['collaborator', 'user', 'access', 'permission']):
-            return "repository_data.collaborators"
-        elif any(term in text_lower for term in ['webhook', 'integration']):
-            return "repository_data.webhooks"
-        elif any(term in text_lower for term in ['secret', 'token', 'key']):
-            return "repository_data.secrets"
-        elif any(term in text_lower for term in ['issue', 'pull request']):
-            return "repository_data.settings"
-        else:
-            return "repository_data.settings"
-    
-    def _suggest_aws_field_path(self, control_name: str, control_text: str) -> str:
-        """Suggest AWS field path based on control content."""
-        text_lower = control_text.lower()
-        
-        if any(term in text_lower for term in ['iam', 'user', 'role', 'policy', 'access']):
-            return "iam_data.policies"
-        elif any(term in text_lower for term in ['ec2', 'instance', 'security group']):
-            return "ec2_data.instances"
-        elif any(term in text_lower for term in ['s3', 'bucket', 'storage']):
-            return "s3_data.buckets"
-        elif any(term in text_lower for term in ['cloudtrail', 'log', 'audit']):
-            return "cloudtrail_data.trails"
-        else:
-            return "iam_data.policies"
     
     def process_response(self, response: LLMResponse) -> str:
         """
