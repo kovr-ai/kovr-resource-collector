@@ -199,7 +199,7 @@ def _insert_into_database(processed_results: List[dict], customer_id: str, conne
     all_params = []
     check_ids_to_delete = []
     
-    for result in processed_results[:10]:
+    for result in processed_results:
         params = (
             customer_id,
             connection_id,

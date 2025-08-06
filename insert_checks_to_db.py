@@ -23,10 +23,238 @@ Database Schema:
 import yaml
 import json
 from datetime import datetime
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Set, Tuple
 from con_mon.utils.db import get_db
 from con_mon.utils.helpers import generate_static_result_messages
 from con_mon.checks import get_loaded_checks
+
+
+def get_checks_from_database() -> Dict[str, Dict[str, Any]]:
+    """
+    Fetch all checks from the database.
+    
+    Returns:
+        Dictionary mapping check_id to check data from database
+    """
+    db = get_db()
+    try:
+        with db.get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    SELECT id, name, description, category, metadata, created_at, updated_at
+                    FROM checks 
+                    WHERE is_deleted = false
+                    ORDER BY id;
+                """)
+                
+                rows = cursor.fetchall()
+                columns = ['id', 'name', 'description', 'category', 'metadata', 'created_at', 'updated_at']
+                
+                db_checks = {}
+                for row in rows:
+                    check_data = dict(zip(columns, row))
+                    # Parse metadata JSON
+                    if check_data['metadata']:
+                        check_data['metadata'] = json.loads(check_data['metadata']) if isinstance(check_data['metadata'], str) else check_data['metadata']
+                    db_checks[check_data['id']] = check_data
+                
+                return db_checks
+                
+    except Exception as e:
+        print(f"❌ Error fetching checks from database: {e}")
+        return {}
+
+
+def get_control_mappings_from_database() -> Dict[str, List[int]]:
+    """
+    Fetch all check-control mappings from the database.
+    
+    Returns:
+        Dictionary mapping check_id to list of control_ids
+    """
+    db = get_db()
+    try:
+        with db.get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    SELECT check_id, control_id
+                    FROM control_checks_mapping 
+                    WHERE is_deleted = false
+                    ORDER BY check_id, control_id;
+                """)
+                
+                rows = cursor.fetchall()
+                
+                db_mappings = {}
+                for row in rows:
+                    check_id, control_id = row
+                    if check_id not in db_mappings:
+                        db_mappings[check_id] = []
+                    db_mappings[check_id].append(control_id)
+                
+                return db_mappings
+                
+    except Exception as e:
+        print(f"❌ Error fetching control mappings from database: {e}")
+        return {}
+
+
+def compare_yaml_with_database(loaded_checks: List) -> None:
+    """
+    Compare YAML checks with database checks and show differences.
+    
+    Args:
+        loaded_checks: List of Check objects from YAML
+    """
+    print("\n🔍 COMPARING YAML DATA WITH DATABASE")
+    print("=" * 80)
+    
+    # Get data from database
+    print("📊 Fetching current database state...")
+    db_checks = get_checks_from_database()
+    db_mappings = get_control_mappings_from_database()
+    
+    # Prepare YAML data for comparison
+    yaml_checks = {str(check.id): check for check in loaded_checks}
+    yaml_mappings = {}
+    for check in loaded_checks:
+        if hasattr(check, 'control_ids') and check.control_ids:
+            yaml_mappings[str(check.id)] = sorted(check.control_ids)
+    
+    # Compare checks
+    yaml_check_ids = set(yaml_checks.keys())
+    db_check_ids = set(db_checks.keys())
+    
+    print(f"\n📋 CHECKS COMPARISON:")
+    print("=" * 60)
+    
+    # New checks (in YAML but not in DB)
+    new_checks = yaml_check_ids - db_check_ids
+    if new_checks:
+        print(f"🆕 NEW CHECKS ({len(new_checks)}) - In YAML but not in database:")
+        for check_id in sorted(new_checks):
+            check = yaml_checks[check_id]
+            print(f"   • {check_id}: {check.name}")
+    
+    # Removed checks (in DB but not in YAML)
+    removed_checks = db_check_ids - yaml_check_ids
+    if removed_checks:
+        print(f"\n🗑️  REMOVED CHECKS ({len(removed_checks)}) - In database but not in YAML:")
+        for check_id in sorted(removed_checks):
+            db_check = db_checks[check_id]
+            print(f"   • {check_id}: {db_check['name']}")
+    
+    # Modified checks (in both but potentially different)
+    common_checks = yaml_check_ids & db_check_ids
+    modified_checks = []
+    
+    for check_id in common_checks:
+        yaml_check = yaml_checks[check_id]
+        db_check = db_checks[check_id]
+        
+        differences = []
+        
+        # Compare basic fields
+        if yaml_check.name != db_check['name']:
+            differences.append(f"name: '{db_check['name']}' → '{yaml_check.name}'")
+        
+        yaml_desc = yaml_check.description or ""
+        if yaml_desc != db_check['description']:
+            differences.append(f"description: '{db_check['description'][:50]}...' → '{yaml_desc[:50]}...'")
+        
+        yaml_category = yaml_check.category or 'compliance'
+        if yaml_category != db_check['category']:
+            differences.append(f"category: '{db_check['category']}' → '{yaml_category}'")
+        
+        # Compare metadata fields
+        db_metadata = db_check.get('metadata', {})
+        yaml_severity = yaml_check.severity or 'medium'
+        if yaml_severity != db_metadata.get('severity'):
+            differences.append(f"severity: '{db_metadata.get('severity')}' → '{yaml_severity}'")
+        
+        yaml_tags = yaml_check.tags or []
+        db_tags = db_metadata.get('tags', [])
+        if set(yaml_tags) != set(db_tags):
+            differences.append(f"tags: {db_tags} → {yaml_tags}")
+        
+        if differences:
+            modified_checks.append((check_id, yaml_check.name, differences))
+    
+    if modified_checks:
+        print(f"\n🔄 MODIFIED CHECKS ({len(modified_checks)}) - Different between YAML and database:")
+        for check_id, name, differences in modified_checks:
+            print(f"   • {check_id}: {name}")
+            for diff in differences[:3]:  # Show first 3 differences
+                print(f"     - {diff}")
+            if len(differences) > 3:
+                print(f"     - ... and {len(differences) - 3} more differences")
+    
+    # Compare control mappings
+    print(f"\n🔗 CONTROL MAPPINGS COMPARISON:")
+    print("=" * 60)
+    
+    yaml_mapping_ids = set(yaml_mappings.keys())
+    db_mapping_ids = set(db_mappings.keys())
+    
+    # New mappings
+    new_mapping_checks = yaml_mapping_ids - db_mapping_ids
+    if new_mapping_checks:
+        print(f"🆕 NEW MAPPING CHECKS ({len(new_mapping_checks)}) - Have control mappings in YAML but not in database:")
+        for check_id in sorted(new_mapping_checks):
+            controls = yaml_mappings[check_id]
+            print(f"   • Check {check_id}: {len(controls)} controls → {controls}")
+    
+    # Removed mappings
+    removed_mapping_checks = db_mapping_ids - yaml_mapping_ids
+    if removed_mapping_checks:
+        print(f"\n🗑️  REMOVED MAPPING CHECKS ({len(removed_mapping_checks)}) - Have control mappings in database but not in YAML:")
+        for check_id in sorted(removed_mapping_checks):
+            controls = db_mappings[check_id]
+            print(f"   • Check {check_id}: {len(controls)} controls → {controls}")
+    
+    # Modified mappings
+    common_mapping_checks = yaml_mapping_ids & db_mapping_ids
+    modified_mappings = []
+    
+    for check_id in common_mapping_checks:
+        yaml_controls = set(yaml_mappings[check_id])
+        db_controls = set(db_mappings[check_id])
+        
+        if yaml_controls != db_controls:
+            added_controls = yaml_controls - db_controls
+            removed_controls = db_controls - yaml_controls
+            modified_mappings.append((check_id, added_controls, removed_controls))
+    
+    if modified_mappings:
+        print(f"\n🔄 MODIFIED MAPPINGS ({len(modified_mappings)}) - Different control mappings:")
+        for check_id, added, removed in modified_mappings:
+            print(f"   • Check {check_id}:")
+            if added:
+                print(f"     + Added controls: {sorted(added)}")
+            if removed:
+                print(f"     - Removed controls: {sorted(removed)}")
+    
+    # Summary
+    print(f"\n📊 SUMMARY:")
+    print("=" * 40)
+    print(f"   YAML checks: {len(yaml_check_ids)}")
+    print(f"   Database checks: {len(db_check_ids)}")
+    print(f"   New checks: {len(new_checks)}")
+    print(f"   Removed checks: {len(removed_checks)}")
+    print(f"   Modified checks: {len(modified_checks)}")
+    print(f"   ")
+    print(f"   YAML mappings: {len(yaml_mapping_ids)} checks with controls")
+    print(f"   Database mappings: {len(db_mapping_ids)} checks with controls")
+    print(f"   New mapping checks: {len(new_mapping_checks)}")
+    print(f"   Removed mapping checks: {len(removed_mapping_checks)}")
+    print(f"   Modified mappings: {len(modified_mappings)}")
+    
+    total_changes = len(new_checks) + len(removed_checks) + len(modified_checks) + len(new_mapping_checks) + len(removed_mapping_checks) + len(modified_mappings)
+    
+    if total_changes == 0:
+        print(f"\n✅ No differences found - YAML and database are in sync!")
+    else:
+        print(f"\n⚠️  Total changes needed: {total_changes}")
 
 
 def transform_check_for_db(check) -> Dict[str, Any]:
@@ -313,54 +541,77 @@ def main():
     """Main function to load checks and insert into database."""
     print("🔄 CHECKS YAML TO DATABASE IMPORTER")
     print("=" * 80)
-
+    
     # Step 1: Load checks using get_loaded_checks
     print("📖 Loading checks using get_loaded_checks()...")
-    loaded_checks = get_loaded_checks()
-
+    loaded_checks = list(get_loaded_checks().values())
+    
     if not loaded_checks:
         print("❌ No checks found")
         return 1
-
+    
     print(f"✅ Loaded {len(loaded_checks)} checks")
-
-    # Step 2: Transform checks for database
+    
+    # Step 2: Show comparison with database
+    compare_yaml_with_database(loaded_checks)
+    
+    # Step 3: Ask user what they want to do
+    print(f"\n❓ What would you like to do?")
+    print("   1. View differences only (done above)")
+    print("   2. Proceed with database import")
+    print("   3. Exit")
+    
+    while True:
+        user_choice = input("\nEnter your choice (1/2/3): ").strip()
+        
+        if user_choice == "1":
+            print("✅ Differences shown above. Exiting.")
+            return 0
+        elif user_choice == "2":
+            break
+        elif user_choice == "3":
+            print("❌ Exiting without changes.")
+            return 0
+        else:
+            print("⚠️ Invalid choice. Please enter 1, 2, or 3.")
+    
+    # Step 4: Transform checks for database
     print(f"\n🔄 Transforming {len(loaded_checks)} checks for database schema...")
     db_records = []
-
-    for _, check in loaded_checks.items():
+    
+    for check in loaded_checks:
         try:
             db_record = transform_check_for_db(check)
             db_records.append(db_record)
         except Exception as e:
             print(f"⚠️ Warning: Failed to transform check {check.id}: {e}")
             continue
-
+    
     print(f"✅ Successfully transformed {len(db_records)} checks")
-
-    # Step 3: Create check-control mappings
+    
+    # Step 5: Create check-control mappings
     print(f"\n🔗 Creating check-control mappings...")
     control_mappings = create_checks_and_control_mapping_for_db(loaded_checks)
-
-    # Step 4: Insert into database (DRY RUN first)
+    
+    # Step 6: Insert into database (DRY RUN first)
     print(f"\n🧪 PERFORMING DRY RUN...")
     insert_checks_to_database(db_records, dry_run=True)
-
+    
     if control_mappings:
         insert_checks_and_control_mapping_to_database(control_mappings, dry_run=True)
-
+    
     # Ask user for confirmation to proceed with actual insertion
     print(f"\n❓ Do you want to proceed with actual database insertion? (y/N): ", end="")
     user_input = input().strip().lower()
-
+    
     if user_input in ['y', 'yes']:
         # Insert checks first
         insert_checks_to_database(db_records, dry_run=False)
-
+        
         # Then insert check-control mappings
         if control_mappings:
             insert_checks_and_control_mapping_to_database(control_mappings, dry_run=False)
-
+        
         print(f"\n🎉 IMPORT COMPLETED SUCCESSFULLY!")
         print(f"   • Inserted {len(db_records)} checks")
         print(f"   • Inserted {len(control_mappings)} check-control mappings")
