@@ -332,14 +332,8 @@ class ChecksYamlPrompt(BasePrompt):
 1. Generate a complete YAML check entry following the exact format shown in the example
 2. Create a descriptive name using snake_case format
 3. Write a clear description explaining what the check validates
-4. Set appropriate resource_type:
-   - For GitHub: GithubResource
-   - For AWS IAM checks: AWSIAMResource
-   - For AWS EC2 checks: AWSEC2Resource  
-   - For AWS S3 checks: AWSS3Resource
-   - For AWS CloudTrail checks: AWSCloudTrailResource
-   - For AWS CloudWatch checks: AWSCloudWatchResource
-5. Determine the correct field_path for the resource data
+4. Set appropriate resource_type using the resources structure below
+5. Determine the correct field_path for the resource data using the resources structure below
 6. Generate Python code for the custom_logic that validates compliance
 7. Set expected_value to null for custom logic checks
 8. Add relevant tags for categorization
@@ -392,38 +386,290 @@ checks:
     automation_available: false
 ```
 
-**Resource Type Guidelines:**
-- GitHub: field_path examples:
-  • repository_data.basic_info (name, private, owner, etc.)
-  • repository_data.metadata (default_branch, topics, has_issues, etc.)
-  • repository_data.branches (branch list with protection info)
-  • security_data.vulnerabilities (security alerts)
-  • security_data.secret_scanning (secret scanning results)
-  • organization_data.members (organization members)
-  • actions_data.workflows (GitHub Actions workflows)
-  • collaboration_data.issues (repository issues)
-  • collaboration_data.pull_requests (pull requests)
+**Resource Schema:**
+aws:
+  resources:
+    # AWS EC2 Resource Schema
+    EC2Resource:
+      name: "aws_ec2"
+      description: "AWS EC2 service resource"
+      provider: "aws"
+      service: "ec2"
 
-- AWS: field_path examples:
-  • policies (for AWSIAMResource - IAM policies)
-  • users (for AWSIAMResource - IAM users) 
-  • roles (for AWSIAMResource - IAM roles)
-  • groups (for AWSIAMResource - IAM groups)
-  • instances (for AWSEC2Resource - EC2 instances)
-  • security_groups (for AWSEC2Resource - security groups)
-  • vpcs (for AWSEC2Resource - VPC configurations)
-  • buckets (for AWSS3Resource - S3 buckets)
-  • bucket_policies (for AWSS3Resource - S3 bucket policies)
-  • trails (for AWSCloudTrailResource - CloudTrail configuration)
-  • dashboards (for AWSCloudWatchResource - CloudWatch dashboards)
-  • alarms (for AWSCloudWatchResource - CloudWatch alarms)
+      fields:
+        # Account-level information
+        account:
+          limits: "object"
+          reserved_instances: "array"
+          spot_instances: "array"
+        # EC2 resources
+        instances: "object"
+        security_groups: "object"
+        vpcs: "object"
+        subnets: "object"
+        route_tables: "object"
+        internet_gateways: "object"
+        nat_gateways: "object"
+        elastic_ips: "object"
+        key_pairs: "object"
+        volumes: "object"
+        snapshots: "object"
+        network_interfaces: "object"
+        relationships: "object"
 
-**IMPORTANT FIELD PATH CORRECTIONS:**
-- For AWSIAMResource checks, use "policies" NOT "iam.policies"
-- For AWSIAMResource user checks, use "users" NOT "iam.users"
-- For AWSEC2Resource checks, use "instances" NOT "ec2.instances"
-- For AWSS3Resource checks, use "buckets" NOT "s3.buckets"
-- Field paths are direct fields on service-specific resource types
+    # AWS IAM Resource Schema
+    IAMResource:
+      name: "aws_iam"
+      description: "AWS IAM service resource"
+      provider: "aws"
+      service: "iam"
+
+      fields:
+        # Account-level information
+        account: "object"
+        # IAM resources
+        users: "object"
+        groups: "object"
+        roles: "object"
+        policies: "object"
+        relationships: "object"
+
+    # AWS S3 Resource Schema
+    S3Resource:
+      name: "aws_s3"
+      description: "AWS S3 service resource"
+      provider: "aws"
+      service: "s3"
+
+      fields:
+        # S3 resources
+        buckets: "object"
+        bucket_policies: "object"
+        bucket_encryption: "object"
+        bucket_versioning: "object"
+        bucket_logging: "object"
+        bucket_public_access: "object"
+        bucket_lifecycle: "object"
+        bucket_notifications: "object"
+
+    # AWS CloudTrail Resource Schema
+    CloudTrailResource:
+      name: "aws_cloudtrail"
+      description: "AWS CloudTrail service resource"
+      provider: "aws"
+      service: "cloudtrail"
+
+      fields:
+        # CloudTrail resources
+        trails: "object"
+        event_selectors: "object"
+        insight_selectors: "object"
+        tags: "object"
+
+    # AWS CloudWatch Resource Schema
+    CloudWatchResource:
+      name: "aws_cloudwatch"
+      description: "AWS CloudWatch service resource"
+      provider: "aws"
+      service: "cloudwatch"
+
+      fields:
+        # CloudWatch resources
+        log_groups: "object"  # Dictionary/map structure
+        log_streams: "object"  # Dictionary/map structure
+        metrics: "array"  # List of metric objects
+        alarms: "object"  # Dictionary/map structure
+        dashboards: "object"  # Dictionary/map structure
+
+  ResourceCollection:
+    name: "aws_collection"
+    description: "Collection of AWS resources from a single connector call"
+    provider: "aws"
+    collection_type: "AWSResource"
+
+    # Define the structure for AWS resource collections
+    fields:
+      resources:
+        - "aws.resources.EC2Resource"
+        - "aws.resources.IAMResource"
+        - "aws.resources.S3Resource"
+        - "aws.resources.CloudTrailResource"
+        - "aws.resources.CloudWatchResource"
+      source_connector: "string"
+      total_count: "integer"
+      fetched_at: "string"
+      collection_metadata:
+        account_id: "string"
+        regions: "array"
+        services_collected: "array"
+        collection_errors: "array"
+      aws_api_metadata:
+        collection_time: "string"
+        api_version: "string"
+        services: "array"
+        regions_scanned: "array"
+
+github:
+  resources_field_schemas:
+    # Nested data type schemas
+    RepositoryData:
+      name: "repository_data"
+      description: "Repository basic information and metadata"
+      fields:
+        basic_info:
+          id: "integer"
+          name: "string"
+          full_name: "string"
+          description: "string"
+          private: "boolean"
+          owner: "string"
+          html_url: "string"
+          clone_url: "string"
+          ssh_url: "string"
+          size: "integer"
+          language: "string"
+          created_at: "string"
+          updated_at: "string"
+          pushed_at: "string"
+          stargazers_count: "integer"
+          watchers_count: "integer"
+          forks_count: "integer"
+          open_issues_count: "integer"
+          archived: "boolean"
+          disabled: "boolean"
+        metadata:
+          default_branch: "string"
+          topics: "array"
+          has_issues: "boolean"
+          has_projects: "boolean"
+          has_wiki: "boolean"
+          has_pages: "boolean"
+          has_downloads: "boolean"
+          has_discussions: "boolean"
+          is_template: "boolean"
+          license: "string"
+        branches: "array"
+        statistics:
+          total_commits: "integer"
+          contributors_count: "integer"
+          languages: "object"
+          code_frequency: "array"
+
+    ActionsData:
+      name: "actions_data"
+      description: "GitHub Actions workflows and runs"
+      fields:
+        workflows: "object"
+        total_workflows: "integer"
+        active_workflows: "integer"
+        recent_runs_count: "integer"
+
+    CollaborationData:
+      name: "collaboration_data"
+      description: "Collaboration information - issues, PRs, collaborators"
+      fields:
+        issues: "array"
+        pull_requests: "array"
+        collaborators: "array"
+        total_issues: "integer"
+        open_issues: "integer"
+        closed_issues: "integer"
+        total_pull_requests: "integer"
+        open_pull_requests: "integer"
+        merged_pull_requests: "integer"
+        draft_pull_requests: "integer"
+        total_collaborators: "integer"
+
+    SecurityData:
+      name: "security_data"
+      description: "Security advisories, alerts and analysis"
+      fields:
+        security_advisories: "object"
+        vulnerability_alerts: "object"
+        dependency_graph: "object"
+        security_analysis:
+          advanced_security_enabled: "boolean"
+          secret_scanning_enabled: "boolean"
+          push_protection_enabled: "boolean"
+          dependency_review_enabled: "boolean"
+        code_scanning_alerts: "object"
+        total_advisories: "integer"
+        total_dependabot_alerts: "integer"
+        total_code_scanning_alerts: "integer"
+        security_features_enabled: "integer"
+
+    OrganizationData:
+      name: "organization_data"
+      description: "Organization members, teams and collaborators"
+      fields:
+        members: "array"
+        teams: "array"
+        outside_collaborators: "array"
+        total_members: "integer"
+        total_teams: "integer"
+        total_outside_collaborators: "integer"
+        admin_members: "integer"
+        members_error: "string"
+        teams_error: "string"
+        collaborators_error: "string"
+
+    AdvancedFeaturesData:
+      name: "advanced_features_data"
+      description: "Advanced GitHub features - tags, webhooks"
+      fields:
+        tags: "array"
+        webhooks: "array"
+        total_tags: "integer"
+        total_webhooks: "integer"
+        active_webhooks: "integer"
+        tags_error: "string"
+        webhooks_error: "string"
+
+  resources:
+    # Main resource schemas
+    Resource:
+      name: "github"
+      description: "GitHub repository resource"
+      provider: "github"
+
+      # Define the structure that matches GitHub API response with all data types
+      fields:
+        name: "string"  # Repository name for easy identification
+        repository_data: "RepositoryData"  # Nested Pydantic model
+        actions_data: "ActionsData"        # Nested Pydantic model
+        collaboration_data: "CollaborationData"  # Nested Pydantic model
+        security_data: "SecurityData"      # Nested Pydantic model
+        organization_data: "OrganizationData"    # Nested Pydantic model
+        advanced_features_data: "AdvancedFeaturesData"  # Nested Pydantic model
+
+  ResourceCollection:
+    name: "github_collection"
+    description: "Collection of GitHub repository resources from a single connector call"
+    provider: "github"
+    collection_type: "GithubResource"
+
+    # Define the structure for GitHub resource collections
+    fields:
+      resources:
+        - "github.resources.Resource"
+      source_connector: "string"
+      total_count: "integer"
+      fetched_at: "string"
+      collection_metadata:
+        authenticated_user: "string"
+        total_repositories: "integer"
+        total_workflows: "integer"
+        total_issues: "integer"
+        total_pull_requests: "integer"
+        total_security_alerts: "integer"
+        total_collaborators: "integer"
+        total_tags: "integer"
+        total_active_webhooks: "integer"
+        rate_limit_info: "object"
+      github_api_metadata:
+        collection_time: "string"
+        api_version: "string"
+        scope: "array"
 
 **Severity Guidelines:**
 - Critical: System-wide security failures, data exposure risks
