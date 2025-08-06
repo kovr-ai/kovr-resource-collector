@@ -189,7 +189,6 @@ class CheckGenerationProgress:
     def setup_progress_bar(self, total: int):
         """Setup progress bar if tqdm is available."""
         if TQDM_AVAILABLE:
-            remaining = total - len(self.completed_tasks)
             self.progress_bar = tqdm(
                 total=total,
                 initial=len(self.completed_tasks),
@@ -427,10 +426,11 @@ def show_progress_monitor(log_file: str = "check_generation_progress.csv"):
         print_colored("\n👋 Progress monitor stopped", "green")
 
 
-def get_all_controls() -> List[Dict[str, Any]]:
-    """Get all controls from the database."""
+def get_all_controls(limit: Optional[int] = None) -> List[Dict[str, Any]]:
+    """Get all controls from the database with optional filtering."""
     db = get_db()
     
+    # Base query
     query = """
     SELECT 
         id,
@@ -441,12 +441,25 @@ def get_all_controls() -> List[Dict[str, Any]]:
         family_name
     FROM control 
     WHERE control_name IS NOT NULL
-    ORDER BY control_name;
     """
+
+    params = []
+
+    # Add limit if specified
+    if limit:
+        query += " LIMIT %s"
+        params.append(limit)
+    
+    query += ";"
     
     try:
-        results = db.execute_query(query)
-        logger.info(f"📋 Loaded {len(results)} controls from database")
+        results = db.execute_query(query, params if params else None)
+        
+        if limit:
+            print_colored(f"📋 Loaded {len(results)} controls (limited to {limit})", "blue")
+        else:
+            print_colored(f"📋 Loaded {len(results)} controls from database", "blue")
+            
         return results
     except Exception as e:
         logger.error(f"❌ Failed to load controls: {e}")
@@ -501,70 +514,77 @@ def insert_check_to_database(check: 'Check', control_id: int) -> Optional[int]:
         
         current_time = datetime.now()
         
-        # Insert check and get the generated ID
-        insert_check_query = """
-        INSERT INTO checks (
-            name, 
-            description, 
-            output_statements, 
-            fix_details,
-            created_by, 
-            updated_by, 
-            category, 
-            metadata, 
-            created_at, 
-            updated_at, 
-            is_deleted
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        RETURNING id;
-        """
-        
-        check_params = (
-            check.name,
-            check.description or "",
-            output_statements_json,
-            fix_details_json,
-            check.created_by,
-            check.updated_by,
-            check.metadata.category,
-            metadata_json,
-            current_time,
-            current_time,
-            check.is_deleted
-        )
-        
-        # Execute check insertion
-        check_results = db.execute_query(insert_check_query, check_params)
-        if not check_results:
-            logger.error("❌ Failed to insert check - no ID returned")
-            return None
-        
-        check_id = check_results[0]['id']
-        logger.info(f"✅ Inserted check with ID: {check_id}")
-        
-        # Insert control-check mapping
-        mapping_query = """
-        INSERT INTO control_checks_mapping (
-            control_id,
-            check_id,
-            created_at,
-            updated_at,
-            is_deleted
-        ) VALUES (%s, %s, %s, %s, %s);
-        """
-        
-        mapping_params = (
-            control_id,
-            check_id,
-            current_time,
-            current_time,
-            False
-        )
-        
-        db.execute_query(mapping_query, mapping_params)
-        logger.info(f"✅ Created control-check mapping: control_id={control_id}, check_id={check_id}")
-        
-        return check_id
+        # Use get_connection for proper transaction handling
+        with db.get_connection() as conn:
+            with conn.cursor() as cursor:
+                # Insert check and get the generated ID
+                insert_check_query = """
+                INSERT INTO checks (
+                    name, 
+                    description, 
+                    output_statements, 
+                    fix_details,
+                    created_by, 
+                    updated_by, 
+                    category, 
+                    metadata, 
+                    created_at, 
+                    updated_at, 
+                    is_deleted
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id;
+                """
+                
+                check_params = (
+                    check.name,
+                    check.description or "",
+                    output_statements_json,
+                    fix_details_json,
+                    check.created_by,
+                    check.updated_by,
+                    check.metadata.category,
+                    metadata_json,
+                    current_time,
+                    current_time,
+                    check.is_deleted
+                )
+                
+                # Execute check insertion
+                cursor.execute(insert_check_query, check_params)
+                check_result = cursor.fetchone()
+                
+                if not check_result:
+                    logger.error("❌ Failed to insert check - no ID returned")
+                    return None
+                
+                check_id = check_result[0]
+                logger.info(f"✅ Inserted check with ID: {check_id}")
+                
+                # Insert control-check mapping
+                mapping_query = """
+                INSERT INTO control_checks_mapping (
+                    control_id,
+                    check_id,
+                    created_at,
+                    updated_at,
+                    is_deleted
+                ) VALUES (%s, %s, %s, %s, %s);
+                """
+                
+                mapping_params = (
+                    control_id,
+                    check_id,
+                    current_time,
+                    current_time,
+                    False
+                )
+                
+                cursor.execute(mapping_query, mapping_params)
+                logger.info(f"✅ Created control-check mapping: control_id={control_id}, check_id={check_id}")
+                
+                # Commit the transaction
+                conn.commit()
+                return check_id
         
     except Exception as e:
         logger.error(f"❌ Failed to insert check to database: {e}")
@@ -695,6 +715,12 @@ Examples:
   # Process only AWS  
   python single_add_checks_in_db.py --resource-types aws
   
+  # Process only first 5 controls
+  python single_add_checks_in_db.py --limit 5
+  
+  # Process specific controls
+  python single_add_checks_in_db.py --control-filter AC-1 AC-2 AC-3
+  
   # Dry run mode
   python single_add_checks_in_db.py --dry-run
   
@@ -721,6 +747,8 @@ Examples:
                             "--resource-types aws for AWS only")
     parser.add_argument("--progress", action="store_true",
                        help="Show live progress monitor (run from another terminal)")
+    parser.add_argument("--limit", type=int,
+                       help="Limit number of controls to process (useful for testing)")
     
     args = parser.parse_args()
     
@@ -743,6 +771,9 @@ Examples:
     print_colored(f"🎯 Resource types: {', '.join(args.resource_types)}", "blue")
     print_colored(f"📄 Progress log: {args.log_file}", "blue")
     
+    if args.limit:
+        print_colored(f"🔢 Processing limit: {args.limit} controls", "blue")
+
     if TQDM_AVAILABLE:
         print_colored("📊 Progress bar enabled", "green")
     else:
@@ -753,8 +784,8 @@ Examples:
     # Initialize progress tracking
     progress = CheckGenerationProgress(args.log_file)
     
-    # Get all controls
-    controls = get_all_controls()
+    # Get controls with optional filtering
+    controls = get_all_controls(limit=args.limit)
     if not controls:
         print_colored("❌ No controls found. Exiting.", "red")
         return 1
