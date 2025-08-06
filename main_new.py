@@ -25,7 +25,6 @@ def main(
 
     # Execute checks and collect results
     executed_check_results = []
-    failed_check_results = []
     
     for check_id, check_name, check_function in checks_to_run:
         # Execute the check against all resources
@@ -37,8 +36,7 @@ def main(
         executed_check_results=executed_check_results,
     )
 
-    return
-    check_dicts = get_checks_by_ids(
+    check_dicts = sql.get_check_dicts(
         executed_check_results,
         resource_collection=resource_collection
     )

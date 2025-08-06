@@ -5,6 +5,7 @@ import json
 import os
 from datetime import datetime
 from typing import List, Tuple, Any, Optional
+from .helpers import generate_result_message
 
 
 class DateTimeEncoder(json.JSONEncoder):
@@ -44,51 +45,49 @@ def get_check_dicts(
             else:
                 failed_resources.append(result.resource.id)
 
-        # Determine overall result
-        if failure_count == 0:
-            overall_result = 'SUCCESS'
-            result_message = f"Check '{check_name}' passed for all {success_count} resources"
-        elif success_count == 0:
-            overall_result = 'FAIL'
-            result_message = f"Check '{check_name}' failed for all {failure_count} resources"
-        else:
-            overall_result = 'MIXED'
-            result_message = f"Check '{check_name}' passed for {success_count} resources, failed for {failure_count} resources"
+        # Generate static result message based on check properties
+        # Get the check object from the first result (all results have the same check)
+        check_obj = check_results[0].check
+        overall_result, result_message = generate_result_message(
+            check_obj,
+            success_count,
+            failure_count
+        )
 
-        # Add detailed failure messages with proper formatting
-        failure_details = []
-        if failure_count > 0:
-            for result in check_results:
-                if not result.passed:
-                    if result.error:
-                        overall_result = 'ERROR'
-                    failure_details.append({
-                        'resource_id': result.resource.id,
-                        'resource_name': result.resource.name,
-                        'message': result.message,
-                        'error': result.error if result.error else None
-                    })
-
-            # Format failure details with proper line breaks
-            if len(failure_details) == 1:
-                # Single failure - keep it concise
-                fd = failure_details[0]
-                if fd['error']:
-                    result_message += f"\n• Failure: {fd['resource_name']} - {fd['message']}\n• Error: {fd['error']}"
-                else:
-                    result_message += f"\n• Failure: {fd['resource_name']} - {fd['message']}"
-            else:
-                # Multiple failures - format as a list
-                result_message += f"\n• Failures ({len(failure_details)} resources):"
-                for i, fd in enumerate(failure_details[:5]):  # Limit to first 5 for readability
-                    if fd['error']:
-                        result_message += f"\n  {i + 1}. {fd['resource_name']}: {fd['message']} (Error: {fd['error']})"
-                    else:
-                        result_message += f"\n  {i + 1}. {fd['resource_name']}: {fd['message']}"
-
-                # Add summary if there are more failures
-                if len(failure_details) > 5:
-                    result_message += f"\n  ... and {len(failure_details) - 5} more failures"
+        # # Add detailed failure messages with proper formatting
+        # failure_details = []
+        # if failure_count > 0:
+        #     for result in check_results:
+        #         if not result.passed:
+        #             if result.error:
+        #                 overall_result = 'ERROR'
+        #             failure_details.append({
+        #                 'resource_id': result.resource.id,
+        #                 'resource_name': result.resource.name,
+        #                 'message': result.message,
+        #                 'error': result.error if result.error else None
+        #             })
+        #
+        #     # Format failure details with proper line breaks
+        #     if len(failure_details) == 1:
+        #         # Single failure - keep it concise
+        #         fd = failure_details[0]
+        #         if fd['error']:
+        #             result_message += f"\n• Failure: {fd['resource_name']} - {fd['message']}\n• Error: {fd['error']}"
+        #         else:
+        #             result_message += f"\n• Failure: {fd['resource_name']} - {fd['message']}"
+        #     else:
+        #         # Multiple failures - format as a list
+        #         result_message += f"\n• Failures ({len(failure_details)} resources):"
+        #         for i, fd in enumerate(failure_details[:5]):  # Limit to first 5 for readability
+        #             if fd['error']:
+        #                 result_message += f"\n  {i + 1}. {fd['resource_name']}: {fd['message']} (Error: {fd['error']})"
+        #             else:
+        #                 result_message += f"\n  {i + 1}. {fd['resource_name']}: {fd['message']}"
+        #
+        #         # Add summary if there are more failures
+        #         if len(failure_details) > 5:
+        #             result_message += f"\n  ... and {len(failure_details) - 5} more failures"
 
         # Store processed result
         processed_results.append({

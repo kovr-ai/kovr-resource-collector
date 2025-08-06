@@ -2,6 +2,130 @@
 Helper functions for con_mon - handles display and summary operations.
 """
 from typing import List, Tuple, Any
+from con_mon.checks.models import Check
+
+
+def generate_static_result_messages(check: Check) -> tuple[str, str, str]:
+    """
+    Generate static success, partial, and failure messages for a check based on its properties.
+    
+    Args:
+        check: The Check object containing check configuration
+        
+    Returns:
+        Tuple of (success_message, partial_message, failure_message)
+    """
+    name = check.name
+    description = check.description or ""
+    
+    # Extract key concepts from the name and description
+    if 'github' in name.lower():
+        resource_type = "GitHub repositories"
+        if 'organization' in description.lower():
+            resource_type = "GitHub organizations"
+    elif 'aws' in name.lower():
+        if 'ec2' in name.lower():
+            resource_type = "AWS EC2 resources"
+        elif 'iam' in name.lower():
+            resource_type = "AWS IAM resources"
+        elif 's3' in name.lower():
+            resource_type = "AWS S3 resources"
+        elif 'cloudwatch' in name.lower():
+            resource_type = "AWS CloudWatch resources"
+        elif 'cloudtrail' in name.lower():
+            resource_type = "AWS CloudTrail resources"
+        else:
+            resource_type = "AWS resources"
+    else:
+        resource_type = "resources"
+    
+    # Generate messages based on the check logic
+    operation = check.operation
+    expected_value = check.expected_value
+    
+    if operation.name.value == '==':  # EQUAL
+        if expected_value is True:
+            success_msg = f"All {resource_type} meet the required condition"
+            partial_msg = f"Some {resource_type} meet the required condition"
+            failure_msg = f"No {resource_type} meet the required condition"
+        elif expected_value is False:
+            success_msg = f"All {resource_type} are properly configured"
+            partial_msg = f"Some {resource_type} are properly configured"
+            failure_msg = f"No {resource_type} are properly configured"
+        elif expected_value == 0:
+            success_msg = f"All {resource_type} have no issues"
+            partial_msg = f"Some {resource_type} have no issues"
+            failure_msg = f"{resource_type} have outstanding issues"
+        else:
+            success_msg = f"All {resource_type} meet the required criteria"
+            partial_msg = f"Some {resource_type} meet the required criteria"
+            failure_msg = f"No {resource_type} meet the required criteria"
+    elif operation.name.value in ['>', '>=']:  # GREATER_THAN, GREATER_THAN_OR_EQUAL
+        success_msg = f"All {resource_type} meet the minimum threshold"
+        partial_msg = f"Some {resource_type} meet the minimum threshold"
+        failure_msg = f"No {resource_type} meet the minimum threshold"
+    elif operation.name.value in ['<', '<=']:  # LESS_THAN, LESS_THAN_OR_EQUAL
+        success_msg = f"All {resource_type} are within acceptable limits"
+        partial_msg = f"Some {resource_type} are within acceptable limits"
+        failure_msg = f"No {resource_type} are within acceptable limits"
+    elif operation.name.value == '!=':  # NOT_EQUAL
+        success_msg = f"All {resource_type} are properly configured"
+        partial_msg = f"Some {resource_type} are properly configured"
+        failure_msg = f"No {resource_type} are properly configured"
+    elif operation.name.value == 'custom':  # CUSTOM
+        # For custom checks, generate more specific messages based on description
+        if 'protected' in description.lower():
+            success_msg = f"All {resource_type} have proper protection enabled"
+            partial_msg = f"Some {resource_type} have proper protection enabled"
+            failure_msg = f"No {resource_type} have proper protection enabled"
+        elif 'security' in description.lower():
+            success_msg = f"All {resource_type} meet security requirements"
+            partial_msg = f"Some {resource_type} meet security requirements"
+            failure_msg = f"No {resource_type} meet security requirements"
+        elif 'encrypted' in description.lower():
+            success_msg = f"All {resource_type} are properly encrypted"
+            partial_msg = f"Some {resource_type} are properly encrypted"
+            failure_msg = f"No {resource_type} are properly encrypted"
+        elif 'enabled' in description.lower():
+            success_msg = f"All {resource_type} have the required feature enabled"
+            partial_msg = f"Some {resource_type} have the required feature enabled"
+            failure_msg = f"No {resource_type} have the required feature enabled"
+        else:
+            success_msg = f"All {resource_type} pass the compliance check"
+            partial_msg = f"Some {resource_type} pass the compliance check"
+            failure_msg = f"No {resource_type} pass the compliance check"
+    else:
+        success_msg = f"All {resource_type} pass the compliance check"
+        partial_msg = f"Some {resource_type} pass the compliance check"
+        failure_msg = f"No {resource_type} pass the compliance check"
+    
+    return success_msg, partial_msg, failure_msg
+
+
+def generate_result_message(
+        check: Check, success_count: int,
+        failure_count: int
+) -> Tuple[str, str]:
+    """
+    Generate a static result message based on check properties and result counts.
+
+    Args:
+        check: The Check object containing check configuration
+        success_count: Number of resources that passed the check
+        failure_count: Number of resources that failed the check
+
+    Returns:
+        Static result message based on the check outcome
+    """
+    success_msg, partial_msg, failure_msg = generate_static_result_messages(check)
+
+    # Determine overall result
+    if failure_count == 0:
+        return 'SUCCESS', success_msg
+    elif success_count == 0:
+        return 'FAIL', failure_msg
+    else:
+        return 'PARTIAL', partial_msg
 
 
 def print_summary(executed_check_results: List[Tuple[int, str, List[Any]]]):
