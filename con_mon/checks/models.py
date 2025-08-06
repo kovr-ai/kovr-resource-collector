@@ -2,7 +2,8 @@
 Models for checks module - handles resource validation and evaluation.
 """
 from enum import Enum
-from typing import Any, Callable, Optional, List, Type
+from datetime import datetime
+from typing import Any, Callable, Optional, List, Type, Dict
 from pydantic import BaseModel, Field
 from con_mon.resources.models import Resource
 
@@ -66,6 +67,26 @@ class ComparisonOperation(BaseModel):
             raise ValueError(f"Unsupported operation: {self.name}")
 
 
+class CheckMeta(BaseModel):
+    # Additional metadata fields from YAML
+    tags: Optional[List[str]] = None
+    severity: Optional[str] = None
+    category: Optional[str] = None
+
+
+class CheckResultStatement(BaseModel):
+    success: str
+    failure: str
+    partial: str
+
+
+class CheckFailureFix(BaseModel):
+    description: str
+    instructions: List[str]
+    estimated_date: str
+    automation_available: bool = False
+
+
 class Check(BaseModel):
     """
     Represents a single check that evaluates a resource field against a configured value.
@@ -78,19 +99,48 @@ class Check(BaseModel):
     expected_value: Any
     description: Optional[str] = None
     resource_type: Optional[Type[BaseModel]] = Field(None, description="Specific resource class to target (e.g., 'aws.AWSEC2Resource')")
-    
+
+    # Database-specific fields (these are completely new)
+    output_statements: CheckResultStatement = Field(
+        default_factory=dict,
+        description="JSONB field containing output configuration"
+    )
+    fix_details: CheckFailureFix = Field(
+        default_factory=dict,
+        description="JSONB field containing fix/remediation details"
+    )
+    created_by: str = Field(
+        'system',
+        description="User who created the check"
+    )
+    updated_by: str = Field(
+        'system',
+        description="User who last updated the check"
+    )
+    created_at: datetime = Field(
+        default_factory=datetime.now,
+        description="Creation timestamp"
+    )
+    updated_at: datetime = Field(
+        default_factory=datetime.now,
+        description="Last update timestamp"
+    )
+    is_deleted: bool = Field(
+        default=False,
+        description="Soft delete flag"
+    )
+    metadata: CheckMeta = Field(
+        default_factory=dict,
+        description="Additional metadata and execution parameters"
+    )
+
     # NIST compliance fields - updated to use IDs from CSV for better performance
-    control_ids: List[int]    # Reference to control ID from CSV
+    # control_ids: List[int]    # Reference to control ID from CSV
     # framework_id: int  # Reference to framework ID from CSV
     # control_id: int    # Reference to control ID from CSV
     # framework_name: str  # Reference to framework name from CSV
     # control_name: str    # Reference to control name from CSV
-    
-    # Additional metadata fields from YAML
-    tags: Optional[List[str]] = None
-    severity: Optional[str] = None
-    category: Optional[str] = None
-    
+
     def evaluate(self, resources: List[Resource]) -> List["CheckResult"]:
         """
         Evaluate this check against a resource's data.
