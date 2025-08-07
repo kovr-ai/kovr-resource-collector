@@ -474,7 +474,8 @@ def validate_check_execution(
 ) -> Dict[str, Any]:
     """
     Validate that the generated check can execute without errors.
-    Uses the existing validation system from con_mon/resources/validate.py to create resources.
+    Uses the existing validation system from con_mon/resources/validate.py to create resources
+    and test field path navigation.
     
     Args:
         check: Check object to validate
@@ -491,17 +492,18 @@ def validate_check_execution(
         "execution_result": None,
         "resource_created": False,
         "logic_extracted": False,
+        "field_path_valid": False,
         "basic_validation_passed": False
     }
     
     try:
-        # Step 1: Use existing validation system to create resources
-        print(f"🔍 Using existing validation system to create {resource_type} resources...")
+        # Step 1: Use existing validation system with field path testing
+        print(f"🔍 Using advanced validation system to test field path: {check.field_path}")
         
         from con_mon.resources.validate import main as validate_main
         
-        # Get resources using the existing validation system
-        resources = validate_main(resource_type.lower())
+        # Get resources using the existing validation system with field path validation
+        resources = validate_main(resource_type.lower(), check.field_path)
         
         if not resources:
             validation_result["error"] = f"No {resource_type} resources created by validation system"
@@ -524,32 +526,27 @@ def validate_check_execution(
         validation_result["logic_extracted"] = True
         print(f"✅ Extracted custom logic ({len(custom_logic)} characters)")
         
-        # Step 3: Extract field value using field_path
+        # Step 3: Test field path navigation (this was already done in validate_main)
         try:
             field_path = check.field_path
             field_parts = field_path.split('.')
             
             # Navigate through the resource to get the field value
             current_value = resource_instance
-            print(f"🔍 Starting field extraction for path: {field_path}")
-            print(f"🔍 Initial value type: {type(current_value).__name__}")
+            print(f"🔍 Verifying field extraction for path: {field_path}")
             
             for i, part in enumerate(field_parts):
-                print(f"🔍 Step {i+1}: Accessing '{part}' on {type(current_value).__name__}")
-                
                 if hasattr(current_value, part):
                     current_value = getattr(current_value, part)
-                    print(f"🔍   -> Got {type(current_value).__name__}")
                 elif isinstance(current_value, dict) and part in current_value:
                     current_value = current_value[part]
-                    print(f"🔍   -> Got dict value: {type(current_value).__name__}")
                 else:
-                    print(f"🔍   -> FAILED: Field '{part}' not found")
                     validation_result["error"] = f"Field path '{field_path}' not found in resource. Failed at part: '{part}'"
                     return validation_result
             
             fetched_value = current_value
-            print(f"✅ Extracted field value from path: {field_path}")
+            validation_result["field_path_valid"] = True
+            print(f"✅ Field path validation successful")
             print(f"🔍 Final value type: {type(fetched_value).__name__}")
             
         except Exception as e:
@@ -662,11 +659,13 @@ def generate_sql_check_for_control(
         if validation_result["success"]:
             print(f"✅ Check validation passed!")
             print(f"📊 Execution result: {validation_result['execution_result']}")
+            print(f"📊 Field path valid: {validation_result['field_path_valid']}")
         else:
             print(f"❌ Check validation failed: {validation_result['error']}")
             print(f"📋 Validation details:")
             print(f"   • Logic extracted: {validation_result['logic_extracted']}")
             print(f"   • Resource created: {validation_result['resource_created']}")
+            print(f"   • Field path valid: {validation_result['field_path_valid']}")
             
             # Still generate SQL even if validation fails, but warn the user
             print(f"⚠️  Continuing with SQL generation despite validation failure...")
