@@ -4,7 +4,7 @@ Utils package for con_mon - contains helper functions and SQL operations.
 import os
 import yaml
 import importlib
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Any, Callable, Type
 from con_mon_v2.connectors import ConnectorService, ConnectorInput, ConnectorType
 from con_mon_v2.resources import Resource, ResourceCollection, ResourceField
@@ -55,6 +55,24 @@ def create_fetch_function(provider_module_path: str, method_name: str) -> Callab
     return fetch_function
 
 
+def format_class_name(name: str) -> str:
+    """
+    Format a name into a proper class name prefix.
+    
+    Args:
+        name: Raw name from YAML (e.g., 'github', 'aws', 'gcp')
+        
+    Returns:
+        Formatted class name prefix (e.g., 'GitHub', 'AWS', 'GCP')
+    """
+    # Special case for AWS to keep it uppercase
+    if name.lower() == 'aws':
+        return 'AWS'
+    
+    # Handle other names: capitalize each word
+    return ''.join(word.capitalize() for word in name.split('_'))
+
+
 class ConnectorYamlMapping(BaseModel):
     """Mapping class for connector configurations from YAML."""
     connector: Type[ConnectorService]
@@ -92,35 +110,63 @@ class ConnectorYamlMapping(BaseModel):
         """Create a ConnectorService subclass from connector data."""
         provider_service = connector_data.get('provider_service')
         method_name = connector_data.get('method', 'process')
+        name = connector_data.get('name')
         
         if not provider_service:
             raise ValueError("provider_service is required in connector configuration")
+        if not name:
+            raise ValueError("name is required in connector configuration")
             
         fetch_function = create_fetch_function(provider_service, method_name)
         
-        # Create a subclass of ConnectorService with the configured values
-        class_name = f"{connector_data.get('name', 'Unknown').title()}ConnectorService"
-        return type(class_name, (ConnectorService,), {
-            'name': connector_data.get('name'),
-            'description': connector_data.get('description', f"{connector_data.get('name')} connector"),
-            'connector_type': ConnectorType(connector_data.get('connector_type')),
-            'fetch_function': fetch_function
-        })
+        # Create a subclass of ConnectorService with proper field definitions
+        class_name = f"{format_class_name(name)}ConnectorService"
+        
+        # Create the class dynamically
+        service_class = type(
+            class_name,
+            (ConnectorService,),
+            {
+                '__annotations__': {
+                    'name': str,
+                    'description': str,
+                    'connector_type': ConnectorType,
+                    'fetch_function': Callable[[ConnectorInput], ResourceCollection]
+                },
+                'name': Field(default=name),
+                'description': Field(default=connector_data.get('description', f"{name} connector")),
+                'connector_type': Field(default=ConnectorType(connector_data.get('connector_type'))),
+                'fetch_function': Field(default=fetch_function)
+            }
+        )
+        
+        return service_class
 
     @staticmethod
     def _create_connector_input_class(input_data: dict[str, Any], connector_name: str) -> Type[ConnectorInput]:
         """Create a ConnectorInput subclass from input data."""
-        class_name = f"{connector_name.title()}ConnectorInput"
+        class_name = f"{format_class_name(connector_name)}ConnectorInput"
+        
+        # Create field definitions with proper type annotations
+        annotations = {}
         fields = {}
         for field_name, field_type in input_data.items():
             if field_type == "string":
-                fields[field_name] = (str, ...)  # Required string field
+                annotations[field_name] = str
+                fields[field_name] = Field(...)  # Required field
             # Add more type mappings as needed
         
-        return type(class_name, (ConnectorInput,), {
-            '__annotations__': {k: v[0] for k, v in fields.items()},
-            **{k: v[1] for k, v in fields.items()}
-        })
+        # Create the class dynamically
+        input_class = type(
+            class_name,
+            (ConnectorInput,),
+            {
+                '__annotations__': annotations,
+                **fields
+            }
+        )
+        
+        return input_class
 
     @classmethod
     def load_yaml(cls, path_or_dict: str | dict) -> 'ConnectorYamlMapping':
@@ -149,10 +195,11 @@ class ConnectorYamlMapping(BaseModel):
         provider_data = yaml_data[provider_name]
 
         try:
-            connector_class = cls._create_connector_service_class(provider_data.get('connector', {}))
+            connector_data = provider_data.get('connector', {})
+            connector_class = cls._create_connector_service_class(connector_data)
             input_class = cls._create_connector_input_class(
                 provider_data.get('input', {}),
-                provider_data.get('connector', {}).get('name', provider_name)
+                connector_data.get('name', provider_name)
             )
         except Exception as e:
             raise ValueError(f"Error processing connector '{provider_name}': {str(e)}")
@@ -198,19 +245,65 @@ class ResourceYamlMapping(BaseModel):
     @staticmethod
     def _create_resource_field_class(schema_def: dict[str, Any], schema_name: str) -> Type[ResourceField]:
         """Create a ResourceField subclass from schema definition."""
-        class_name = f"{schema_name}ResourceField"
-        return type(class_name, (ResourceField,), schema_def)
+        class_name = f"{format_class_name(schema_name)}ResourceField"
+        
+        # Create field definitions with proper type annotations
+        annotations = {}
+        fields = {}
+        for field_name, field_type in schema_def.items():
+            annotations[field_name] = str  # Assuming string fields for now
+            fields[field_name] = Field(default=field_type)
+        
+        return type(
+            class_name,
+            (ResourceField,),
+            {
+                '__annotations__': annotations,
+                **fields
+            }
+        )
 
     @staticmethod
     def _create_resource_class(resource_def: dict[str, Any], resource_name: str) -> Type[Resource]:
         """Create a Resource subclass from resource definition."""
-        class_name = f"{resource_name}Resource"
-        return type(class_name, (Resource,), resource_def)
+        class_name = f"{format_class_name(resource_name)}Resource"
+        
+        # Create field definitions with proper type annotations
+        annotations = {}
+        fields = {}
+        for field_name, field_type in resource_def.items():
+            annotations[field_name] = str  # Assuming string fields for now
+            fields[field_name] = Field(default=field_type)
+        
+        return type(
+            class_name,
+            (Resource,),
+            {
+                '__annotations__': annotations,
+                **fields
+            }
+        )
 
     @staticmethod
-    def _create_resource_collection_class(collection_def: dict[str, Any]) -> Type[ResourceCollection]:
+    def _create_resource_collection_class(collection_def: dict[str, Any], provider_name: str) -> Type[ResourceCollection]:
         """Create a ResourceCollection subclass from collection definition."""
-        return type("CustomResourceCollection", (ResourceCollection,), collection_def)
+        class_name = f"{format_class_name(provider_name)}ResourceCollection"
+        
+        # Create field definitions with proper type annotations
+        annotations = {}
+        fields = {}
+        for field_name, field_type in collection_def.items():
+            annotations[field_name] = str  # Assuming string fields for now
+            fields[field_name] = Field(default=field_type)
+        
+        return type(
+            class_name,
+            (ResourceCollection,),
+            {
+                '__annotations__': annotations,
+                **fields
+            }
+        )
 
     @classmethod
     def load_yaml(cls, path_or_dict: str | dict) -> 'ResourceYamlMapping':
@@ -254,7 +347,7 @@ class ResourceYamlMapping(BaseModel):
             # Extract resource collection
             collection_data = provider_config.get('ResourceCollection')
             if collection_data:
-                collection_class = cls._create_resource_collection_class(collection_data)
+                collection_class = cls._create_resource_collection_class(collection_data, provider_name)
 
         if not collection_class:
             collection_class = ResourceCollection  # Use base class if no custom collection defined

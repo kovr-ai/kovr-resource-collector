@@ -34,12 +34,12 @@ def test_load_github_connector():
         assert connector_mapping.input.__name__ == "GithubConnectorInput"
         
         # Verify input class fields
-        assert hasattr(connector_mapping.input, "GITHUB_TOKEN")
-        assert connector_mapping.input.__annotations__["GITHUB_TOKEN"] == str
+        assert 'GITHUB_TOKEN' in connector_mapping.input.__annotations__
+        assert connector_mapping.input.__annotations__['GITHUB_TOKEN'] == str
         
         print("✅ GitHub connector model classes created successfully")
     except Exception as e:
-        print(f"❌ Error loading GitHub connector: {e}")
+        print(f"❌ Error loading GitHub connector: {str(e)}")
 
 
 def test_load_aws_connector():
@@ -71,19 +71,23 @@ def test_load_aws_connector():
         print(f"Input class: {connector_mapping.input.__name__}")
         
         # Verify class names
-        assert connector_mapping.connector.__name__ == "AwsConnectorService"
-        assert connector_mapping.input.__name__ == "AwsConnectorInput"
+        assert connector_mapping.connector.__name__ == "AWSConnectorService"
+        assert connector_mapping.input.__name__ == "AWSConnectorInput"
         
         # Verify input class fields
-        assert hasattr(connector_mapping.input, "AWS_ROLE_ARN")
-        assert hasattr(connector_mapping.input, "AWS_ACCESS_KEY_ID")
-        assert hasattr(connector_mapping.input, "AWS_SECRET_ACCESS_KEY")
-        assert hasattr(connector_mapping.input, "AWS_SESSION_TOKEN")
-        assert all(t == str for t in connector_mapping.input.__annotations__.values())
+        expected_fields = {
+            'AWS_ROLE_ARN': str,
+            'AWS_ACCESS_KEY_ID': str,
+            'AWS_SECRET_ACCESS_KEY': str,
+            'AWS_SESSION_TOKEN': str
+        }
+        for field_name, field_type in expected_fields.items():
+            assert field_name in connector_mapping.input.__annotations__, f"Missing field: {field_name}"
+            assert connector_mapping.input.__annotations__[field_name] == field_type, f"Wrong type for {field_name}"
         
         print("✅ AWS connector model classes created successfully")
     except Exception as e:
-        print(f"❌ Error loading AWS connector: {e}")
+        print(f"❌ Error loading AWS connector: {str(e)}")
 
 
 def test_load_from_yaml_file():
@@ -104,12 +108,12 @@ def test_load_from_yaml_file():
         assert github_mapping.input.__name__ == "GithubConnectorInput"
         
         # Verify input class fields
-        assert hasattr(github_mapping.input, "GITHUB_TOKEN")
-        assert github_mapping.input.__annotations__["GITHUB_TOKEN"] == str
+        assert 'GITHUB_TOKEN' in github_mapping.input.__annotations__
+        assert github_mapping.input.__annotations__['GITHUB_TOKEN'] == str
         
         print("✅ GitHub connector model classes loaded from file successfully")
     except Exception as e:
-        print(f"❌ Error loading from YAML file: {e}")
+        print(f"❌ Error loading from YAML file: {str(e)}")
 
 
 def main():

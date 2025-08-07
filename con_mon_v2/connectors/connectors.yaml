@@ -2,7 +2,7 @@
 # Defines connector services for different providers
 
 github:
-  connectors:
+  connector:
     name: "github"
     description: "Collect complete GitHub data (repositories, actions, security, collaboration, etc.)"
     connector_type: "github"
@@ -14,7 +14,7 @@ github:
     GITHUB_TOKEN: "string"
 
 aws:
-  connectors:
+  connector:
     name: "aws"
     description: "Collect AWS cloud resources (EC2, IAM, S3, CloudTrail, CloudWatch)"
     connector_type: "aws"
