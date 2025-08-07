@@ -7,3 +7,4 @@ aws_response.json
 # Ignore export and populate script files
 export_dd*
 populate_*
+*_BKP
