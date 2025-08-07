@@ -166,7 +166,7 @@ class ConnectorYamlMapping(BaseModel):
         return input_class
 
     @classmethod
-    def load_yaml(cls, path_or_dict: str | dict) -> 'ConnectorYamlMapping':
+    def load_yaml(cls, path_or_dict: str | dict) -> Dict[str, 'ConnectorYamlMapping']:
         """
         Load connector configuration from a YAML file or dictionary.
 
@@ -174,7 +174,7 @@ class ConnectorYamlMapping(BaseModel):
             path_or_dict: Either a path to a YAML file or a dictionary containing the YAML data
 
         Returns:
-            ConnectorYamlMapping: An instance of ConnectorYamlMapping containing the loaded data
+            Dict[str, ConnectorYamlMapping]: A dictionary mapping provider names to their connector mappings
 
         Raises:
             FileNotFoundError: If the YAML file does not exist
@@ -183,28 +183,26 @@ class ConnectorYamlMapping(BaseModel):
         """
         yaml_data = cls._load_yaml_data(path_or_dict)
 
-        # We expect only one provider configuration in the YAML
         if not yaml_data or not isinstance(yaml_data, dict):
             raise ValueError("Invalid YAML data: expected a dictionary with provider configuration")
 
-        # Get the first provider's data
-        provider_name = next(iter(yaml_data))
-        provider_data = yaml_data[provider_name]
+        result = {}
+        for provider_name, provider_data in yaml_data.items():
+            try:
+                connector_data = provider_data.get('connector', {})
+                connector_class = cls._create_connector_service_class(connector_data)
+                input_class = cls._create_connector_input_class(
+                    {k: v for k, v in provider_data.get('input', {}).items() if k != 'name'},  # Exclude name from fields
+                    provider_data.get('input', {}).get('name', connector_data.get('name', provider_name))  # Use input name or fallback
+                )
+                result[provider_name] = cls(
+                    connector=connector_class,
+                    input=input_class
+                )
+            except Exception as e:
+                raise ValueError(f"Error processing connector '{provider_name}': {str(e)}")
 
-        try:
-            connector_data = provider_data.get('connector', {})
-            connector_class = cls._create_connector_service_class(connector_data)
-            input_class = cls._create_connector_input_class(
-                {k: v for k, v in provider_data.get('input', {}).items() if k != 'name'},  # Exclude name from fields
-                provider_data.get('input', {}).get('name', connector_data.get('name', provider_name))  # Use input name or fallback
-            )
-        except Exception as e:
-            raise ValueError(f"Error processing connector '{provider_name}': {str(e)}")
-
-        return cls(
-            connector=connector_class,
-            input=input_class
-        )
+        return result
 
 
 def yaml_type_to_python_type(yaml_type: str, available_models: Dict[str, Type[BaseModel]] = None) -> type:
@@ -568,7 +566,7 @@ class ResourceYamlMapping(BaseModel):
         return model
 
     @classmethod
-    def load_yaml(cls, path_or_dict: str | dict) -> 'ResourceYamlMapping':
+    def load_yaml(cls, path_or_dict: str | dict) -> Dict[str, 'ResourceYamlMapping']:
         """
         Load resource configuration from a YAML file or dictionary.
 
@@ -576,7 +574,7 @@ class ResourceYamlMapping(BaseModel):
             path_or_dict: Either a path to a YAML file or a dictionary containing the YAML data
 
         Returns:
-            ResourceYamlMapping: An instance of ResourceYamlMapping containing the loaded data
+            Dict[str, ResourceYamlMapping]: A dictionary mapping provider names to their resource mappings
 
         Raises:
             FileNotFoundError: If the YAML file does not exist
@@ -584,31 +582,32 @@ class ResourceYamlMapping(BaseModel):
             ValueError: If the input format is invalid
         """
         yaml_data = cls._load_yaml_data(path_or_dict)
-        
-        all_nested_schemas = []
-        all_resources = []
-        collection_class = None
-        available_models = {}  # Track created models for cross-references
+        result = {}
 
         # Process each provider's configuration
-        for provider_name, provider_config in yaml_data.items():
-            if not isinstance(provider_config, dict):
+        for provider_name, provider_data in yaml_data.items():
+            if not isinstance(provider_data, dict):
                 continue
 
+            all_nested_schemas = []
+            all_resources = []
+            collection_class = None
+            available_models = {}  # Track created models for cross-references
+
             # Extract nested schemas - use key directly as class name
-            for schema_name, schema_def in provider_config.get('nested_schemas', {}).items():
+            for schema_name, schema_def in provider_data.get('nested_schemas', {}).items():
                 schema_class = cls._create_resource_field_class(schema_def, schema_name, available_models)
                 all_nested_schemas.append(schema_class)
                 available_models[schema_name] = schema_class
 
             # Extract resources - use key directly as class name
-            for resource_name, resource_def in provider_config.get('resources', {}).items():
+            for resource_name, resource_def in provider_data.get('resources', {}).items():
                 resource_class = cls._create_resource_class(resource_def, resource_name, available_models)
                 all_resources.append(resource_class)
                 available_models[resource_name] = resource_class
 
             # Extract resource collection - use name field for class name
-            collection_data = provider_config.get('resource_collection')
+            collection_data = provider_data.get('resource_collection')
             if collection_data:
                 collection_class = cls._create_resource_collection_class(
                     collection_data,
@@ -616,11 +615,13 @@ class ResourceYamlMapping(BaseModel):
                     available_models
                 )
 
-        if not collection_class:
-            collection_class = ResourceCollection  # Use base class if no custom collection defined
+            if not collection_class:
+                collection_class = ResourceCollection  # Use base class if no custom collection defined
 
-        return cls(
-            nested_schemas=all_nested_schemas,
-            resources=all_resources,
-            resources_collection=collection_class
-        )
+            result[provider_name] = cls(
+                nested_schemas=all_nested_schemas,
+                resources=all_resources,
+                resources_collection=collection_class
+            )
+
+        return result

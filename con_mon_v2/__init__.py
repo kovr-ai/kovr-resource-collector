@@ -47,14 +47,11 @@ def _load_connector_mappings():
         return
 
     try:
-        with open(yaml_path, 'r') as f:
-            yaml_data = yaml.safe_load(f)
-
+        # Load all connector mappings
+        provider_mappings = ConnectorYamlMapping.load_yaml(yaml_path)
+        
         # Process each provider's configuration
-        for provider_name, provider_data in yaml_data.items():
-            # Create connector mapping
-            connector_mapping = ConnectorYamlMapping.load_yaml({provider_name: provider_data})
-            
+        for provider_name, connector_mapping in provider_mappings.items():
             # Store classes in the global mappings
             if provider_name not in mappings:
                 mappings[provider_name] = {}
@@ -97,14 +94,11 @@ def _load_resource_mappings():
         return
 
     try:
-        with open(yaml_path, 'r') as f:
-            yaml_data = yaml.safe_load(f)
-
+        # Load all resource mappings
+        provider_mappings = ResourceYamlMapping.load_yaml(yaml_path)
+        
         # Process each provider's configuration
-        for provider_name, provider_data in yaml_data.items():
-            # Create resource mapping
-            resource_mapping = ResourceYamlMapping.load_yaml({provider_name: provider_data})
-            
+        for provider_name, resource_mapping in provider_mappings.items():
             # Store classes in the global mappings
             if provider_name not in mappings:
                 mappings[provider_name] = {}
