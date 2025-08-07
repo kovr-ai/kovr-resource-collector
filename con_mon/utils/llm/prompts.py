@@ -269,9 +269,10 @@ class ChecksYamlPrompt(BasePrompt):
 4. Set appropriate resource_type using the resources structure below
 4.1 resource_type can only be one of resources_field_schemas
 5. Determine the correct field_path for the resource data using the resources structure below
-5.1 field_path must use dot notation to navigate nested structures
-5.2 field_path should start with one of the top level resource fields
-5.3 then navigate through nested objects using dots to reach the specific field you want to validate
+5.1 field_path must be available in the resource_type
+5.2 field_path must use dot notation to navigate nested structures
+5.3 field_path should start with one of the top level resource fields
+5.4 then navigate through nested objects using dots to reach the specific field you want to validate
 6. Generate Python code for the custom_logic that validates compliance
 6.1 the value at resource_type.field_path would be stored in fetched_value
 6.2 fetched_value would be a pydantic class or primitive type

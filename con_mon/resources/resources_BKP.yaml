@@ -360,36 +360,10 @@ aws:
             state: "string"
             start_time: "string"
             progress: "string"
-        volumes:
-          type: "object"  # Dictionary/map of volume_id -> volume_data
+        relationships:
+          type: "object"  # Dictionary/map of relationship_type -> instance_list
           structure:
-            size: "integer"
-            volume_type: "string"
-            state: "string"
-            availability_zone: "string"
-            create_time: "string"
-            encrypted: "boolean"
-            iops: "integer"
-            throughput: "integer"
-        network_interfaces:
-          type: "object"  # Dictionary/map of network_interface_id -> interface_data
-          structure:
-            subnet_id: "string"
-            vpc_id: "string"
-            availability_zone: "string"
-            description: "string"
-            interface_type: "string"
-            private_ip_address: "string"
-            private_dns_name: "string"
-            source_dest_check: "boolean"
-            status: "string"
-            mac_address: "string"
-            security_groups: "array"
-        internet_gateways:
-          type: "object"  # Dictionary/map of internet_gateway_id -> gateway_data
-          structure:
-            state: "string"
-            attachments: "array"
+            instance_security_groups: "array"
 
     # AWS IAM Resource Schema
     IAMResource:

@@ -83,7 +83,12 @@ def main(
                         print(f"    ✅ Found dict value: {type(current_value).__name__}")
                     else:
                         print(f"    ❌ FAILED: Field '{part}' not found")
-                        print(f"    Available attributes: {[attr for attr in dir(current_value) if not attr.startswith('_')][:10]}...")
+                        if hasattr(current_value, '__dict__'):
+                            print(f"    Available attributes: {list(current_value.__dict__.keys())[:10]}...")
+                        elif isinstance(current_value, dict):
+                            print(f"    Available keys: {list(current_value.keys())[:10]}...")
+                        else:
+                            print(f"    Available attributes: {[attr for attr in dir(current_value) if not attr.startswith('_')][:10]}...")
                         break
                 else:
                     # If we completed the loop without breaking
@@ -102,11 +107,22 @@ def main(
         return []
     
 if __name__ == "__main__":
+    # Parse command line arguments
+    if len(sys.argv) < 2:
+        print("Usage: python validate.py <connector_type> [field_path]")
+        print("Example: python validate.py aws account.limits.supported-platforms")
+        sys.exit(1)
+        
+    connector_type = sys.argv[1]
+    field_path = sys.argv[2] if len(sys.argv) > 2 else None
+    
+    # Show Python path for debugging
+    print("Python path:")
     for i, path in enumerate(sys.path[:3]):
         print(f"   {i+1}. {path}")
     if len(sys.path) > 3:
         print(f"   ... and {len(sys.path) - 3} more entries")
     print()
     
-    main('github')
-    main('aws')
+    # Run validation
+    main(connector_type, field_path)
