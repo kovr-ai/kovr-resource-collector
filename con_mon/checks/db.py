@@ -8,6 +8,7 @@ to Check model objects for use in the checks module.
 import logging
 from typing import List, Dict, Any, Optional, Union, Tuple
 from datetime import datetime
+import textwrap
 from con_mon.utils.db import get_db
 from .models import Check, ComparisonOperation, ComparisonOperationEnum, CheckMetadata, CheckResultStatement, CheckFailureFix
 
@@ -210,16 +211,7 @@ def _create_operation_from_metadata(metadata: Dict[str, Any]) -> ComparisonOpera
     # Handle custom logic if present
     if operation_enum == ComparisonOperationEnum.CUSTOM and custom_logic:
         def custom_function(fetched_value, config_value):
-            # Create local namespace for the custom logic
-            local_vars = {
-                'resource_data': fetched_value,  # Use resource_data as variable name
-                'fetched_value': fetched_value,
-                'config_value': config_value,
-                'expected_value': config_value,
-                'result': False  # Default result
-            }
-            
-            # Safe execution environment
+            # Safe execution environment with limited builtins
             safe_globals = {
                 '__builtins__': {
                     'len': len,
@@ -229,35 +221,59 @@ def _create_operation_from_metadata(metadata: Dict[str, Any]) -> ComparisonOpera
                     'bool': bool,
                     'list': list,
                     'dict': dict,
-                    'set': set,  # Added missing built-in
-                    'tuple': tuple,  # Added missing built-in
+                    'set': set,
+                    'tuple': tuple,
                     'any': any,
                     'all': all,
-                    'max': max,  # Added missing built-in
-                    'min': min,  # Added missing built-in
-                    'sum': sum,  # Added missing built-in
-                    'sorted': sorted,  # Added missing built-in
-                    'reversed': reversed,  # Added missing built-in
-                    'enumerate': enumerate,  # Added missing built-in
-                    'zip': zip,  # Added missing built-in
-                    'range': range,  # Added missing built-in
+                    'max': max,
+                    'min': min,
+                    'sum': sum,
+                    'sorted': sorted,
+                    'reversed': reversed,
+                    'enumerate': enumerate,
+                    'zip': zip,
+                    'range': range,
                     'isinstance': isinstance,
                     'hasattr': hasattr,
                     'getattr': getattr,
-                    'abs': abs,  # Added missing built-in
-                    'round': round,  # Added missing built-in
+                    'abs': abs,
+                    'round': round,
                     'Exception': Exception,
                 }
             }
             
             try:
-                # Execute the custom logic code
-                exec(custom_logic, safe_globals, local_vars)
-                return local_vars.get('result', False)
+                # Create a function template that will be executed
+                function_template = """
+def check_value(fetched_value, config_value):
+    result = False
+%s
+    return result
+
+result = check_value(fetched_value, config_value)
+"""
+                # Indent each line of custom logic by 4 spaces
+                indented_logic = '\n'.join('    ' + line for line in custom_logic.split('\n'))
+                
+                # Create the complete function code
+                function_code = function_template % indented_logic
+                
+                # Create local namespace with our variables
+                local_ns = {
+                    'fetched_value': fetched_value,
+                    'config_value': config_value,
+                    'expected_value': config_value,
+                    'result': False
+                }
+                
+                # Execute the function code in the local namespace
+                exec(function_code, safe_globals, local_ns)
+                
+                # Get result from the local namespace
+                return local_ns.get('result', False)
             except Exception as e:
-                print(custom_logic)
+                print(f"Custom logic that failed:\n{custom_logic}")
                 logger.error(f"❌ Error in custom logic execution: {e}")
-                from pdb import set_trace;set_trace()
                 return False
         
         operation.custom_function = custom_function
