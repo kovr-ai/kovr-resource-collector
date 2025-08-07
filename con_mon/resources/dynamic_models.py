@@ -33,23 +33,58 @@ def create_nested_model(name: str, fields_definition: Dict[str, Any], available_
     
     for field_name, field_def in fields_definition.items():
         if isinstance(field_def, dict):
-            # This is a nested object
-            nested_model = create_nested_model(f"{name}_{field_name.title()}", field_def, available_models)
-            pydantic_fields[field_name] = (nested_model, Field(default_factory=dict))
+            # Check if this is the new format with 'type' and 'structure'
+            if 'type' in field_def and field_def['type'] == 'array':
+                # Check if it has structure - if so, create nested model for array items
+                if 'structure' in field_def:
+                    item_model = create_nested_model(f"{name}_{field_name.title()}Item", field_def['structure'], available_models)
+                    pydantic_fields[field_name] = (List[item_model], Field(default_factory=list))
+                else:
+                    # Simple array without structure - default to List[str]
+                    pydantic_fields[field_name] = (List[str], Field(default_factory=list))
+            elif 'type' in field_def and field_def['type'] == 'object':
+                # Check if it has structure - if so, create nested model
+                if 'structure' in field_def:
+                    nested_model = create_nested_model(f"{name}_{field_name.title()}", field_def['structure'], available_models)
+                    pydantic_fields[field_name] = (Optional[nested_model], Field(default_factory=lambda: nested_model()))
+                else:
+                    # Object without structure is not allowed - raise exception
+                    raise ValueError(f"Field '{field_name}' in {name} is 'object' type without structure. All objects must have defined structure for proper Pydantic model generation.")
+            else:
+                # Legacy nested object format - create a proper nested Pydantic model
+                nested_model = create_nested_model(f"{name}_{field_name.title()}", field_def, available_models)
+                pydantic_fields[field_name] = (nested_model, Field(default_factory=lambda: nested_model()))
         elif isinstance(field_def, list) and len(field_def) > 0:
             # This is an array with nested objects
             if isinstance(field_def[0], dict):
                 item_model = create_nested_model(f"{name}_{field_name.title()}Item", field_def[0], available_models)
                 pydantic_fields[field_name] = (List[item_model], Field(default_factory=list))
             else:
-                item_type = yaml_type_to_python_type(field_def[0], available_models)
-                pydantic_fields[field_name] = (List[item_type], Field(default_factory=list))
+                pydantic_fields[field_name] = (List[str], Field(default_factory=list))
+        elif field_def == 'array':
+            # Simple array type
+            pydantic_fields[field_name] = (List[str], Field(default_factory=list))
+        elif field_def == 'object':
+            # Simple object type without structure is not allowed
+            raise ValueError(f"Field '{field_name}' in {name} is simple 'object' type without structure. All objects must have defined structure for proper Pydantic model generation.")
         else:
-            # Simple field - check if it's a model reference
-            field_type = yaml_type_to_python_type(field_def, available_models)
-            pydantic_fields[field_name] = (Optional[field_type], None)
+            # Simple field type
+            python_type = yaml_type_to_python_type(field_def, available_models)
+            if python_type == str:
+                pydantic_fields[field_name] = (Optional[str], None)
+            elif python_type == int:
+                pydantic_fields[field_name] = (Optional[int], None)
+            elif python_type == bool:
+                pydantic_fields[field_name] = (Optional[bool], None)
+            elif python_type == list:
+                pydantic_fields[field_name] = (List[str], Field(default_factory=list))
+            elif python_type == dict:
+                # Dict type is not allowed - raise exception
+                raise ValueError(f"Field '{field_name}' in {name} resolved to dict type. All nested structures must be proper Pydantic models with defined structure.")
+            else:
+                pydantic_fields[field_name] = (Optional[python_type], None)
     
-    # Create and return the nested model
+    # Create the model
     return create_model(name, **pydantic_fields)
 
 
@@ -73,11 +108,29 @@ def create_resource_model_from_schema(resource_name: str, schema_definition: Dic
     fields_definition = schema_definition.get('fields', {})
     for field_name, field_def in fields_definition.items():
         if isinstance(field_def, dict):
-            # Nested object
-            nested_model = create_nested_model(f"{resource_name}_{field_name.title()}", field_def, available_models)
-            base_fields[field_name] = (nested_model, Field(default_factory=dict))
+            # Check if this is the new format with 'type' and 'structure'
+            if 'type' in field_def and field_def['type'] == 'array':
+                # Check if it has structure - if so, create nested model for array items
+                if 'structure' in field_def:
+                    item_model = create_nested_model(f"{resource_name}_{field_name.title()}Item", field_def['structure'], available_models)
+                    base_fields[field_name] = (List[item_model], Field(default_factory=list))
+                else:
+                    # Simple array without structure - default to List[str]
+                    base_fields[field_name] = (List[str], Field(default_factory=list))
+            elif 'type' in field_def and field_def['type'] == 'object':
+                # Check if it has structure - if so, create nested model
+                if 'structure' in field_def:
+                    nested_model = create_nested_model(f"{resource_name}_{field_name.title()}", field_def['structure'], available_models)
+                    base_fields[field_name] = (Optional[nested_model], Field(default_factory=lambda: nested_model()))
+                else:
+                    # Object without structure is not allowed - raise exception
+                    raise ValueError(f"Field '{field_name}' in {resource_name} is 'object' type without structure. All objects must have defined structure for proper Pydantic model generation.")
+            else:
+                # Legacy nested object format - create proper nested Pydantic model
+                nested_model = create_nested_model(f"{resource_name}_{field_name.title()}", field_def, available_models)
+                base_fields[field_name] = (nested_model, Field(default_factory=lambda: nested_model()))
         elif isinstance(field_def, list) and len(field_def) > 0:
-            # Array
+            # Legacy array format
             if isinstance(field_def[0], dict):
                 item_model = create_nested_model(f"{resource_name}_{field_name.title()}Item", field_def[0], available_models)
                 base_fields[field_name] = (List[item_model], Field(default_factory=list))
@@ -89,13 +142,23 @@ def create_resource_model_from_schema(resource_name: str, schema_definition: Dic
             if field_def == 'github_resource_array':
                 # This will be resolved later after all models are created
                 base_fields[field_name] = (List[Any], Field(default_factory=list, description="List of GitHub resources"))
+            elif field_def == 'array':
+                # Simple array type - default to List[str] for simple arrays like scope, tags, etc.
+                base_fields[field_name] = (List[str], Field(default_factory=list))
+            elif field_def == 'object':
+                # Simple object type without structure is not allowed
+                raise ValueError(f"Field '{field_name}' in {resource_name} is simple 'object' type without structure. All objects must have defined structure for proper Pydantic model generation.")
             else:
                 # Simple field or model reference
                 field_type = yaml_type_to_python_type(field_def, available_models)
+                if field_type == dict:
+                    raise ValueError(f"Field '{field_name}' in {resource_name} resolved to dict type. All nested structures must be proper Pydantic models with defined structure.")
                 base_fields[field_name] = (Optional[field_type], None)
         else:
             # Simple field
             field_type = yaml_type_to_python_type(str(field_def), available_models)
+            if field_type == dict:
+                raise ValueError(f"Field '{field_name}' in {resource_name} resolved to dict type from {field_def}. All nested structures must be proper Pydantic models with defined structure.")
             base_fields[field_name] = (Optional[field_type], None)
     
     # Determine base class based on model type
@@ -200,7 +263,7 @@ def create_collection_model_with_resource_type(resource_name: str, schema_defini
         if isinstance(field_def, dict):
             # Nested object
             nested_model = create_nested_model(f"{resource_name}_{field_name.title()}", field_def, available_models)
-            base_fields[field_name] = (nested_model, Field(default_factory=dict))
+            base_fields[field_name] = (nested_model, Field(default_factory=lambda: nested_model()))
         elif isinstance(field_def, list) and len(field_def) > 0:
             # Array
             if isinstance(field_def[0], dict):
@@ -303,7 +366,7 @@ def create_multi_resource_collection_model(resource_name: str, schema_definition
         if isinstance(field_def, dict):
             # Nested object
             nested_model = create_nested_model(f"{resource_name}_{field_name.title()}", field_def, available_models)
-            base_fields[field_name] = (nested_model, Field(default_factory=dict))
+            base_fields[field_name] = (nested_model, Field(default_factory=lambda: nested_model()))
         elif isinstance(field_def, list) and len(field_def) > 0:
             # Array - skip the resource references as they're handled above
             if field_name == 'resources':

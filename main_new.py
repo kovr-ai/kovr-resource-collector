@@ -20,6 +20,7 @@ def main(
     # Initialize GitHub connector
     connector_input = ConnectorInput(**credentials)
     resource_collection = connector_service.fetch_data(connector_input)
+    # from pdb import set_trace;set_trace()
 
     print(f"✅ Retrieved {len(resource_collection.resources)} {connector_type} resources")
 
@@ -40,6 +41,7 @@ def main(
         executed_check_results,
         resource_collection=resource_collection
     )
+    # return
     # Print comprehensive summary
     sql.insert_check_results(
         check_dicts,

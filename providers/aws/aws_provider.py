@@ -187,18 +187,26 @@ class AWSProvider(Provider):
             try:
                 # Create EC2 resource if EC2 data exists
                 if 'ec2' in region_data:
+                    ec2_data = region_data['ec2']
+                    
                     ec2_resource_data = {
                         'region': region_name,
-                        'instances': region_data['ec2'].get('instances', []),
-                        'security_groups': region_data['ec2'].get('security_groups', []),
-                        'vpcs': region_data['ec2'].get('vpcs', []),
-                        'subnets': region_data['ec2'].get('subnets', []),
-                        'volumes': region_data['ec2'].get('volumes', []),
-                        'snapshots': region_data['ec2'].get('snapshots', []),
-                        'key_pairs': region_data['ec2'].get('key_pairs', []),
-                        'elastic_ips': region_data['ec2'].get('elastic_ips', []),
-                        'load_balancers': region_data['ec2'].get('load_balancers', []),
-                        'auto_scaling_groups': region_data['ec2'].get('auto_scaling_groups', []),
+                        'instances': ec2_data.get('instances', {}),
+                        'security_groups': ec2_data.get('security_groups', {}),
+                        'vpcs': ec2_data.get('vpcs', {}),
+                        'subnets': ec2_data.get('subnets', {}),
+                        'route_tables': ec2_data.get('route_tables', {}),
+                        'nat_gateways': ec2_data.get('nat_gateways', {}),
+                        'elastic_ips': ec2_data.get('elastic_ips', {}),
+                        'key_pairs': ec2_data.get('key_pairs', {}),
+                        'snapshots': ec2_data.get('snapshots', {}),
+                        'volumes': ec2_data.get('volumes', {}),
+                        'network_interfaces': ec2_data.get('network_interfaces', {}),
+                        'internet_gateways': ec2_data.get('internet_gateways', {}),
+                        # Use the raw relationships data as-is (now matches schema)
+                        'relationships': ec2_data.get('relationships', {}),
+                        # Map the account field properly including limits structure
+                        'account': ec2_data.get('account', {}),
                         # Add required base Resource fields
                         'id': f"aws-ec2-{region_name}",
                         'source_connector': 'aws'

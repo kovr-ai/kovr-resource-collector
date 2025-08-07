@@ -67,8 +67,8 @@ class GitHubProvider(Provider):
         try:
             auth = Auth.Token(self.GITHUB_TOKEN)
             self.client = Github(auth=auth)
-            self.user = self.client.get_user()
-            print(f"Connected to GitHub as: {self.user.login}")
+            # self.user = self.client.get_user()
+            # print(f"Connected to GitHub as: {self.user.login}")
         except GithubException as e:
             print(f"GitHub connection error: {e}")
             raise
