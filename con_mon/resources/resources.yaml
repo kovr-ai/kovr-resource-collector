@@ -143,19 +143,24 @@ github:
           type: "object"
           structure:
             enabled: "boolean"
-            dependabot_alerts: "array"
+            dependabot_alerts:
+              type: "array"
+              structure:
+                number: "integer"
+                state: "string"
+                severity: "string"
+                package: "string"
+                created_at: "string"
+                updated_at: "string"
             error: "string"
         dependency_graph:
           type: "object"
           structure:
             has_vulnerability_alerts_enabled: "boolean"
             security_and_analysis:
-              advanced_security:
-                status: "string"
-              secret_scanning:
-                status: "string"
-              secret_scanning_push_protection:
-                status: "string"
+              advanced_security: "string"
+              secret_scanning: "string"
+              secret_scanning_push_protection: "string"
         security_analysis:
           advanced_security_enabled: "boolean"
           secret_scanning_enabled: "boolean"
@@ -459,7 +464,11 @@ aws:
           structure:
             namespace: "string"
             metric_name: "string"  
-            dimensions: "array"
+            dimensions:
+              type: "array"
+              structure:
+                Name: "string"
+                Value: "string"
         alarms:
           type: "object"  # Dictionary/map of alarm_name -> alarm_data
           structure:
@@ -475,7 +484,11 @@ aws:
             metric_name: "string"
             namespace: "string"
             statistic: "string"
-            dimensions: "array"
+            dimensions:
+              type: "array"
+              structure:
+                Name: "string"
+                Value: "string"
             period: "integer"
             evaluation_periods: "integer"
             threshold: "number"
