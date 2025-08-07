@@ -209,10 +209,9 @@ github:
 
   resources:
     # Main resource schemas
-    Resource:
+    GithubResource:
       name: "github"
       description: "GitHub repository resource"
-      provider: "github"
 
       # Define the structure that matches GitHub API response with all data types
       fields:
@@ -224,11 +223,10 @@ github:
         organization_data: "OrganizationData"    # Nested Pydantic model
         advanced_features_data: "AdvancedFeaturesData"  # Nested Pydantic model
 
-  ResourceCollection:
-    name: "github_collection"
+  resource_collection:
+    name: "github"
     description: "Collection of GitHub repository resources from a single connector call"
-    provider: "github"
-    collection_type: "GithubResource"
+    collection_type: "githubResource"
 
     # Define the structure for GitHub resource collections
     fields:
@@ -258,7 +256,6 @@ aws:
     EC2Resource:
       name: "aws_ec2"
       description: "AWS EC2 service resource"
-      provider: "aws"
       service: "ec2"
 
       fields:
@@ -394,7 +391,6 @@ aws:
     IAMResource:
       name: "aws_iam"
       description: "AWS IAM service resource"
-      provider: "aws"
       service: "iam"
 
       fields:
@@ -430,7 +426,6 @@ aws:
     S3Resource:
       name: "aws_s3"
       description: "AWS S3 service resource"
-      provider: "aws"
       service: "s3"
 
       fields:
@@ -446,7 +441,6 @@ aws:
     CloudTrailResource:
       name: "aws_cloudtrail"
       description: "AWS CloudTrail service resource"
-      provider: "aws"
       service: "cloudtrail"
 
       fields:
@@ -469,7 +463,6 @@ aws:
     CloudWatchResource:
       name: "aws_cloudwatch"
       description: "AWS CloudWatch service resource"
-      provider: "aws"
       service: "cloudwatch"
 
       fields:
@@ -527,11 +520,9 @@ aws:
             size: "integer"
             last_modified: "string"
 
-  ResourceCollection:
-    name: "aws_collection"
+  resource_collection:
+    name: "aws"
     description: "Collection of AWS resources from a single connector call"
-    provider: "aws"
-    collection_type: "AWSResource"
 
     # Define the structure for AWS resource collections
     fields:
