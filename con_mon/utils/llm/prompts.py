@@ -13,11 +13,50 @@ Classes:
 
 import re
 import json
+import os
+import yaml
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional
 from pydantic import BaseModel
 
 from .client import get_llm_client, LLMRequest, LLMResponse
+
+
+def load_resource_schema(resource_type: str) -> str:
+    """
+    Dynamically load resource schema from resources.yaml file.
+    
+    Args:
+        resource_type: Resource type to load (github, aws, etc.)
+        
+    Returns:
+        Formatted resource schema string for the specified type
+    """
+    try:
+        # Get the path to resources.yaml
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        resources_yaml_path = os.path.join(current_dir, '..', '..', 'resources', 'resources.yaml')
+        
+        # Read and parse the YAML file
+        with open(resources_yaml_path, 'r') as f:
+            resources_data = yaml.safe_load(f)
+        
+        # Extract the specific resource type section
+        if resource_type.lower() in resources_data:
+            resource_section = resources_data[resource_type.lower()]
+            
+            # Convert back to YAML format for the prompt
+            schema_yaml = yaml.dump({resource_type.lower(): resource_section}, 
+                                  default_flow_style=False, 
+                                  sort_keys=False,
+                                  allow_unicode=True)
+            
+            return f"**Resource Schema:**\n{schema_yaml}"
+        else:
+            return f"**Resource Schema:**\n# No schema found for resource type: {resource_type}"
+            
+    except Exception as e:
+        return f"**Resource Schema:**\n# Error loading schema for {resource_type}: {str(e)}"
 
 
 class BasePrompt(ABC):
@@ -230,7 +269,9 @@ class ChecksYamlPrompt(BasePrompt):
 4. Set appropriate resource_type using the resources structure below
 4.1 resource_type can only be one of resources_field_schemas
 5. Determine the correct field_path for the resource data using the resources structure below
-5.1 field_path can only be one of fields in the selected resource_type
+5.1 field_path must use dot notation to navigate nested structures
+5.2 field_path should start with one of the top level resource fields
+5.3 then navigate through nested objects using dots to reach the specific field you want to validate
 6. Generate Python code for the custom_logic that validates compliance
 6.1 the value at resource_type.field_path would be stored in fetched_value
 6.2 fetched_value would be a pydantic class or primitive type
@@ -250,7 +291,7 @@ checks:
   name: {resource_type_lower}_{control_name_lower}_compliance
   description: Verify compliance with NIST 800-53 {control_name}: {control_title}
   resource_type: # Choose specific resource type (GithubResource, AWSIAMResource, AWSEC2Resource, etc.)
-  field_path: # Choose appropriate path from the guidelines above
+  field_path: # Examples: "repository_data.basic_info.description", "security_data.security_analysis.advanced_security_enabled", "organization_data.members"
   operation:
     name: custom
     custom_logic: |
@@ -289,528 +330,6 @@ checks:
 ```
     """
 
-    RESOURCE_SCHEMA = {
-        'github': """
-**Resource Schema:**
-github:
-  resources_field_schemas:
-    # Nested data type schemas
-    RepositoryData:
-      name: "repository_data"
-      description: "Repository basic information and metadata"
-      fields:
-        basic_info:
-          id: "integer"
-          name: "string"
-          full_name: "string"
-          description: "string"
-          private: "boolean"
-          owner: "string"
-          html_url: "string"
-          clone_url: "string"
-          ssh_url: "string"
-          size: "integer"
-          language: "string"
-          created_at: "string"
-          updated_at: "string"
-          pushed_at: "string"
-          stargazers_count: "integer"
-          watchers_count: "integer"
-          forks_count: "integer"
-          open_issues_count: "integer"
-          archived: "boolean"
-          disabled: "boolean"
-        metadata:
-          default_branch: "string"
-          topics: "array"
-          has_issues: "boolean"
-          has_projects: "boolean"
-          has_wiki: "boolean"
-          has_pages: "boolean"
-          has_downloads: "boolean"
-          has_discussions: "boolean"
-          is_template: "boolean"
-          license: "string"
-          visibility: "string"
-          allow_forking: "boolean"
-          web_commit_signoff_required: "boolean"
-        branches:
-          type: "array"  # List of branch objects
-          structure:
-            name: "string"
-            sha: "string"
-            protected: "boolean"
-        statistics:
-          total_commits: "integer"
-          contributors_count: "integer"
-          languages:
-            type: "object"  # Dictionary of language -> bytes
-            structure:
-              Python: "integer"
-              JavaScript: "integer"
-              # ... other languages
-          code_frequency: "array"
-
-    ActionsData:
-      name: "actions_data"
-      description: "GitHub Actions workflows and runs"
-      fields:
-        workflows:
-          type: "object"  # Dictionary/map of workflow_id -> workflow_data
-          structure:
-            id: "integer"
-            name: "string"
-            path: "string"
-            state: "string"
-            created_at: "string"
-            updated_at: "string"
-            url: "string"
-            html_url: "string"
-            badge_url: "string"
-        total_workflows: "integer"
-        active_workflows: "integer"
-        recent_runs_count: "integer"
-
-    CollaborationData:
-      name: "collaboration_data"
-      description: "Collaboration information - issues, PRs, collaborators"
-      fields:
-        issues:
-          type: "array"  # List of issue objects
-          structure:
-            number: "integer"
-            title: "string"
-            state: "string"
-            user: "string"
-            created_at: "string"
-            updated_at: "string"
-            closed_at: "string"
-            labels: "array"
-            assignees: "array"
-            comments_count: "integer"
-            is_pull_request: "boolean"
-        pull_requests:
-          type: "array"  # List of pull request objects
-          structure:
-            number: "integer"
-            title: "string"
-            state: "string"
-            user: "string"
-            created_at: "string"
-            updated_at: "string"
-            closed_at: "string"
-            merged_at: "string"
-            base_branch: "string"
-        collaborators:
-          type: "array"  # List of collaborator objects
-          structure:
-            login: "string"
-            permissions:
-              admin: "boolean"
-              maintain: "boolean"
-              push: "boolean"
-              pull: "boolean"
-              triage: "boolean"
-            role_name: "string"
-        total_issues: "integer"
-        open_issues: "integer"
-        closed_issues: "integer"
-        total_pull_requests: "integer"
-        open_pull_requests: "integer"
-        merged_pull_requests: "integer"
-        draft_pull_requests: "integer"
-        total_collaborators: "integer"
-
-    SecurityData:
-      name: "security_data"
-      description: "Security advisories, alerts and analysis"
-      fields:
-        security_advisories:
-          type: "object"
-          structure:
-            error: "string"  # May contain error message
-            advisories: "array"
-        vulnerability_alerts:
-          type: "object"
-          structure:
-            enabled: "boolean"
-            dependabot_alerts: "array"
-            error: "string"
-        dependency_graph:
-          type: "object"
-          structure:
-            has_vulnerability_alerts_enabled: "boolean"
-            security_and_analysis:
-              advanced_security:
-                status: "string"
-              secret_scanning:
-                status: "string"
-              secret_scanning_push_protection:
-                status: "string"
-        security_analysis:
-          advanced_security_enabled: "boolean"
-          secret_scanning_enabled: "boolean"
-          push_protection_enabled: "boolean"
-          dependency_review_enabled: "boolean"
-        code_scanning_alerts:
-          type: "object"
-          structure:
-            error: "string"
-            alerts: "array"
-        total_advisories: "integer"
-        total_dependabot_alerts: "integer"
-        total_code_scanning_alerts: "integer"
-        security_features_enabled: "integer"
-
-    OrganizationData:
-      name: "organization_data"
-      description: "Organization members, teams and collaborators"
-      fields:
-        members: "array"  # List of member objects (often empty)
-        teams: "array"   # List of team objects (often empty)
-        outside_collaborators: "array"  # List of collaborator objects (often empty)
-        total_members: "integer"
-        total_teams: "integer"
-        total_outside_collaborators: "integer"
-        admin_members: "integer"
-        members_error: "string"
-        teams_error: "string"
-        collaborators_error: "string"
-
-    AdvancedFeaturesData:
-      name: "advanced_features_data"
-      description: "Advanced GitHub features - tags, webhooks"
-      fields:
-        tags:
-          type: "array"  # List of tag objects
-          structure:
-            name: "string"
-            commit_sha: "string"
-            commit_date: "string"
-        webhooks: "array"  # List of webhook objects (often empty)
-        total_tags: "integer"
-        total_webhooks: "integer"
-        active_webhooks: "integer"
-        tags_error: "string"
-        webhooks_error: "string"
-
-  resources:
-    # Main resource schemas
-    Resource:
-      name: "github"
-      description: "GitHub repository resource"
-      provider: "github"
-
-      # Define the structure that matches GitHub API response with all data types
-      fields:
-        name: "string"  # Repository name for easy identification
-        repository_data: "RepositoryData"  # Nested Pydantic model
-        actions_data: "ActionsData"        # Nested Pydantic model
-        collaboration_data: "CollaborationData"  # Nested Pydantic model
-        security_data: "SecurityData"      # Nested Pydantic model
-        organization_data: "OrganizationData"    # Nested Pydantic model
-        advanced_features_data: "AdvancedFeaturesData"  # Nested Pydantic model
-
-  ResourceCollection:
-    name: "github_collection"
-    description: "Collection of GitHub repository resources from a single connector call"
-    provider: "github"
-    collection_type: "GithubResource"
-
-    # Define the structure for GitHub resource collections
-    fields:
-      resources:
-        - "github.resources.Resource"
-      source_connector: "string"
-      total_count: "integer"
-      fetched_at: "string"
-      collection_metadata:
-        authenticated_user: "string"
-        total_repositories: "integer"
-        total_workflows: "integer"
-        total_issues: "integer"
-        total_pull_requests: "integer"
-        total_security_alerts: "integer"
-        total_collaborators: "integer"
-        total_tags: "integer"
-        total_active_webhooks: "integer"
-      github_api_metadata:
-        collection_time: "string"
-        api_version: "string"
-        scope: "array"
-""",
-        'aws': """
-**Resource Schema:**
-aws:
-  resources:
-    # AWS EC2 Resource Schema
-    EC2Resource:
-      name: "aws_ec2"
-      description: "AWS EC2 service resource"
-      provider: "aws"
-      service: "ec2"
-
-      fields:
-        # Account-level information
-        account:
-          limits:
-            type: "object"  # Dictionary of limit_name -> limit_value
-            structure:
-              supported-platforms: "string"
-              vpc-max-security-groups-per-interface: "string"
-              max-elastic-ips: "string"
-              max-instances: "string"
-              vpc-max-elastic-ips: "string"
-              default-vpc: "string"
-          reserved_instances: "array"
-          spot_instances: "array"
-        # EC2 resources
-        instances:
-          type: "object"  # Dictionary/map of instance_id -> instance_data
-          structure:
-            instance_type: "string"
-            state: "string"
-            launch_time: "string"
-            image_id: "string"
-            vpc_id: "string"
-            subnet_id: "string"
-            availability_zone: "string"
-            key_name: "string"
-            platform: "string"
-            monitoring: "string"
-            iam_instance_profile:
-              type: "object"
-              structure:
-                Arn: "string"
-                Id: "string"
-            ebs_optimized: "boolean"
-            instance_lifecycle: "string"
-            security_groups: "array"
-            network_interfaces: "array"
-            block_device_mappings: "array"
-        security_groups:
-          type: "object"  # Dictionary/map of group_id -> security_group_data
-          structure:
-            group_name: "string"
-            description: "string"
-            vpc_id: "string"
-            inbound_rules: "array"
-            outbound_rules: "array"
-        vpcs:
-          type: "object"  # Dictionary/map of vpc_id -> vpc_data
-          structure:
-            cidr_block: "string"
-            state: "string"
-            dhcp_options_id: "string"
-            instance_tenancy: "string"
-            is_default: "boolean"
-            cidr_block_association_set: "array"
-        subnets:
-          type: "object"  # Dictionary/map of subnet_id -> subnet_data
-          structure:
-            vpc_id: "string"
-            availability_zone: "string"
-            availability_zone_id: "string"
-            cidr_block: "string"
-            state: "string"
-        route_tables:
-          type: "object"  # Dictionary/map of route_table_id -> route_table_data
-          structure:
-            vpc_id: "string"
-            routes: "array"
-            associations: "array"
-        nat_gateways:
-          type: "object"  # Dictionary/map of nat_gateway_id -> nat_gateway_data
-          structure:
-            state: "string"
-            subnet_id: "string"
-            vpc_id: "string"
-            create_time: "string"
-            delete_time: "string"
-        elastic_ips:
-          type: "object"  # Dictionary/map of allocation_id -> eip_data
-          structure:
-            public_ip: "string"
-            domain: "string"
-            instance_id: "string"
-            network_interface_id: "string"
-            private_ip_address: "string"
-        key_pairs:
-          type: "object"  # Dictionary/map of key_name -> key_pair_data
-          structure:
-            key_fingerprint: "string"
-            key_type: "string"
-        snapshots:
-          type: "object"  # Dictionary/map of snapshot_id -> snapshot_data
-          structure:
-            volume_id: "string"
-            volume_size: "integer"
-            state: "string"
-            start_time: "string"
-            progress: "string"
-        relationships:
-          type: "object"  # Dictionary/map of relationship_type -> instance_list
-          structure:
-            instance_security_groups: "array"
-
-    # AWS IAM Resource Schema
-    IAMResource:
-      name: "aws_iam"
-      description: "AWS IAM service resource"
-      provider: "aws"
-      service: "iam"
-
-      fields:
-        # IAM resources
-        users:
-          type: "object"  # Dictionary/map of user_arn -> user_data
-          structure:
-            arn: "string"
-            user_id: "string"
-            create_date: "string"
-            path: "string"
-            access_keys: "array"
-            mfa_devices: "array"
-        policies:
-          type: "object"  # Dictionary/map of policy_arn -> policy_data
-          structure:
-            policy_name: "string"
-            policy_id: "string"
-            create_date: "string"
-            update_date: "string"
-            path: "string"
-            default_version_id: "string"
-            attachment_count: "integer"
-            default_version:
-              Document:
-                Version: "string"
-                Statement: "array"
-              VersionId: "string"
-              IsDefaultVersion: "boolean"
-              CreateDate: "string"
-
-    # AWS S3 Resource Schema
-    S3Resource:
-      name: "aws_s3"
-      description: "AWS S3 service resource"
-      provider: "aws"
-      service: "s3"
-
-      fields:
-        # S3 resources
-        buckets:
-          type: "object"  # Dictionary/map of bucket_name -> bucket_data
-          structure:
-            name: "string"
-            creation_date: "string"
-            region: "string"
-
-    # AWS CloudTrail Resource Schema
-    CloudTrailResource:
-      name: "aws_cloudtrail"
-      description: "AWS CloudTrail service resource"
-      provider: "aws"
-      service: "cloudtrail"
-
-      fields:
-        # CloudTrail resources
-        trails:
-          type: "object"  # Dictionary/map of trail_name -> trail_data
-          structure:
-            name: "string"
-            s3_bucket_name: "string"
-            s3_key_prefix: "string"
-            include_global_service_events: "boolean"
-            is_multi_region_trail: "boolean"
-            enable_log_file_validation: "boolean"
-            event_selectors: "array"
-            insight_selectors: "array"
-            is_logging: "boolean"
-            kms_key_id: "string"
-
-    # AWS CloudWatch Resource Schema
-    CloudWatchResource:
-      name: "aws_cloudwatch"
-      description: "AWS CloudWatch service resource"
-      provider: "aws"
-      service: "cloudwatch"
-
-      fields:
-        # CloudWatch resources
-        log_groups:
-          type: "object"  # Dictionary/map of log_group_name -> log_group_data
-          structure:
-            log_group_name: "string"
-            creation_time: "integer"
-            retention_in_days: "integer"
-            metric_filter_count: "integer"
-            arn: "string"
-            stored_bytes: "integer"
-            kms_key_id: "string"
-        metrics: 
-          type: "array"  # List of metric objects
-          structure:
-            namespace: "string"
-            metric_name: "string"  
-            dimensions: "array"
-        alarms:
-          type: "object"  # Dictionary/map of alarm_name -> alarm_data
-          structure:
-            alarm_name: "string"
-            alarm_description: "string"
-            actions_enabled: "boolean"
-            ok_actions: "array"
-            alarm_actions: "array"
-            insufficient_data_actions: "array"
-            state_value: "string"
-            state_reason: "string"
-            state_updated_timestamp: "string"
-            metric_name: "string"
-            namespace: "string"
-            statistic: "string"
-            dimensions: "array"
-            period: "integer"
-            evaluation_periods: "integer"
-            threshold: "number"
-            comparison_operator: "string"
-        dashboards:
-          type: "object"  # Dictionary/map of dashboard_name -> dashboard_data
-          structure:
-            dashboard_name: "string"
-            dashboard_arn: "string"
-            dashboard_body: "string"
-            size: "integer"
-            last_modified: "string"
-
-  ResourceCollection:
-    name: "aws_collection"
-    description: "Collection of AWS resources from a single connector call"
-    provider: "aws"
-    collection_type: "AWSResource"
-
-    # Define the structure for AWS resource collections
-    fields:
-      resources:
-        - "aws.resources.EC2Resource"
-        - "aws.resources.IAMResource"
-        - "aws.resources.S3Resource"
-        - "aws.resources.CloudTrailResource"
-        - "aws.resources.CloudWatchResource"
-      source_connector: "string"
-      total_count: "integer"
-      fetched_at: "string"
-      collection_metadata:
-        account_id: "string"
-        regions: "array"
-        services_collected: "array"
-        collection_errors: "array"
-      aws_api_metadata:
-        collection_time: "string"
-        api_version: "string"
-        services: "array"
-        regions_scanned: "array"
-"""
-    }
     GUIDELINES = """
 **Severity Guidelines:**
 - Critical: System-wide security failures, data exposure risks
@@ -887,7 +406,7 @@ Generate ONLY the YAML check entry, no explanations or additional text:
         
         # Get the appropriate resource schema based on connector_type
         connector_type_lower = resource_type.lower()
-        resource_schema = self.RESOURCE_SCHEMA.get(connector_type_lower, "")
+        resource_schema = load_resource_schema(connector_type_lower)
         
         # Format each template part
         control_info = self.CONTROL_INFORMATION.format(

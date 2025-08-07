@@ -474,6 +474,7 @@ def validate_check_execution(
 ) -> Dict[str, Any]:
     """
     Validate that the generated check can execute without errors.
+    Uses the existing validation system from con_mon/resources/validate.py to create resources.
     
     Args:
         check: Check object to validate
@@ -490,11 +491,31 @@ def validate_check_execution(
         "execution_result": None,
         "resource_created": False,
         "logic_extracted": False,
-        "sample_data_loaded": False
+        "basic_validation_passed": False
     }
     
     try:
-        # Step 1: Extract custom logic code
+        # Step 1: Use existing validation system to create resources
+        print(f"🔍 Using existing validation system to create {resource_type} resources...")
+        
+        from con_mon.resources.validate import main as validate_main
+        
+        # Get resources using the existing validation system
+        resources = validate_main(resource_type.lower())
+        
+        if not resources:
+            validation_result["error"] = f"No {resource_type} resources created by validation system"
+            return validation_result
+        
+        validation_result["basic_validation_passed"] = True
+        print(f"✅ Created {len(resources)} {resource_type} resources using existing validation system")
+        
+        # Use the first resource for validation
+        resource_instance = resources[0]
+        validation_result["resource_created"] = True
+        print(f"✅ Using {resource_instance.__class__.__name__} instance for validation")
+        
+        # Step 2: Extract custom logic code
         if not hasattr(check.operation, '_original_custom_logic') or not check.operation._original_custom_logic:
             validation_result["error"] = "No custom logic found in check operation"
             return validation_result
@@ -503,146 +524,7 @@ def validate_check_execution(
         validation_result["logic_extracted"] = True
         print(f"✅ Extracted custom logic ({len(custom_logic)} characters)")
         
-        # Step 2: Load sample data based on resource type
-        sample_data = None
-        if resource_type.lower() == "github":
-            try:
-                import json
-                with open("github_response.json", "r") as f:
-                    github_data = json.load(f)
-                
-                # Extract first repository data as sample
-                if "repositories_data" in github_data and len(github_data["repositories_data"]) > 0:
-                    sample_data = github_data["repositories_data"][0]
-                    validation_result["sample_data_loaded"] = True
-                    print(f"✅ Loaded GitHub sample data for repository: {sample_data.get('repository', 'unknown')}")
-                else:
-                    validation_result["error"] = "No repository data found in github_response.json"
-                    return validation_result
-                    
-            except FileNotFoundError:
-                validation_result["error"] = "github_response.json not found"
-                return validation_result
-            except json.JSONDecodeError as e:
-                validation_result["error"] = f"Failed to parse github_response.json: {e}"
-                return validation_result
-                
-        elif resource_type.lower() == "aws":
-            try:
-                import json
-                with open("aws_response.json", "r") as f:
-                    aws_data = json.load(f)
-                
-                # Extract the appropriate AWS service data based on field_path
-                field_path = check.field_path
-                region_data = None
-                
-                # Find first region data
-                for region_name, region_info in aws_data.items():
-                    if isinstance(region_info, dict) and "iam" in region_info:
-                        region_data = region_info
-                        break
-                
-                if not region_data:
-                    validation_result["error"] = "No AWS region data found in aws_response.json"
-                    return validation_result
-                
-                # Select appropriate service data based on field_path
-                if field_path in ["policies", "users", "roles", "groups"]:
-                    sample_data = region_data.get("iam", {})
-                elif field_path in ["instances", "security_groups", "vpcs", "subnets"]:
-                    sample_data = region_data.get("ec2", {})
-                elif field_path in ["buckets", "bucket_policies", "bucket_encryption"]:
-                    sample_data = region_data.get("s3", {})
-                elif field_path in ["trails", "event_selectors"]:
-                    sample_data = region_data.get("cloudtrail", {})
-                elif field_path in ["dashboards", "alarms", "log_groups", "metrics"]:
-                    sample_data = region_data.get("cloudwatch", {})
-                else:
-                    # Default to IAM if field_path doesn't match
-                    sample_data = region_data.get("iam", {})
-                
-                if sample_data:
-                    validation_result["sample_data_loaded"] = True
-                    print(f"✅ Loaded AWS sample data for service with field: {field_path}")
-                else:
-                    validation_result["error"] = f"No AWS data found for field_path: {field_path}"
-                    return validation_result
-                    
-            except FileNotFoundError:
-                validation_result["error"] = "aws_response.json not found"
-                return validation_result
-            except json.JSONDecodeError as e:
-                validation_result["error"] = f"Failed to parse aws_response.json: {e}"
-                return validation_result
-        else:
-            validation_result["error"] = f"Unsupported resource type: {resource_type}"
-            return validation_result
-        
-        # Step 3: Create resource object using dynamic models
-        try:
-            from con_mon.resources.dynamic_models import get_dynamic_models
-            dynamic_models = get_dynamic_models()
-            
-            resource_class = check.resource_type
-            if not resource_class:
-                validation_result["error"] = "No resource type class found in check"
-                return validation_result
-            
-            # Create resource instance with sample data
-            if resource_type.lower() == "github":
-                # For GitHub, we need to structure the data properly
-                # Use the actual repository ID from basic_info if available, otherwise use repository name
-                repo_name = sample_data.get("repository", "test-repo")
-                basic_info = sample_data.get("basic_info", {})
-                repo_id = str(basic_info.get("id", repo_name))  # Convert to string as required
-                
-                resource_instance = resource_class(
-                    id=repo_id,  # Use actual repository ID
-                    source_connector="github",
-                    name=repo_name,
-                    repository_data=basic_info,
-                    actions_data=sample_data.get("actions_data", {}),
-                    collaboration_data=sample_data.get("collaboration_data", {}),
-                    security_data=sample_data.get("security_data", {}),
-                    organization_data=sample_data.get("organization_data", {}),
-                    advanced_features_data=sample_data.get("advanced_features_data", {})
-                )
-            else:
-                # For AWS, create with the service-specific data
-                # Try to extract a meaningful ID from the service data
-                aws_id = "aws-resource"
-                
-                # Look for account information in the sample data
-                if "account" in sample_data:
-                    account_data = sample_data["account"]
-                    if isinstance(account_data, dict):
-                        # Try various account ID fields
-                        aws_id = account_data.get("account_id") or account_data.get("AccountId") or aws_id
-                
-                # If no account ID found, try to use the first key from a major resource collection
-                if aws_id == "aws-resource":
-                    for key in ["users", "policies", "instances", "buckets", "trails"]:
-                        if key in sample_data and isinstance(sample_data[key], dict) and sample_data[key]:
-                            # Use the first resource key as identifier
-                            first_resource_key = list(sample_data[key].keys())[0]
-                            aws_id = f"aws-{key}-{first_resource_key[:20]}"  # Truncate if too long
-                            break
-                
-                resource_instance = resource_class(
-                    id=str(aws_id),  # Ensure it's a string
-                    source_connector="aws",
-                    **sample_data
-                )
-            
-            validation_result["resource_created"] = True
-            print(f"✅ Created {resource_class.__name__} instance")
-            
-        except Exception as e:
-            validation_result["error"] = f"Failed to create resource instance: {e}"
-            return validation_result
-        
-        # Step 4: Extract field value using field_path
+        # Step 3: Extract field value using field_path
         try:
             field_path = check.field_path
             field_parts = field_path.split('.')
@@ -657,7 +539,7 @@ def validate_check_execution(
                 
                 if hasattr(current_value, part):
                     current_value = getattr(current_value, part)
-                    print(f"🔍   -> Got {type(current_value).__name__}: {current_value.__class__.__module__ if hasattr(current_value, '__class__') else 'N/A'}")
+                    print(f"🔍   -> Got {type(current_value).__name__}")
                 elif isinstance(current_value, dict) and part in current_value:
                     current_value = current_value[part]
                     print(f"🔍   -> Got dict value: {type(current_value).__name__}")
@@ -669,13 +551,12 @@ def validate_check_execution(
             fetched_value = current_value
             print(f"✅ Extracted field value from path: {field_path}")
             print(f"🔍 Final value type: {type(fetched_value).__name__}")
-            print(f"🔍 Final value module: {fetched_value.__class__.__module__ if hasattr(fetched_value, '__class__') else 'N/A'}")
             
         except Exception as e:
             validation_result["error"] = f"Failed to extract field value: {e}"
             return validation_result
         
-        # Step 5: Execute the custom logic
+        # Step 4: Execute the custom logic
         try:
             # Set up execution environment
             local_vars = {
@@ -785,7 +666,6 @@ def generate_sql_check_for_control(
             print(f"❌ Check validation failed: {validation_result['error']}")
             print(f"📋 Validation details:")
             print(f"   • Logic extracted: {validation_result['logic_extracted']}")
-            print(f"   • Sample data loaded: {validation_result['sample_data_loaded']}")
             print(f"   • Resource created: {validation_result['resource_created']}")
             
             # Still generate SQL even if validation fails, but warn the user
@@ -909,33 +789,17 @@ def main():
             args.connection_id,
             args.validate
         )
-        
-        if sql_query:
-            print("\n📄 Generated SQL Check Entry:")
-            print("-" * 40)
-            print(sql_query)
-            
-            # Save to file if requested
-            if args.output:
-                with open(args.output, 'w') as f:
-                    f.write(sql_query)
-                print(f"\n💾 SQL saved to {args.output}")
-        
-    else:
-        # Generate compliance check code only
-        code = generate_check_for_control(args.control, args.resource_type)
-        
-        if code:
-            print("\n🐍 Generated Python Code:")
-            print("-" * 40)
-            print(code)
-            
-            # Save to file if requested
-            if args.output:
-                with open(args.output, 'w') as f:
-                    f.write(code)
-                print(f"\n💾 Code saved to {args.output}")
-    
+
+        print("\n📄 Generated SQL Check Entry:")
+        print("-" * 40)
+        print(sql_query)
+
+        # Save to file if requested
+        if args.output:
+            with open(args.output, 'w') as f:
+                f.write(sql_query)
+            print(f"\n💾 SQL saved to {args.output}")
+
     return 0
 
 
