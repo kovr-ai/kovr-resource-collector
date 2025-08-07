@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 from typing import Any, Callable, Dict, List, Optional, Type, Union
 from con_mon_v2.connectors import ConnectorService, ConnectorInput, ConnectorType
 from con_mon_v2.resources import Resource, ResourceCollection, ResourceField
+from pathlib import Path
 
 
 def create_fetch_function(provider_module_path: str, method_name: str) -> Callable[[ConnectorInput], ResourceCollection]:
@@ -75,12 +76,12 @@ class ConnectorYamlMapping(BaseModel):
     input: Type[ConnectorInput]
 
     @staticmethod
-    def _load_yaml_data(path_or_dict: str | dict) -> dict:
+    def _load_yaml_data(path_or_dict: str | Path | dict) -> dict:
         """
         Load YAML data from either a file path or a dictionary.
 
         Args:
-            path_or_dict: Either a path to a YAML file or a dictionary containing the YAML data
+            path_or_dict: Either a path to a YAML file (str or Path) or a dictionary containing the YAML data
 
         Returns:
             dict: The loaded YAML data
@@ -90,8 +91,8 @@ class ConnectorYamlMapping(BaseModel):
             yaml.YAMLError: If the YAML file is invalid
             ValueError: If the input format is invalid
         """
-        if isinstance(path_or_dict, str):
-            if not os.path.exists(path_or_dict):
+        if isinstance(path_or_dict, (str, Path)):
+            if not os.path.exists(str(path_or_dict)):
                 raise FileNotFoundError(f"YAML file not found: {path_or_dict}")
             
             with open(path_or_dict, 'r') as file:
@@ -99,7 +100,7 @@ class ConnectorYamlMapping(BaseModel):
         elif isinstance(path_or_dict, dict):
             return path_or_dict
         else:
-            raise ValueError("Input must be either a file path (str) or a dictionary")
+            raise ValueError("Input must be either a file path (str or Path) or a dictionary")
 
     @staticmethod
     def _create_connector_service_class(connector_data: dict[str, Any]) -> Type[ConnectorService]:
@@ -231,12 +232,12 @@ class ResourceYamlMapping(BaseModel):
     resources_collection: Type[ResourceCollection]
 
     @staticmethod
-    def _load_yaml_data(path_or_dict: str | dict) -> dict:
+    def _load_yaml_data(path_or_dict: str | Path | dict) -> dict:
         """
         Load YAML data from either a file path or a dictionary.
 
         Args:
-            path_or_dict: Either a path to a YAML file or a dictionary containing the YAML data
+            path_or_dict: Either a path to a YAML file (str or Path) or a dictionary containing the YAML data
 
         Returns:
             dict: The loaded YAML data
@@ -246,8 +247,8 @@ class ResourceYamlMapping(BaseModel):
             yaml.YAMLError: If the YAML file is invalid
             ValueError: If the input format is invalid
         """
-        if isinstance(path_or_dict, str):
-            if not os.path.exists(path_or_dict):
+        if isinstance(path_or_dict, (str, Path)):
+            if not os.path.exists(str(path_or_dict)):
                 raise FileNotFoundError(f"YAML file not found: {path_or_dict}")
             
             with open(path_or_dict, 'r') as file:
@@ -255,7 +256,7 @@ class ResourceYamlMapping(BaseModel):
         elif isinstance(path_or_dict, dict):
             return path_or_dict
         else:
-            raise ValueError("Input must be either a file path (str) or a dictionary")
+            raise ValueError("Input must be either a file path (str or Path) or a dictionary")
 
     @staticmethod
     def _create_nested_model(name: str, fields_definition: Dict[str, Any], available_models: Dict[str, Type[BaseModel]] = None) -> Type[BaseModel]:
