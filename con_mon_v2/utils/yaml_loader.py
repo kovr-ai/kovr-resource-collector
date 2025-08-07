@@ -262,7 +262,6 @@ class ResourceYamlMapping(BaseModel):
     @staticmethod
     def _create_nested_model(name: str, fields_definition: Dict[str, Any], available_models: Dict[str, Type[BaseModel]] = None) -> Type[BaseModel]:
         """Create a nested Pydantic model from fields definition."""
-        pydantic_fields = {}
         annotations = {}
         fields = {}
         
@@ -281,7 +280,6 @@ class ResourceYamlMapping(BaseModel):
                             annotations[field_name] = List[item_model]
                             fields[field_name] = Field(default_factory=list)
                         else:
-                            # Simple array
                             annotations[field_name] = List[str]
                             fields[field_name] = Field(default_factory=list)
                     elif field_def['type'] == 'object':
@@ -295,7 +293,6 @@ class ResourceYamlMapping(BaseModel):
                             annotations[field_name] = nested_model
                             fields[field_name] = Field(default_factory=lambda: nested_model())
                         else:
-                            # Object without structure - use dict
                             annotations[field_name] = Dict[str, Any]
                             fields[field_name] = Field(default_factory=dict)
                 else:
@@ -307,12 +304,20 @@ class ResourceYamlMapping(BaseModel):
                     )
                     annotations[field_name] = nested_model
                     fields[field_name] = Field(default_factory=lambda: nested_model())
+            elif field_def == 'array':
+                # Simple array type
+                annotations[field_name] = List[str]
+                fields[field_name] = Field(default_factory=list)
+            elif field_def in available_models:
+                # Model reference
+                annotations[field_name] = available_models[field_def]
+                fields[field_name] = Field(default_factory=lambda: available_models[field_def]())
             else:
                 # Simple field type
                 field_type = yaml_type_to_python_type(str(field_def), available_models)
-                annotations[field_name] = Optional[field_type]
-                fields[field_name] = Field(default=None)
-
+                annotations[field_name] = field_type
+                fields[field_name] = Field(...)  # Required field
+        
         return type(
             name,
             (BaseModel,),
@@ -346,6 +351,7 @@ class ResourceYamlMapping(BaseModel):
                 if 'type' in field_def:
                     if field_def['type'] == 'array':
                         if 'structure' in field_def:
+                            # Create a model for the array item structure
                             item_model = ResourceYamlMapping._create_nested_model(
                                 f"{schema_name}_{field_name.title()}Item",
                                 field_def['structure'],
@@ -376,10 +382,15 @@ class ResourceYamlMapping(BaseModel):
                     )
                     annotations[field_name] = nested_model
                     fields[field_name] = Field(default_factory=lambda: nested_model())
+            elif field_def == 'array':
+                # Simple array type
+                annotations[field_name] = List[str]
+                fields[field_name] = Field(default_factory=list)
             else:
+                # Simple field type - make it required
                 field_type = yaml_type_to_python_type(str(field_def), available_models)
-                annotations[field_name] = Optional[field_type]
-                fields[field_name] = Field(default=None)
+                annotations[field_name] = field_type  # Not Optional
+                fields[field_name] = Field(...)  # Required field
         
         return type(
             class_name,
@@ -398,14 +409,14 @@ class ResourceYamlMapping(BaseModel):
         
         # Create field definitions with proper type annotations
         annotations = {
-            'service': Optional[str],  # Make service field optional
-            'name': str,
-            'description': Optional[str]
+            'service': str,  # Required service field
+            'name': str,  # Required name field
+            'description': str  # Required description field
         }
         fields = {
-            'service': Field(default=resource_def.get('service')),
-            'name': Field(default=resource_def.get('name')),
-            'description': Field(default=resource_def.get('description'))
+            'service': Field(...),  # Required field
+            'name': Field(...),  # Required field
+            'description': Field(...)  # Required field
         }
         
         # Process resource fields
@@ -446,19 +457,15 @@ class ResourceYamlMapping(BaseModel):
                     )
                     annotations[field_name] = nested_model
                     fields[field_name] = Field(default_factory=lambda: nested_model())
-            elif isinstance(field_def, str):
-                # Handle model references
-                if field_def in available_models:
-                    annotations[field_name] = available_models[field_def]
-                    fields[field_name] = Field(default_factory=lambda: available_models[field_def]())
-                else:
-                    field_type = yaml_type_to_python_type(field_def, available_models)
-                    annotations[field_name] = Optional[field_type]
-                    fields[field_name] = Field(default=None)
+            elif field_def == 'array':
+                # Simple array type
+                annotations[field_name] = List[str]
+                fields[field_name] = Field(default_factory=list)
             else:
+                # Simple field type - make it required
                 field_type = yaml_type_to_python_type(str(field_def), available_models)
-                annotations[field_name] = Optional[field_type]
-                fields[field_name] = Field(default=None)
+                annotations[field_name] = field_type  # Not Optional
+                fields[field_name] = Field(...)  # Required field
         
         model = type(
             class_name,
