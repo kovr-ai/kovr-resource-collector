@@ -30,6 +30,10 @@ def get_check_dicts(
     processed_results = []
 
     for check_id, check_name, check_results in executed_check_results:
+        # Skip if no results
+        if not check_results:
+            continue
+            
         # Count successes and failures
         success_count = sum(1 for result in check_results if result.passed)
         failure_count = sum(1 for result in check_results if not result.passed)

@@ -352,6 +352,8 @@ def get_checks_by_connection_id(connection_id: int, loaded_checks: Dict[str, Che
     Returns:
         List of checks matching the connection ID
     """
+    # return all as we don't filter checks by connection_id
+    return list(loaded_checks.values())
     return [
         check for check in loaded_checks.values() 
         if check.connection_id == connection_id
