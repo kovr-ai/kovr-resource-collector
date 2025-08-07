@@ -144,7 +144,7 @@ def _create_check_from_db_row(row: Dict[str, Any]) -> Optional[Check]:
         
         # Create Check object
         check = Check(
-            id=int(row['id']) if str(row['id']).isdigit() else hash(str(row['id'])) % 100000,  # Convert to int safely
+            id=row['id'],
             connection_id=connection_id,
             name=row['name'],
             field_path=field_path,

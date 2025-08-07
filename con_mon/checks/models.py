@@ -91,7 +91,7 @@ class Check(BaseModel):
     """
     Represents a single check that evaluates a resource field against a configured value.
     """
-    id: int
+    id: str
     connection_id: int = Field(..., description="ID of the connection/provider this check belongs to (1=GitHub, 2=AWS)")
     name: str
     resource_type: Type[BaseModel] = Field(None, description="Specific resource class to target (e.g., 'aws.AWSEC2Resource')")
