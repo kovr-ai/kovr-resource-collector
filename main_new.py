@@ -139,13 +139,13 @@ def params_from_connection_id(
 
 
 if __name__ == "__main__":
-    CONNECTOR_TYPE_SAMPLE_CONNECTION_IDS = {
-        'aws': 35,
-        'github': 26,
-    }
-    connection_id = os.environ.get("CONNECTION_ID")
-    connection_id = CONNECTOR_TYPE_SAMPLE_CONNECTION_IDS['aws']
+    # CONNECTOR_TYPE_SAMPLE_CONNECTION_IDS = {
+    #     'aws': 35,
+    #     'github': 26,
+    # }
+    # connection_id = CONNECTOR_TYPE_SAMPLE_CONNECTION_IDS['aws']
     # connection_id = CONNECTOR_TYPE_SAMPLE_CONNECTION_IDS['github']
+    connection_id = os.environ.get("CONNECTION_ID")
     check_ids_str = os.environ.get("CHECK_IDS")
     check_ids = check_ids_str.split(",") if check_ids_str else list()
     main(
