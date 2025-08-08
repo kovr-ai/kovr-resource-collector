@@ -12,7 +12,7 @@ github:
   # Input specification for this connector
   input:
     name: "github"
-    GITHUB_TOKEN: "string"
+    personal_access_token: "string"
 
 aws:
   connector:
@@ -24,8 +24,5 @@ aws:
 
   # Input specification for this connector
   input:
-    name: "aws"
-    AWS_ROLE_ARN: "string"
-    AWS_ACCESS_KEY_ID: "string"
-    AWS_SECRET_ACCESS_KEY: "string"
-    AWS_SESSION_TOKEN: "string"
+    role_arn: "string"
+    external_id: "string"

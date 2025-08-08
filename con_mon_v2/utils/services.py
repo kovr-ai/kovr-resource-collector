@@ -5,14 +5,24 @@ from con_mon_v2.resources import Resource, ResourceCollection
 from con_mon_v2.mappings.github import (
     GithubConnectorService,
     GithubConnectorInput,
+    GithubResourceCollection,
+    github_connector_service,
+
+    # Github Resources
     GithubResource,
-    GithubResourceCollection
 )
 from con_mon_v2.mappings.aws import (
     AwsConnectorService,
     AwsConnectorInput,
-    AwsResource,
-    AwsResourceCollection
+    AwsResourceCollection,
+    aws_connector_service,
+
+    # AwsResources
+    EC2Resource,
+    S3Resource,
+    IAMResource,
+    CloudTrailResource,
+    CloudWatchResource,
 )
 
 
@@ -50,9 +60,10 @@ class ResourceCollectionService(object):
     def resource_models(self):
         """Return the Resource class for the connector type."""
         if self.connector_type == 'github':
-            return GithubResource
+            return [GithubResource]
         elif self.connector_type == 'aws':
-            return AwsResource
+            # return all the
+            return []
         raise ValueError(f"Unsupported connector type: {self.connector_type}")
 
     def __init__(
@@ -67,13 +78,11 @@ class ResourceCollectionService(object):
     ):
         if not credentials:
             if self.connector_type == 'github':
-                credentials = {'GITHUB_TOKEN': 'dummy_token'}
+                credentials = {'personal_access_token': 'dummy_token'}
             elif self.connector_type == 'aws':
                 credentials = {
-                    'AWS_ROLE_ARN': 'dummy_arn',
-                    'AWS_ACCESS_KEY_ID': 'dummy_key',
-                    'AWS_SECRET_ACCESS_KEY': 'dummy_secret',
-                    'AWS_SESSION_TOKEN': 'dummy_token'
+                    'role_arn': 'dummy_arn',
+                    'external_id': 'dummy_external_id',
                 }
             else:
                 raise ValueError(f"Dummy not available for connector type: {self.connector_type}")

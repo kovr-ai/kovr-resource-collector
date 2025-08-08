@@ -13,15 +13,17 @@ def test_imports():
         # GitHub imports
         "from con_mon_v2.mappings.github import GithubConnectorService",
         "from con_mon_v2.mappings.github import GithubConnectorInput",
+        "from con_mon_v2.mappings.github import github_connector_service",
         "from con_mon_v2.mappings.github import GithubResource",
         "from con_mon_v2.mappings.github import GithubResourceCollection",
         "from con_mon_v2.mappings.github import RepositoryData",
         "from con_mon_v2.mappings.github import ActionsData",
         "from con_mon_v2.mappings.github import SecurityData",
-        
+
         # AWS imports
         "from con_mon_v2.mappings.aws import AwsConnectorService",
         "from con_mon_v2.mappings.aws import AwsConnectorInput",
+        "from con_mon_v2.mappings.aws import aws_connector_service",
         "from con_mon_v2.mappings.aws import EC2Resource",
         "from con_mon_v2.mappings.aws import S3Resource",
         "from con_mon_v2.mappings.aws import IAMResource",
@@ -52,19 +54,6 @@ def test_imports():
         for stmt, error in failed_imports:
             print(f"\n{stmt}")
             print(f"Error: {error}")
-
-    # Verify we can access the imported classes through mappings
-    print("\nVerifying mappings access...")
-    from con_mon_v2 import mappings
-
-    providers = ['github', 'aws']
-    for provider in providers:
-        if provider in mappings:
-            print(f"\n{provider.upper()} mappings:")
-            for class_name, class_obj in mappings[provider].items():
-                print(f"  ✓ {class_name}")
-        else:
-            print(f"\n❌ No mappings found for {provider}")
 
 
 if __name__ == "__main__":

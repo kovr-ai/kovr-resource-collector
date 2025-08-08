@@ -89,11 +89,6 @@ def create_nested_model(name: str, fields_definition: Dict[str, Any], available_
 
 
 def resolve_resource_type_reference(field_type: str, all_models: Dict[str, Type[BaseModel]]) -> Type:
-    """Resolve resource type references like 'github_resource_array' to proper types."""
-    if field_type == 'github_resource_array':
-        # This should be List[GithubResource] - we'll handle this after all models are created
-        return List[Any]  # Placeholder for now
-    
     # Handle other special types here
     return yaml_type_to_python_type(field_type)
 
@@ -356,7 +351,7 @@ def create_multi_resource_collection_model(resource_name: str, schema_definition
                 from typing import Union
                 if len(resource_types) > 1:
                     union_type = Union[tuple(resource_types)]
-                    base_fields[field_name] = (List[union_type], Field(default_factory=list, description=f"List of AWS resource objects"))
+                    base_fields[field_name] = (List[union_type], Field(default_factory=list, description=f"List of resource objects"))
                 elif len(resource_types) == 1:
                     base_fields[field_name] = (List[resource_types[0]], Field(default_factory=list, description=f"List of {resource_types[0].__name__} objects"))
                 else:
@@ -516,27 +511,9 @@ def load_and_create_dynamic_models(yaml_file_path: str = None) -> Dict[str, Type
             
             # Second pass: Create resource models
             for model_name, model_config in resource_models:
-                if provider_name == 'github':
-                    # GitHub has a single Resource model
-                    full_model_name = f"{provider_name.title()}Resource"  # github -> GithubResource
-                elif provider_name == 'aws':
-                    # AWS has service-specific resources (EC2Resource, IAMResource, etc.)
-                    if model_name == 'EC2Resource':
-                        full_model_name = "AWSEC2Resource"
-                    elif model_name == 'IAMResource':
-                        full_model_name = "AWSIAMResource"
-                    elif model_name == 'S3Resource':
-                        full_model_name = "AWSS3Resource"
-                    elif model_name == 'CloudTrailResource':
-                        full_model_name = "AWSCloudTrailResource"
-                    elif model_name == 'CloudWatchResource':
-                        full_model_name = "AWSCloudWatchResource"
-                    else:
-                        full_model_name = f"AWS{model_name}"
-                else:
-                    # Default naming for other providers
-                    full_model_name = f"{provider_name.title()}{model_name}"
-                
+                # Use the model name directly from YAML
+                full_model_name = model_name
+
                 model_class = create_resource_model_from_schema(full_model_name, model_config, provider_config, dynamic_models)
                 dynamic_models[full_model_name] = model_class
                 model_class.__provider__ = provider_name
@@ -545,11 +522,18 @@ def load_and_create_dynamic_models(yaml_file_path: str = None) -> Dict[str, Type
             
             # Third pass: Create collection model
             if main_collection:
-                full_model_name = f"{provider_name.upper()}ResourceCollection" if provider_name == 'aws' else f"{provider_name.title()}ResourceCollection"  # aws -> AWSResourceCollection
-                
+                # Use ResourceCollection suffix directly
+                full_model_name = "ResourceCollection"
+
                 # Handle resources field with dot notation references
                 resources_field = main_collection.get('fields', {}).get('resources', [])
-                
+
+                # TODO: fix this
+                """
+                github doesn't hve single resource, it has multiple with count 1
+                aws doesn't have multiple resource, it has multiple with count 5
+                logic should work for both. use reference of resources to figure out how many models
+                """
                 if provider_name == 'github':
                     # GitHub has a single resource type
                     resource_model_name = "GithubResource"
@@ -568,21 +552,9 @@ def load_and_create_dynamic_models(yaml_file_path: str = None) -> Dict[str, Type
                         if isinstance(resource_ref, str) and 'aws.resources.' in resource_ref:
                             # Extract resource name from dot notation like "aws.resources.EC2Resource"
                             resource_name = resource_ref.split('.')[-1]  # Get "EC2Resource"
-                            if resource_name == 'EC2Resource':
-                                aws_model_name = "AWSEC2Resource"
-                            elif resource_name == 'IAMResource':
-                                aws_model_name = "AWSIAMResource"
-                            elif resource_name == 'S3Resource':
-                                aws_model_name = "AWSS3Resource"
-                            elif resource_name == 'CloudTrailResource':
-                                aws_model_name = "AWSCloudTrailResource"
-                            elif resource_name == 'CloudWatchResource':
-                                aws_model_name = "AWSCloudWatchResource"
-                            else:
-                                aws_model_name = f"AWS{resource_name}"
                             
-                            if aws_model_name in dynamic_models:
-                                aws_resource_types.append(dynamic_models[aws_model_name])
+                            if resource_name in dynamic_models:
+                                aws_resource_types.append(dynamic_models[resource_name])
                     
                     # Create a multi-resource collection
                     model_class = create_multi_resource_collection_model(

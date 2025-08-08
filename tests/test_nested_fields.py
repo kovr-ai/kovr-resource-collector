@@ -26,7 +26,8 @@ def test_primitive_types():
     }
 
     # Load schema
-    mapping = ResourceYamlMapping.load_yaml(yaml_data)
+    mappings = ResourceYamlMapping.load_yaml(yaml_data)
+    mapping = mappings['test']  # Get the test provider's mapping
     
     # Get the model class
     model_class = mapping.nested_schemas[0]
@@ -79,7 +80,8 @@ def test_array_types():
     }
 
     # Load schema
-    mapping = ResourceYamlMapping.load_yaml(yaml_data)
+    mappings = ResourceYamlMapping.load_yaml(yaml_data)
+    mapping = mappings['test']  # Get the test provider's mapping
     
     # Get the model class
     model_class = mapping.nested_schemas[0]
@@ -157,7 +159,8 @@ def test_object_types():
     }
 
     # Load schema
-    mapping = ResourceYamlMapping.load_yaml(yaml_data)
+    mappings = ResourceYamlMapping.load_yaml(yaml_data)
+    mapping = mappings['test']  # Get the test provider's mapping
     
     # Get the model class
     model_class = mapping.nested_schemas[0]
@@ -230,7 +233,8 @@ def test_model_references():
     }
 
     # Load schema
-    mapping = ResourceYamlMapping.load_yaml(yaml_data)
+    mappings = ResourceYamlMapping.load_yaml(yaml_data)
+    mapping = mappings['test']  # Get the test provider's mapping
     
     # Get the model classes
     models = {model.__name__: model for model in mapping.nested_schemas}
@@ -294,7 +298,8 @@ def test_resource_fields():
     }
 
     # Load schema
-    mapping = ResourceYamlMapping.load_yaml(yaml_data)
+    mappings = ResourceYamlMapping.load_yaml(yaml_data)
+    mapping = mappings['test']  # Get the test provider's mapping
     
     # Get the resource model
     resource_model = mapping.resources[0]
