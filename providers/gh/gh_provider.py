@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 import json
 from typing import Dict, Any
-from con_mon.resources import GithubResource, GithubResourceCollection
+from con_mon_v2.mappings.github import GithubResource, GithubResourceCollection
 
 # Load environment variables from .env file
 load_dotenv()

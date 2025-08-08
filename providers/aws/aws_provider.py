@@ -4,13 +4,13 @@ from providers.aws.services.ec2 import EC2Service
 from providers.aws.services.iam import IAMService
 from providers.aws.services.s3 import S3Service
 from providers.provider import Provider, provider_class
-from con_mon.resources import (
-    AWSEC2Resource, 
-    AWSIAMResource, 
-    AWSS3Resource, 
-    AWSCloudTrailResource, 
-    AWSCloudWatchResource,
-    AWSResourceCollection
+from con_mon_v2.mappings.aws import (
+    EC2Resource,
+    IAMResource,
+    S3Resource,
+    CloudTrailResource,
+    CloudWatchResource,
+    AwsResourceCollection
 )
 from constants import Providers
 import boto3
@@ -129,15 +129,15 @@ class AWSProvider(Provider):
             aws_session_token=aws_session_token,
         )
 
-    def process(self) -> AWSResourceCollection:
+    def process(self) -> AwsResourceCollection:
         """Process data collection - uses mock data if available, otherwise real AWS API calls"""
         if self.use_mock_data:
             return self._process_mock_data()
         else:
             return self._process_real_aws_data()
     
-    def _process_mock_data(self) -> AWSResourceCollection:
-        """Load and return mock data from aws_response.json as AWSResourceCollection"""
+    def _process_mock_data(self) -> AwsResourceCollection:
+        """Load and return mock data from aws_response.json as AwsResourceCollection"""
         print("🔄 Using mock AWS data from aws_response.json")
         
         try:
@@ -146,15 +146,15 @@ class AWSProvider(Provider):
                 
             print(f"✅ Loaded mock AWS data with {len(mock_response)} regions")
             
-            # Use the shared helper method to create AWSResourceCollection
+            # Use the shared helper method to create AwsResourceCollection
             return self._create_resource_collection_from_data(mock_response)
             
         except Exception as e:
             print(f"❌ Error loading mock data: {e}")
             raise RuntimeError(f"Failed to load mock data from aws_response.json: {e}")
 
-    def _process_real_aws_data(self) -> AWSResourceCollection:
-        """Original AWS data collection logic using real API calls - returns AWSResourceCollection"""
+    def _process_real_aws_data(self) -> AwsResourceCollection:
+        """Original AWS data collection logic using real API calls - returns AwsResourceCollection"""
         print("🔄 Collecting real AWS data via API calls")
         data = {}
         for region in self.REGIONS:
@@ -175,11 +175,11 @@ class AWSProvider(Provider):
                     data[region] = {}
                 data[region][name] = instance.process()
 
-        # Convert the raw data to AWSResourceCollection using the same logic as mock data
+        # Convert the raw data to AwsResourceCollection using the same logic as mock data
         return self._create_resource_collection_from_data(data)
     
-    def _create_resource_collection_from_data(self, aws_data: dict) -> AWSResourceCollection:
-        """Helper method to create AWSResourceCollection from raw AWS data"""
+    def _create_resource_collection_from_data(self, aws_data: dict) -> AwsResourceCollection:
+        """Helper method to create AwsResourceCollection from raw AWS data"""
         aws_resources = []
         
         # Process each region's data
@@ -211,7 +211,7 @@ class AWSProvider(Provider):
                         'id': f"aws-ec2-{region_name}",
                         'source_connector': 'aws'
                     }
-                    ec2_resource = AWSEC2Resource(**ec2_resource_data)
+                    ec2_resource = EC2Resource(**ec2_resource_data)
                     aws_resources.append(ec2_resource)
                 
                 # Create IAM resource if IAM data exists
@@ -231,7 +231,7 @@ class AWSProvider(Provider):
                         'id': f"aws-iam-{region_name}",
                         'source_connector': 'aws'
                     }
-                    iam_resource = AWSIAMResource(**iam_resource_data)
+                    iam_resource = IAMResource(**iam_resource_data)
                     aws_resources.append(iam_resource)
                 
                 # Create S3 resource if S3 data exists
@@ -251,7 +251,7 @@ class AWSProvider(Provider):
                         'id': f"aws-s3-{region_name}",
                         'source_connector': 'aws'
                     }
-                    s3_resource = AWSS3Resource(**s3_resource_data)
+                    s3_resource = S3Resource(**s3_resource_data)
                     aws_resources.append(s3_resource)
                 
                 # Create CloudTrail resource if CloudTrail data exists
@@ -267,7 +267,7 @@ class AWSProvider(Provider):
                         'id': f"aws-cloudtrail-{region_name}",
                         'source_connector': 'aws'
                     }
-                    cloudtrail_resource = AWSCloudTrailResource(**cloudtrail_resource_data)
+                    cloudtrail_resource = CloudTrailResource(**cloudtrail_resource_data)
                     aws_resources.append(cloudtrail_resource)
                 
                 # Create CloudWatch resource if CloudWatch data exists
@@ -285,15 +285,15 @@ class AWSProvider(Provider):
                         'id': f"aws-cloudwatch-{region_name}",
                         'source_connector': 'aws'
                     }
-                    cloudwatch_resource = AWSCloudWatchResource(**cloudwatch_resource_data)
+                    cloudwatch_resource = CloudWatchResource(**cloudwatch_resource_data)
                     aws_resources.append(cloudwatch_resource)
                     
             except Exception as e:
                 print(f"Error converting AWS data for region {region_name}: {e}")
                 continue
         
-        # Create and return AWSResourceCollection
-        return AWSResourceCollection(
+        # Create and return AwsResourceCollection
+        return AwsResourceCollection(
             resources=aws_resources,
             source_connector='aws',
             total_count=len(aws_resources),

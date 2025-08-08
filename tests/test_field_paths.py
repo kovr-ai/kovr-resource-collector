@@ -1,10 +1,7 @@
 """Tests for verifying YAML schema to JSON data mapping."""
 import json
 import os
-from typing import Any, Dict, List
-
-import pytest
-from pydantic import BaseModel
+from typing import Any, Dict
 
 from con_mon_v2.utils.services import ResourceCollectionService
 
@@ -281,6 +278,7 @@ def test_aws_ec2_resource_mapping():
     rc = rc_service.get_resource_collection()
     
     # Find EC2 resource in the collection
+    from pdb import set_trace; set_trace()
     ec2_resource = next((r for r in rc.resources if r.__class__.__name__ == 'EC2Resource'), None)
     assert ec2_resource is not None, "EC2Resource not found in collection"
     

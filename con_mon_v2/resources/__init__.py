@@ -1,1 +1,1 @@
-from .models import ResourceField, Resource, ResourceCollection
+from .models import Resource, ResourceCollection

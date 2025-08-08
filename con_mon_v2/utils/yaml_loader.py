@@ -9,8 +9,8 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 from typing import Any, Callable, Dict, List, Optional, Type, Union
 from con_mon_v2.connectors import ConnectorService, ConnectorInput, ConnectorType
-from con_mon_v2.resources import Resource, ResourceCollection, ResourceField
 from pathlib import Path
+from con_mon_v2.resources.models import Resource, ResourceCollection
 
 
 class ConnectorYamlMapping(BaseModel):
@@ -206,32 +206,25 @@ class YamlModel(BaseModel):
     pass
 
 
-class YamlFieldType(Enum):
+class YamlFieldType(str, Enum):
     STRING = "string"
     INTEGER = "integer"
-    FLOAT = "float"
     BOOLEAN = "boolean"
-    DATETIME = "datetime"
-    LIST = "list"
     OBJECT = "object"
+    LIST = "list"
     ANY = "any"
 
     @classmethod
-    def yaml_field_type_to_python_type(
-            cls,
-            field_type: 'YamlFieldType'
-    ) -> type:
+    def yaml_field_type_to_python_type(cls, field_type: 'YamlFieldType') -> Type:
         type_mapping = {
-            YamlFieldType.STRING: str,
-            YamlFieldType.INTEGER: int,
-            YamlFieldType.FLOAT: float,
-            YamlFieldType.BOOLEAN: bool,
-            YamlFieldType.DATETIME: datetime,
-            YamlFieldType.OBJECT: dict,
-            YamlFieldType.ANY: Any,
-            YamlFieldType.LIST: List[Any]
+            cls.STRING: str,
+            cls.INTEGER: int,
+            cls.BOOLEAN: bool,
+            cls.OBJECT: dict,
+            cls.LIST: list,
+            cls.ANY: Any
         }
-        return type_mapping[field_type]
+        return type_mapping.get(field_type, Any)
 
 
 class YamlField(BaseModel):
@@ -249,28 +242,36 @@ class YamlModelMapping(BaseModel):
             cls,
             name: str,
             annotations: dict,
-            fields: dict
+            fields: dict,
+            base_class: Type[BaseModel] = Resource
     ) -> Type[YamlModel]:
-        """
-        Create a YamlModel type with given name, annotations and fields.
-        
-        Args:
-            name: Name for the model class
-            annotations: Type annotations for fields
-            fields: Field definitions
-            
-        Returns:
-            New YamlModel type
-        """
-        return type(
-            name,
-            (YamlModel,),
-            {
-                '__annotations__': annotations,
-                '__module__': YamlModel.__module__,
+        """Create a new Pydantic model type with the given fields."""
+        # For resource models, include base Resource fields
+        if base_class == Resource:
+            model_annotations = {
+                'id': str,
+                'source_connector': str,
+                **annotations
+            }
+            model_fields = {
+                'id': Field(...),
+                'source_connector': Field(...),
                 **fields
             }
+        else:
+            model_annotations = annotations
+            model_fields = fields
+
+        # Create the model class
+        model = type(
+            name,
+            (base_class,),
+            {
+                '__annotations__': model_annotations,
+                **model_fields
+            }
         )
+        return model
 
     @classmethod
     def process_yaml_dict(
@@ -278,68 +279,45 @@ class YamlModelMapping(BaseModel):
             yaml_data: dict[str, Any],
             parent_name: str = ""
     ) -> tuple[List[YamlField], dict, dict]:
-        """
-        Recursively process a YAML dictionary to extract fields and their types.
-        
-        Args:
-            yaml_data: Dictionary to process
-            parent_name: Name of the parent field for nested structures
-            
-        Returns:
-            tuple of (list of YamlFields, model annotations dict, model fields dict)
-        """
         fields = []
         model_annotations = {}
         model_fields = {}
-        
+
         for field_name, field_def in yaml_data.items():
-            # Check if field name ends with [] indicating it's a list
             is_field_list = field_name.endswith('[]')
-            # Clean field name by removing [] suffix if present
             clean_field_name = field_name[:-2] if is_field_list else field_name
-            
+
             if isinstance(field_def, str):
-                # Simple field with type only
-                field_type = YamlFieldType(
-                    field_def) if field_def in YamlFieldType._value2member_map_ else YamlFieldType.ANY
-                yaml_field = YamlField(
-                    name=clean_field_name,
-                    dtype=YamlFieldType.LIST if is_field_list else field_type
-                )
+                field_type = YamlFieldType(field_def) if field_def in YamlFieldType._value2member_map_ else YamlFieldType.ANY
+                yaml_field = YamlField(name=clean_field_name, dtype=YamlFieldType.LIST if is_field_list else field_type)
                 fields.append(yaml_field)
-                
-                # Add to model annotations
+
                 python_type = YamlFieldType.yaml_field_type_to_python_type(yaml_field.dtype)
+                if is_field_list:
+                    python_type = List[python_type]
                 model_annotations[clean_field_name] = python_type
                 model_fields[clean_field_name] = Field(default=None)
-                
+
             elif isinstance(field_def, dict):
-                # Nested structure - process recursively
                 nested_name = f"{parent_name}_{clean_field_name}" if parent_name else clean_field_name
                 nested_fields, nested_annotations, nested_field_defs = cls.process_yaml_dict(field_def, nested_name)
-                
-                # Create nested model type
+
                 nested_model = cls.create_yaml_model(
                     name=nested_name.title(),
                     annotations=nested_annotations,
                     fields=nested_field_defs
                 )
-                
-                # Add field for the nested structure
-                yaml_field = YamlField(
-                    name=clean_field_name,
-                    dtype=YamlFieldType.LIST if is_field_list else YamlFieldType.OBJECT
-                )
+
+                yaml_field = YamlField(name=clean_field_name, dtype=YamlFieldType.LIST if is_field_list else YamlFieldType.OBJECT)
                 fields.append(yaml_field)
                 fields.extend(nested_fields)
-                
-                # Add to model annotations
+
                 if is_field_list:
                     model_annotations[clean_field_name] = List[nested_model]
                 else:
                     model_annotations[clean_field_name] = nested_model
                 model_fields[clean_field_name] = Field(default_factory=list if is_field_list else nested_model)
-        
+
         return fields, model_annotations, model_fields
 
     @classmethod
@@ -347,29 +325,14 @@ class YamlModelMapping(BaseModel):
             cls,
             yaml_dict: dict[str, Any],
     ) -> 'YamlModelMapping':
-        """
-        Load a YAML dictionary into a YamlModelMapping instance.
-        
-        Args:
-            yaml_dict: Dictionary containing the YAML model definition
-            
-        Returns:
-            YamlModelMapping instance with parsed model and fields
-        """
-        model_name = next(iter(yaml_dict))  # Get the first key as model name
+        model_name = next(iter(yaml_dict))
         fields, model_annotations, model_fields = cls.process_yaml_dict(yaml_dict[model_name])
-        
-        # Check if this model represents a list (if any top-level field ends with [])
         is_list = any(field_name.endswith('[]') for field_name in yaml_dict[model_name].keys())
-        
-        # Create a new YamlModel type with the model name and fields
         model_type = cls.create_yaml_model(
             name=model_name,
             annotations=model_annotations,
             fields=model_fields
         )
-        
-        # Create the model mapping
         return cls(
             pydantic_model=model_type,
             fields=fields,
@@ -378,37 +341,18 @@ class YamlModelMapping(BaseModel):
 
 
 class ResourceYamlMapping(BaseModel):
-    """Mapping class for resource configurations from YAML."""
     connector_type: str
     resources: List[YamlModelMapping]
     resources_collection: YamlModelMapping
 
     @staticmethod
-    def _load_yaml_data(path_or_dict: str | Path | dict) -> dict:
-        """
-        Load YAML data from either a file path or a dictionary.
-
-        Args:
-            path_or_dict: Either a path to a YAML file (str or Path) or a dictionary containing the YAML data
-
-        Returns:
-            dict: The loaded YAML data
-
-        Raises:
-            FileNotFoundError: If the YAML file does not exist
-            yaml.YAMLError: If the YAML file is invalid
-            ValueError: If the input format is invalid
-        """
-        if isinstance(path_or_dict, (str, Path)):
-            if not os.path.exists(str(path_or_dict)):
-                raise FileNotFoundError(f"YAML file not found: {path_or_dict}")
-            
-            with open(path_or_dict, 'r') as file:
-                return yaml.safe_load(file)
-        elif isinstance(path_or_dict, dict):
-            return path_or_dict
-        else:
-            raise ValueError("Input must be either a file path (str or Path) or a dictionary")
+    def _load_yaml_data(path_or_dict: str | dict) -> dict:
+        """Load YAML data from file path or dict."""
+        if isinstance(path_or_dict, str):
+            import yaml
+            with open(path_or_dict, 'r') as f:
+                return yaml.safe_load(f)
+        return path_or_dict
 
     @classmethod
     def _process_resource(
@@ -416,9 +360,8 @@ class ResourceYamlMapping(BaseModel):
             resource_name: str,
             resource_def: dict[str, Any]
     ) -> YamlModelMapping:
-        """Process a single resource definition into a YamlModelMapping."""
-        # Process the resource fields
-        fields_dict = {resource_name: resource_def.get('fields', {})}
+        """Process a single resource definition."""
+        fields_dict = {resource_name: resource_def}
         return YamlModelMapping.load_yaml(fields_dict)
 
     @classmethod
@@ -427,63 +370,57 @@ class ResourceYamlMapping(BaseModel):
             connector_type: str,
             collection_def: dict[str, Any]
     ) -> YamlModelMapping:
-        """Process resource collection definition into a YamlModelMapping."""
-        # Create collection class name from connector type
+        """Process resource collection definition."""
         collection_name = f"{connector_type.title()}ResourceCollection"
         
-        # Create a dictionary with collection fields
-        fields_dict = {
-            collection_name: {
-                "resources[]": "Resource",  # Generic resource type, actual types handled by references
-                "source_connector": "string",
-                "total_count": "integer",
-                "fetched_at": "string"
-            }
-        }
-        return YamlModelMapping.load_yaml(fields_dict)
+        # Create collection model inheriting from ResourceCollection
+        model = YamlModelMapping.create_yaml_model(
+            name=collection_name,
+            annotations={
+                'resources': List[Resource],
+                'source_connector': str,
+                'total_count': int,
+                'fetched_at': datetime
+            },
+            fields={
+                'resources': Field(default_factory=list),
+                'source_connector': Field(...),
+                'total_count': Field(...),
+                'fetched_at': Field(default_factory=datetime.now)
+            },
+            base_class=ResourceCollection
+        )
+
+        return YamlModelMapping(
+            pydantic_model=model,
+            fields=[
+                YamlField(name='resources', dtype=YamlFieldType.LIST),
+                YamlField(name='source_connector', dtype=YamlFieldType.STRING),
+                YamlField(name='total_count', dtype=YamlFieldType.INTEGER),
+                YamlField(name='fetched_at', dtype=YamlFieldType.STRING)
+            ],
+            is_list=False
+        )
 
     @classmethod
     def load_yaml(
             cls,
             path_or_dict: str | dict
     ) -> Dict[str, 'ResourceYamlMapping']:
-        """
-        Load resource configuration from a YAML file or dictionary.
-
-        Args:
-            path_or_dict: Either a path to a YAML file or a dictionary containing the YAML data
-
-        Returns:
-            Dict[str, ResourceYamlMapping]: A dictionary mapping provider names to their resource mappings
-
-        Raises:
-            FileNotFoundError: If the YAML file does not exist
-            yaml.YAMLError: If the YAML file is invalid
-            ValueError: If the input format is invalid
-        """
         yaml_data = cls._load_yaml_data(path_or_dict)
         result = {}
-
-        # Process each provider's configuration
         for provider_name, provider_data in yaml_data.items():
             if not isinstance(provider_data, dict):
                 continue
-
-            # Process resources
             resources = []
             for resource_name, resource_def in provider_data.get('resources', {}).items():
                 resource_mapping = cls._process_resource(resource_name, resource_def)
                 resources.append(resource_mapping)
-
-            # Process resource collection
             collection_data = provider_data.get('resource_collection', {})
             collection_mapping = cls._process_collection(provider_name, collection_data)
-
-            # Create the mapping for this provider
             result[provider_name] = cls(
                 connector_type=provider_name,
                 resources=resources,
                 resources_collection=collection_mapping
             )
-
         return result
