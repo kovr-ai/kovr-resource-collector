@@ -1,7 +1,6 @@
 from typing import Dict, List, Tuple, Optional, Union
 from .models import Check
 from .db import load_checks_from_database, get_checks_by_ids as db_get_checks_by_ids
-load_checks_from_database()
 
 # Global storage for loaded checks
 _loaded_checks: Dict[str, Check] = {}
@@ -25,6 +24,7 @@ def load_checks_from_database_init():
     except Exception as e:
         print(f"❌ Error loading checks from database: {e}")
 
+
 def get_loaded_checks() -> Dict[str, Check]:
     """Get all loaded checks."""
     return _loaded_checks.copy()
@@ -44,3 +44,5 @@ def get_checks_by_ids(
         List of tuples in format (check_id, check_name, check_object)
     """
     return db_get_checks_by_ids(_loaded_checks, check_ids)
+
+load_checks_from_database()

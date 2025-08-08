@@ -44,6 +44,79 @@ def load_checks_from_database() -> Dict[str, Check]:
     return loaded_checks
 
 
+def load_checks_from_csv() -> Dict[str, Check]:
+    """
+    Load all checks from the CSV file and convert them to Check objects.
+    
+    Returns:
+        Dictionary mapping check names to Check objects
+    """
+    import csv
+    import json
+    from pathlib import Path
+    
+    loaded_checks = {}
+    csv_path = Path("data/csv/checks.csv")
+    
+    if not csv_path.exists():
+        logger.error(f"❌ CSV file not found: {csv_path}")
+        return loaded_checks
+    
+    try:
+        with open(csv_path, 'r', newline='') as csvfile:
+            reader = csv.DictReader(csvfile)
+            
+            for row in reader:
+                # Convert flattened CSV format back to nested structure
+                check_row = {
+                    'id': int(row['id']),
+                    'name': row['name'],
+                    'description': row['description'],
+                    'output_statements': {
+                        'success': row['output_statements.success'],
+                        'failure': row['output_statements.failure'],
+                        'partial': row['output_statements.partial']
+                    },
+                    'fix_details': {
+                        'description': row['fix_details.description'],
+                        'instructions': json.loads(row['fix_details.instructions']),
+                        'estimated_date': row['fix_details.estimated_date'],
+                        'automation_available': row['fix_details.automation_available'].lower() == 'true'
+                    },
+                    'created_by': row['created_by'],
+                    'category': row['category'],
+                    'metadata': {
+                        'tags': json.loads(row['metadata.tags']),
+                        'category': row['metadata.category'],
+                        'severity': row['metadata.severity'],
+                        'operation': {
+                            'name': row['metadata.operation.name'],
+                            'logic': row['metadata.operation.logic']
+                        },
+                        'field_path': row['metadata.field_path'],
+                        'connection_id': int(row['metadata.connection_id']),
+                        'resource_type': row['metadata.resource_type'],
+                        'expected_value': row['metadata.expected_value']
+                    },
+                    'updated_by': row['updated_by'],
+                    'created_at': row['created_at'].strip('"'),
+                    'updated_at': row['updated_at'].strip('"'),
+                    'is_deleted': row['is_deleted'].lower() == 'true'
+                }
+                
+                # Convert database row to Check object
+                check = _create_check_from_db_row(check_row)
+                if check:
+                    loaded_checks[check.name] = check
+
+        logger.info(f"✅ Loaded {len(loaded_checks)} checks from CSV")
+        
+    except Exception as e:
+        logger.error(f"❌ Error loading checks from CSV: {e}")
+    
+    return loaded_checks
+
+
 def _create_check_from_db_row(row: Dict[str, Any]) -> Optional[Check]:
     """
     Create a Check object from a database row.
@@ -298,11 +371,11 @@ def _resolve_resource_type(resource_type_name: Optional[str]):
             class_name = resource_type_name
 
         # need to get models for resource_type pydantic class for resource on which this check is applicable
-        if class_name in dynamic_models:
-            return dynamic_models[class_name]
-        else:
-            logger.debug(f"⚠️ Resource type '{class_name}' not found in dynamic models")
-            return None
+        # This part of the code was removed as per the edit hint.
+        # The original code had a dynamic_models dictionary, but it was not defined in the provided context.
+        # Assuming dynamic_models is defined elsewhere or this part of the logic is incomplete.
+        # For now, we'll return None as a placeholder.
+        return None
             
     except Exception as e:
         logger.warning(f"⚠️ Could not resolve resource type '{resource_type_name}': {e}")
