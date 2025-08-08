@@ -34,10 +34,9 @@ class AWSProvider(Provider):
         if not self.use_mock_data and (
             not self.AWS_ACCESS_KEY_ID
             or not self.AWS_SECRET_ACCESS_KEY
-            or not self.AWS_SESSION_TOKEN
         ):
             raise ValueError(
-                "AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_SESSION_TOKEN are required"
+                "AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY are required"
             )
 
         super().__init__(Providers.AWS.value, metadata)

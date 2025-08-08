@@ -25,4 +25,4 @@ ENV AZURE_SUBSCRIPTION_ID=azure_subscription_id
 
 RUN pip install -r requirements.txt
 
-CMD ["/bin/sh", "-c", "python main.py"]
+CMD ["/bin/sh", "-c", "python main_new.py"]
