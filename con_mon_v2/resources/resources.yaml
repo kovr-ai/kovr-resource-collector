@@ -4,8 +4,7 @@
 github:
   nested_schemas:
     # Nested data type schemas
-    RepositoryData:
-      name: "repository_data"
+    repository_data:
       description: "Repository basic information and metadata"
       fields:
         basic_info:
@@ -59,8 +58,7 @@ github:
               JavaScript: "integer"
           code_frequency: "array"
 
-    ActionsData:
-      name: "actions_data"
+    actions_data:
       description: "GitHub Actions workflows and runs"
       fields:
         workflows:
@@ -79,8 +77,7 @@ github:
         active_workflows: "integer"
         recent_runs_count: "integer"
 
-    CollaborationData:
-      name: "collaboration_data"
+    collaboration_data:
       description: "Collaboration information - issues, PRs, collaborators"
       fields:
         issues:
@@ -129,8 +126,7 @@ github:
         draft_pull_requests: "integer"
         total_collaborators: "integer"
 
-    SecurityData:
-      name: "security_data"
+    security_data:
       description: "Security advisories, alerts and analysis"
       fields:
         security_advisories:
@@ -175,8 +171,7 @@ github:
         total_code_scanning_alerts: "integer"
         security_features_enabled: "integer"
 
-    OrganizationData:
-      name: "organization_data"
+    organization_data:
       description: "Organization members, teams and collaborators"
       fields:
         members: "array"  # List of member objects (often empty)
@@ -190,8 +185,7 @@ github:
         teams_error: "string"
         collaborators_error: "string"
 
-    AdvancedFeaturesData:
-      name: "advanced_features_data"
+    advanced_features_data:
       description: "Advanced GitHub features - tags, webhooks"
       fields:
         tags:
@@ -210,28 +204,21 @@ github:
   resources:
     # Main resource schemas
     GithubResource:
-      name: "github"
-      description: "GitHub repository resource"
-
       # Define the structure that matches GitHub API response with all data types
       fields:
-        name: "string"  # Repository name for easy identification
-        repository_data: "RepositoryData"  # Nested Pydantic model
-        actions_data: "ActionsData"        # Nested Pydantic model
-        collaboration_data: "CollaborationData"  # Nested Pydantic model
-        security_data: "SecurityData"      # Nested Pydantic model
-        organization_data: "OrganizationData"    # Nested Pydantic model
-        advanced_features_data: "AdvancedFeaturesData"  # Nested Pydantic model
+        id: "string"  # Repository name to be used as ID for easy identification
+        repository_data: "github.nested_schemas.repository_data"  # Nested Pydantic model
+        actions_data: "github.nested_schemas.actions_data"        # Nested Pydantic model
+        collaboration_data: "github.nested_schemas.collaboration_data"  # Nested Pydantic model
+        security_data: "github.nested_schemas.security_data"      # Nested Pydantic model
+        organization_data: "github.nested_schemas.organization_data"    # Nested Pydantic model
+        advanced_features_data: "github.nested_schemas.advanced_features_data"  # Nested Pydantic model
 
   resource_collection:
-    name: "github"
-    description: "Collection of GitHub repository resources from a single connector call"
-    collection_type: "githubResource"
-
     # Define the structure for GitHub resource collections
     fields:
-      resources:
-        - "github.resources.Resource"
+      resource_schemas:
+        - "github.resources.GithubResource"
       source_connector: "string"
       total_count: "integer"
       fetched_at: "string"
@@ -254,10 +241,6 @@ aws:
   resources:
     # AWS EC2 Resource Schema
     EC2Resource:
-      name: "aws_ec2"
-      description: "AWS EC2 service resource"
-      service: "ec2"
-
       fields:
         # Account-level information
         account:
@@ -389,10 +372,6 @@ aws:
 
     # AWS IAM Resource Schema
     IAMResource:
-      name: "aws_iam"
-      description: "AWS IAM service resource"
-      service: "iam"
-
       fields:
         # IAM resources
         users:
@@ -424,10 +403,6 @@ aws:
 
     # AWS S3 Resource Schema
     S3Resource:
-      name: "aws_s3"
-      description: "AWS S3 service resource"
-      service: "s3"
-
       fields:
         # S3 resources
         buckets:
@@ -439,10 +414,6 @@ aws:
 
     # AWS CloudTrail Resource Schema
     CloudTrailResource:
-      name: "aws_cloudtrail"
-      description: "AWS CloudTrail service resource"
-      service: "cloudtrail"
-
       fields:
         # CloudTrail resources
         trails:
@@ -461,10 +432,6 @@ aws:
 
     # AWS CloudWatch Resource Schema
     CloudWatchResource:
-      name: "aws_cloudwatch"
-      description: "AWS CloudWatch service resource"
-      service: "cloudwatch"
-
       fields:
         # CloudWatch resources
         log_groups:
@@ -521,12 +488,9 @@ aws:
             last_modified: "string"
 
   resource_collection:
-    name: "aws"
-    description: "Collection of AWS resources from a single connector call"
-
     # Define the structure for AWS resource collections
     fields:
-      resources:
+      resource_schemas:
         - "aws.resources.EC2Resource"
         - "aws.resources.IAMResource"
         - "aws.resources.S3Resource"
