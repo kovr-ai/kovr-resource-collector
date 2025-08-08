@@ -19,6 +19,20 @@ import os
 from datetime import datetime
 
 
+def _dict_to_list_with_id(data: dict[str, dict]) -> list[dict]:
+    """
+    Transform a dictionary of dictionaries to a list of dictionaries,
+    where each dictionary key becomes an 'id' field in the value dictionary.
+
+    Args:
+        data: Dictionary where keys are strings and values are dictionaries
+
+    Returns:
+        List of dictionaries, each containing an 'id' field with the original key
+    """
+    return [{'id': key, **value} for key, value in data.items()]
+
+
 @provider_class
 class AWSProvider(Provider):
     def __init__(self, metadata: dict):
@@ -150,6 +164,7 @@ class AWSProvider(Provider):
             return self._create_resource_collection_from_data(mock_response)
             
         except Exception as e:
+            raise e
             print(f"❌ Error loading mock data: {e}")
             raise RuntimeError(f"Failed to load mock data from aws_response.json: {e}")
 
@@ -191,36 +206,35 @@ class AWSProvider(Provider):
                     
                     ec2_resource_data = {
                         'region': region_name,
-                        'instances': ec2_data.get('instances', {}),
-                        'security_groups': ec2_data.get('security_groups', {}),
-                        'vpcs': ec2_data.get('vpcs', {}),
-                        'subnets': ec2_data.get('subnets', {}),
-                        'route_tables': ec2_data.get('route_tables', {}),
-                        'nat_gateways': ec2_data.get('nat_gateways', {}),
-                        'elastic_ips': ec2_data.get('elastic_ips', {}),
-                        'key_pairs': ec2_data.get('key_pairs', {}),
-                        'snapshots': ec2_data.get('snapshots', {}),
-                        'volumes': ec2_data.get('volumes', {}),
-                        'network_interfaces': ec2_data.get('network_interfaces', {}),
-                        'internet_gateways': ec2_data.get('internet_gateways', {}),
-                        # Use the raw relationships data as-is (now matches schema)
+                        'instances': _dict_to_list_with_id(ec2_data.get('instances', {})),
+                        'security_groups': _dict_to_list_with_id(ec2_data.get('security_groups', {})),
+                        'vpcs': _dict_to_list_with_id(ec2_data.get('vpcs', {})),
+                        'subnets': _dict_to_list_with_id(ec2_data.get('subnets', {})),
+                        'route_tables': _dict_to_list_with_id(ec2_data.get('route_tables', {})),
+                        'nat_gateways': _dict_to_list_with_id(ec2_data.get('nat_gateways', {})),
+                        'elastic_ips': _dict_to_list_with_id(ec2_data.get('elastic_ips', {})),
+                        'key_pairs': _dict_to_list_with_id(ec2_data.get('key_pairs', {})),
+                        'snapshots': _dict_to_list_with_id(ec2_data.get('snapshots', {})),
+                        'volumes': _dict_to_list_with_id(ec2_data.get('volumes', {})),
+                        'network_interfaces': _dict_to_list_with_id(ec2_data.get('network_interfaces', {})),
+                        'internet_gateways': _dict_to_list_with_id(ec2_data.get('internet_gateways', {})),
                         'relationships': ec2_data.get('relationships', {}),
-                        # Map the account field properly including limits structure
                         'account': ec2_data.get('account', {}),
-                        # Add required base Resource fields
                         'id': f"aws-ec2-{region_name}",
                         'source_connector': 'aws'
                     }
+                    # from pdb import set_trace;set_trace()
                     ec2_resource = EC2Resource(**ec2_resource_data)
                     aws_resources.append(ec2_resource)
                 
                 # Create IAM resource if IAM data exists
                 if 'iam' in region_data:
                     iam_resource_data = {
-                        'users': region_data['iam'].get('users', []),
+                        'users': _dict_to_list_with_id(region_data['iam'].get('users', {})),
+                        'policies': _dict_to_list_with_id(region_data['iam'].get('policies', {})),
+                        # Keep array fields as is
                         'groups': region_data['iam'].get('groups', []),
                         'roles': region_data['iam'].get('roles', []),
-                        'policies': region_data['iam'].get('policies', []),
                         'managed_policies': region_data['iam'].get('managed_policies', []),
                         'access_keys': region_data['iam'].get('access_keys', []),
                         'mfa_devices': region_data['iam'].get('mfa_devices', []),
@@ -237,7 +251,8 @@ class AWSProvider(Provider):
                 # Create S3 resource if S3 data exists
                 if 's3' in region_data:
                     s3_resource_data = {
-                        'buckets': region_data['s3'].get('buckets', []),
+                        'buckets': _dict_to_list_with_id(region_data['s3'].get('buckets', {})),
+                        # Keep array fields as is
                         'bucket_policies': region_data['s3'].get('bucket_policies', []),
                         'bucket_acls': region_data['s3'].get('bucket_acls', []),
                         'encryption': region_data['s3'].get('encryption', []),
@@ -257,7 +272,8 @@ class AWSProvider(Provider):
                 # Create CloudTrail resource if CloudTrail data exists
                 if 'cloudtrail' in region_data:
                     cloudtrail_resource_data = {
-                        'trails': region_data['cloudtrail'].get('trails', []),
+                        'trails': _dict_to_list_with_id(region_data['cloudtrail'].get('trails', {})),
+                        # Keep array fields as is
                         'trail_status': region_data['cloudtrail'].get('trail_status', []),
                         'event_selectors': region_data['cloudtrail'].get('event_selectors', []),
                         'insight_selectors': region_data['cloudtrail'].get('insight_selectors', []),
@@ -273,14 +289,11 @@ class AWSProvider(Provider):
                 # Create CloudWatch resource if CloudWatch data exists
                 if 'cloudwatch' in region_data:
                     cloudwatch_resource_data = {
-                        'log_groups': region_data['cloudwatch'].get('log_groups', []),
-                        'log_streams': region_data['cloudwatch'].get('log_streams', []),
+                        'log_groups': _dict_to_list_with_id(region_data['cloudwatch'].get('log_groups', {})),
+                        'alarms': _dict_to_list_with_id(region_data['cloudwatch'].get('alarms', {})),
+                        'dashboards': _dict_to_list_with_id(region_data['cloudwatch'].get('dashboards', {})),
+                        # Keep array fields as is
                         'metrics': region_data['cloudwatch'].get('metrics', []),
-                        'alarms': region_data['cloudwatch'].get('alarms', []),
-                        'dashboards': region_data['cloudwatch'].get('dashboards', []),
-                        'retention_policies': region_data['cloudwatch'].get('retention_policies', []),
-                        'subscription_filters': region_data['cloudwatch'].get('subscription_filters', []),
-                        'metric_filters': region_data['cloudwatch'].get('metric_filters', []),
                         # Add required base Resource fields
                         'id': f"aws-cloudwatch-{region_name}",
                         'source_connector': 'aws'
@@ -289,6 +302,7 @@ class AWSProvider(Provider):
                     aws_resources.append(cloudwatch_resource)
                     
             except Exception as e:
+                raise e
                 print(f"Error converting AWS data for region {region_name}: {e}")
                 continue
         

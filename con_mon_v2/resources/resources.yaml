@@ -257,6 +257,7 @@ aws:
   resources:
     EC2Resource:
       id: "string"  # To be used as ID for easy identification
+      region: "string"
       account:
         limits:
           supported-platforms: "string"
@@ -279,7 +280,7 @@ aws:
           availability_zone: "string"
           spot_price: "string"
           launch_time: "string"
-      instances:
+      instances[]:
         instance_type: "string"
         state: "string"
         launch_time: "string"
@@ -295,16 +296,8 @@ aws:
           Id: "string"
         ebs_optimized: "boolean"
         instance_lifecycle: "string"
-        security_groups[]:
-          group_id: "string"
-          group_name: "string"
-        network_interfaces[]:
-          id: "string"
-          subnet_id: "string"
-          vpc_id: "string"
-          description: "string"
-          private_ip: "string"
-          status: "string"
+        security_groups[]: "string"
+        network_interfaces[]: "string"
         block_device_mappings[]:
           device_name: "string"
           ebs:
@@ -334,7 +327,7 @@ aws:
           destination_groups:
             group_id: "string"
             group_name: "string"
-      vpcs:
+      vpcs[]:
         cidr_block: "string"
         state: "string"
         dhcp_options_id: "string"
@@ -344,7 +337,7 @@ aws:
           association_id: "string"
           cidr_block: "string"
           state: "string"
-      subnets:
+      subnets[]:
         vpc_id: "string"
         availability_zone: "string"
         availability_zone_id: "string"
@@ -352,7 +345,7 @@ aws:
         state: "string"
         map_public_ip_on_launch: "boolean"
         available_ip_address_count: "integer"
-      route_tables:
+      route_tables[]:
         vpc_id: "string"
         routes[]:
           destination_cidr_block: "string"
@@ -367,7 +360,7 @@ aws:
           association_state:
             state: "string"
             status_message: "string"
-      nat_gateways:
+      nat_gateways[]:
         state: "string"
         subnet_id: "string"
         vpc_id: "string"
@@ -376,21 +369,18 @@ aws:
         connectivity_type: "string"
         public_ip: "string"
         private_ip: "string"
-      elastic_ips:
+      elastic_ips[]:
         public_ip: "string"
         domain: "string"
         instance_id: "string"
         network_interface_id: "string"
         private_ip_address: "string"
-        tags[]:
-          key: "string"
-          value: "string"
-      key_pairs:
+      key_pairs[]:
         key_fingerprint: "string"
         key_type: "string"
         public_key: "string"
         create_time: "string"
-      snapshots:
+      snapshots[]:
         volume_id: "string"
         volume_size: "integer"
         state: "string"
@@ -399,7 +389,7 @@ aws:
         encrypted: "boolean"
         owner_id: "string"
         description: "string"
-      volumes:
+      volumes[]:
         size: "integer"
         volume_type: "string"
         state: "string"
@@ -409,7 +399,7 @@ aws:
         iops: "integer"
         throughput: "integer"
         multi_attach_enabled: "boolean"
-      network_interfaces:
+      network_interfaces[]:
         subnet_id: "string"
         vpc_id: "string"
         availability_zone: "string"
@@ -423,7 +413,7 @@ aws:
         security_groups[]:
           group_id: "string"
           group_name: "string"
-      internet_gateways:
+      internet_gateways[]:
         state: "string"
         attachments[]:
           vpc_id: "string"
@@ -514,6 +504,7 @@ aws:
     CloudWatchResource:
       id: "string"  # To be used as ID for easy identification
       log_groups[]:
+        id: "string"
         log_group_name: "string"
         creation_time: "integer"
         retention_in_days: "integer"

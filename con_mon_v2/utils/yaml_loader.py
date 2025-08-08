@@ -233,7 +233,7 @@ class YamlField(BaseModel):
 
 
 class YamlModelMapping(BaseModel):
-    pydantic_model: Type[Union[YamlModel, Resource, ResourceCollection]]
+    pydantic_model: Type[BaseModel]  # Any Pydantic model is valid
     fields: List[YamlField]
     is_list: bool = False
 
@@ -243,7 +243,7 @@ class YamlModelMapping(BaseModel):
             name: str,
             annotations: dict,
             fields: dict,
-            base_class: Type[BaseModel] = Resource
+            base_class: Type[BaseModel] = BaseModel
     ) -> Type[YamlModel]:
         """Create a new Pydantic model type with the given fields."""
         # Create the model class with only YAML-defined fields
@@ -270,6 +270,8 @@ class YamlModelMapping(BaseModel):
         for field_name, field_def in yaml_data.items():
             is_field_list = field_name.endswith('[]')
             clean_field_name = field_name[:-2] if is_field_list else field_name
+            print(f"Processing field: {field_name} (clean: {clean_field_name}, is_list: {is_field_list})")
+            print(f"Field definition: {field_def}")
 
             if isinstance(field_def, str):
                 field_type = YamlFieldType(field_def) if field_def in YamlFieldType._value2member_map_ else YamlFieldType.ANY
@@ -277,10 +279,15 @@ class YamlModelMapping(BaseModel):
                 fields.append(yaml_field)
 
                 python_type = YamlFieldType.yaml_field_type_to_python_type(yaml_field.dtype)
+                print(f"Python type before list: {python_type}")
                 if is_field_list:
-                    python_type = List[python_type]
-                model_annotations[clean_field_name] = python_type
-                model_fields[clean_field_name] = Field(default=None)
+                    model_annotations[clean_field_name] = List[python_type]
+                    print(f"Final type for {clean_field_name}: List[{python_type}]")
+                    model_fields[clean_field_name] = Field(default_factory=list)
+                else:
+                    model_annotations[clean_field_name] = Union[python_type, None]
+                    print(f"Final type for {clean_field_name}: Union[{python_type}, None]")
+                    model_fields[clean_field_name] = Field(default=None)
 
             elif isinstance(field_def, dict):
                 nested_name = f"{parent_name}_{clean_field_name}" if parent_name else clean_field_name
@@ -297,10 +304,11 @@ class YamlModelMapping(BaseModel):
                 fields.extend(nested_fields)
 
                 if is_field_list:
-                    model_annotations[clean_field_name] = List[nested_model]
+                    model_annotations[clean_field_name] = Union[List[nested_model], None]
+                    model_fields[clean_field_name] = Field(default_factory=list)
                 else:
-                    model_annotations[clean_field_name] = nested_model
-                model_fields[clean_field_name] = Field(default_factory=list if is_field_list else nested_model)
+                    model_annotations[clean_field_name] = Union[nested_model, None]
+                    model_fields[clean_field_name] = Field(default=None)
 
         return fields, model_annotations, model_fields
 
@@ -345,7 +353,16 @@ class ResourceYamlMapping(BaseModel):
     ) -> YamlModelMapping:
         """Process a single resource definition."""
         fields_dict = {resource_name: resource_def}
-        return YamlModelMapping.load_yaml(fields_dict)
+        # Use Resource as base class for resource models
+        model_mapping = YamlModelMapping.load_yaml(fields_dict)
+        if resource_name.endswith('Resource'):
+            model_mapping.pydantic_model = YamlModelMapping.create_yaml_model(
+                name=resource_name,
+                annotations=model_mapping.pydantic_model.__annotations__,
+                fields={k: v for k, v in model_mapping.pydantic_model.__dict__.items() if not k.startswith('_')},
+                base_class=Resource
+            )
+        return model_mapping
 
     @classmethod
     def _process_collection(
