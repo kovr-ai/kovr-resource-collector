@@ -141,30 +141,29 @@ class Check(BaseModel):
     # framework_name: str  # Reference to framework name from CSV
     # control_name: str    # Reference to control name from CSV
 
-    def evaluate(self, resources: List[Resource]) -> List["CheckResult"]:
+    def evaluate(self, resources: List[Resource]) -> List["CheckResult"] | None:
         """
         Evaluate this check against a resource's data.
-        
+
         Args:
             resources: List containing the resources to evaluate
-            
+
         Returns:
             List[CheckResult]: The results of the check evaluation for each relevant resource
         """
         # Filter resources by resource_type if specified
-        if self.resource_type:
-            filtered_resources = []
-            for resource in resources:
-                # Check if the resource is an instance of the specified type
-                if isinstance(resource, self.resource_type):
-                    filtered_resources.append(resource)
-            resources_to_check = filtered_resources
-        else:
-            # No filtering - use all resources
-            resources_to_check = resources
-        
+        filtered_resources = []
+        for resource in resources:
+            # Check if the resource is an instance of the specified type
+            if isinstance(resource, self.resource_type):
+                filtered_resources.append(resource)
+        # if self.id in ['101']:
+        #     from pdb import set_trace;set_trace()
+        if not filtered_resources:
+            return None
+
         check_results = []
-        for resource in resources_to_check:
+        for resource in filtered_resources:
             try:
                 # Try to extract field value - may fail if field is missing
                 actual_value = self._extract_field_value(resource, self.field_path)
