@@ -62,8 +62,13 @@ class ResourceCollectionService(object):
         if self.connector_type == 'github':
             return [GithubResource]
         elif self.connector_type == 'aws':
-            # return all the
-            return []
+            return [
+                EC2Resource,
+                S3Resource,
+                IAMResource,
+                CloudTrailResource,
+                CloudWatchResource,
+            ]
         raise ValueError(f"Unsupported connector type: {self.connector_type}")
 
     def __init__(
@@ -97,6 +102,10 @@ class ResourceCollectionService(object):
         def get_field_paths(model: Type[BaseModel], prefix: str = "") -> list[str]:
             paths = []
             for field_name, field in model.model_fields.items():
+                # Skip schema-only fields
+                if field_name in ['name', 'description', 'provider', 'service']:
+                    continue
+                
                 field_path = f"{prefix}.{field_name}" if prefix else field_name
                 paths.append(field_path)
 
@@ -109,7 +118,11 @@ class ResourceCollectionService(object):
                         paths.extend(get_field_paths(field.annotation.__args__[0], field_path))
             return paths
 
-        return get_field_paths(self.resource_models)
+        # Get field paths for each resource model
+        all_paths = []
+        for model in self.resource_models:
+            all_paths.extend(get_field_paths(model))
+        return all_paths
 
     def _validate_field_path(
             self,
@@ -121,19 +134,39 @@ class ResourceCollectionService(object):
             # Split the field path into parts
             path_parts = field_path.split('.')
             current = resource
+            print(f"\nChecking {resource.__class__.__name__}.{field_path}...")
 
             # Traverse the resource object following the field path
             for part in path_parts:
                 if not hasattr(current, part):
+                    print(f"❌ Field '{part}' not found")
                     return "not found"
                 current = getattr(current, part)
+                print(f"  ✓ Found '{part}'")
+
+            # If current is a list, check all items
+            if isinstance(current, list):
+                print(f"✅ Found list with {len(current)} items")
+                if len(current) > 0:
+                    for i, item in enumerate(current):
+                        print(f"  Item {i}:")
+                        for field in item.__dict__:
+                            value = getattr(item, field)
+                            print(f"    ✓ {field} = {value}")
+                else:
+                    print("  (Empty list)")
+                return "success"
 
             # If we got here and the value exists, it's a success
             if current is not None:
+                print(f"✅ Found value: {current}")
                 return "success"
+            
+            print(f"⚠️  Field exists but value is None")
             return "not found"  # Field exists but no data
 
         except Exception as e:
+            print(f"❌ Error: {str(e)}")
             return "error"  # Field path is invalid or caused an error
 
     def validate_resource_field_paths(

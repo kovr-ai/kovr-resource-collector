@@ -26,29 +26,6 @@ class ResourceField(BaseModel):
     value: Any
     is_required: bool = False
     description: Optional[str] = None
-    validation_rules: Optional[Dict[str, Any]] = None
-    
-    def validate(self) -> bool:
-        """Validate the field value against its type and rules."""
-        if self.is_required and self.value is None:
-            return False
-        
-        # Basic type validation
-        if self.value is not None:
-            if self.field_type == FieldType.STRING and not isinstance(self.value, str):
-                return False
-            elif self.field_type == FieldType.INTEGER and not isinstance(self.value, int):
-                return False
-            elif self.field_type == FieldType.FLOAT and not isinstance(self.value, (int, float)):
-                return False
-            elif self.field_type == FieldType.BOOLEAN and not isinstance(self.value, bool):
-                return False
-            elif self.field_type == FieldType.LIST and not isinstance(self.value, list):
-                return False
-            elif self.field_type == FieldType.DICT and not isinstance(self.value, dict):
-                return False
-        
-        return True
 
 
 class Resource(BaseModel):
