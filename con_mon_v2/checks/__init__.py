@@ -1,11 +1,15 @@
 from typing import Dict, List, Tuple, Optional, Union
 from .models import Check
-from .db import load_checks_from_database, get_checks_by_ids as db_get_checks_by_ids
+from .db import (
+    load_checks_from_database,
+    load_checks_from_csv,
+    get_checks_by_ids as db_get_checks_by_ids
+)
 
 # Global storage for loaded checks
 _loaded_checks: Dict[str, Check] = {}
 
-def load_checks_from_database_init():
+def load_checks_init():
     """
     Load checks from database and make them accessible as module attributes.
     """
@@ -13,7 +17,9 @@ def load_checks_from_database_init():
 
     try:
         # Load checks from database
-        _loaded_checks = load_checks_from_database()
+        # _loaded_checks = load_checks_from_database()
+        _loaded_checks = load_checks_from_csv()
+        # from pdb import set_trace;set_trace()
 
         # Make checks accessible as module attributes
         for check_name, check in _loaded_checks.items():
@@ -45,4 +51,4 @@ def get_checks_by_ids(
     """
     return db_get_checks_by_ids(_loaded_checks, check_ids)
 
-load_checks_from_database()
+load_checks_init()

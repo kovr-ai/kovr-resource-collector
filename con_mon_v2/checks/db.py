@@ -350,36 +350,19 @@ def _resolve_resource_type(resource_type_name: Optional[str]):
     """
     if not resource_type_name:
         return None
-    
-    try:
-        # Handle different formats of resource type names
-        # Format 1: "<class 'con_mon.resources.dynamic_models.AWSIAMResource'>"
-        if resource_type_name.startswith("<class '") and resource_type_name.endswith("'>"):
-            # Extract the class name from the string
-            class_path = resource_type_name[8:-2]  # Remove "<class '" and "'>"
-            if '.' in class_path:
-                class_name = class_path.split('.')[-1]  # Get the last part
-            else:
-                class_name = class_path
-        # Format 2: "AWSIAMResource" (just the class name)
-        elif '.' not in resource_type_name and not resource_type_name.startswith('<'):
-            class_name = resource_type_name
-        # Format 3: "con_mon.resources.dynamic_models.AWSIAMResource"
-        elif '.' in resource_type_name:
-            class_name = resource_type_name.split('.')[-1]
-        else:
-            class_name = resource_type_name
 
-        # need to get models for resource_type pydantic class for resource on which this check is applicable
-        # This part of the code was removed as per the edit hint.
-        # The original code had a dynamic_models dictionary, but it was not defined in the provided context.
-        # Assuming dynamic_models is defined elsewhere or this part of the logic is incomplete.
-        # For now, we'll return None as a placeholder.
-        return None
-            
-    except Exception as e:
-        logger.warning(f"⚠️ Could not resolve resource type '{resource_type_name}': {e}")
-        return None
+    module_path = resource_type_name.replace("<class '", '').replace("'>", '')
+    # Import the resource_type from module_path
+    module_parts = module_path.split('.')
+    class_name = module_parts[-1]
+    module_name = '.'.join(module_parts[:-1])
+
+    # Import the module
+    import importlib
+    module = importlib.import_module(module_name)
+
+    # Get the class from the module
+    return getattr(module, class_name)
 
 
 def get_checks_by_ids(
