@@ -233,7 +233,7 @@ class YamlField(BaseModel):
 
 
 class YamlModelMapping(BaseModel):
-    pydantic_model: Type[YamlModel]
+    pydantic_model: Type[Union[YamlModel, Resource, ResourceCollection]]
     fields: List[YamlField]
     is_list: bool = False
 
@@ -246,29 +246,13 @@ class YamlModelMapping(BaseModel):
             base_class: Type[BaseModel] = Resource
     ) -> Type[YamlModel]:
         """Create a new Pydantic model type with the given fields."""
-        # For resource models, include base Resource fields
-        if base_class == Resource:
-            model_annotations = {
-                'id': str,
-                'source_connector': str,
-                **annotations
-            }
-            model_fields = {
-                'id': Field(...),
-                'source_connector': Field(...),
-                **fields
-            }
-        else:
-            model_annotations = annotations
-            model_fields = fields
-
-        # Create the model class
+        # Create the model class with only YAML-defined fields
         model = type(
             name,
             (base_class,),
             {
-                '__annotations__': model_annotations,
-                **model_fields
+                '__annotations__': annotations,
+                **fields
             }
         )
         return model
@@ -348,8 +332,7 @@ class ResourceYamlMapping(BaseModel):
     @staticmethod
     def _load_yaml_data(path_or_dict: str | dict) -> dict:
         """Load YAML data from file path or dict."""
-        if isinstance(path_or_dict, str):
-            import yaml
+        if isinstance(path_or_dict, (str, Path)):
             with open(path_or_dict, 'r') as f:
                 return yaml.safe_load(f)
         return path_or_dict
@@ -374,33 +357,8 @@ class ResourceYamlMapping(BaseModel):
         collection_name = f"{connector_type.title()}ResourceCollection"
         
         # Create collection model inheriting from ResourceCollection
-        model = YamlModelMapping.create_yaml_model(
-            name=collection_name,
-            annotations={
-                'resources': List[Resource],
-                'source_connector': str,
-                'total_count': int,
-                'fetched_at': datetime
-            },
-            fields={
-                'resources': Field(default_factory=list),
-                'source_connector': Field(...),
-                'total_count': Field(...),
-                'fetched_at': Field(default_factory=datetime.now)
-            },
-            base_class=ResourceCollection
-        )
-
-        return YamlModelMapping(
-            pydantic_model=model,
-            fields=[
-                YamlField(name='resources', dtype=YamlFieldType.LIST),
-                YamlField(name='source_connector', dtype=YamlFieldType.STRING),
-                YamlField(name='total_count', dtype=YamlFieldType.INTEGER),
-                YamlField(name='fetched_at', dtype=YamlFieldType.STRING)
-            ],
-            is_list=False
-        )
+        fields_dict = {collection_name: collection_def}
+        return YamlModelMapping.load_yaml(fields_dict)
 
     @classmethod
     def load_yaml(
