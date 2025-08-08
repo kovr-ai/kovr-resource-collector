@@ -245,6 +245,7 @@ def test_github_organization_data_mapping():
         print(f"\nChecking {path}...")
         value = get_field_value(rc.resources[0], path)
         assert isinstance(value, list), f"Field {path} should be a list"
+        print(f"Value: {value}")
     
     # Test count fields
     count_paths = [
@@ -258,6 +259,7 @@ def test_github_organization_data_mapping():
         print(f"\nChecking {path}...")
         value = get_field_value(rc.resources[0], path)
         assert isinstance(value, int), f"Field {path} should be an integer"
+        print(f"Value: {value}")
     
     # Test error fields exist (can be None)
     error_paths = [
@@ -268,4 +270,227 @@ def test_github_organization_data_mapping():
     
     for path in error_paths:
         print(f"\nChecking {path}...")
-        assert check_field_exists(rc.resources[0], path), f"Field {path} should exist" 
+        assert check_field_exists(rc.resources[0], path), f"Field {path} should exist"
+        value = get_field_value(rc.resources[0], path)
+        print(f"Value: {value}")
+
+
+def test_aws_ec2_resource_mapping():
+    """Test AWS EC2 resource field mappings."""
+    rc_service = ResourceCollectionService('aws')
+    rc = rc_service.get_resource_collection()
+    
+    # Find EC2 resource in the collection
+    ec2_resource = next((r for r in rc.resources if r.__class__.__name__ == 'EC2Resource'), None)
+    assert ec2_resource is not None, "EC2Resource not found in collection"
+    
+    # Test instance fields
+    instance_paths = [
+        'instances',  # Dictionary of instance_id -> instance_data
+    ]
+    
+    for path in instance_paths:
+        print(f"\nChecking EC2 {path}...")
+        assert check_field_exists(ec2_resource, path), f"Field {path} should exist"
+        value = get_field_value(ec2_resource, path)
+        print(f"Value: {value}")
+        
+        # Test instance fields if instances exist
+        if value:
+            instance = list(value.values())[0]  # Get first instance
+            instance_fields = [
+                'instance_id', 'instance_type', 'state', 'private_ip_address',
+                'public_ip_address', 'launch_time', 'vpc_id', 'subnet_id',
+                'availability_zone', 'security_groups'
+            ]
+            for field in instance_fields:
+                print(f"\nChecking instance.{field}...")
+                assert hasattr(instance, field), f"Instance should have {field}"
+                print(f"Value: {getattr(instance, field)}")
+
+    # Test VPC fields
+    vpc_paths = [
+        'vpcs',  # Dictionary of vpc_id -> vpc_data
+    ]
+    
+    for path in vpc_paths:
+        print(f"\nChecking EC2 {path}...")
+        assert check_field_exists(ec2_resource, path), f"Field {path} should exist"
+        value = get_field_value(ec2_resource, path)
+        print(f"Value: {value}")
+        
+        # Test VPC fields if VPCs exist
+        if value:
+            vpc = list(value.values())[0]  # Get first VPC
+            vpc_fields = [
+                'vpc_id', 'state', 'cidr_block', 'dhcp_options_id',
+                'instance_tenancy', 'is_default'
+            ]
+            for field in vpc_fields:
+                print(f"\nChecking vpc.{field}...")
+                assert hasattr(vpc, field), f"VPC should have {field}"
+                print(f"Value: {getattr(vpc, field)}")
+
+
+def test_aws_iam_resource_mapping():
+    """Test AWS IAM resource field mappings."""
+    rc_service = ResourceCollectionService('aws')
+    rc = rc_service.get_resource_collection()
+    
+    # Find IAM resource in the collection
+    iam_resource = next((r for r in rc.resources if r.__class__.__name__ == 'IAMResource'), None)
+    assert iam_resource is not None, "IAMResource not found in collection"
+    
+    # Test users dictionary
+    print("\nChecking IAM users...")
+    assert hasattr(iam_resource, 'users'), "IAM resource should have users"
+    users = iam_resource.users
+    print(f"Users: {users}")
+    
+    if users:
+        user = list(users.values())[0]  # Get first user
+        user_fields = [
+            'arn', 'user_id', 'create_date', 'path',
+            'access_keys', 'mfa_devices'
+        ]
+        for field in user_fields:
+            print(f"\nChecking user.{field}...")
+            assert hasattr(user, field), f"User should have {field}"
+            print(f"Value: {getattr(user, field)}")
+    
+    # Test policies dictionary
+    print("\nChecking IAM policies...")
+    assert hasattr(iam_resource, 'policies'), "IAM resource should have policies"
+    policies = iam_resource.policies
+    print(f"Policies: {policies}")
+    
+    if policies:
+        policy = list(policies.values())[0]  # Get first policy
+        policy_fields = [
+            'policy_name', 'policy_id', 'create_date', 'update_date',
+            'path', 'default_version_id', 'attachment_count'
+        ]
+        for field in policy_fields:
+            print(f"\nChecking policy.{field}...")
+            assert hasattr(policy, field), f"Policy should have {field}"
+            print(f"Value: {getattr(policy, field)}")
+
+
+def test_aws_s3_resource_mapping():
+    """Test AWS S3 resource field mappings."""
+    rc_service = ResourceCollectionService('aws')
+    rc = rc_service.get_resource_collection()
+    
+    # Find S3 resource in the collection
+    s3_resource = next((r for r in rc.resources if r.__class__.__name__ == 'S3Resource'), None)
+    assert s3_resource is not None, "S3Resource not found in collection"
+    
+    # Test buckets dictionary
+    print("\nChecking S3 buckets...")
+    assert hasattr(s3_resource, 'buckets'), "S3 resource should have buckets"
+    buckets = s3_resource.buckets
+    print(f"Buckets: {buckets}")
+    
+    if buckets:
+        bucket = list(buckets.values())[0]  # Get first bucket
+        bucket_fields = [
+            'name', 'creation_date', 'region',
+            'versioning_enabled', 'logging_enabled',
+            'public_access_blocked', 'encryption_enabled'
+        ]
+        for field in bucket_fields:
+            print(f"\nChecking bucket.{field}...")
+            assert hasattr(bucket, field), f"Bucket should have {field}"
+            print(f"Value: {getattr(bucket, field)}")
+
+
+def test_aws_cloudwatch_resource_mapping():
+    """Test AWS CloudWatch resource field mappings."""
+    rc_service = ResourceCollectionService('aws')
+    rc = rc_service.get_resource_collection()
+    
+    # Find CloudWatch resource in the collection
+    cw_resource = next((r for r in rc.resources if r.__class__.__name__ == 'CloudWatchResource'), None)
+    assert cw_resource is not None, "CloudWatchResource not found in collection"
+    
+    # Test log groups dictionary
+    print("\nChecking CloudWatch log groups...")
+    assert hasattr(cw_resource, 'log_groups'), "CloudWatch resource should have log_groups"
+    log_groups = cw_resource.log_groups
+    print(f"Log Groups: {log_groups}")
+    
+    if log_groups:
+        log_group = list(log_groups.values())[0]  # Get first log group
+        log_group_fields = [
+            'log_group_name', 'creation_time', 'retention_in_days',
+            'metric_filter_count', 'arn', 'stored_bytes'
+        ]
+        for field in log_group_fields:
+            print(f"\nChecking log_group.{field}...")
+            assert hasattr(log_group, field), f"Log group should have {field}"
+            print(f"Value: {getattr(log_group, field)}")
+    
+    # Test metrics list
+    print("\nChecking CloudWatch metrics...")
+    assert hasattr(cw_resource, 'metrics'), "CloudWatch resource should have metrics"
+    metrics = cw_resource.metrics
+    print(f"Metrics: {metrics}")
+    
+    if metrics:
+        metric = metrics[0]  # Get first metric
+        metric_fields = ['namespace', 'metric_name', 'dimensions']
+        for field in metric_fields:
+            print(f"\nChecking metric.{field}...")
+            assert hasattr(metric, field), f"Metric should have {field}"
+            print(f"Value: {getattr(metric, field)}")
+
+
+def test_aws_cloudtrail_resource_mapping():
+    """Test AWS CloudTrail resource field mappings."""
+    rc_service = ResourceCollectionService('aws')
+    rc = rc_service.get_resource_collection()
+    
+    # Find CloudTrail resource in the collection
+    ct_resource = next((r for r in rc.resources if r.__class__.__name__ == 'CloudTrailResource'), None)
+    assert ct_resource is not None, "CloudTrailResource not found in collection"
+    
+    # Test trails dictionary
+    print("\nChecking CloudTrail trails...")
+    assert hasattr(ct_resource, 'trails'), "CloudTrail resource should have trails"
+    trails = ct_resource.trails
+    print(f"Trails: {trails}")
+    
+    if trails:
+        trail = list(trails.values())[0]  # Get first trail
+        trail_fields = [
+            'name', 'arn', 'is_multi_region_trail',
+            'home_region', 'log_file_validation_enabled',
+            'cloud_watch_logs_log_group_arn',
+            'cloud_watch_logs_role_arn',
+            'kms_key_id'
+        ]
+        for field in trail_fields:
+            print(f"\nChecking trail.{field}...")
+            assert hasattr(trail, field), f"Trail should have {field}"
+            print(f"Value: {getattr(trail, field)}")
+    
+    # Test event selectors
+    print("\nChecking CloudTrail event selectors...")
+    assert hasattr(ct_resource, 'event_selectors'), "CloudTrail resource should have event_selectors"
+    event_selectors = ct_resource.event_selectors
+    print(f"Event Selectors: {event_selectors}")
+    
+    if event_selectors:
+        selector = event_selectors[0]  # Get first selector
+        selector_fields = [
+            'read_write_type', 'include_management_events',
+            'data_resources'
+        ]
+        for field in selector_fields:
+            print(f"\nChecking event_selector.{field}...")
+            assert hasattr(selector, field), f"Event selector should have {field}"
+            print(f"Value: {getattr(selector, field)}")
+
+
+if __name__ == "__main__":
+    test_aws_ec2_resource_mapping()
