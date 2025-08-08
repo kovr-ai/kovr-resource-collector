@@ -383,8 +383,59 @@ class ResourceYamlMapping(BaseModel):
     resources: List[YamlModelMapping]
     resources_collection: YamlModelMapping
 
+    @staticmethod
+    def _load_yaml_data(path_or_dict: str | Path | dict) -> dict:
+        """
+        Load YAML data from either a file path or a dictionary.
+
+        Args:
+            path_or_dict: Either a path to a YAML file (str or Path) or a dictionary containing the YAML data
+
+        Returns:
+            dict: The loaded YAML data
+
+        Raises:
+            FileNotFoundError: If the YAML file does not exist
+            yaml.YAMLError: If the YAML file is invalid
+            ValueError: If the input format is invalid
+        """
+        if isinstance(path_or_dict, (str, Path)):
+            if not os.path.exists(str(path_or_dict)):
+                raise FileNotFoundError(f"YAML file not found: {path_or_dict}")
+            
+            with open(path_or_dict, 'r') as file:
+                return yaml.safe_load(file)
+        elif isinstance(path_or_dict, dict):
+            return path_or_dict
+        else:
+            raise ValueError("Input must be either a file path (str or Path) or a dictionary")
+
     @classmethod
-    def load_yaml(cls, path_or_dict: str | dict) -> Dict[str, 'ResourceYamlMapping']:
+    def _process_resource(
+            cls,
+            resource_name: str,
+            resource_def: dict[str, Any]
+    ) -> YamlModelMapping:
+        """Process a single resource definition into a YamlModelMapping."""
+        # Process the resource fields
+        fields_dict = {resource_name: resource_def.get('fields', {})}
+        return YamlModelMapping.load_yaml(fields_dict)
+
+    @classmethod
+    def _process_collection(
+            cls,
+            collection_def: dict[str, Any]
+    ) -> YamlModelMapping:
+        """Process resource collection definition into a YamlModelMapping."""
+        # Create a dictionary with collection fields
+        fields_dict = {'ResourceCollection': collection_def.get('fields', {})}
+        return YamlModelMapping.load_yaml(fields_dict)
+
+    @classmethod
+    def load_yaml(
+            cls,
+            path_or_dict: str | dict
+    ) -> Dict[str, 'ResourceYamlMapping']:
         """
         Load resource configuration from a YAML file or dictionary.
 
@@ -399,4 +450,29 @@ class ResourceYamlMapping(BaseModel):
             yaml.YAMLError: If the YAML file is invalid
             ValueError: If the input format is invalid
         """
-        pass
+        yaml_data = cls._load_yaml_data(path_or_dict)
+        result = {}
+
+        # Process each provider's configuration
+        for provider_name, provider_data in yaml_data.items():
+            if not isinstance(provider_data, dict):
+                continue
+
+            # Process resources
+            resources = []
+            for resource_name, resource_def in provider_data.get('resources', {}).items():
+                resource_mapping = cls._process_resource(resource_name, resource_def)
+                resources.append(resource_mapping)
+
+            # Process resource collection
+            collection_data = provider_data.get('resource_collection', {})
+            collection_mapping = cls._process_collection(collection_data)
+
+            # Create the mapping for this provider
+            result[provider_name] = cls(
+                connector_type=provider_name,
+                resources=resources,
+                resources_collection=collection_mapping
+            )
+
+        return result
