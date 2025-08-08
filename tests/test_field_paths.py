@@ -278,13 +278,12 @@ def test_aws_ec2_resource_mapping():
     rc = rc_service.get_resource_collection()
     
     # Find EC2 resource in the collection
-    from pdb import set_trace; set_trace()
     ec2_resource = next((r for r in rc.resources if r.__class__.__name__ == 'EC2Resource'), None)
     assert ec2_resource is not None, "EC2Resource not found in collection"
     
     # Test instance fields
     instance_paths = [
-        'instances',  # Dictionary of instance_id -> instance_data
+        'instances',  # List of instances
     ]
     
     for path in instance_paths:
@@ -295,9 +294,9 @@ def test_aws_ec2_resource_mapping():
         
         # Test instance fields if instances exist
         if value:
-            instance = list(value.values())[0]  # Get first instance
+            instance = value[0]  # Get first instance
             instance_fields = [
-                'instance_id', 'instance_type', 'state', 'private_ip_address',
+                'id', 'instance_type', 'state', 'private_ip_address',
                 'public_ip_address', 'launch_time', 'vpc_id', 'subnet_id',
                 'availability_zone', 'security_groups'
             ]
@@ -308,7 +307,7 @@ def test_aws_ec2_resource_mapping():
 
     # Test VPC fields
     vpc_paths = [
-        'vpcs',  # Dictionary of vpc_id -> vpc_data
+        'vpcs',  # List of VPCs
     ]
     
     for path in vpc_paths:
@@ -319,9 +318,9 @@ def test_aws_ec2_resource_mapping():
         
         # Test VPC fields if VPCs exist
         if value:
-            vpc = list(value.values())[0]  # Get first VPC
+            vpc = value[0]  # Get first VPC
             vpc_fields = [
-                'vpc_id', 'state', 'cidr_block', 'dhcp_options_id',
+                'id', 'state', 'cidr_block', 'dhcp_options_id',
                 'instance_tenancy', 'is_default'
             ]
             for field in vpc_fields:
@@ -339,16 +338,16 @@ def test_aws_iam_resource_mapping():
     iam_resource = next((r for r in rc.resources if r.__class__.__name__ == 'IAMResource'), None)
     assert iam_resource is not None, "IAMResource not found in collection"
     
-    # Test users dictionary
+    # Test users list
     print("\nChecking IAM users...")
     assert hasattr(iam_resource, 'users'), "IAM resource should have users"
     users = iam_resource.users
     print(f"Users: {users}")
     
     if users:
-        user = list(users.values())[0]  # Get first user
+        user = users[0]  # Get first user
         user_fields = [
-            'arn', 'user_id', 'create_date', 'path',
+            'id', 'arn', 'user_id', 'create_date', 'path',
             'access_keys', 'mfa_devices'
         ]
         for field in user_fields:
@@ -356,16 +355,16 @@ def test_aws_iam_resource_mapping():
             assert hasattr(user, field), f"User should have {field}"
             print(f"Value: {getattr(user, field)}")
     
-    # Test policies dictionary
+    # Test policies list
     print("\nChecking IAM policies...")
     assert hasattr(iam_resource, 'policies'), "IAM resource should have policies"
     policies = iam_resource.policies
     print(f"Policies: {policies}")
     
     if policies:
-        policy = list(policies.values())[0]  # Get first policy
+        policy = policies[0]  # Get first policy
         policy_fields = [
-            'policy_name', 'policy_id', 'create_date', 'update_date',
+            'id', 'policy_name', 'policy_id', 'create_date', 'update_date',
             'path', 'default_version_id', 'attachment_count'
         ]
         for field in policy_fields:
@@ -383,18 +382,18 @@ def test_aws_s3_resource_mapping():
     s3_resource = next((r for r in rc.resources if r.__class__.__name__ == 'S3Resource'), None)
     assert s3_resource is not None, "S3Resource not found in collection"
     
-    # Test buckets dictionary
+    # Test buckets list
     print("\nChecking S3 buckets...")
     assert hasattr(s3_resource, 'buckets'), "S3 resource should have buckets"
     buckets = s3_resource.buckets
     print(f"Buckets: {buckets}")
     
     if buckets:
-        bucket = list(buckets.values())[0]  # Get first bucket
+        bucket = buckets[0]  # Get first bucket
         bucket_fields = [
-            'name', 'creation_date', 'region',
-            'versioning_enabled', 'logging_enabled',
-            'public_access_blocked', 'encryption_enabled'
+            'id', 'name', 'creation_date', 'region',
+            'versioning_status', 'logging_enabled',
+            'website_enabled', 'encryption'
         ]
         for field in bucket_fields:
             print(f"\nChecking bucket.{field}...")
@@ -411,16 +410,16 @@ def test_aws_cloudwatch_resource_mapping():
     cw_resource = next((r for r in rc.resources if r.__class__.__name__ == 'CloudWatchResource'), None)
     assert cw_resource is not None, "CloudWatchResource not found in collection"
     
-    # Test log groups dictionary
+    # Test log groups list
     print("\nChecking CloudWatch log groups...")
     assert hasattr(cw_resource, 'log_groups'), "CloudWatch resource should have log_groups"
     log_groups = cw_resource.log_groups
     print(f"Log Groups: {log_groups}")
     
     if log_groups:
-        log_group = list(log_groups.values())[0]  # Get first log group
+        log_group = log_groups[0]  # Get first log group
         log_group_fields = [
-            'log_group_name', 'creation_time', 'retention_in_days',
+            'id', 'log_group_name', 'creation_time', 'retention_in_days',
             'metric_filter_count', 'arn', 'stored_bytes'
         ]
         for field in log_group_fields:
@@ -452,16 +451,16 @@ def test_aws_cloudtrail_resource_mapping():
     ct_resource = next((r for r in rc.resources if r.__class__.__name__ == 'CloudTrailResource'), None)
     assert ct_resource is not None, "CloudTrailResource not found in collection"
     
-    # Test trails dictionary
+    # Test trails list
     print("\nChecking CloudTrail trails...")
     assert hasattr(ct_resource, 'trails'), "CloudTrail resource should have trails"
     trails = ct_resource.trails
     print(f"Trails: {trails}")
     
     if trails:
-        trail = list(trails.values())[0]  # Get first trail
+        trail = trails[0]  # Get first trail
         trail_fields = [
-            'name', 'arn', 'is_multi_region_trail',
+            'id', 'name', 'arn', 'is_multi_region_trail',
             'home_region', 'log_file_validation_enabled',
             'cloud_watch_logs_log_group_arn',
             'cloud_watch_logs_role_arn',

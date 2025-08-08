@@ -250,6 +250,7 @@ github:
   resource_collection:
     resources[]:
       - "github.resources.GithubResource"
+    source_connector: "string"
     total_count: "integer"
     fetched_at: "string"
 
@@ -552,5 +553,6 @@ aws:
       - "aws.resources.S3Resource"
       - "aws.resources.CloudTrailResource"
       - "aws.resources.CloudWatchResource"
+    source_connector: "string"
     total_count: "integer"
     fetched_at: "string"

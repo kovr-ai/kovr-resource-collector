@@ -270,24 +270,24 @@ class YamlModelMapping(BaseModel):
         for field_name, field_def in yaml_data.items():
             is_field_list = field_name.endswith('[]')
             clean_field_name = field_name[:-2] if is_field_list else field_name
-            print(f"Processing field: {field_name} (clean: {clean_field_name}, is_list: {is_field_list})")
-            print(f"Field definition: {field_def}")
 
             if isinstance(field_def, str):
+                # Get the base type (string, integer, etc.)
                 field_type = YamlFieldType(field_def) if field_def in YamlFieldType._value2member_map_ else YamlFieldType.ANY
-                yaml_field = YamlField(name=clean_field_name, dtype=YamlFieldType.LIST if is_field_list else field_type)
-                fields.append(yaml_field)
-
-                python_type = YamlFieldType.yaml_field_type_to_python_type(yaml_field.dtype)
-                print(f"Python type before list: {python_type}")
+                python_type = YamlFieldType.yaml_field_type_to_python_type(field_type)
+                
                 if is_field_list:
+                    # For array types, wrap the base type in List
+                    yaml_field = YamlField(name=clean_field_name, dtype=YamlFieldType.LIST)
                     model_annotations[clean_field_name] = List[python_type]
-                    print(f"Final type for {clean_field_name}: List[{python_type}]")
                     model_fields[clean_field_name] = Field(default_factory=list)
                 else:
+                    # For non-array types
+                    yaml_field = YamlField(name=clean_field_name, dtype=field_type)
                     model_annotations[clean_field_name] = Union[python_type, None]
-                    print(f"Final type for {clean_field_name}: Union[{python_type}, None]")
                     model_fields[clean_field_name] = Field(default=None)
+                
+                fields.append(yaml_field)
 
             elif isinstance(field_def, dict):
                 nested_name = f"{parent_name}_{clean_field_name}" if parent_name else clean_field_name
@@ -299,16 +299,17 @@ class YamlModelMapping(BaseModel):
                     fields=nested_field_defs
                 )
 
-                yaml_field = YamlField(name=clean_field_name, dtype=YamlFieldType.LIST if is_field_list else YamlFieldType.OBJECT)
-                fields.append(yaml_field)
-                fields.extend(nested_fields)
-
                 if is_field_list:
-                    model_annotations[clean_field_name] = Union[List[nested_model], None]
+                    yaml_field = YamlField(name=clean_field_name, dtype=YamlFieldType.LIST)
+                    model_annotations[clean_field_name] = List[nested_model]
                     model_fields[clean_field_name] = Field(default_factory=list)
                 else:
+                    yaml_field = YamlField(name=clean_field_name, dtype=YamlFieldType.OBJECT)
                     model_annotations[clean_field_name] = Union[nested_model, None]
                     model_fields[clean_field_name] = Field(default=None)
+
+                fields.append(yaml_field)
+                fields.extend(nested_fields)
 
         return fields, model_annotations, model_fields
 
@@ -375,7 +376,14 @@ class ResourceYamlMapping(BaseModel):
         
         # Create collection model inheriting from ResourceCollection
         fields_dict = {collection_name: collection_def}
-        return YamlModelMapping.load_yaml(fields_dict)
+        model_mapping = YamlModelMapping.load_yaml(fields_dict)
+        model_mapping.pydantic_model = YamlModelMapping.create_yaml_model(
+            name=collection_name,
+            annotations=model_mapping.pydantic_model.__annotations__,
+            fields={k: v for k, v in model_mapping.pydantic_model.__dict__.items() if not k.startswith('_')},
+            base_class=ResourceCollection
+        )
+        return model_mapping
 
     @classmethod
     def load_yaml(

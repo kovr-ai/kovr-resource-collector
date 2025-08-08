@@ -207,7 +207,7 @@ class AWSProvider(Provider):
                     ec2_resource_data = {
                         'region': region_name,
                         'instances': _dict_to_list_with_id(ec2_data.get('instances', {})),
-                        'security_groups': _dict_to_list_with_id(ec2_data.get('security_groups', {})),
+                        'security_groups': ec2_data.get('security_groups', list()),
                         'vpcs': _dict_to_list_with_id(ec2_data.get('vpcs', {})),
                         'subnets': _dict_to_list_with_id(ec2_data.get('subnets', {})),
                         'route_tables': _dict_to_list_with_id(ec2_data.get('route_tables', {})),
