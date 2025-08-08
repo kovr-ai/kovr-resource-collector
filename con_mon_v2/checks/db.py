@@ -31,27 +31,17 @@ def load_checks_from_database() -> Dict[str, Check]:
     WHERE is_deleted = false
     ORDER BY name;
     """
-    
-    try:
-        results = db.execute_query(select_sql)
-        
-        for row in results:
-            try:
-                # Convert database row to Check object
-                check = _create_check_from_db_row(row)
-                if check:
-                    loaded_checks[check.name] = check
-                    
-            except Exception as e:
-                logger.error(f"❌ Failed to create check from row {row.get('id', 'unknown')}: {e}")
-                continue
-        
-        logger.info(f"✅ Loaded {len(loaded_checks)} checks from database")
-        return loaded_checks
-        
-    except Exception as e:
-        logger.error(f"❌ Failed to load checks from database: {e}")
-        return {}
+
+    results = db.execute_query(select_sql)
+
+    for row in results:
+            # Convert database row to Check object
+            check = _create_check_from_db_row(row)
+            if check:
+                loaded_checks[check.name] = check
+
+    logger.info(f"✅ Loaded {len(loaded_checks)} checks from database")
+    return loaded_checks
 
 
 def _create_check_from_db_row(row: Dict[str, Any]) -> Optional[Check]:
@@ -64,109 +54,104 @@ def _create_check_from_db_row(row: Dict[str, Any]) -> Optional[Check]:
     Returns:
         Check object or None if creation fails
     """
-    try:
-        # Extract metadata for execution fields
-        metadata = row.get('metadata', {})
-        
-        # Get connection_id from metadata
-        connection_id = metadata.get('connection_id', 1)
-        
-        # Get field_path from metadata
-        field_path = metadata.get('field_path', 'data')
-        
-        # Create operation from metadata
-        operation = _create_operation_from_metadata(metadata)
-        
-        # Get expected_value from metadata
-        expected_value = metadata.get('expected_value')
-        
-        # Get resource_type from metadata
-        resource_type = _resolve_resource_type(metadata.get('resource_type'))
-        
-        # Create nested objects with proper type conversion
-        check_metadata = CheckMetadata(
-            tags=metadata.get('tags', []),
-            severity=metadata.get('severity'),
-            category=metadata.get('category')
-        )
-        
-        # Create output_statements object
-        output_data = row.get('output_statements', {})
-        if isinstance(output_data, dict) and output_data:
-            try:
-                output_statements = CheckResultStatement(**output_data)
-            except Exception:
-                # If data doesn't match expected structure, use default
-                output_statements = CheckResultStatement(success="", failure="", partial="")
-        else:
+    # Extract metadata for execution fields
+    metadata = row.get('metadata', {})
+
+    # Get connection_id from metadata
+    connection_id = metadata.get('connection_id', 1)
+
+    # Get field_path from metadata
+    field_path = metadata.get('field_path', 'data')
+
+    # Create operation from metadata
+    operation = _create_operation_from_metadata(metadata)
+
+    # Get expected_value from metadata
+    expected_value = metadata.get('expected_value')
+
+    # Get resource_type from metadata
+    resource_type = _resolve_resource_type(metadata.get('resource_type'))
+
+    # Create nested objects with proper type conversion
+    check_metadata = CheckMetadata(
+        tags=metadata.get('tags', []),
+        severity=metadata.get('severity'),
+        category=metadata.get('category')
+    )
+
+    # Create output_statements object
+    output_data = row.get('output_statements', {})
+    if isinstance(output_data, dict) and output_data:
+        try:
+            output_statements = CheckResultStatement(**output_data)
+        except Exception:
+            # If data doesn't match expected structure, use default
             output_statements = CheckResultStatement(success="", failure="", partial="")
-        
-        # Create fix_details object  
-        fix_data = row.get('fix_details', {})
-        if isinstance(fix_data, dict) and fix_data:
-            try:
-                fix_details = CheckFailureFix(**fix_data)
-            except Exception:
-                # If data doesn't match expected structure, use default
-                fix_details = CheckFailureFix(
-                    description="", 
-                    instructions=[], 
-                    estimated_date="",
-                    automation_available=False
-                )
-        else:
+    else:
+        output_statements = CheckResultStatement(success="", failure="", partial="")
+
+    # Create fix_details object
+    fix_data = row.get('fix_details', {})
+    if isinstance(fix_data, dict) and fix_data:
+        try:
+            fix_details = CheckFailureFix(**fix_data)
+        except Exception:
+            # If data doesn't match expected structure, use default
             fix_details = CheckFailureFix(
-                description="", 
-                instructions=[], 
+                description="",
+                instructions=[],
                 estimated_date="",
                 automation_available=False
             )
-        
-        # Handle datetime conversion
-        created_at = row.get('created_at')
-        if isinstance(created_at, str):
-            try:
-                created_at = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
-            except Exception:
-                created_at = datetime.now()
-        elif not isinstance(created_at, datetime):
-            created_at = datetime.now()
-            
-        updated_at = row.get('updated_at')
-        if isinstance(updated_at, str):
-            try:
-                updated_at = datetime.fromisoformat(updated_at.replace('Z', '+00:00'))
-            except Exception:
-                updated_at = datetime.now()
-        elif not isinstance(updated_at, datetime):
-            updated_at = datetime.now()
-        
-        # Create Check object
-        check = Check(
-            id=row['id'],
-            connection_id=connection_id,
-            name=row['name'],
-            field_path=field_path,
-            operation=operation,
-            expected_value=expected_value,
-            description=row.get('description'),
-            resource_type=resource_type,
-            # Database-specific fields with proper type conversion
-            output_statements=output_statements,
-            fix_details=fix_details,
-            created_by=row.get('created_by', 'system'),
-            updated_by=row.get('updated_by', 'system'),
-            created_at=created_at,
-            updated_at=updated_at,
-            is_deleted=row.get('is_deleted', False),
-            metadata=check_metadata
+    else:
+        fix_details = CheckFailureFix(
+            description="",
+            instructions=[],
+            estimated_date="",
+            automation_available=False
         )
-        
-        return check
-        
-    except Exception as e:
-        logger.error(f"❌ Error creating check from database row: {e}")
-        return None
+
+    # Handle datetime conversion
+    created_at = row.get('created_at')
+    if isinstance(created_at, str):
+        try:
+            created_at = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+        except Exception:
+            created_at = datetime.now()
+    elif not isinstance(created_at, datetime):
+        created_at = datetime.now()
+
+    updated_at = row.get('updated_at')
+    if isinstance(updated_at, str):
+        try:
+            updated_at = datetime.fromisoformat(updated_at.replace('Z', '+00:00'))
+        except Exception:
+            updated_at = datetime.now()
+    elif not isinstance(updated_at, datetime):
+        updated_at = datetime.now()
+
+    # Create Check object
+    check = Check(
+        id=row['id'],
+        connection_id=connection_id,
+        name=row['name'],
+        field_path=field_path,
+        operation=operation,
+        expected_value=expected_value,
+        description=row.get('description'),
+        resource_type=resource_type,
+        # Database-specific fields with proper type conversion
+        output_statements=output_statements,
+        fix_details=fix_details,
+        created_by=row.get('created_by', 'system'),
+        updated_by=row.get('updated_by', 'system'),
+        created_at=created_at,
+        updated_at=updated_at,
+        is_deleted=row.get('is_deleted', False),
+        metadata=check_metadata
+    )
+
+    return check
 
 
 def _create_operation_from_metadata(metadata: Dict[str, Any]) -> ComparisonOperation:
