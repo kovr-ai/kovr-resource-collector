@@ -185,8 +185,8 @@ INSERT INTO con_mon_results (
     print(f"   • Contains {len(processed_results)} check results")
 
 
-def _insert_into_database(processed_results: List[dict], customer_id: str, connection_id: int):
-    """Insert check results into both history and current results tables using bulk operations."""
+def _insert_into_database(processed_results: List[dict], customer_id: str, connection_id: int, batch_size: int = 50):
+    """Insert check results into both history and current results tables using bulk operations in batches."""
     database = get_db()
     
     if not database._connection_pool:
@@ -197,95 +197,109 @@ def _insert_into_database(processed_results: List[dict], customer_id: str, conne
     print(f"\n💾 **Bulk Inserting into Database:**")
     print(f"   • Database: {database._connection_pool._kwargs.get('database', 'unknown')}")
     print(f"   • Host: {database._connection_pool._kwargs.get('host', 'unknown')}")
-    print(f"   • Processing {len(processed_results)} check results in bulk...")
-    
-    # Prepare all parameters for bulk operations
-    all_params = []
-    check_ids_to_delete = []
-    
-    for result in processed_results:
-        params = (
-            customer_id,
-            connection_id,
-            result['check_id'],
-            result['overall_result'],
-            result['result_message'],
-            result['success_count'],
-            result['failure_count'],
-            result['success_percentage'],
-            safe_json_dumps(result['success_resources']),  # Will be cast to JSONB by PostgreSQL
-            safe_json_dumps(result['failed_resources']),
-            safe_json_dumps([]),  # Empty exclusions array
-            safe_json_dumps(result['resource_collection_dict'])
-        )
-        all_params.append(params)
-        check_ids_to_delete.append(result['check_id'])
+    print(f"   • Processing {len(processed_results)} check results in batches of {batch_size}...")
     
     try:
         with database.get_connection() as conn:
             with conn.cursor() as cursor:
-                # Step 1: Bulk INSERT into history table (con_mon_results_history)
-                print(f"\n📜 **Step 1: Bulk inserting into history table...**")
-                history_insert_sql = """
-                INSERT INTO con_mon_results_history (
-                    customer_id, connection_id, check_id, result, result_message,
-                    success_count, failure_count, success_percentage,
-                    success_resources, failed_resources, exclusions, resource_json
-                ) VALUES (
-                    %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
-                );
-                """
+                total_history_inserted = 0
+                total_current_deleted = 0
+                total_current_inserted = 0
                 
-                cursor.executemany(history_insert_sql, all_params)
-                history_inserted = cursor.rowcount
-                print(f"   ✅ Inserted {history_inserted} records into con_mon_results_history")
-                
-                # Step 2: Bulk DELETE from current results table
-                print(f"\n🗑️  **Step 2: Bulk deleting from current results table...**")
-                if len(check_ids_to_delete) == 1:
-                    delete_current_sql = """
-                    DELETE FROM con_mon_results 
-                    WHERE customer_id = %s AND connection_id = %s AND check_id = %s;
+                # Process in batches
+                for i in range(0, len(processed_results), batch_size):
+                    batch = processed_results[i:i + batch_size]
+                    print(f"\n📦 **Processing batch {(i//batch_size) + 1} ({len(batch)} records)...**")
+                    
+                    # Prepare batch parameters
+                    batch_params = []
+                    batch_check_ids = []
+                    
+                    for result in batch:
+                        params = (
+                            customer_id,
+                            connection_id,
+                            result['check_id'],
+                            result['overall_result'],
+                            result['result_message'],
+                            result['success_count'],
+                            result['failure_count'],
+                            result['success_percentage'],
+                            safe_json_dumps(result['success_resources']),
+                            safe_json_dumps(result['failed_resources']),
+                            safe_json_dumps([]),  # Empty exclusions array
+                            safe_json_dumps(result['resource_collection_dict'])
+                        )
+                        batch_params.append(params)
+                        batch_check_ids.append(result['check_id'])
+                    
+                    # Step 1: Bulk INSERT into history table (con_mon_results_history)
+                    print(f"   📜 Step 1: Bulk inserting batch into history table...")
+                    history_insert_sql = """
+                    INSERT INTO con_mon_results_history (
+                        customer_id, connection_id, check_id, result, result_message,
+                        success_count, failure_count, success_percentage,
+                        success_resources, failed_resources, exclusions, resource_json
+                    ) VALUES (
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                    );
                     """
-                    cursor.execute(delete_current_sql, (customer_id, connection_id, check_ids_to_delete[0]))
-                else:
-                    # Use IN clause for multiple check_ids
-                    placeholders = ','.join(['%s'] * len(check_ids_to_delete))
-                    delete_current_sql = f"""
-                    DELETE FROM con_mon_results 
-                    WHERE customer_id = %s AND connection_id = %s AND check_id IN ({placeholders});
+                    
+                    cursor.executemany(history_insert_sql, batch_params)
+                    history_inserted = cursor.rowcount
+                    total_history_inserted += history_inserted
+                    print(f"      ✅ Inserted {history_inserted} records into history")
+                    
+                    # Step 2: Bulk DELETE from current results table
+                    print(f"   🗑️  Step 2: Bulk deleting batch from current results table...")
+                    if len(batch_check_ids) == 1:
+                        delete_current_sql = """
+                        DELETE FROM con_mon_results 
+                        WHERE customer_id = %s AND connection_id = %s AND check_id = %s;
+                        """
+                        cursor.execute(delete_current_sql, (customer_id, connection_id, batch_check_ids[0]))
+                    else:
+                        # Use IN clause for multiple check_ids
+                        placeholders = ','.join(['%s'] * len(batch_check_ids))
+                        delete_current_sql = f"""
+                        DELETE FROM con_mon_results 
+                        WHERE customer_id = %s AND connection_id = %s AND check_id IN ({placeholders});
+                        """
+                        cursor.execute(delete_current_sql, (customer_id, connection_id, *batch_check_ids))
+                    
+                    deleted_rows = cursor.rowcount
+                    total_current_deleted += deleted_rows
+                    print(f"      ✅ Deleted {deleted_rows} existing records")
+                    
+                    # Step 3: Bulk INSERT into current results table
+                    print(f"   💾 Step 3: Bulk inserting batch into current results table...")
+                    current_insert_sql = """
+                    INSERT INTO con_mon_results (
+                        customer_id, connection_id, check_id, result, result_message,
+                        success_count, failure_count, success_percentage,
+                        success_resources, failed_resources, exclusions, resource_json
+                    ) VALUES (
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                    );
                     """
-                    cursor.execute(delete_current_sql, (customer_id, connection_id, *check_ids_to_delete))
-                
-                deleted_rows = cursor.rowcount
-                print(f"   ✅ Deleted {deleted_rows} existing records from con_mon_results")
-                
-                # Step 3: Bulk INSERT into current results table
-                print(f"\n💾 **Step 3: Bulk inserting into current results table...**")
-                current_insert_sql = """
-                INSERT INTO con_mon_results (
-                    customer_id, connection_id, check_id, result, result_message,
-                    success_count, failure_count, success_percentage,
-                    success_resources, failed_resources, exclusions, resource_json
-                ) VALUES (
-                    %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
-                );
-                """
-                
-                cursor.executemany(current_insert_sql, all_params)
-                current_inserted = cursor.rowcount
-                print(f"   ✅ Inserted {current_inserted} records into con_mon_results")
-                
-                # Commit all operations
-                conn.commit()
+                    
+                    cursor.executemany(current_insert_sql, batch_params)
+                    current_inserted = cursor.rowcount
+                    total_current_inserted += current_inserted
+                    print(f"      ✅ Inserted {current_inserted} records")
+                    
+                    # Commit each batch
+                    conn.commit()
+                    print(f"   ✅ Batch {(i//batch_size) + 1} committed successfully")
                 
                 # Print comprehensive insertion summary
                 print(f"\n📊 **Bulk Database Operation Summary:**")
-                print(f"   • History records inserted: {history_inserted}")
-                print(f"   • Current records deleted: {deleted_rows}")
-                print(f"   • Current records inserted: {current_inserted}")
+                print(f"   • History records inserted: {total_history_inserted}")
+                print(f"   • Current records deleted: {total_current_deleted}")
+                print(f"   • Current records inserted: {total_current_inserted}")
                 print(f"   • Total check results processed: {len(processed_results)}")
-                print(f"   • Operation: BULK (much faster than individual operations)")
+                print(f"   • Number of batches: {(len(processed_results) + batch_size - 1) // batch_size}")
+                print(f"   • Batch size: {batch_size}")
                 
                 print(f"\n✅ **All operations completed successfully:**")
                 print(f"   • All check executions preserved in history")
