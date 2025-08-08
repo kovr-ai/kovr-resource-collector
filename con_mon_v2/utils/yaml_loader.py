@@ -269,6 +269,80 @@ class YamlModelMapping(BaseModel):
     is_list: bool = False
 
     @classmethod
+    def process_yaml_dict(
+            cls,
+            yaml_data: dict[str, Any],
+            parent_name: str = ""
+    ) -> tuple[List[YamlField], dict, dict]:
+        """
+        Recursively process a YAML dictionary to extract fields and their types.
+
+        Args:
+            yaml_data: Dictionary to process
+            parent_name: Name of the parent field for nested structures
+
+        Returns:
+            tuple of (list of YamlFields, model annotations dict, model fields dict)
+        """
+        fields = []
+        model_annotations = {}
+        model_fields = {}
+
+        for field_name, field_def in yaml_data.items():
+            # Check if field name ends with [] indicating it's a list
+            is_field_list = field_name.endswith('[]')
+            # Clean field name by removing [] suffix if present
+            clean_field_name = field_name[:-2] if is_field_list else field_name
+
+            if isinstance(field_def, str):
+                # Simple field with type only
+                field_type = YamlFieldType(
+                    field_def) if field_def in YamlFieldType._value2member_map_ else YamlFieldType.ANY
+                yaml_field = YamlField(
+                    name=clean_field_name,
+                    dtype=YamlFieldType.LIST if is_field_list else field_type
+                )
+                fields.append(yaml_field)
+
+                # Add to model annotations
+                python_type = YamlFieldType.yaml_field_type_to_python_type(yaml_field.dtype)
+                model_annotations[clean_field_name] = python_type
+                model_fields[clean_field_name] = Field(default=None)
+
+            elif isinstance(field_def, dict):
+                # Nested structure - process recursively
+                nested_name = f"{parent_name}_{clean_field_name}" if parent_name else clean_field_name
+                nested_fields, nested_annotations, nested_field_defs = cls.process_yaml_dict(field_def, nested_name)
+
+                # Create nested model type
+                nested_model = type(
+                    nested_name.title(),
+                    (YamlModel,),
+                    {
+                        '__annotations__': nested_annotations,
+                        '__module__': YamlModel.__module__,
+                        **nested_field_defs
+                    }
+                )
+
+                # Add field for the nested structure
+                yaml_field = YamlField(
+                    name=clean_field_name,
+                    dtype=YamlFieldType.LIST if is_field_list else YamlFieldType.OBJECT
+                )
+                fields.append(yaml_field)
+                fields.extend(nested_fields)
+
+                # Add to model annotations
+                if is_field_list:
+                    model_annotations[clean_field_name] = List[nested_model]
+                else:
+                    model_annotations[clean_field_name] = nested_model
+                model_fields[clean_field_name] = Field(default_factory=list if is_field_list else nested_model)
+
+        return fields, model_annotations, model_fields
+
+    @classmethod
     def load_yaml(
             cls,
             yaml_dict: dict[str, Any],
@@ -282,48 +356,8 @@ class YamlModelMapping(BaseModel):
         Returns:
             YamlModelMapping instance with parsed model and fields
         """
-        fields = []
-        is_list = False
         model_name = next(iter(yaml_dict))  # Get the first key as model name
-        
-        # Process each field in the yaml dictionary
-        model_annotations = {}
-        model_fields = {}
-        
-        for field_name, field_def in yaml_dict[model_name].items():
-            # Check if field name ends with [] indicating it's a list
-            is_field_list = field_name.endswith('[]')
-            # Clean field name by removing [] suffix if present
-            clean_field_name = field_name[:-2] if is_field_list else field_name
-            
-            if isinstance(field_def, str):
-                # Simple field with type only
-                field_type = YamlFieldType(field_def) if field_def in YamlFieldType._value2member_map_ else YamlFieldType.ANY
-                yaml_field = YamlField(
-                    name=clean_field_name,
-                    dtype=YamlFieldType.LIST if is_field_list else field_type
-                )
-                fields.append(yaml_field)
-                
-                # Add to model annotations
-                python_type = YamlFieldType.yaml_field_type_to_python_type(yaml_field.dtype)
-                model_annotations[clean_field_name] = python_type
-                model_fields[clean_field_name] = Field(default=None)  # Required field
-                
-            elif isinstance(field_def, dict):
-                # Complex field with nested structure
-                yaml_field = YamlField(
-                    name=clean_field_name,
-                    dtype=YamlFieldType.LIST if is_field_list else YamlFieldType.OBJECT
-                )
-                fields.append(yaml_field)
-                
-                # Add to model annotations
-                if is_field_list:
-                    model_annotations[clean_field_name] = List[Dict[str, Any]]
-                else:
-                    model_annotations[clean_field_name] = Dict[str, Any]
-                model_fields[clean_field_name] = Field(default_factory=list if is_field_list else dict)
+        fields, model_annotations, model_fields = cls.process_yaml_dict(yaml_dict[model_name])
         
         # Check if this model represents a list (if any top-level field ends with [])
         is_list = any(field_name.endswith('[]') for field_name in yaml_dict[model_name].keys())
