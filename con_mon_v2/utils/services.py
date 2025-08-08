@@ -2,61 +2,59 @@
 from typing import Type, Dict, List, Any
 from pydantic import BaseModel
 from con_mon_v2.resources import Resource, ResourceCollection
-from con_mon_v2.mappings.github import GithubConnectorService, GithubConnectorInput
-from con_mon_v2.mappings.aws import AwsConnectorService, AwsConnectorInput
+from con_mon_v2.mappings.github import GithubConnectorService, GithubConnectorInput, GithubResource, GithubResourceCollection
+from con_mon_v2.mappings.aws import AwsConnectorService, AwsConnectorInput, AwsResource, AwsResourceCollection
 from con_mon_v2.connectors.models import ConnectorType
 
 
 class ResourceCollectionService(object):
     """Service for fetching and validating resource collections."""
+
+    @property
+    def connector_service(self):
+        """
+        return the connector service for the connector type from con_mon_v2.mappings.<connector_type>
+        """
+        return None
+
+    @property
+    def ConnectorInput(self):
+        """
+        return the ConnectorInput for the connector type from con_mon_v2.mappings.<connector_type>
+        """
+        return None
+
+    @property
+    def resource_collection(self):
+        """
+        return the models for all resources for the connector type from con_mon_v2.mappings.<connector_type>
+        """
+        return None
+
     def __init__(
             self,
-            resource_type: Type[BaseModel],
             connector_type: str,
     ):
-        self.resource_type = resource_type
         self.connector_type = connector_type
 
     def get_resource_collection(
-            self,
-            credentials: dict,
-    ) -> ResourceCollection:
-        """Get resources from a connector."""
-        # Get connector service and input class based on type
+        self,
+        credentials: dict,
+    ):
+        # Use dummy credentials for testing
         if self.connector_type == 'github':
-            connector_service = GithubConnectorService(
-                name="github",
-                description="GitHub connector",
-                connector_type=ConnectorType.GITHUB,
-                fetch_function=lambda input_config: ResourceCollection(
-                    name="github",
-                    description="GitHub resources",
-                    source_connector="github",
-                    total_count=1,
-                    resources=[]
-                )
-            )
-            ConnectorInput = GithubConnectorInput
+            credentials = {'GITHUB_TOKEN': 'dummy_token'}
         elif self.connector_type == 'aws':
-            connector_service = AwsConnectorService(
-                name="aws",
-                description="AWS connector",
-                connector_type=ConnectorType.AWS,
-                fetch_function=lambda input_config: ResourceCollection(
-                    name="aws",
-                    description="AWS resources",
-                    source_connector="aws",
-                    total_count=1,
-                    resources=[]
-                )
-            )
-            ConnectorInput = AwsConnectorInput
-        else:
-            raise ValueError(f"Unsupported connector type: {self.connector_type}")
+            credentials = {
+                'AWS_ROLE_ARN': 'dummy_arn',
+                'AWS_ACCESS_KEY_ID': 'dummy_key',
+                'AWS_SECRET_ACCESS_KEY': 'dummy_secret',
+                'AWS_SESSION_TOKEN': 'dummy_token'
+            }
 
-        # Initialize connector with credentials
-        connector_input = ConnectorInput(**credentials)
-        return connector_service.fetch_data(connector_input)
+        # Initialize GitHub connector
+        connector_input = self.ConnectorInput(**credentials)
+        return self.connector_service.fetch_data(connector_input)
 
     @property
     def _all_resource_field_paths(self) -> list[str]:
@@ -76,7 +74,7 @@ class ResourceCollectionService(object):
                         paths.extend(get_field_paths(field.annotation.__args__[0], field_path))
             return paths
 
-        return get_field_paths(self.resource_type)
+        return get_field_paths(self.resource_models)
 
     def _validate_field_path(
             self,
@@ -110,70 +108,8 @@ class ResourceCollectionService(object):
         """Validate all field paths in a resource collection."""
         validation_report: dict[str, dict[str, str]] = dict()
         for resource in resource_collection.resources:
-            validation_report[self.resource_type.__name__] = dict()
+            validation_report[resource.__name__] = dict()
             for field_path in self._all_resource_field_paths:
                 validation_str = self._validate_field_path(field_path, resource)
-                validation_report[self.resource_type.__name__][field_path] = validation_str
+                validation_report[resource.__name__][field_path] = validation_str
         return validation_report
-
-
-class CheckService(object):
-    """Service for validating and executing checks."""
-    def __init__(
-            self,
-            check: Any,  # Using Any to avoid circular import
-            connector_type: str,
-    ):
-        self.check = check
-        self.connector_type = connector_type
-        self.resource_service = ResourceCollectionService(
-            resource_type=check.resource_type,
-            connector_type=connector_type
-        )
-
-    def get_resource_collection(
-            self,
-            credentials: dict,
-    ) -> ResourceCollection:
-        """Get resources from a connector."""
-        return self.resource_service.get_resource_collection(credentials)
-
-    @property
-    def _all_resource_field_paths(self) -> list[str]:
-        """Get all field paths in the resource type."""
-        return self.resource_service._all_resource_field_paths
-
-    def validate_resource_field_paths(
-            self,
-            resource_collection: ResourceCollection,
-    ) -> dict[str, dict[str, str]]:
-        """Validate all field paths in a resource collection."""
-        return self.resource_service.validate_resource_field_paths(resource_collection)
-
-    def validate_execute_check_logic(
-            self,
-            resource_collection: ResourceCollection,
-    ) -> str:
-        """Validate check execution logic."""
-        try:
-            # Execute the check evaluation
-            results = self.check.evaluate(resource_collection.resources)
-
-            if not results:
-                return "not found"
-
-            # Count successes and failures
-            success_count = sum(1 for result in results if result)
-            total_count = len(results)
-
-            if total_count == 0:
-                return "not found"
-            elif success_count == total_count:
-                return "success"
-            elif success_count == 0:
-                return "failure"
-            else:
-                return "partial"
-
-        except Exception as e:
-            return "error"
