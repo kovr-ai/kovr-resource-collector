@@ -41,7 +41,7 @@ github:
           visibility: "string"
           allow_forking: "boolean"
           web_commit_signoff_required: "boolean"
-        branches:
+        branches[]:
           name: "string"
           sha: "string"
           protected: "boolean"
@@ -59,7 +59,7 @@ github:
             TypeScript: "integer"
             Shell: "integer"
             HTML: "integer"
-          code_frequency:
+          code_frequency[]:
             timestamp: "integer"
             additions: "integer"
             deletions: "integer"
@@ -75,7 +75,7 @@ github:
           url: "string"
           html_url: "string"
           badge_url: "string"
-          recent_runs:
+          recent_runs[]:
             id: "integer"
             name: "string"
             head_branch: "string"
@@ -475,7 +475,7 @@ aws:
         name: "string"
         creation_date: "string"
         region: "string"
-        versioning_status[]: "string"
+        versioning_status: "string"  # Single status per bucket
         logging_enabled: "boolean"
         website_enabled: "boolean"
         encryption:
@@ -514,7 +514,7 @@ aws:
 
     CloudWatchResource:
       id: "string"  # To be used as ID for easy identification
-      log_groups:
+      log_groups[]:
         log_group_name: "string"
         creation_time: "integer"
         retention_in_days: "integer"
@@ -522,13 +522,13 @@ aws:
         arn: "string"
         stored_bytes: "integer"
         kms_key_id: "string"
-      metrics:
+      metrics[]:
         namespace: "string"
         metric_name: "string"
         dimensions[]:
           Name: "string"
           Value: "string"
-      alarms:
+      alarms[]:
         alarm_name: "string"
         alarm_description: "string"
         actions_enabled: "boolean"
@@ -541,14 +541,14 @@ aws:
         metric_name: "string"
         namespace: "string"
         statistic: "string"
-        dimensions:
+        dimensions[]:
           Name: "string"
           Value: "string"
         period: "integer"
         evaluation_periods: "integer"
         threshold: "number"
         comparison_operator: "string"
-      dashboards:
+      dashboards[]:
         dashboard_name: "string"
         dashboard_arn: "string"
         dashboard_body: "string"
