@@ -1,10 +1,19 @@
 """Service utilities for con_mon_v2."""
-from typing import Type, Dict, List, Any
+from typing import Type
 from pydantic import BaseModel
 from con_mon_v2.resources import Resource, ResourceCollection
-from con_mon_v2.mappings.github import GithubConnectorService, GithubConnectorInput, GithubResource, GithubResourceCollection
-from con_mon_v2.mappings.aws import AwsConnectorService, AwsConnectorInput, AwsResource, AwsResourceCollection
-from con_mon_v2.connectors.models import ConnectorType
+from con_mon_v2.mappings.github import (
+    GithubConnectorService,
+    GithubConnectorInput,
+    GithubResource,
+    GithubResourceCollection
+)
+from con_mon_v2.mappings.aws import (
+    AwsConnectorService,
+    AwsConnectorInput,
+    AwsResource,
+    AwsResourceCollection
+)
 
 
 class ResourceCollectionService(object):
@@ -12,47 +21,64 @@ class ResourceCollectionService(object):
 
     @property
     def connector_service(self):
-        """
-        return the connector service for the connector type from con_mon_v2.mappings.<connector_type>
-        """
-        return None
+        """Return the connector service for the connector type."""
+        if self.connector_type == 'github':
+            return github_connector_service
+        elif self.connector_type == 'aws':
+            return aws_connector_service
+        raise ValueError(f"Unsupported connector type: {self.connector_type}")
 
     @property
     def ConnectorInput(self):
-        """
-        return the ConnectorInput for the connector type from con_mon_v2.mappings.<connector_type>
-        """
-        return None
+        """Return the ConnectorInput for the connector type."""
+        if self.connector_type == 'github':
+            return GithubConnectorInput
+        elif self.connector_type == 'aws':
+            return AwsConnectorInput
+        raise ValueError(f"Unsupported connector type: {self.connector_type}")
 
     @property
     def resource_collection(self):
-        """
-        return the models for all resources for the connector type from con_mon_v2.mappings.<connector_type>
-        """
-        return None
+        """Return the ResourceCollection class for the connector type."""
+        if self.connector_type == 'github':
+            return GithubResourceCollection
+        elif self.connector_type == 'aws':
+            return AwsResourceCollection
+        raise ValueError(f"Unsupported connector type: {self.connector_type}")
+
+    @property
+    def resource_models(self):
+        """Return the Resource class for the connector type."""
+        if self.connector_type == 'github':
+            return GithubResource
+        elif self.connector_type == 'aws':
+            return AwsResource
+        raise ValueError(f"Unsupported connector type: {self.connector_type}")
 
     def __init__(
             self,
             connector_type: str,
     ):
-        self.connector_type = connector_type
+        self.connector_type = connector_type.lower()  # Normalize to lowercase
 
     def get_resource_collection(
         self,
-        credentials: dict,
+        credentials: dict | None = None,
     ):
-        # Use dummy credentials for testing
-        if self.connector_type == 'github':
-            credentials = {'GITHUB_TOKEN': 'dummy_token'}
-        elif self.connector_type == 'aws':
-            credentials = {
-                'AWS_ROLE_ARN': 'dummy_arn',
-                'AWS_ACCESS_KEY_ID': 'dummy_key',
-                'AWS_SECRET_ACCESS_KEY': 'dummy_secret',
-                'AWS_SESSION_TOKEN': 'dummy_token'
-            }
+        if not credentials:
+            if self.connector_type == 'github':
+                credentials = {'GITHUB_TOKEN': 'dummy_token'}
+            elif self.connector_type == 'aws':
+                credentials = {
+                    'AWS_ROLE_ARN': 'dummy_arn',
+                    'AWS_ACCESS_KEY_ID': 'dummy_key',
+                    'AWS_SECRET_ACCESS_KEY': 'dummy_secret',
+                    'AWS_SESSION_TOKEN': 'dummy_token'
+                }
+            else:
+                raise ValueError(f"Dummy not available for connector type: {self.connector_type}")
 
-        # Initialize GitHub connector
+        # Initialize connector with credentials
         connector_input = self.ConnectorInput(**credentials)
         return self.connector_service.fetch_data(connector_input)
 
@@ -108,8 +134,8 @@ class ResourceCollectionService(object):
         """Validate all field paths in a resource collection."""
         validation_report: dict[str, dict[str, str]] = dict()
         for resource in resource_collection.resources:
-            validation_report[resource.__name__] = dict()
+            validation_report[resource.__class__.__name__] = dict()  # Use actual class name
             for field_path in self._all_resource_field_paths:
                 validation_str = self._validate_field_path(field_path, resource)
-                validation_report[resource.__name__][field_path] = validation_str
+                validation_report[resource.__class__.__name__][field_path] = validation_str
         return validation_report

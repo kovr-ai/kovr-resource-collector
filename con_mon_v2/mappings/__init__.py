@@ -1,9 +1,6 @@
 """
-Mappings package for dynamically created classes.
+Mappings package for dynamically created classes and instances.
 
-This package provides access to dynamically created classes through static imports:
-    from con_mon_v2.mappings.github import GithubConnectorService
-    from con_mon_v2.mappings.github import GithubConnectorInput
-    from con_mon_v2.mappings.aws import AWSConnectorService
-    from con_mon_v2.mappings.aws import AWSConnectorInput
+All classes and instances are created dynamically when the package is imported.
+No static files are needed as everything is generated from YAML configurations.
 """ 
