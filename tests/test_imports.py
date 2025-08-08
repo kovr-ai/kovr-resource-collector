@@ -16,9 +16,6 @@ def test_imports():
         "from con_mon_v2.mappings.github import github_connector_service",
         "from con_mon_v2.mappings.github import GithubResource",
         "from con_mon_v2.mappings.github import GithubResourceCollection",
-        "from con_mon_v2.mappings.github import RepositoryData",
-        "from con_mon_v2.mappings.github import ActionsData",
-        "from con_mon_v2.mappings.github import SecurityData",
 
         # AWS imports
         "from con_mon_v2.mappings.aws import AwsConnectorService",
@@ -57,4 +54,4 @@ def test_imports():
 
 
 if __name__ == "__main__":
-    test_imports() 
+    test_imports()

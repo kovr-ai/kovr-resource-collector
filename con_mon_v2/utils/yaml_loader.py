@@ -110,7 +110,7 @@ class ConnectorYamlMapping(BaseModel):
         if not name:
             raise ValueError("name is required in connector configuration")
             
-        fetch_function = cls._create_fetch_function(provider_service, method_name)
+        fetch_function = cls.create_fetch_function(provider_service, method_name)
         
         # Create a subclass of ConnectorService with proper field definitions
         class_name = f"{name.title()}ConnectorService"
@@ -424,11 +424,22 @@ class ResourceYamlMapping(BaseModel):
     @classmethod
     def _process_collection(
             cls,
+            connector_type: str,
             collection_def: dict[str, Any]
     ) -> YamlModelMapping:
         """Process resource collection definition into a YamlModelMapping."""
+        # Create collection class name from connector type
+        collection_name = f"{connector_type.title()}ResourceCollection"
+        
         # Create a dictionary with collection fields
-        fields_dict = {'ResourceCollection': collection_def.get('fields', {})}
+        fields_dict = {
+            collection_name: {
+                "resources[]": "Resource",  # Generic resource type, actual types handled by references
+                "source_connector": "string",
+                "total_count": "integer",
+                "fetched_at": "string"
+            }
+        }
         return YamlModelMapping.load_yaml(fields_dict)
 
     @classmethod
@@ -466,7 +477,7 @@ class ResourceYamlMapping(BaseModel):
 
             # Process resource collection
             collection_data = provider_data.get('resource_collection', {})
-            collection_mapping = cls._process_collection(collection_data)
+            collection_mapping = cls._process_collection(provider_name, collection_data)
 
             # Create the mapping for this provider
             result[provider_name] = cls(
