@@ -248,7 +248,7 @@ github:
         webhooks_error: "string"
 
   resource_collection:
-    resource_schemas:
+    resources[]:
       - "github.resources.GithubResource"
     source_connector: "string"
     total_count: "integer"
@@ -556,7 +556,7 @@ aws:
         last_modified: "string"
 
   resource_collection:
-    resource_schemas:
+    resources[]:
       - "aws.resources.EC2Resource"
       - "aws.resources.IAMResource"
       - "aws.resources.S3Resource"
