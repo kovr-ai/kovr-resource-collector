@@ -13,64 +13,6 @@ from con_mon_v2.resources import Resource, ResourceCollection, ResourceField
 from pathlib import Path
 
 
-def create_fetch_function(provider_module_path: str, method_name: str) -> Callable[[ConnectorInput], ResourceCollection]:
-    """
-    Create a fetch function by importing the provider module and finding the provider class.
-
-    Args:
-        provider_module_path: Python path to the provider module
-        method_name: Name of the method to call on the provider instance
-
-    Returns:
-        A callable that takes ConnectorInput and returns ResourceCollection
-
-    Raises:
-        ImportError: If the provider module cannot be imported
-        ValueError: If the provider class or method is not found
-    """
-    module = importlib.import_module(provider_module_path)
-    
-    # Look for provider class
-    provider_class = None
-    for attr_name in dir(module):
-        attr = getattr(module, attr_name)
-        if (isinstance(attr, type) and 
-            hasattr(attr, '_is_provider') and 
-            attr._is_provider):
-            provider_class = attr
-            break
-    
-    if not provider_class or not hasattr(provider_class, method_name):
-        raise ValueError(f"Provider class or method '{method_name}' not found in {provider_module_path}")
-
-    def fetch_function(input_config: ConnectorInput) -> ResourceCollection:
-        # Convert input_config to dictionary for metadata
-        if hasattr(input_config, 'dict'):
-            metadata = input_config.dict()
-        elif hasattr(input_config, 'model_dump'):
-            metadata = input_config.model_dump()
-        else:
-            metadata = dict(input_config)
-        
-        provider_instance = provider_class(metadata)
-        return getattr(provider_instance, method_name)()
-
-    return fetch_function
-
-
-def format_class_name(name: str) -> str:
-    """
-    Format a name into a proper class name prefix.
-    
-    Args:
-        name: Raw name from YAML (e.g., 'github', 'aws', 'gcp')
-        
-    Returns:
-        Formatted class name prefix (e.g., 'Github', 'Aws', 'GCP')
-    """
-    return name.title()
-
-
 class ConnectorYamlMapping(BaseModel):
     """Mapping class for connector configurations from YAML."""
     connector: Type[ConnectorService]
@@ -103,8 +45,61 @@ class ConnectorYamlMapping(BaseModel):
         else:
             raise ValueError("Input must be either a file path (str or Path) or a dictionary")
 
-    @staticmethod
-    def _create_connector_service_class(connector_data: dict[str, Any]) -> Type[ConnectorService]:
+    @classmethod
+    def create_fetch_function(
+            cls,
+            provider_module_path: str,
+            method_name: str
+    ) -> Callable[
+        [ConnectorInput], ResourceCollection]:
+        """
+        Create a fetch function by importing the provider module and finding the provider class.
+
+        Args:
+            provider_module_path: Python path to the provider module
+            method_name: Name of the method to call on the provider instance
+
+        Returns:
+            A callable that takes ConnectorInput and returns ResourceCollection
+
+        Raises:
+            ImportError: If the provider module cannot be imported
+            ValueError: If the provider class or method is not found
+        """
+        module = importlib.import_module(provider_module_path)
+
+        # Look for provider class
+        provider_class = None
+        for attr_name in dir(module):
+            attr = getattr(module, attr_name)
+            if (isinstance(attr, type) and
+                    hasattr(attr, '_is_provider') and
+                    attr._is_provider):
+                provider_class = attr
+                break
+
+        if not provider_class or not hasattr(provider_class, method_name):
+            raise ValueError(f"Provider class or method '{method_name}' not found in {provider_module_path}")
+
+        def fetch_function(input_config: ConnectorInput) -> ResourceCollection:
+            # Convert input_config to dictionary for metadata
+            if hasattr(input_config, 'dict'):
+                metadata = input_config.dict()
+            elif hasattr(input_config, 'model_dump'):
+                metadata = input_config.model_dump()
+            else:
+                metadata = dict(input_config)
+
+            provider_instance = provider_class(metadata)
+            return getattr(provider_instance, method_name)()
+
+        return fetch_function
+
+    @classmethod
+    def _create_connector_service_class(
+            cls,
+            connector_data: dict[str, Any]
+    ) -> Type[ConnectorService]:
         """Create a ConnectorService subclass from connector data."""
         provider_service = connector_data.get('provider_service')
         method_name = connector_data.get('method', 'process')
@@ -115,10 +110,10 @@ class ConnectorYamlMapping(BaseModel):
         if not name:
             raise ValueError("name is required in connector configuration")
             
-        fetch_function = create_fetch_function(provider_service, method_name)
+        fetch_function = cls._create_fetch_function(provider_service, method_name)
         
         # Create a subclass of ConnectorService with proper field definitions
-        class_name = f"{format_class_name(name)}ConnectorService"
+        class_name = f"{name.title()}ConnectorService"
         
         # Create the class dynamically
         service_class = type(
@@ -143,7 +138,7 @@ class ConnectorYamlMapping(BaseModel):
     @staticmethod
     def _create_connector_input_class(input_data: dict[str, Any], connector_name: str) -> Type[ConnectorInput]:
         """Create a ConnectorInput subclass from input data."""
-        class_name = f"{format_class_name(connector_name)}ConnectorInput"
+        class_name = f"{connector_name.title()}ConnectorInput"
         
         # Create field definitions with proper type annotations
         annotations = {}
@@ -205,25 +200,6 @@ class ConnectorYamlMapping(BaseModel):
                 raise ValueError(f"Error processing connector '{provider_name}': {str(e)}")
 
         return result
-
-
-def yaml_type_to_python_type(yaml_type: str, available_models: Dict[str, Type[BaseModel]] = None) -> type:
-    """Convert YAML type string to Python type, handling model references."""
-    # Check if this is a reference to another model
-    if available_models and yaml_type in available_models:
-        return available_models[yaml_type]
-    
-    type_mapping = {
-        'string': str,
-        'integer': int,
-        'boolean': bool,
-        'float': float,
-        'array': list,
-        'object': dict,
-        'datetime': datetime,
-        'number': float
-    }
-    return type_mapping.get(yaml_type, str)
 
 
 class YamlModel(BaseModel):
