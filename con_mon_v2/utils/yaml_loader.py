@@ -4,6 +4,7 @@ Utils package for con_mon - contains helper functions and SQL operations.
 import os
 import yaml
 import importlib
+from enum import Enum
 from datetime import datetime
 from pydantic import BaseModel, Field
 from typing import Any, Callable, Dict, List, Optional, Type, Union
@@ -225,9 +226,130 @@ def yaml_type_to_python_type(yaml_type: str, available_models: Dict[str, Type[Ba
     return type_mapping.get(yaml_type, str)
 
 
+class YamlModel(BaseModel):
+    pass
+
+
+class YamlFieldType(Enum):
+    STRING = "string"
+    INTEGER = "integer"
+    FLOAT = "float"
+    BOOLEAN = "boolean"
+    DATETIME = "datetime"
+    LIST = "list"
+    OBJECT = "object"
+    ANY = "any"
+
+    @classmethod
+    def yaml_field_type_to_python_type(
+            cls,
+            field_type: 'YamlFieldType'
+    ) -> type:
+        type_mapping = {
+            YamlFieldType.STRING: str,
+            YamlFieldType.INTEGER: int,
+            YamlFieldType.FLOAT: float,
+            YamlFieldType.BOOLEAN: bool,
+            YamlFieldType.DATETIME: datetime,
+            YamlFieldType.OBJECT: dict,
+            YamlFieldType.ANY: Any,
+            YamlFieldType.LIST: List[Any]
+        }
+        return type_mapping[field_type]
+
+
+class YamlField(BaseModel):
+    name: str
+    dtype: YamlFieldType
+
+
+class YamlModelMapping(BaseModel):
+    pydantic_model: Type[YamlModel]
+    fields: List[YamlField]
+    is_list: bool = False
+
+    @classmethod
+    def load_yaml(
+            cls,
+            yaml_dict: dict[str, Any],
+    ) -> 'YamlModelMapping':
+        """
+        Load a YAML dictionary into a YamlModelMapping instance.
+        
+        Args:
+            yaml_dict: Dictionary containing the YAML model definition
+            
+        Returns:
+            YamlModelMapping instance with parsed model and fields
+        """
+        fields = []
+        is_list = False
+        model_name = next(iter(yaml_dict))  # Get the first key as model name
+        
+        # Process each field in the yaml dictionary
+        model_annotations = {}
+        model_fields = {}
+        
+        for field_name, field_def in yaml_dict[model_name].items():
+            # Check if field name ends with [] indicating it's a list
+            is_field_list = field_name.endswith('[]')
+            # Clean field name by removing [] suffix if present
+            clean_field_name = field_name[:-2] if is_field_list else field_name
+            
+            if isinstance(field_def, str):
+                # Simple field with type only
+                field_type = YamlFieldType(field_def) if field_def in YamlFieldType._value2member_map_ else YamlFieldType.ANY
+                yaml_field = YamlField(
+                    name=clean_field_name,
+                    dtype=YamlFieldType.LIST if is_field_list else field_type
+                )
+                fields.append(yaml_field)
+                
+                # Add to model annotations
+                python_type = YamlFieldType.yaml_field_type_to_python_type(yaml_field.dtype)
+                model_annotations[clean_field_name] = python_type
+                model_fields[clean_field_name] = Field(default=None)  # Required field
+                
+            elif isinstance(field_def, dict):
+                # Complex field with nested structure
+                yaml_field = YamlField(
+                    name=clean_field_name,
+                    dtype=YamlFieldType.LIST if is_field_list else YamlFieldType.OBJECT
+                )
+                fields.append(yaml_field)
+                
+                # Add to model annotations
+                if is_field_list:
+                    model_annotations[clean_field_name] = List[Dict[str, Any]]
+                else:
+                    model_annotations[clean_field_name] = Dict[str, Any]
+                model_fields[clean_field_name] = Field(default_factory=list if is_field_list else dict)
+        
+        # Check if this model represents a list (if any top-level field ends with [])
+        is_list = any(field_name.endswith('[]') for field_name in yaml_dict[model_name].keys())
+        
+        # Create a new YamlModel type with the model name and fields
+        model_type = type(
+            model_name,
+            (YamlModel,),
+            {
+                '__annotations__': model_annotations,
+                '__module__': YamlModel.__module__,
+                **model_fields
+            }
+        )
+        
+        # Create the model mapping
+        return cls(
+            pydantic_model=model_type,
+            fields=fields,
+            is_list=is_list
+        )
+
+
 class ResourceYamlMapping(BaseModel):
     """Mapping class for resource configurations from YAML."""
-    nested_schemas: list[Type[ResourceField]]
+    connector_type: str
     resources: list[Type[Resource]]
     resources_collection: Type[ResourceCollection]
 
