@@ -1,15 +1,15 @@
+"""Generate and validate checks using LLM."""
 from typing import Type, Dict, List
 from pydantic import BaseModel
 import yaml
 
-from con_mon.compliance import Control, get_csv_loader
-from con_mon.checks import Check, get_loaded_checks
-from con_mon.connectors import get_connector_by_id, get_connector_input_by_id
-from con_mon.resources import Resource, ResourceCollection
-from con_mon.utils.llm.prompts import ChecksYamlPrompt
-from con_mon.utils.llm import generate_checks_yaml
-from con_mon.checks.models import CheckResultStatement, CheckFailureFix, CheckMetadata, ComparisonOperation, ComparisonOperationEnum
-from con_mon.utils.db import get_db
+from con_mon_v2.compliance import Control, get_csv_loader
+from con_mon_v2.checks import Check, get_loaded_checks
+from con_mon_v2.resources import ResourceCollection
+from con_mon_v2.utils.llm import generate_checks_yaml
+from con_mon_v2.checks.models import CheckResultStatement, CheckFailureFix, CheckMetadata, ComparisonOperation, ComparisonOperationEnum
+from con_mon_v2.utils.db import get_db
+from con_mon_v2.utils.services import ResourceCollectionService
 
 
 class CheckService(object):
@@ -20,28 +20,13 @@ class CheckService(object):
     ):
         self.check = check
         self.connector_type = connector_type
+        self.resource_service = ResourceCollectionService(connector_type)
 
     def get_resource_collection(
         self,
         credentials: dict,
     ):
-        connector_service = get_connector_by_id(self.connector_type)
-        ConnectorInput = get_connector_input_by_id(connector_service)
-
-        # Use dummy credentials for testing
-        if self.connector_type == 'github':
-            credentials = {'GITHUB_TOKEN': 'dummy_token'}
-        elif self.connector_type == 'aws':
-            credentials = {
-                'AWS_ROLE_ARN': 'dummy_arn',
-                'AWS_ACCESS_KEY_ID': 'dummy_key',
-                'AWS_SECRET_ACCESS_KEY': 'dummy_secret',
-                'AWS_SESSION_TOKEN': 'dummy_token'
-            }
-
-        # Initialize GitHub connector
-        connector_input = ConnectorInput(**credentials)
-        return connector_service.fetch_data(connector_input)
+        return self.resource_service.get_resource_collection(credentials)
 
     @property
     def resource_type(self) -> Type[BaseModel]:
@@ -49,59 +34,20 @@ class CheckService(object):
 
     @property
     def _all_resource_field_paths(self) -> list[str]:
-        def get_field_paths(model: Type[BaseModel], prefix: str = "") -> list[str]:
-            paths = []
-            for field_name, field in model.model_fields.items():
-                field_path = f"{prefix}.{field_name}" if prefix else field_name
-                paths.append(field_path)
-                
-                # If field is another Pydantic model, recursively get its fields
-                if isinstance(field.annotation, type) and issubclass(field.annotation, BaseModel):
-                    paths.extend(get_field_paths(field.annotation, field_path))
-                # Handle list/array of Pydantic models
-                elif hasattr(field.annotation, "__origin__") and field.annotation.__origin__ == list:
-                    if hasattr(field.annotation, "__args__") and issubclass(field.annotation.__args__[0], BaseModel):
-                        paths.extend(get_field_paths(field.annotation.__args__[0], field_path))
-            return paths
-            
-        return get_field_paths(self.resource_type)
+        return self.resource_service._all_resource_field_paths
 
     def _validate_field_path(
         self,
         field_path: str,
         resource: Resource,
     ) -> str:
-        try:
-            # Split the field path into parts
-            path_parts = field_path.split('.')
-            current = resource
-            
-            # Traverse the resource object following the field path
-            for part in path_parts:
-                if not hasattr(current, part):
-                    return "not found"
-                current = getattr(current, part)
-            
-            # If we got here and the value exists, it's a success
-            if current is not None:
-                return "success"
-            return "not found"  # Field exists but no data
-            
-        except Exception as e:
-            return "error"  # Field path is invalid or caused an error
+        return self.resource_service._validate_field_path(field_path, resource)
 
     def validate_resource_field_paths(
         self,
         resource_collection: ResourceCollection,
     ) -> dict[str, dict[str, str]]:
-        # TODO: based on self.resource_type validate only which are applicable in resource_collection.resources
-        validation_report: dict[str, dict[str, str]] = dict()
-        for resource in resource_collection.resources:
-            validation_report[self.resource_type.__name__] = dict()
-            for field_path in self._all_resource_field_paths:
-                validation_str = self._validate_field_path(field_path, resource)
-                validation_report[self.resource_type.__name__][field_path] = validation_str
-        return validation_report
+        return self.resource_service.validate_resource_field_paths(resource_collection)
 
     def validate_execute_check_logic(
         self,
@@ -240,7 +186,7 @@ class ControlService(object):
                 )
                 
                 # Get resource type class
-                from con_mon.resources.models import Resource
+                from con_mon_v2.resources.models import Resource
                 
                 # Create a check using the LLM-generated configuration
                 check = Check(
