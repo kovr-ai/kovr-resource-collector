@@ -115,16 +115,15 @@ def test_github_collaboration_data_mapping():
     assert len(pr_list) > 0, "pull_requests should not be empty"
     
     # Test first pull request has all required fields
+    pr = pr_list[0]  # Get first pull request
     pr_fields = [
         'number', 'title', 'state', 'user', 'created_at', 'updated_at',
         'closed_at', 'merged_at', 'base_branch'
     ]
     for field in pr_fields:
-        path = f'collaboration_data.pull_requests.{field}'
-        print(f"\nChecking {path}...")
-        assert check_field_exists(rc.resources[0], path), f"Field {path} should exist"
-        value = get_field_value(rc.resources[0], path)
-        print(f"Value: {value}")
+        print(f"\nChecking pull_request.{field}...")
+        assert hasattr(pr, field), f"Pull request should have {field}"
+        print(f"Value: {getattr(pr, field)}")
     
     # Test collaborators list exists and has items
     collab_list = get_field_value(rc.resources[0], 'collaboration_data.collaborators')
@@ -170,7 +169,19 @@ def test_github_security_data_mapping():
     alerts = get_field_value(rc.resources[0], 'security_data.vulnerability_alerts')
     assert hasattr(alerts, 'enabled'), "vulnerability_alerts should have enabled field"
     assert hasattr(alerts, 'dependabot_alerts'), "vulnerability_alerts should have dependabot_alerts"
-    # error can be None
+    
+    # Test first dependabot alert has all required fields
+    dependabot_alerts = alerts.dependabot_alerts
+    if dependabot_alerts:
+        alert = dependabot_alerts[0]
+        alert_fields = [
+            'number', 'state', 'severity', 'package',
+            'created_at', 'updated_at'
+        ]
+        for field in alert_fields:
+            print(f"\nChecking dependabot_alert.{field}...")
+            assert hasattr(alert, field), f"Dependabot alert should have {field}"
+            print(f"Value: {getattr(alert, field)}")
     
     # Test security analysis fields
     analysis_paths = [
@@ -197,9 +208,16 @@ def test_github_advanced_features_data_mapping():
     tags = get_field_value(rc.resources[0], 'advanced_features_data.tags')
     assert isinstance(tags, list), "tags should be a list"
     
-    # Test webhooks list exists (can be empty)
-    webhooks = get_field_value(rc.resources[0], 'advanced_features_data.webhooks')
-    assert isinstance(webhooks, list), "webhooks should be a list"
+    # Test first tag has all required fields
+    if tags:
+        tag = tags[0]
+        tag_fields = [
+            'name', 'commit_sha', 'commit_date', 'message'
+        ]
+        for field in tag_fields:
+            print(f"\nChecking tag.{field}...")
+            assert hasattr(tag, field), f"Tag should have {field}"
+            print(f"Value: {getattr(tag, field)}")
     
     # Test summary fields
     summary_paths = [
@@ -243,6 +261,28 @@ def test_github_organization_data_mapping():
         value = get_field_value(rc.resources[0], path)
         assert isinstance(value, list), f"Field {path} should be a list"
         print(f"Value: {value}")
+        
+        # Test first item has required fields
+        if value:
+            item = value[0]
+            if 'members' in path:
+                member_fields = ['login', 'id', 'type', 'site_admin', 'role']
+                for field in member_fields:
+                    print(f"\nChecking member.{field}...")
+                    assert hasattr(item, field), f"Member should have {field}"
+                    print(f"Value: {getattr(item, field)}")
+            elif 'teams' in path:
+                team_fields = ['id', 'name', 'slug', 'description', 'privacy', 'permission']
+                for field in team_fields:
+                    print(f"\nChecking team.{field}...")
+                    assert hasattr(item, field), f"Team should have {field}"
+                    print(f"Value: {getattr(item, field)}")
+            elif 'outside_collaborators' in path:
+                collab_fields = ['login', 'id', 'type', 'permissions']
+                for field in collab_fields:
+                    print(f"\nChecking collaborator.{field}...")
+                    assert hasattr(item, field), f"Collaborator should have {field}"
+                    print(f"Value: {getattr(item, field)}")
     
     # Test count fields
     count_paths = [

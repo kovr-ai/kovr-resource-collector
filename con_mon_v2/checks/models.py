@@ -73,6 +73,13 @@ class CheckMetadata(BaseModel):
     severity: Optional[str] = None
     category: Optional[str] = None
 
+    # Evaluation Metadata in DB
+    field_path: Optional[str] = None
+    operation: Optional[str] = None
+    name: Optional[str] = None
+    logic: Optional[str] = None
+
+
 
 class CheckResultStatement(BaseModel):
     success: str
@@ -93,6 +100,7 @@ class Check(BaseModel):
     """
     id: int
     name: str
+    category: Optional[str] = None
     resource_type: Type[BaseModel] = Field(None, description="Specific resource class to target (e.g., 'aws.AWSEC2Resource')")
     field_path: str = Field(..., description="e.g., 'price', 'metadata.status', 'tags[0]'")
     operation: ComparisonOperation
