@@ -32,7 +32,9 @@ def test_github_model_loading():
         print(f"  {path}")
     
     # Get resources using dummy credentials
-    resource_collection = service.get_resource_collection({})
+    resource_collection = service.get_resource_collection(dict(
+        GITHUB_TOKEN='DUMMY',
+    ))
     
     # Validate fields
     validation_report = service.validate_resource_field_paths(resource_collection)
@@ -90,7 +92,12 @@ def test_aws_model_loading():
             print(f"  {path}")
         
         # Get resources using dummy credentials
-        resource_collection = service.get_resource_collection({})
+        resource_collection = service.get_resource_collection(dict(
+            AWS_ROLE_ARN='DUMMY',
+            AWS_ACCESS_KEY_ID='DUMMY',
+            AWS_SECRET_ACCESS_KEY='DUMMY',
+            AWS_SESSION_TOKEN='DUMMY',
+        ))
         
         # Validate fields
         validation_report = service.validate_resource_field_paths(resource_collection)
