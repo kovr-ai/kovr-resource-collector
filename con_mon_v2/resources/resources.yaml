@@ -4,7 +4,7 @@
 github:
   resources:
     GithubResource:
-      id: "string"  # To be used as ID for easy identification
+      id: "string"  # Repository name to be used as ID for easy identification
       repository_data:
         basic_info:
           id: "integer"
@@ -29,7 +29,7 @@ github:
           disabled: "boolean"
         metadata:
           default_branch: "string"
-          topics[]: "any"
+          topics[]: "string"
           has_issues: "boolean"
           has_projects: "boolean"
           has_wiki: "boolean"
@@ -45,13 +45,24 @@ github:
           name: "string"
           sha: "string"
           protected: "boolean"
+          protection_details:
+            required_status_checks: "boolean"
+            enforce_admins: "boolean"
+            required_pull_request_reviews: "boolean"
+            restrictions: "object"
         statistics:
           total_commits: "integer"
           contributors_count: "integer"
           languages:
             Python: "integer"
             JavaScript: "integer"
-          code_frequency[]: "any"
+            TypeScript: "integer"
+            Shell: "integer"
+            HTML: "integer"
+          code_frequency:
+            timestamp: "integer"
+            additions: "integer"
+            deletions: "integer"
 
       actions_data:
         workflows:
@@ -64,6 +75,17 @@ github:
           url: "string"
           html_url: "string"
           badge_url: "string"
+          recent_runs:
+            id: "integer"
+            name: "string"
+            head_branch: "string"
+            head_sha: "string"
+            status: "string"
+            conclusion: "string"
+            created_at: "string"
+            updated_at: "string"
+            run_number: "integer"
+            run_attempt: "integer"
         total_workflows: "integer"
         active_workflows: "integer"
         recent_runs_count: "integer"
@@ -77,8 +99,15 @@ github:
           created_at: "string"
           updated_at: "string"
           closed_at: "string"
-          labels[]: "any"
-          assignees[]: "any"
+          labels[]:
+            id: "integer"
+            name: "string"
+            description: "string"
+            color: "string"
+          assignees[]:
+            login: "string"
+            id: "integer"
+            type: "string"
           comments_count: "integer"
           is_pull_request: "boolean"
         pull_requests:
@@ -111,8 +140,19 @@ github:
 
       security_data:
         security_advisories:
-          error: "string"  # May contain error message
-          advisories[]: "any"
+          error: "string"
+          advisories[]:
+            id: "string"
+            severity: "string"
+            summary: "string"
+            published_at: "string"
+            updated_at: "string"
+            withdrawn_at: "string"
+            vulnerabilities:
+              package: "string"
+              severity: "string"
+              vulnerable_version_range: "string"
+              first_patched_version: "string"
         vulnerability_alerts:
           enabled: "boolean"
           dependabot_alerts:
@@ -136,16 +176,47 @@ github:
           dependency_review_enabled: "boolean"
         code_scanning_alerts:
           error: "string"
-          alerts[]: "any"
+          alerts[]:
+            number: "integer"
+            state: "string"
+            dismissed_by:
+              login: "string"
+              id: "integer"
+              type: "string"
+            dismissed_at: "string"
+            dismissed_reason: "string"
+            rule:
+              id: "string"
+              severity: "string"
+              description: "string"
         total_advisories: "integer"
         total_dependabot_alerts: "integer"
         total_code_scanning_alerts: "integer"
         security_features_enabled: "integer"
 
       organization_data:
-        members[]: "any"  # List of member objects (often empty)
-        teams[]: "any"   # List of team objects (often empty)
-        outside_collaborators[]: "any"  # List of collaborator objects (often empty)
+        members[]:
+          login: "string"
+          id: "integer"
+          type: "string"
+          site_admin: "boolean"
+          role: "string"
+        teams[]:
+          id: "integer"
+          name: "string"
+          slug: "string"
+          description: "string"
+          privacy: "string"
+          permission: "string"
+        outside_collaborators[]:
+          login: "string"
+          id: "integer"
+          type: "string"
+          permissions:
+            admin: "boolean"
+            maintain: "boolean"
+            push: "boolean"
+            pull: "boolean"
         total_members: "integer"
         total_teams: "integer"
         total_outside_collaborators: "integer"
@@ -159,7 +230,17 @@ github:
           name: "string"
           commit_sha: "string"
           commit_date: "string"
-        webhooks[]: "any"  # List of webhook objects (often empty)
+          message: "string"
+        webhooks[]:
+          id: "integer"
+          name: "string"
+          active: "boolean"
+          events[]: "string"
+          config:
+            url: "string"
+            content_type: "string"
+            insecure_ssl: "string"
+            secret: "string"
         total_tags: "integer"
         total_webhooks: "integer"
         active_webhooks: "integer"
@@ -185,8 +266,20 @@ aws:
           max-instances: "string"
           vpc-max-elastic-ips: "string"
           default-vpc: "string"
-        reserved_instances[]: "any"
-        spot_instances[]: "any"
+        reserved_instances[]:
+          id: "string"
+          instance_type: "string"
+          availability_zone: "string"
+          state: "string"
+          instance_count: "integer"
+          platform: "string"
+        spot_instances[]:
+          id: "string"
+          instance_type: "string"
+          state: "string"
+          availability_zone: "string"
+          spot_price: "string"
+          launch_time: "string"
       instances:
         instance_type: "string"
         state: "string"
@@ -203,53 +296,110 @@ aws:
           Id: "string"
         ebs_optimized: "boolean"
         instance_lifecycle: "string"
-        security_groups[]: "any"
-        network_interfaces[]: "any"
-        block_device_mappings[]: "any"
+        security_groups[]:
+          group_id: "string"
+          group_name: "string"
+        network_interfaces[]:
+          id: "string"
+          subnet_id: "string"
+          vpc_id: "string"
+          description: "string"
+          private_ip: "string"
+          status: "string"
+        block_device_mappings[]:
+          device_name: "string"
+          ebs:
+            volume_id: "string"
+            status: "string"
+            attach_time: "string"
+            delete_on_termination: "boolean"
       security_groups:
         group_name: "string"
         description: "string"
         vpc_id: "string"
-        inbound_rules[]: "any"
-        outbound_rules[]: "any"
+        inbound_rules[]:
+          protocol: "string"
+          from_port: "integer"
+          to_port: "integer"
+          cidr: "string"
+          description: "string"
+          source_groups:
+            group_id: "string"
+            group_name: "string"
+        outbound_rules[]:
+          protocol: "string"
+          from_port: "integer"
+          to_port: "integer"
+          cidr: "string"
+          description: "string"
+          destination_groups:
+            group_id: "string"
+            group_name: "string"
       vpcs:
         cidr_block: "string"
         state: "string"
         dhcp_options_id: "string"
         instance_tenancy: "string"
         is_default: "boolean"
-        cidr_block_association_set[]: "any"
+        cidr_block_association_set[]:
+          association_id: "string"
+          cidr_block: "string"
+          state: "string"
       subnets:
         vpc_id: "string"
         availability_zone: "string"
         availability_zone_id: "string"
         cidr_block: "string"
         state: "string"
+        map_public_ip_on_launch: "boolean"
+        available_ip_address_count: "integer"
       route_tables:
         vpc_id: "string"
-        routes[]: "any"
-        associations[]: "any"
+        routes[]:
+          destination_cidr_block: "string"
+          gateway_id: "string"
+          instance_id: "string"
+          state: "string"
+          origin: "string"
+        associations[]:
+          route_table_id: "string"
+          subnet_id: "string"
+          main: "boolean"
+          association_state:
+            state: "string"
+            status_message: "string"
       nat_gateways:
         state: "string"
         subnet_id: "string"
         vpc_id: "string"
         create_time: "string"
         delete_time: "string"
+        connectivity_type: "string"
+        public_ip: "string"
+        private_ip: "string"
       elastic_ips:
         public_ip: "string"
         domain: "string"
         instance_id: "string"
         network_interface_id: "string"
         private_ip_address: "string"
+        tags[]:
+          key: "string"
+          value: "string"
       key_pairs:
         key_fingerprint: "string"
         key_type: "string"
+        public_key: "string"
+        create_time: "string"
       snapshots:
         volume_id: "string"
         volume_size: "integer"
         state: "string"
         start_time: "string"
         progress: "string"
+        encrypted: "boolean"
+        owner_id: "string"
+        description: "string"
       volumes:
         size: "integer"
         volume_type: "string"
@@ -259,6 +409,7 @@ aws:
         encrypted: "boolean"
         iops: "integer"
         throughput: "integer"
+        multi_attach_enabled: "boolean"
       network_interfaces:
         subnet_id: "string"
         vpc_id: "string"
@@ -270,10 +421,14 @@ aws:
         source_dest_check: "boolean"
         status: "string"
         mac_address: "string"
-        security_groups[]: "any"
+        security_groups[]:
+          group_id: "string"
+          group_name: "string"
       internet_gateways:
         state: "string"
-        attachments[]: "any"
+        attachments[]:
+          vpc_id: "string"
+          state: "string"
 
     IAMResource:
       id: "string"  # To be used as ID for easy identification
@@ -282,8 +437,18 @@ aws:
         user_id: "string"
         create_date: "string"
         path: "string"
-        access_keys[]: "any"
-        mfa_devices[]: "any"
+        access_keys[]:
+          id: "string"
+          status: "string"
+          create_date: "string"
+          last_used_date: "string"
+          last_used_service: "string"
+          last_used_region: "string"
+        mfa_devices[]:
+          serial_number: "string"
+          enable_date: "string"
+          type: "string"
+          virtual_mfa_token: "string"
       policies:
         policy_name: "string"
         policy_id: "string"
@@ -295,7 +460,11 @@ aws:
         default_version:
           Document:
             Version: "string"
-            Statement[]: "any"
+            Statement[]:
+              Effect: "string"
+              Action[]: "string"
+              Resource[]: "string"
+              Condition: "object"
           VersionId: "string"
           IsDefaultVersion: "boolean"
           CreateDate: "string"
@@ -306,6 +475,18 @@ aws:
         name: "string"
         creation_date: "string"
         region: "string"
+        versioning_status[]: "string"
+        logging_enabled: "boolean"
+        website_enabled: "boolean"
+        encryption:
+          enabled: "boolean"
+          type: "string"
+          kms_key_id: "string"
+        public_access_block:
+          block_public_acls: "boolean"
+          block_public_policy: "boolean"
+          ignore_public_acls: "boolean"
+          restrict_public_buckets: "boolean"
 
     CloudTrailResource:
       id: "string"  # To be used as ID for easy identification
@@ -316,10 +497,20 @@ aws:
         include_global_service_events: "boolean"
         is_multi_region_trail: "boolean"
         enable_log_file_validation: "boolean"
-        event_selectors[]: "any"
-        insight_selectors[]: "any"
+        event_selectors[]:
+          read_write_type: "string"
+          include_management_events: "boolean"
+          data_resources:
+            type: "string"
+            values[]: "string"
+        insight_selectors[]:
+          insight_type: "string"
         is_logging: "boolean"
         kms_key_id: "string"
+        log_file_validation_enabled: "boolean"
+        tags[]:
+          key: "string"
+          value: "string"
 
     CloudWatchResource:
       id: "string"  # To be used as ID for easy identification
@@ -341,7 +532,7 @@ aws:
         alarm_name: "string"
         alarm_description: "string"
         actions_enabled: "boolean"
-        ok_actions[]: "str"
+        ok_actions[]: "string"
         alarm_actions[]: "string"
         insufficient_data_actions[]: "string"
         state_value: "string"
