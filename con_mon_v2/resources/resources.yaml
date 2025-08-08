@@ -4,7 +4,7 @@
 github:
   resources:
     GithubResource:
-      id: "string"  # Repository name to be used as ID for easy identification
+      id: "string"  # To be used as ID for easy identification
       repository_data:
         basic_info:
           id: "integer"
@@ -176,6 +176,7 @@ github:
 aws:
   resources:
     EC2Resource:
+      id: "string"  # To be used as ID for easy identification
       account:
         limits:
           supported-platforms: "string"
@@ -275,6 +276,7 @@ aws:
         attachments[]: "any"
 
     IAMResource:
+      id: "string"  # To be used as ID for easy identification
       users:
         arn: "string"
         user_id: "string"
@@ -299,12 +301,14 @@ aws:
           CreateDate: "string"
 
     S3Resource:
+      id: "string"  # To be used as ID for easy identification
       buckets:
         name: "string"
         creation_date: "string"
         region: "string"
 
     CloudTrailResource:
+      id: "string"  # To be used as ID for easy identification
       trails:
         name: "string"
         s3_bucket_name: "string"
@@ -318,6 +322,7 @@ aws:
         kms_key_id: "string"
 
     CloudWatchResource:
+      id: "string"  # To be used as ID for easy identification
       log_groups:
         log_group_name: "string"
         creation_time: "integer"
