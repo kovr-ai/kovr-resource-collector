@@ -193,6 +193,39 @@ class AWSProvider(Provider):
         # Convert the raw data to AwsResourceCollection using the same logic as mock data
         return self._create_resource_collection_from_data(data)
     
+    def _normalize_policy_statement(self, statement):
+        """
+        Normalize policy statement by:
+        1. Ensuring Action is always a list - if it's a string, convert to single-item list
+        2. Ensuring Resource is always a string - if it's a list, take first item
+        """
+        if isinstance(statement, dict):
+            if 'Action' in statement:
+                if isinstance(statement['Action'], str):
+                    statement['Action'] = [statement['Action']]
+            if 'Resource' in statement:
+                if isinstance(statement['Resource'], list):
+                    statement['Resource'] = statement['Resource'][0]
+        return statement
+
+    def _normalize_policy_document(self, policy_data):
+        """
+        Normalize policy document by ensuring all statements have Action as a list.
+        """
+        if not isinstance(policy_data, dict):
+            return policy_data
+            
+        if 'default_version' in policy_data and isinstance(policy_data['default_version'], dict):
+            doc = policy_data['default_version'].get('Document', {})
+            if 'Statement' in doc:
+                statements = doc['Statement']
+                if isinstance(statements, list):
+                    doc['Statement'] = [self._normalize_policy_statement(stmt) for stmt in statements]
+                else:
+                    doc['Statement'] = [self._normalize_policy_statement(statements)]
+                policy_data['default_version']['Document'] = doc
+        return policy_data
+
     def _create_resource_collection_from_data(self, aws_data: dict) -> AwsResourceCollection:
         """Helper method to create AwsResourceCollection from raw AWS data"""
         aws_resources = []
@@ -231,7 +264,10 @@ class AWSProvider(Provider):
                 if 'iam' in region_data:
                     iam_resource_data = {
                         'users': _dict_to_list_with_id(region_data['iam'].get('users', {})),
-                        'policies': _dict_to_list_with_id(region_data['iam'].get('policies', {})),
+                        'policies': [
+                            self._normalize_policy_document(policy) 
+                            for policy in _dict_to_list_with_id(region_data['iam'].get('policies', {}))
+                        ],
                         # Keep array fields as is
                         'groups': region_data['iam'].get('groups', []),
                         'roles': region_data['iam'].get('roles', []),
@@ -275,7 +311,7 @@ class AWSProvider(Provider):
                         'trails': _dict_to_list_with_id(region_data['cloudtrail'].get('trails', {})),
                         # Keep array fields as is
                         'trail_status': region_data['cloudtrail'].get('trail_status', []),
-                        'event_selectors': region_data['cloudtrail'].get('event_selectors', []),
+                        'event_selectors': [],  # Initialize as empty list
                         'insight_selectors': region_data['cloudtrail'].get('insight_selectors', []),
                         'data_events': region_data['cloudtrail'].get('data_events', []),
                         'management_events': region_data['cloudtrail'].get('management_events', []),

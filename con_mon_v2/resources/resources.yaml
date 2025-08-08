@@ -91,7 +91,7 @@ github:
         recent_runs_count: "integer"
 
       collaboration_data:
-        issues:
+        issues[]:
           number: "integer"
           title: "string"
           state: "string"
@@ -110,7 +110,7 @@ github:
             type: "string"
           comments_count: "integer"
           is_pull_request: "boolean"
-        pull_requests:
+        pull_requests[]:
           number: "integer"
           title: "string"
           state: "string"
@@ -120,7 +120,7 @@ github:
           closed_at: "string"
           merged_at: "string"
           base_branch: "string"
-        collaborators:
+        collaborators[]:
           login: "string"
           permissions:
             admin: "boolean"
@@ -155,7 +155,7 @@ github:
               first_patched_version: "string"
         vulnerability_alerts:
           enabled: "boolean"
-          dependabot_alerts:
+          dependabot_alerts[]:
             number: "integer"
             state: "string"
             severity: "string"
@@ -226,7 +226,7 @@ github:
         collaborators_error: "string"
 
       advanced_features_data:
-        tags:
+        tags[]:
           name: "string"
           commit_sha: "string"
           commit_date: "string"
@@ -282,8 +282,11 @@ aws:
           spot_price: "string"
           launch_time: "string"
       instances[]:
+        id: "string"  # Instance ID
         instance_type: "string"
         state: "string"
+        private_ip_address: "string"
+        public_ip_address: "string"
         launch_time: "string"
         image_id: "string"
         vpc_id: "string"
@@ -329,6 +332,7 @@ aws:
             group_id: "string"
             group_name: "string"
       vpcs[]:
+        id: "string"  # VPC ID
         cidr_block: "string"
         state: "string"
         dhcp_options_id: "string"
@@ -422,7 +426,8 @@ aws:
 
     IAMResource:
       id: "string"  # To be used as ID for easy identification
-      users:
+      users[]:
+        id: "string"  # User ID
         arn: "string"
         user_id: "string"
         create_date: "string"
@@ -439,7 +444,8 @@ aws:
           enable_date: "string"
           type: "string"
           virtual_mfa_token: "string"
-      policies:
+      policies[]:
+        id: "string"  # Policy ID
         policy_name: "string"
         policy_id: "string"
         create_date: "string"
@@ -453,7 +459,7 @@ aws:
             Statement[]:
               Effect: "string"
               Action[]: "string"
-              Resource[]: "string"
+              Resource: "string"
               Condition: "object"
           VersionId: "string"
           IsDefaultVersion: "boolean"
@@ -461,7 +467,8 @@ aws:
 
     S3Resource:
       id: "string"  # To be used as ID for easy identification
-      buckets:
+      buckets[]:
+        id: "string"  # Bucket ID
         name: "string"
         creation_date: "string"
         region: "string"
@@ -480,7 +487,8 @@ aws:
 
     CloudTrailResource:
       id: "string"  # To be used as ID for easy identification
-      trails:
+      trails[]:
+        id: "string"  # Trail ID
         name: "string"
         s3_bucket_name: "string"
         s3_key_prefix: "string"
@@ -501,6 +509,12 @@ aws:
         tags[]:
           key: "string"
           value: "string"
+      event_selectors[]:  # Add event_selectors at resource level
+        read_write_type: "string"
+        include_management_events: "boolean"
+        data_resources:
+          type: "string"
+          values[]: "string"
 
     CloudWatchResource:
       id: "string"  # To be used as ID for easy identification
