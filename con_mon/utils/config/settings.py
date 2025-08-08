@@ -29,7 +29,7 @@ class Settings(BaseModel):
         # AWS Configuration
         AWS_REGION (str): AWS region for services, defaults to "us-east-1"
         AWS_PROFILE (str): AWS profile name for credentials, defaults to "dev-kovr"
-        AWS_ACCESS_KEY_ID (str): AWS access key ID (optional if using IAM roles)
+        external_id (str): AWS access key ID (optional if using IAM roles)
         AWS_SECRET_ACCESS_KEY (str): AWS secret access key (optional if using IAM roles)
         
         # AWS Bedrock Configuration

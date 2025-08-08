@@ -18,7 +18,7 @@ load_dotenv()
 @provider_class
 class GitHubProvider(Provider):
     def __init__(self, metadata: dict):
-        self.GITHUB_TOKEN = metadata["GITHUB_TOKEN"]
+        self.GITHUB_TOKEN = metadata["personal_access_token"]
 
         super().__init__(Providers.GITHUB.value, metadata)
         
