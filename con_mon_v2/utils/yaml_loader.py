@@ -269,6 +269,34 @@ class YamlModelMapping(BaseModel):
     is_list: bool = False
 
     @classmethod
+    def create_yaml_model(
+            cls,
+            name: str,
+            annotations: dict,
+            fields: dict
+    ) -> Type[YamlModel]:
+        """
+        Create a YamlModel type with given name, annotations and fields.
+        
+        Args:
+            name: Name for the model class
+            annotations: Type annotations for fields
+            fields: Field definitions
+            
+        Returns:
+            New YamlModel type
+        """
+        return type(
+            name,
+            (YamlModel,),
+            {
+                '__annotations__': annotations,
+                '__module__': YamlModel.__module__,
+                **fields
+            }
+        )
+
+    @classmethod
     def process_yaml_dict(
             cls,
             yaml_data: dict[str, Any],
@@ -276,24 +304,24 @@ class YamlModelMapping(BaseModel):
     ) -> tuple[List[YamlField], dict, dict]:
         """
         Recursively process a YAML dictionary to extract fields and their types.
-
+        
         Args:
             yaml_data: Dictionary to process
             parent_name: Name of the parent field for nested structures
-
+            
         Returns:
             tuple of (list of YamlFields, model annotations dict, model fields dict)
         """
         fields = []
         model_annotations = {}
         model_fields = {}
-
+        
         for field_name, field_def in yaml_data.items():
             # Check if field name ends with [] indicating it's a list
             is_field_list = field_name.endswith('[]')
             # Clean field name by removing [] suffix if present
             clean_field_name = field_name[:-2] if is_field_list else field_name
-
+            
             if isinstance(field_def, str):
                 # Simple field with type only
                 field_type = YamlFieldType(
@@ -303,28 +331,24 @@ class YamlModelMapping(BaseModel):
                     dtype=YamlFieldType.LIST if is_field_list else field_type
                 )
                 fields.append(yaml_field)
-
+                
                 # Add to model annotations
                 python_type = YamlFieldType.yaml_field_type_to_python_type(yaml_field.dtype)
                 model_annotations[clean_field_name] = python_type
                 model_fields[clean_field_name] = Field(default=None)
-
+                
             elif isinstance(field_def, dict):
                 # Nested structure - process recursively
                 nested_name = f"{parent_name}_{clean_field_name}" if parent_name else clean_field_name
                 nested_fields, nested_annotations, nested_field_defs = cls.process_yaml_dict(field_def, nested_name)
-
+                
                 # Create nested model type
-                nested_model = type(
-                    nested_name.title(),
-                    (YamlModel,),
-                    {
-                        '__annotations__': nested_annotations,
-                        '__module__': YamlModel.__module__,
-                        **nested_field_defs
-                    }
+                nested_model = cls.create_yaml_model(
+                    name=nested_name.title(),
+                    annotations=nested_annotations,
+                    fields=nested_field_defs
                 )
-
+                
                 # Add field for the nested structure
                 yaml_field = YamlField(
                     name=clean_field_name,
@@ -332,14 +356,14 @@ class YamlModelMapping(BaseModel):
                 )
                 fields.append(yaml_field)
                 fields.extend(nested_fields)
-
+                
                 # Add to model annotations
                 if is_field_list:
                     model_annotations[clean_field_name] = List[nested_model]
                 else:
                     model_annotations[clean_field_name] = nested_model
                 model_fields[clean_field_name] = Field(default_factory=list if is_field_list else nested_model)
-
+        
         return fields, model_annotations, model_fields
 
     @classmethod
@@ -363,14 +387,10 @@ class YamlModelMapping(BaseModel):
         is_list = any(field_name.endswith('[]') for field_name in yaml_dict[model_name].keys())
         
         # Create a new YamlModel type with the model name and fields
-        model_type = type(
-            model_name,
-            (YamlModel,),
-            {
-                '__annotations__': model_annotations,
-                '__module__': YamlModel.__module__,
-                **model_fields
-            }
+        model_type = cls.create_yaml_model(
+            name=model_name,
+            annotations=model_annotations,
+            fields=model_fields
         )
         
         # Create the model mapping
@@ -384,343 +404,8 @@ class YamlModelMapping(BaseModel):
 class ResourceYamlMapping(BaseModel):
     """Mapping class for resource configurations from YAML."""
     connector_type: str
-    resources: list[Type[Resource]]
-    resources_collection: Type[ResourceCollection]
-
-    @staticmethod
-    def _load_yaml_data(path_or_dict: str | Path | dict) -> dict:
-        """
-        Load YAML data from either a file path or a dictionary.
-
-        Args:
-            path_or_dict: Either a path to a YAML file (str or Path) or a dictionary containing the YAML data
-
-        Returns:
-            dict: The loaded YAML data
-
-        Raises:
-            FileNotFoundError: If the YAML file does not exist
-            yaml.YAMLError: If the YAML file is invalid
-            ValueError: If the input format is invalid
-        """
-        if isinstance(path_or_dict, (str, Path)):
-            if not os.path.exists(str(path_or_dict)):
-                raise FileNotFoundError(f"YAML file not found: {path_or_dict}")
-            
-            with open(path_or_dict, 'r') as file:
-                return yaml.safe_load(file)
-        elif isinstance(path_or_dict, dict):
-            return path_or_dict
-        else:
-            raise ValueError("Input must be either a file path (str or Path) or a dictionary")
-
-    @staticmethod
-    def _create_nested_model(name: str, fields_definition: Dict[str, Any], available_models: Dict[str, Type[BaseModel]] = None) -> Type[BaseModel]:
-        """Create a nested Pydantic model from fields definition."""
-        annotations = {}
-        fields = {}
-        
-        for field_name, field_def in fields_definition.items():
-            if isinstance(field_def, dict):
-                # Handle nested field types
-                if 'type' in field_def:
-                    if field_def['type'] == 'array':
-                        # Array with structure
-                        if 'structure' in field_def:
-                            item_model = ResourceYamlMapping._create_nested_model(
-                                f"{name}_{field_name.title()}Item",
-                                field_def['structure'],
-                                available_models
-                            )
-                            annotations[field_name] = List[item_model]
-                            fields[field_name] = Field(default_factory=list)
-                        else:
-                            annotations[field_name] = List[str]
-                            fields[field_name] = Field(default_factory=list)
-                    elif field_def['type'] == 'object':
-                        # Object with structure
-                        if 'structure' in field_def:
-                            nested_model = ResourceYamlMapping._create_nested_model(
-                                f"{name}_{field_name.title()}",
-                                field_def['structure'],
-                                available_models
-                            )
-                            annotations[field_name] = nested_model
-                            fields[field_name] = Field(default_factory=lambda: nested_model())
-                        else:
-                            annotations[field_name] = Dict[str, Any]
-                            fields[field_name] = Field(default_factory=dict)
-                else:
-                    # Legacy nested object format
-                    nested_model = ResourceYamlMapping._create_nested_model(
-                        f"{name}_{field_name.title()}",
-                        field_def,
-                        available_models
-                    )
-                    annotations[field_name] = nested_model
-                    fields[field_name] = Field(default_factory=lambda: nested_model())
-            elif field_def == 'array':
-                # Simple array type
-                annotations[field_name] = List[str]
-                fields[field_name] = Field(default_factory=list)
-            elif field_def in available_models:
-                # Model reference
-                annotations[field_name] = available_models[field_def]
-                fields[field_name] = Field(default_factory=lambda: available_models[field_def]())
-            else:
-                # Simple field type
-                field_type = yaml_type_to_python_type(str(field_def), available_models)
-                annotations[field_name] = field_type
-                fields[field_name] = Field(...)  # Required field
-        
-        return type(
-            name,
-            (BaseModel,),
-            {
-                '__annotations__': annotations,
-                **fields
-            }
-        )
-
-    @staticmethod
-    def _create_resource_field_class(schema_def: dict[str, Any], schema_name: str, available_models: Dict[str, Type[BaseModel]] = None) -> Type[ResourceField]:
-        """Create a ResourceField subclass from schema definition."""
-        # Use the key directly as class name
-        class_name = schema_name
-        
-        # Create field definitions with proper type annotations
-        annotations = {}
-        fields = {}
-        
-        # Add standard ResourceField fields
-        annotations['name'] = str
-        annotations['description'] = Optional[str]
-        fields['name'] = Field(default=schema_def.get('name'))
-        fields['description'] = Field(default=schema_def.get('description'))
-        
-        # Process schema fields
-        schema_fields = schema_def.get('fields', {})
-        for field_name, field_def in schema_fields.items():
-            if isinstance(field_def, dict):
-                # Handle nested field types
-                if 'type' in field_def:
-                    if field_def['type'] == 'array':
-                        if 'structure' in field_def:
-                            # Create a model for the array item structure
-                            item_model = ResourceYamlMapping._create_nested_model(
-                                f"{schema_name}_{field_name.title()}Item",
-                                field_def['structure'],
-                                available_models
-                            )
-                            annotations[field_name] = List[item_model]
-                            fields[field_name] = Field(default_factory=list)
-                        else:
-                            annotations[field_name] = List[str]
-                            fields[field_name] = Field(default_factory=list)
-                    elif field_def['type'] == 'object':
-                        if 'structure' in field_def:
-                            nested_model = ResourceYamlMapping._create_nested_model(
-                                f"{schema_name}_{field_name.title()}",
-                                field_def['structure'],
-                                available_models
-                            )
-                            annotations[field_name] = nested_model
-                            fields[field_name] = Field(default_factory=lambda: nested_model())
-                        else:
-                            annotations[field_name] = Dict[str, Any]
-                            fields[field_name] = Field(default_factory=dict)
-                else:
-                    nested_model = ResourceYamlMapping._create_nested_model(
-                        f"{schema_name}_{field_name.title()}",
-                        field_def,
-                        available_models
-                    )
-                    annotations[field_name] = nested_model
-                    fields[field_name] = Field(default_factory=lambda: nested_model())
-            elif field_def == 'array':
-                # Simple array type
-                annotations[field_name] = List[str]
-                fields[field_name] = Field(default_factory=list)
-            else:
-                # Simple field type - make it required
-                field_type = yaml_type_to_python_type(str(field_def), available_models)
-                annotations[field_name] = field_type  # Not Optional
-                fields[field_name] = Field(...)  # Required field
-        
-        return type(
-            class_name,
-            (ResourceField,),
-            {
-                '__annotations__': annotations,
-                **fields
-            }
-        )
-
-    @staticmethod
-    def _create_resource_class(resource_def: dict[str, Any], resource_name: str, available_models: Dict[str, Type[BaseModel]] = None) -> Type[Resource]:
-        """Create a Resource subclass from resource definition."""
-        # Use the key directly as class name
-        class_name = resource_name
-        
-        # Create field definitions with proper type annotations
-        annotations = {
-            'service': str,  # Required service field
-            'name': str,  # Required name field
-            'description': str  # Required description field
-        }
-        fields = {
-            'service': Field(...),  # Required field
-            'name': Field(...),  # Required field
-            'description': Field(...)  # Required field
-        }
-        
-        # Process resource fields
-        resource_fields = resource_def.get('fields', {})
-        for field_name, field_def in resource_fields.items():
-            if isinstance(field_def, dict):
-                # Handle nested field types
-                if 'type' in field_def:
-                    if field_def['type'] == 'array':
-                        if 'structure' in field_def:
-                            item_model = ResourceYamlMapping._create_nested_model(
-                                f"{resource_name}_{field_name.title()}Item",
-                                field_def['structure'],
-                                available_models
-                            )
-                            annotations[field_name] = List[item_model]
-                            fields[field_name] = Field(default_factory=list)
-                        else:
-                            annotations[field_name] = List[str]
-                            fields[field_name] = Field(default_factory=list)
-                    elif field_def['type'] == 'object':
-                        if 'structure' in field_def:
-                            nested_model = ResourceYamlMapping._create_nested_model(
-                                f"{resource_name}_{field_name.title()}",
-                                field_def['structure'],
-                                available_models
-                            )
-                            annotations[field_name] = nested_model
-                            fields[field_name] = Field(default_factory=lambda: nested_model())
-                        else:
-                            annotations[field_name] = Dict[str, Any]
-                            fields[field_name] = Field(default_factory=dict)
-                else:
-                    nested_model = ResourceYamlMapping._create_nested_model(
-                        f"{resource_name}_{field_name.title()}",
-                        field_def,
-                        available_models
-                    )
-                    annotations[field_name] = nested_model
-                    fields[field_name] = Field(default_factory=lambda: nested_model())
-            elif field_def == 'array':
-                # Simple array type
-                annotations[field_name] = List[str]
-                fields[field_name] = Field(default_factory=list)
-            else:
-                # Simple field type - make it required
-                field_type = yaml_type_to_python_type(str(field_def), available_models)
-                annotations[field_name] = field_type  # Not Optional
-                fields[field_name] = Field(...)  # Required field
-        
-        model = type(
-            class_name,
-            (Resource,),
-            {
-                '__annotations__': annotations,
-                **fields
-            }
-        )
-        
-        # Add metadata
-        model.__description__ = resource_def.get('description', '')
-        if 'service' in resource_def:
-            model.__service__ = resource_def['service']
-        
-        return model
-
-    @staticmethod
-    def _create_resource_collection_class(collection_def: dict[str, Any], provider_name: str, available_models: Dict[str, Type[BaseModel]] = None) -> Type[ResourceCollection]:
-        """Create a ResourceCollection subclass from collection definition."""
-        # Use the name field to generate the class name
-        class_name = f"{format_class_name(provider_name)}ResourceCollection"
-        
-        # Create field definitions with proper type annotations
-        annotations = {
-            'name': str,
-            'description': Optional[str],
-            'resources': List[Any]  # Will be updated with proper resource types
-        }
-        fields = {
-            'name': Field(default=collection_def.get('name')),
-            'description': Field(default=collection_def.get('description')),
-            'resources': Field(default_factory=list)
-        }
-        
-        # Process collection fields
-        collection_fields = collection_def.get('fields', {})
-        for field_name, field_def in collection_fields.items():
-            if field_name == 'resources':
-                # Skip resources field as it's handled separately
-                continue
-                
-            if isinstance(field_def, dict):
-                # Handle nested field types
-                if 'type' in field_def:
-                    if field_def['type'] == 'array':
-                        if 'structure' in field_def:
-                            item_model = ResourceYamlMapping._create_nested_model(
-                                f"{class_name}_{field_name.title()}Item",
-                                field_def['structure'],
-                                available_models
-                            )
-                            annotations[field_name] = List[item_model]
-                            fields[field_name] = Field(default_factory=list)
-                        else:
-                            annotations[field_name] = List[str]
-                            fields[field_name] = Field(default_factory=list)
-                    elif field_def['type'] == 'object':
-                        if 'structure' in field_def:
-                            nested_model = ResourceYamlMapping._create_nested_model(
-                                f"{class_name}_{field_name.title()}",
-                                field_def['structure'],
-                                available_models
-                            )
-                            annotations[field_name] = nested_model
-                            fields[field_name] = Field(default_factory=lambda: nested_model())
-                        else:
-                            annotations[field_name] = Dict[str, Any]
-                            fields[field_name] = Field(default_factory=dict)
-                else:
-                    nested_model = ResourceYamlMapping._create_nested_model(
-                        f"{class_name}_{field_name.title()}",
-                        field_def,
-                        available_models
-                    )
-                    annotations[field_name] = nested_model
-                    fields[field_name] = Field(default_factory=lambda: nested_model())
-            elif isinstance(field_def, list):
-                # Handle resource references
-                if all(isinstance(ref, str) for ref in field_def):
-                    annotations[field_name] = List[Any]  # Will be updated with proper resource types
-                    fields[field_name] = Field(default_factory=list)
-            else:
-                field_type = yaml_type_to_python_type(str(field_def), available_models)
-                annotations[field_name] = Optional[field_type]
-                fields[field_name] = Field(default=None)
-        
-        model = type(
-            class_name,
-            (ResourceCollection,),
-            {
-                '__annotations__': annotations,
-                **fields
-            }
-        )
-        
-        # Add metadata
-        model.__description__ = collection_def.get('description', '')
-        
-        return model
+    resources: List[YamlModelMapping]
+    resources_collection: YamlModelMapping
 
     @classmethod
     def load_yaml(cls, path_or_dict: str | dict) -> Dict[str, 'ResourceYamlMapping']:
@@ -738,47 +423,4 @@ class ResourceYamlMapping(BaseModel):
             yaml.YAMLError: If the YAML file is invalid
             ValueError: If the input format is invalid
         """
-        yaml_data = cls._load_yaml_data(path_or_dict)
-        result = {}
-
-        # Process each provider's configuration
-        for provider_name, provider_data in yaml_data.items():
-            if not isinstance(provider_data, dict):
-                continue
-
-            all_nested_schemas = []
-            all_resources = []
-            collection_class = None
-            available_models = {}  # Track created models for cross-references
-
-            # Extract nested schemas - use key directly as class name
-            for schema_name, schema_def in provider_data.get('nested_schemas', {}).items():
-                schema_class = cls._create_resource_field_class(schema_def, schema_name, available_models)
-                all_nested_schemas.append(schema_class)
-                available_models[schema_name] = schema_class
-
-            # Extract resources - use key directly as class name
-            for resource_name, resource_def in provider_data.get('resources', {}).items():
-                resource_class = cls._create_resource_class(resource_def, resource_name, available_models)
-                all_resources.append(resource_class)
-                available_models[resource_name] = resource_class
-
-            # Extract resource collection - use name field for class name
-            collection_data = provider_data.get('resource_collection')
-            if collection_data:
-                collection_class = cls._create_resource_collection_class(
-                    collection_data,
-                    collection_data.get('name', provider_name),
-                    available_models
-                )
-
-            if not collection_class:
-                collection_class = ResourceCollection  # Use base class if no custom collection defined
-
-            result[provider_name] = cls(
-                nested_schemas=all_nested_schemas,
-                resources=all_resources,
-                resources_collection=collection_class
-            )
-
-        return result
+        pass
