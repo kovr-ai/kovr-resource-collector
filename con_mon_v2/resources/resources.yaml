@@ -29,7 +29,7 @@ github:
           disabled: "boolean"
         metadata:
           default_branch: "string"
-          topics: "array"
+          topics[]: "any"
           has_issues: "boolean"
           has_projects: "boolean"
           has_wiki: "boolean"
@@ -51,7 +51,7 @@ github:
           languages:
             Python: "integer"
             JavaScript: "integer"
-          code_frequency: "array"
+          code_frequency[]: "any"
 
       actions_data:
         workflows:
@@ -77,8 +77,8 @@ github:
           created_at: "string"
           updated_at: "string"
           closed_at: "string"
-          labels: "array"
-          assignees: "array"
+          labels[]: "any"
+          assignees[]: "any"
           comments_count: "integer"
           is_pull_request: "boolean"
         pull_requests:
@@ -112,7 +112,7 @@ github:
       security_data:
         security_advisories:
           error: "string"  # May contain error message
-          advisories: "array"
+          advisories[]: "any"
         vulnerability_alerts:
           enabled: "boolean"
           dependabot_alerts:
@@ -136,16 +136,16 @@ github:
           dependency_review_enabled: "boolean"
         code_scanning_alerts:
           error: "string"
-          alerts: "array"
+          alerts[]: "any"
         total_advisories: "integer"
         total_dependabot_alerts: "integer"
         total_code_scanning_alerts: "integer"
         security_features_enabled: "integer"
 
       organization_data:
-        members: "array"  # List of member objects (often empty)
-        teams: "array"   # List of team objects (often empty)
-        outside_collaborators: "array"  # List of collaborator objects (often empty)
+        members[]: "any"  # List of member objects (often empty)
+        teams[]: "any"   # List of team objects (often empty)
+        outside_collaborators[]: "any"  # List of collaborator objects (often empty)
         total_members: "integer"
         total_teams: "integer"
         total_outside_collaborators: "integer"
@@ -159,7 +159,7 @@ github:
           name: "string"
           commit_sha: "string"
           commit_date: "string"
-        webhooks: "array"  # List of webhook objects (often empty)
+        webhooks[]: "any"  # List of webhook objects (often empty)
         total_tags: "integer"
         total_webhooks: "integer"
         active_webhooks: "integer"
@@ -184,8 +184,8 @@ aws:
           max-instances: "string"
           vpc-max-elastic-ips: "string"
           default-vpc: "string"
-        reserved_instances: "array"
-        spot_instances: "array"
+        reserved_instances[]: "any"
+        spot_instances[]: "any"
       instances:
         instance_type: "string"
         state: "string"
@@ -202,22 +202,22 @@ aws:
           Id: "string"
         ebs_optimized: "boolean"
         instance_lifecycle: "string"
-        security_groups: "array"
-        network_interfaces: "array"
-        block_device_mappings: "array"
+        security_groups[]: "any"
+        network_interfaces[]: "any"
+        block_device_mappings[]: "any"
       security_groups:
         group_name: "string"
         description: "string"
         vpc_id: "string"
-        inbound_rules: "array"
-        outbound_rules: "array"
+        inbound_rules[]: "any"
+        outbound_rules[]: "any"
       vpcs:
         cidr_block: "string"
         state: "string"
         dhcp_options_id: "string"
         instance_tenancy: "string"
         is_default: "boolean"
-        cidr_block_association_set: "array"
+        cidr_block_association_set[]: "any"
       subnets:
         vpc_id: "string"
         availability_zone: "string"
@@ -226,8 +226,8 @@ aws:
         state: "string"
       route_tables:
         vpc_id: "string"
-        routes: "array"
-        associations: "array"
+        routes[]: "any"
+        associations[]: "any"
       nat_gateways:
         state: "string"
         subnet_id: "string"
@@ -269,10 +269,10 @@ aws:
         source_dest_check: "boolean"
         status: "string"
         mac_address: "string"
-        security_groups: "array"
+        security_groups[]: "any"
       internet_gateways:
         state: "string"
-        attachments: "array"
+        attachments[]: "any"
 
     IAMResource:
       users:
@@ -280,8 +280,8 @@ aws:
         user_id: "string"
         create_date: "string"
         path: "string"
-        access_keys: "array"
-        mfa_devices: "array"
+        access_keys[]: "any"
+        mfa_devices[]: "any"
       policies:
         policy_name: "string"
         policy_id: "string"
@@ -293,7 +293,7 @@ aws:
         default_version:
           Document:
             Version: "string"
-            Statement: "array"
+            Statement[]: "any"
           VersionId: "string"
           IsDefaultVersion: "boolean"
           CreateDate: "string"
@@ -312,8 +312,8 @@ aws:
         include_global_service_events: "boolean"
         is_multi_region_trail: "boolean"
         enable_log_file_validation: "boolean"
-        event_selectors: "array"
-        insight_selectors: "array"
+        event_selectors[]: "any"
+        insight_selectors[]: "any"
         is_logging: "boolean"
         kms_key_id: "string"
 
