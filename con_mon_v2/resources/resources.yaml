@@ -3,429 +3,369 @@
 
 github:
   resources:
-    # Main resource schemas
     GithubResource:
-      # Define the structure that matches GitHub API response with all data types
-      fields:
-        id: "string"  # Repository name to be used as ID for easy identification
-        # Nested data type schemas
-        repository_data:
-          description: "Repository basic information and metadata"
-          fields:
-            basic_info:
-              id: "integer"
-              name: "string"
-              full_name: "string"
-              description: "string"
-              private: "boolean"
-              owner: "string"
-              html_url: "string"
-              clone_url: "string"
-              ssh_url: "string"
-              size: "integer"
-              language: "string"
-              created_at: "string"
-              updated_at: "string"
-              pushed_at: "string"
-              stargazers_count: "integer"
-              watchers_count: "integer"
-              forks_count: "integer"
-              open_issues_count: "integer"
-              archived: "boolean"
-              disabled: "boolean"
-            metadata:
-              default_branch: "string"
-              topics: "array"
-              has_issues: "boolean"
-              has_projects: "boolean"
-              has_wiki: "boolean"
-              has_pages: "boolean"
-              has_downloads: "boolean"
-              has_discussions: "boolean"
-              is_template: "boolean"
-              license: "string"
-              visibility: "string"
-              allow_forking: "boolean"
-              web_commit_signoff_required: "boolean"
-            branches:
-              type: "array"  # List of branch objects
-              structure:
-                name: "string"
-                sha: "string"
-                protected: "boolean"
-            statistics:
-              total_commits: "integer"
-              contributors_count: "integer"
-              languages:
-                type: "object"  # Dictionary of language -> bytes
-                structure:
-                  Python: "integer"
-                  JavaScript: "integer"
-              code_frequency: "array"
+      id: "string"  # Repository name to be used as ID for easy identification
+      repository_data:
+        basic_info:
+          id: "integer"
+          name: "string"
+          full_name: "string"
+          description: "string"
+          private: "boolean"
+          owner: "string"
+          html_url: "string"
+          clone_url: "string"
+          ssh_url: "string"
+          size: "integer"
+          language: "string"
+          created_at: "string"
+          updated_at: "string"
+          pushed_at: "string"
+          stargazers_count: "integer"
+          watchers_count: "integer"
+          forks_count: "integer"
+          open_issues_count: "integer"
+          archived: "boolean"
+          disabled: "boolean"
+        metadata:
+          default_branch: "string"
+          topics: "array"
+          has_issues: "boolean"
+          has_projects: "boolean"
+          has_wiki: "boolean"
+          has_pages: "boolean"
+          has_downloads: "boolean"
+          has_discussions: "boolean"
+          is_template: "boolean"
+          license: "string"
+          visibility: "string"
+          allow_forking: "boolean"
+          web_commit_signoff_required: "boolean"
+        branches:
+          name: "string"
+          sha: "string"
+          protected: "boolean"
+        statistics:
+          total_commits: "integer"
+          contributors_count: "integer"
+          languages:
+            Python: "integer"
+            JavaScript: "integer"
+          code_frequency: "array"
 
-        actions_data:
-          description: "GitHub Actions workflows and runs"
-          fields:
-            workflows:
-              type: "object"  # Dictionary/map of workflow_id -> workflow_data
-              structure:
-                id: "integer"
-                name: "string"
-                path: "string"
-                state: "string"
-                created_at: "string"
-                updated_at: "string"
-                url: "string"
-                html_url: "string"
-                badge_url: "string"
-            total_workflows: "integer"
-            active_workflows: "integer"
-            recent_runs_count: "integer"
+      actions_data:
+        workflows:
+          id: "integer"
+          name: "string"
+          path: "string"
+          state: "string"
+          created_at: "string"
+          updated_at: "string"
+          url: "string"
+          html_url: "string"
+          badge_url: "string"
+        total_workflows: "integer"
+        active_workflows: "integer"
+        recent_runs_count: "integer"
 
-        collaboration_data:
-          description: "Collaboration information - issues, PRs, collaborators"
-          fields:
-            issues:
-              type: "array"  # List of issue objects
-              structure:
-                number: "integer"
-                title: "string"
-                state: "string"
-                user: "string"
-                created_at: "string"
-                updated_at: "string"
-                closed_at: "string"
-                labels: "array"
-                assignees: "array"
-                comments_count: "integer"
-                is_pull_request: "boolean"
-            pull_requests:
-              type: "array"  # List of pull request objects
-              structure:
-                number: "integer"
-                title: "string"
-                state: "string"
-                user: "string"
-                created_at: "string"
-                updated_at: "string"
-                closed_at: "string"
-                merged_at: "string"
-                base_branch: "string"
-            collaborators:
-              type: "array"  # List of collaborator objects
-              structure:
-                login: "string"
-                permissions:
-                  admin: "boolean"
-                  maintain: "boolean"
-                  push: "boolean"
-                  pull: "boolean"
-                  triage: "boolean"
-                role_name: "string"
-            total_issues: "integer"
-            open_issues: "integer"
-            closed_issues: "integer"
-            total_pull_requests: "integer"
-            open_pull_requests: "integer"
-            merged_pull_requests: "integer"
-            draft_pull_requests: "integer"
-            total_collaborators: "integer"
+      collaboration_data:
+        issues:
+          number: "integer"
+          title: "string"
+          state: "string"
+          user: "string"
+          created_at: "string"
+          updated_at: "string"
+          closed_at: "string"
+          labels: "array"
+          assignees: "array"
+          comments_count: "integer"
+          is_pull_request: "boolean"
+        pull_requests:
+          number: "integer"
+          title: "string"
+          state: "string"
+          user: "string"
+          created_at: "string"
+          updated_at: "string"
+          closed_at: "string"
+          merged_at: "string"
+          base_branch: "string"
+        collaborators:
+          login: "string"
+          permissions:
+            admin: "boolean"
+            maintain: "boolean"
+            push: "boolean"
+            pull: "boolean"
+            triage: "boolean"
+          role_name: "string"
+        total_issues: "integer"
+        open_issues: "integer"
+        closed_issues: "integer"
+        total_pull_requests: "integer"
+        open_pull_requests: "integer"
+        merged_pull_requests: "integer"
+        draft_pull_requests: "integer"
+        total_collaborators: "integer"
 
-        security_data:
-          description: "Security advisories, alerts and analysis"
-          fields:
-            security_advisories:
-              type: "object"
-              structure:
-                error: "string"  # May contain error message
-                advisories: "array"
-            vulnerability_alerts:
-              type: "object"
-              structure:
-                enabled: "boolean"
-                dependabot_alerts:
-                  type: "array"
-                  structure:
-                    number: "integer"
-                    state: "string"
-                    severity: "string"
-                    package: "string"
-                    created_at: "string"
-                    updated_at: "string"
-                error: "string"
-            dependency_graph:
-              type: "object"
-              structure:
-                has_vulnerability_alerts_enabled: "boolean"
-                security_and_analysis:
-                  advanced_security: "string"
-                  secret_scanning: "string"
-                  secret_scanning_push_protection: "string"
-            security_analysis:
-              advanced_security_enabled: "boolean"
-              secret_scanning_enabled: "boolean"
-              push_protection_enabled: "boolean"
-              dependency_review_enabled: "boolean"
-            code_scanning_alerts:
-              type: "object"
-              structure:
-                error: "string"
-                alerts: "array"
-            total_advisories: "integer"
-            total_dependabot_alerts: "integer"
-            total_code_scanning_alerts: "integer"
-            security_features_enabled: "integer"
+      security_data:
+        security_advisories:
+          error: "string"  # May contain error message
+          advisories: "array"
+        vulnerability_alerts:
+          enabled: "boolean"
+          dependabot_alerts:
+            number: "integer"
+            state: "string"
+            severity: "string"
+            package: "string"
+            created_at: "string"
+            updated_at: "string"
+          error: "string"
+        dependency_graph:
+          has_vulnerability_alerts_enabled: "boolean"
+          security_and_analysis:
+            advanced_security: "string"
+            secret_scanning: "string"
+            secret_scanning_push_protection: "string"
+        security_analysis:
+          advanced_security_enabled: "boolean"
+          secret_scanning_enabled: "boolean"
+          push_protection_enabled: "boolean"
+          dependency_review_enabled: "boolean"
+        code_scanning_alerts:
+          error: "string"
+          alerts: "array"
+        total_advisories: "integer"
+        total_dependabot_alerts: "integer"
+        total_code_scanning_alerts: "integer"
+        security_features_enabled: "integer"
 
-        organization_data:
-          description: "Organization members, teams and collaborators"
-          fields:
-            members: "array"  # List of member objects (often empty)
-            teams: "array"   # List of team objects (often empty)
-            outside_collaborators: "array"  # List of collaborator objects (often empty)
-            total_members: "integer"
-            total_teams: "integer"
-            total_outside_collaborators: "integer"
-            admin_members: "integer"
-            members_error: "string"
-            teams_error: "string"
-            collaborators_error: "string"
+      organization_data:
+        members: "array"  # List of member objects (often empty)
+        teams: "array"   # List of team objects (often empty)
+        outside_collaborators: "array"  # List of collaborator objects (often empty)
+        total_members: "integer"
+        total_teams: "integer"
+        total_outside_collaborators: "integer"
+        admin_members: "integer"
+        members_error: "string"
+        teams_error: "string"
+        collaborators_error: "string"
 
-        advanced_features_data:
-          description: "Advanced GitHub features - tags, webhooks"
-          fields:
-            tags:
-              type: "array"  # List of tag objects
-              structure:
-                name: "string"
-                commit_sha: "string"
-                commit_date: "string"
-            webhooks: "array"  # List of webhook objects (often empty)
-            total_tags: "integer"
-            total_webhooks: "integer"
-            active_webhooks: "integer"
-            tags_error: "string"
-            webhooks_error: "string"
+      advanced_features_data:
+        tags:
+          name: "string"
+          commit_sha: "string"
+          commit_date: "string"
+        webhooks: "array"  # List of webhook objects (often empty)
+        total_tags: "integer"
+        total_webhooks: "integer"
+        active_webhooks: "integer"
+        tags_error: "string"
+        webhooks_error: "string"
 
   resource_collection:
-    # Define the structure for GitHub resource collections
-    fields:
-      resource_schemas:
-        - "github.resources.GithubResource"
-      source_connector: "string"
-      total_count: "integer"
-      fetched_at: "string"
+    resource_schemas:
+      - "github.resources.GithubResource"
+    source_connector: "string"
+    total_count: "integer"
+    fetched_at: "string"
 
 aws:
   resources:
-    # AWS EC2 Resource Schema
     EC2Resource:
-      fields:
-        # Account-level information
-        account:
-          limits:
-            supported-platforms: "string"
-            vpc-max-security-groups-per-interface: "string"
-            max-elastic-ips: "string"
-            max-instances: "string"
-            vpc-max-elastic-ips: "string"
-            default-vpc: "string"
-          reserved_instances: "array"
-          spot_instances: "array"
-        # EC2 resources
-        instances:
-          instance_type: "string"
-          state: "string"
-          launch_time: "string"
-          image_id: "string"
-          vpc_id: "string"
-          subnet_id: "string"
-          availability_zone: "string"
-          key_name: "string"
-          platform: "string"
-          monitoring: "string"
-          iam_instance_profile:
-            Arn: "string"
-            Id: "string"
-          ebs_optimized: "boolean"
-          instance_lifecycle: "string"
-          security_groups: "array"
-          network_interfaces: "array"
-          block_device_mappings: "array"
-        security_groups:
-          group_name: "string"
-          description: "string"
-          vpc_id: "string"
-          inbound_rules: "array"
-          outbound_rules: "array"
-        vpcs:
-          cidr_block: "string"
-          state: "string"
-          dhcp_options_id: "string"
-          instance_tenancy: "string"
-          is_default: "boolean"
-          cidr_block_association_set: "array"
-        subnets:
-          vpc_id: "string"
-          availability_zone: "string"
-          availability_zone_id: "string"
-          cidr_block: "string"
-          state: "string"
-        route_tables:
-          vpc_id: "string"
-          routes: "array"
-          associations: "array"
-        nat_gateways:
-          state: "string"
-          subnet_id: "string"
-          vpc_id: "string"
-          create_time: "string"
-          delete_time: "string"
-        elastic_ips:
-          public_ip: "string"
-          domain: "string"
-          instance_id: "string"
-          network_interface_id: "string"
-          private_ip_address: "string"
-        key_pairs:
-          key_fingerprint: "string"
-          key_type: "string"
-        snapshots:
-          volume_id: "string"
-          volume_size: "integer"
-          state: "string"
-          start_time: "string"
-          progress: "string"
-        volumes:
-          size: "integer"
-          volume_type: "string"
-          state: "string"
-          availability_zone: "string"
-          create_time: "string"
-          encrypted: "boolean"
-          iops: "integer"
-          throughput: "integer"
-        network_interfaces:
-          subnet_id: "string"
-          vpc_id: "string"
-          availability_zone: "string"
-          description: "string"
-          interface_type: "string"
-          private_ip_address: "string"
-          private_dns_name: "string"
-          source_dest_check: "boolean"
-          status: "string"
-          mac_address: "string"
-          security_groups: "array"
-        internet_gateways:
-          state: "string"
-          attachments: "array"
+      account:
+        limits:
+          supported-platforms: "string"
+          vpc-max-security-groups-per-interface: "string"
+          max-elastic-ips: "string"
+          max-instances: "string"
+          vpc-max-elastic-ips: "string"
+          default-vpc: "string"
+        reserved_instances: "array"
+        spot_instances: "array"
+      instances:
+        instance_type: "string"
+        state: "string"
+        launch_time: "string"
+        image_id: "string"
+        vpc_id: "string"
+        subnet_id: "string"
+        availability_zone: "string"
+        key_name: "string"
+        platform: "string"
+        monitoring: "string"
+        iam_instance_profile:
+          Arn: "string"
+          Id: "string"
+        ebs_optimized: "boolean"
+        instance_lifecycle: "string"
+        security_groups: "array"
+        network_interfaces: "array"
+        block_device_mappings: "array"
+      security_groups:
+        group_name: "string"
+        description: "string"
+        vpc_id: "string"
+        inbound_rules: "array"
+        outbound_rules: "array"
+      vpcs:
+        cidr_block: "string"
+        state: "string"
+        dhcp_options_id: "string"
+        instance_tenancy: "string"
+        is_default: "boolean"
+        cidr_block_association_set: "array"
+      subnets:
+        vpc_id: "string"
+        availability_zone: "string"
+        availability_zone_id: "string"
+        cidr_block: "string"
+        state: "string"
+      route_tables:
+        vpc_id: "string"
+        routes: "array"
+        associations: "array"
+      nat_gateways:
+        state: "string"
+        subnet_id: "string"
+        vpc_id: "string"
+        create_time: "string"
+        delete_time: "string"
+      elastic_ips:
+        public_ip: "string"
+        domain: "string"
+        instance_id: "string"
+        network_interface_id: "string"
+        private_ip_address: "string"
+      key_pairs:
+        key_fingerprint: "string"
+        key_type: "string"
+      snapshots:
+        volume_id: "string"
+        volume_size: "integer"
+        state: "string"
+        start_time: "string"
+        progress: "string"
+      volumes:
+        size: "integer"
+        volume_type: "string"
+        state: "string"
+        availability_zone: "string"
+        create_time: "string"
+        encrypted: "boolean"
+        iops: "integer"
+        throughput: "integer"
+      network_interfaces:
+        subnet_id: "string"
+        vpc_id: "string"
+        availability_zone: "string"
+        description: "string"
+        interface_type: "string"
+        private_ip_address: "string"
+        private_dns_name: "string"
+        source_dest_check: "boolean"
+        status: "string"
+        mac_address: "string"
+        security_groups: "array"
+      internet_gateways:
+        state: "string"
+        attachments: "array"
 
-    # AWS IAM Resource Schema
     IAMResource:
-      fields:
-        # IAM resources
-        users:
-          arn: "string"
-          user_id: "string"
-          create_date: "string"
-          path: "string"
-          access_keys: "array"
-          mfa_devices: "array"
-        policies:
-          policy_name: "string"
-          policy_id: "string"
-          create_date: "string"
-          update_date: "string"
-          path: "string"
-          default_version_id: "string"
-          attachment_count: "integer"
-          default_version:
-            Document:
-              Version: "string"
-              Statement: "array"
-            VersionId: "string"
-            IsDefaultVersion: "boolean"
-            CreateDate: "string"
+      users:
+        arn: "string"
+        user_id: "string"
+        create_date: "string"
+        path: "string"
+        access_keys: "array"
+        mfa_devices: "array"
+      policies:
+        policy_name: "string"
+        policy_id: "string"
+        create_date: "string"
+        update_date: "string"
+        path: "string"
+        default_version_id: "string"
+        attachment_count: "integer"
+        default_version:
+          Document:
+            Version: "string"
+            Statement: "array"
+          VersionId: "string"
+          IsDefaultVersion: "boolean"
+          CreateDate: "string"
 
-    # AWS S3 Resource Schema
     S3Resource:
-      fields:
-        # S3 resources
-        buckets:
-          name: "string"
-          creation_date: "string"
-          region: "string"
+      buckets:
+        name: "string"
+        creation_date: "string"
+        region: "string"
 
-    # AWS CloudTrail Resource Schema
     CloudTrailResource:
-      fields:
-        # CloudTrail resources
-        trails:
-          name: "string"
-          s3_bucket_name: "string"
-          s3_key_prefix: "string"
-          include_global_service_events: "boolean"
-          is_multi_region_trail: "boolean"
-          enable_log_file_validation: "boolean"
-          event_selectors: "array"
-          insight_selectors: "array"
-          is_logging: "boolean"
-          kms_key_id: "string"
+      trails:
+        name: "string"
+        s3_bucket_name: "string"
+        s3_key_prefix: "string"
+        include_global_service_events: "boolean"
+        is_multi_region_trail: "boolean"
+        enable_log_file_validation: "boolean"
+        event_selectors: "array"
+        insight_selectors: "array"
+        is_logging: "boolean"
+        kms_key_id: "string"
 
-    # AWS CloudWatch Resource Schema
     CloudWatchResource:
-      fields:
-        # CloudWatch resources
-        log_groups:
-          log_group_name: "string"
-          creation_time: "integer"
-          retention_in_days: "integer"
-          metric_filter_count: "integer"
-          arn: "string"
-          stored_bytes: "integer"
-          kms_key_id: "string"
-        metrics:
-          namespace: "string"
-          metric_name: "string"
-          dimensions[]:
-            Name: "string"
-            Value: "string"
-        alarms:
-          alarm_name: "string"
-          alarm_description: "string"
-          actions_enabled: "boolean"
-          ok_actions[]: "str"
-          alarm_actions[]: "string"
-          insufficient_data_actions[]: "string"
-          state_value: "string"
-          state_reason: "string"
-          state_updated_timestamp: "string"
-          metric_name: "string"
-          namespace: "string"
-          statistic: "string"
-          dimensions:
-            Name: "string"
-            Value: "string"
-          period: "integer"
-          evaluation_periods: "integer"
-          threshold: "number"
-          comparison_operator: "string"
-        dashboards:
-          dashboard_name: "string"
-          dashboard_arn: "string"
-          dashboard_body: "string"
-          size: "integer"
-          last_modified: "string"
+      log_groups:
+        log_group_name: "string"
+        creation_time: "integer"
+        retention_in_days: "integer"
+        metric_filter_count: "integer"
+        arn: "string"
+        stored_bytes: "integer"
+        kms_key_id: "string"
+      metrics:
+        namespace: "string"
+        metric_name: "string"
+        dimensions[]:
+          Name: "string"
+          Value: "string"
+      alarms:
+        alarm_name: "string"
+        alarm_description: "string"
+        actions_enabled: "boolean"
+        ok_actions[]: "str"
+        alarm_actions[]: "string"
+        insufficient_data_actions[]: "string"
+        state_value: "string"
+        state_reason: "string"
+        state_updated_timestamp: "string"
+        metric_name: "string"
+        namespace: "string"
+        statistic: "string"
+        dimensions:
+          Name: "string"
+          Value: "string"
+        period: "integer"
+        evaluation_periods: "integer"
+        threshold: "number"
+        comparison_operator: "string"
+      dashboards:
+        dashboard_name: "string"
+        dashboard_arn: "string"
+        dashboard_body: "string"
+        size: "integer"
+        last_modified: "string"
 
   resource_collection:
-    # Define the structure for AWS resource collections
-    fields:
-      resource_schemas:
-        - "aws.resources.EC2Resource"
-        - "aws.resources.IAMResource"
-        - "aws.resources.S3Resource"
-        - "aws.resources.CloudTrailResource"
-        - "aws.resources.CloudWatchResource"
-      source_connector: "string"
-      total_count: "integer"
-      fetched_at: "string"
+    resource_schemas:
+      - "aws.resources.EC2Resource"
+      - "aws.resources.IAMResource"
+      - "aws.resources.S3Resource"
+      - "aws.resources.CloudTrailResource"
+      - "aws.resources.CloudWatchResource"
+    source_connector: "string"
+    total_count: "integer"
+    fetched_at: "string"
