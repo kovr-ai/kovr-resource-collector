@@ -15,12 +15,13 @@ import re
 import os
 import yaml
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional, Type
+from typing import Dict, Any, Optional, Type, Tuple
 from pydantic import BaseModel
+from con_mon_v2.resources import Resource
 from con_mon_v2.checks import Check
+from con_mon_v2.utils.services import ResourceCollectionService
 
 from .client import get_llm_client, LLMRequest, LLMResponse
-from ...resources import Resource
 
 
 def load_resource_schema(resource_type: str) -> str:
@@ -309,6 +310,43 @@ You are a cybersecurity compliance expert. Generate a complete checks.yaml entry
         
         return complete_prompt
     
+    def test_check(self, check: Check) -> Tuple[bool, str]:
+        """
+        Test the generated check against a resource collection.
+        
+        Args:
+            check: Generated Check object to test
+            
+        Returns:
+            Tuple of (success: bool, message: str)
+        """
+        # Get resource collection service for the connector type
+        rc_service = ResourceCollectionService(self.connector_type_lower)
+        
+        try:
+            # Get resource collection (uses dummy credentials in test mode)
+            rc = rc_service.get_resource_collection()
+            
+            # Validate field paths
+            validation_report = rc_service.validate_resource_field_paths(rc)
+            
+            # Check if our field path exists in any resource
+            field_path = check.field_path
+            for resource_name, fields in validation_report.items():
+                if field_path in fields:
+                    field_status = fields[field_path]
+                    if field_status == "success":
+                        return True, f"✅ Field path '{field_path}' validated successfully in {resource_name}"
+                    elif field_status == "not found":
+                        return False, f"❌ Field path '{field_path}' exists but has no data in {resource_name}"
+                    else:
+                        return False, f"❌ Field path '{field_path}' validation error in {resource_name}: {field_status}"
+            
+            return False, f"❌ Field path '{field_path}' not found in any resource"
+            
+        except Exception as e:
+            return False, f"❌ Error testing check: {str(e)}"
+
     def process_response(self, response: LLMResponse) -> Check:
         """
         Process checks YAML response and validate it.
@@ -344,8 +382,16 @@ You are a cybersecurity compliance expert. Generate a complete checks.yaml entry
         check_dict = checks[0]
         check_dict['resource_type'] = self.resource_type
         check_dict['id'] = check_dict['name']
-
-        return Check(**check_dict)
+        
+        # Create and validate the check
+        check = Check(**check_dict)
+        
+        # Test the check against a resource collection
+        success, message = self.test_check(check)
+        print(f"\n🧪 Testing check against resource collection:")
+        print(message)
+        
+        return check
 
 
 class PromptResult(BaseModel):
