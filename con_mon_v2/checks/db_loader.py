@@ -63,114 +63,108 @@ class BaseCheckLoader(ABC):
         Returns:
             Check object or None if creation fails
         """
-        try:
-            # Extract metadata for execution fields
-            metadata = row.get('metadata', {})
+        # Extract metadata for execution fields
+        metadata = row.get('metadata', {})
 
-            # Get field_path from metadata
-            field_path = metadata.get('field_path', 'data')
+        # Get field_path from metadata
+        field_path = metadata.get('field_path', 'data')
 
-            # Create operation from metadata
-            operation = self._create_operation_from_metadata(metadata)
+        # Create operation from metadata
+        operation = self._create_operation_from_metadata(metadata)
 
-            # Get expected_value from metadata
-            expected_value = metadata.get('expected_value')
+        # Get expected_value from metadata
+        expected_value = metadata.get('expected_value')
 
-            # Get resource_type from metadata and clean up the format
-            resource_type_raw = metadata.get('resource_type', '')
-            if resource_type_raw.startswith("<class '") and resource_type_raw.endswith("'>"):
-                resource_type_cleaned = resource_type_raw[8:-2]  # Remove "<class '" and "'>"
-            else:
-                resource_type_cleaned = resource_type_raw
+        # Get resource_type from metadata and clean up the format
+        resource_type_raw = metadata.get('resource_type', '')
+        if resource_type_raw.startswith("<class '") and resource_type_raw.endswith("'>"):
+            resource_type_cleaned = resource_type_raw[8:-2]  # Remove "<class '" and "'>"
+        else:
+            resource_type_cleaned = resource_type_raw
 
-            # Create nested objects with proper type conversion
-            check_metadata = CheckMetadata(
-                tags=metadata.get('tags', []),
-                severity=metadata.get('severity'),
-                category=metadata.get('category'),
-                field_path=field_path,
-                expected_value=expected_value,
-                operation=CheckOperation(
-                    name=metadata.get('operation', {}).get('name', 'custom') if isinstance(metadata.get('operation'), dict) else metadata.get('operation', 'custom'),
-                    logic=metadata.get('operation', {}).get('logic', '') if isinstance(metadata.get('operation'), dict) else ''
-                ),
-                name=row.get('name'),
-                resource_type=resource_type_cleaned
-            )
+        # Create nested objects with proper type conversion
+        check_metadata = CheckMetadata(
+            tags=metadata.get('tags', []),
+            severity=metadata.get('severity'),
+            category=metadata.get('category'),
+            field_path=field_path,
+            expected_value=expected_value,
+            operation=CheckOperation(
+                name=metadata.get('operation', {}).get('name', 'custom') if isinstance(metadata.get('operation'), dict) else metadata.get('operation', 'custom'),
+                logic=metadata.get('operation', {}).get('logic', '') if isinstance(metadata.get('operation'), dict) else ''
+            ),
+            name=row.get('name'),
+            resource_type=resource_type_cleaned
+        )
 
-            # Create output_statements object
-            output_data = row.get('output_statements', {})
-            if isinstance(output_data, dict) and output_data:
-                try:
-                    output_statements = CheckResultStatement(**output_data)
-                except Exception:
-                    # If data doesn't match expected structure, use default
-                    output_statements = CheckResultStatement(success="", failure="", partial="")
-            else:
+        # Create output_statements object
+        output_data = row.get('output_statements', {})
+        if isinstance(output_data, dict) and output_data:
+            try:
+                output_statements = CheckResultStatement(**output_data)
+            except Exception:
+                # If data doesn't match expected structure, use default
                 output_statements = CheckResultStatement(success="", failure="", partial="")
+        else:
+            output_statements = CheckResultStatement(success="", failure="", partial="")
 
-            # Create fix_details object
-            fix_data = row.get('fix_details', {})
-            if isinstance(fix_data, dict) and fix_data:
-                try:
-                    fix_details = CheckFailureFix(**fix_data)
-                except Exception:
-                    # If data doesn't match expected structure, use default
-                    fix_details = CheckFailureFix(
-                        description="",
-                        instructions=[],
-                        estimated_date="",
-                        automation_available=False
-                    )
-            else:
+        # Create fix_details object
+        fix_data = row.get('fix_details', {})
+        if isinstance(fix_data, dict) and fix_data:
+            try:
+                fix_details = CheckFailureFix(**fix_data)
+            except Exception:
+                # If data doesn't match expected structure, use default
                 fix_details = CheckFailureFix(
                     description="",
                     instructions=[],
                     estimated_date="",
                     automation_available=False
                 )
-
-            # Handle datetime conversion
-            created_at = row.get('created_at')
-            if isinstance(created_at, str):
-                try:
-                    created_at = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
-                except Exception:
-                    created_at = datetime.now()
-            elif not isinstance(created_at, datetime):
-                created_at = datetime.now()
-
-            updated_at = row.get('updated_at')
-            if isinstance(updated_at, str):
-                try:
-                    updated_at = datetime.fromisoformat(updated_at.replace('Z', '+00:00'))
-                except Exception:
-                    updated_at = datetime.now()
-            elif not isinstance(updated_at, datetime):
-                updated_at = datetime.now()
-
-            # Create Check object
-            check = Check(
-                id=str(row['id']),
-                name=row['name'],
-                description=row.get('description'),
-                category=row.get('category'),
-                output_statements=output_statements,
-                fix_details=fix_details,
-                created_by=row.get('created_by', 'system'),
-                updated_by=row.get('updated_by', 'system'),
-                created_at=created_at,
-                updated_at=updated_at,
-                is_deleted=row.get('is_deleted', False),
-                metadata=check_metadata
+        else:
+            fix_details = CheckFailureFix(
+                description="",
+                instructions=[],
+                estimated_date="",
+                automation_available=False
             )
 
-            return check
+        # Handle datetime conversion
+        created_at = row.get('created_at')
+        if isinstance(created_at, str):
+            try:
+                created_at = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+            except Exception:
+                created_at = datetime.now()
+        elif not isinstance(created_at, datetime):
+            created_at = datetime.now()
 
-        except Exception as e:
-            logger.error(f"❌ Error creating Check from row: {e}")
-            logger.debug(f"Row data: {row}")
-            return None
+        updated_at = row.get('updated_at')
+        if isinstance(updated_at, str):
+            try:
+                updated_at = datetime.fromisoformat(updated_at.replace('Z', '+00:00'))
+            except Exception:
+                updated_at = datetime.now()
+        elif not isinstance(updated_at, datetime):
+            updated_at = datetime.now()
+
+        # Create Check object
+        check = Check(
+            id=str(row['id']),
+            name=row['name'],
+            description=row.get('description'),
+            category=row.get('category'),
+            output_statements=output_statements,
+            fix_details=fix_details,
+            created_by=row.get('created_by', 'system'),
+            updated_by=row.get('updated_by', 'system'),
+            created_at=created_at,
+            updated_at=updated_at,
+            is_deleted=row.get('is_deleted', False),
+            metadata=check_metadata
+        )
+
+        return check
 
     def _create_operation_from_metadata(self, metadata: Dict[str, Any]) -> ComparisonOperation:
         """
