@@ -17,6 +17,7 @@ import yaml
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional
 from pydantic import BaseModel
+from con_mon_v2.checks import Check
 
 from .client import get_llm_client, LLMRequest, LLMResponse
 
@@ -153,7 +154,7 @@ class ChecksYamlPrompt(BasePrompt):
 **Example Format:**
 ```yaml
 checks:
-- connection_id: {connection_id}
+- id: {resource_type_lower}_{control_name_lower}_compliance
   name: {resource_type_lower}_{control_name_lower}_compliance
   description: Verify compliance with NIST 800-53 {control_name}: {control_title}
   resource_type: # Choose specific resource type (GithubResource, AWSIAMResource, AWSEC2Resource, etc.)
@@ -225,7 +226,6 @@ Generate ONLY the YAML check entry, no explanations or additional text:
         control_text: str,
         control_title: str,
         resource_type: str,
-        connection_id: int,
         control_id: int,
         **kwargs
     ) -> str:
@@ -245,8 +245,10 @@ Generate ONLY the YAML check entry, no explanations or additional text:
             Formatted prompt string
         """
         # Generate suggestions based on control and resource type
-        resource_type_lower = resource_type.lower()
+        resource_type_lower = re.sub(r'([a-z])([A-Z])', r'\1_\2', resource_type.__name__).lower()
         control_name_lower = control_name.lower().replace('-', '_')
+        # Get the appropriate resource schema based on connector_type
+        connector_type_lower = resource_type_lower.split('_')[0]
         
         # Suggest severity based on control family
         severity_suggestions = {
@@ -269,9 +271,7 @@ Generate ONLY the YAML check entry, no explanations or additional text:
         }
         
         control_family = control_name.split('-')[0] if '-' in control_name else control_name[:2]
-        
-        # Get the appropriate resource schema based on connector_type
-        connector_type_lower = resource_type.lower()
+
         resource_schema = load_resource_schema(connector_type_lower)
         
         # Format each template part
@@ -287,7 +287,6 @@ Generate ONLY the YAML check entry, no explanations or additional text:
         )
         
         sample_format = self.SAMPLE_FORMAT.format(
-            connection_id=connection_id,
             resource_type_lower=resource_type_lower,
             control_name_lower=control_name_lower,
             control_name=control_name,
@@ -309,15 +308,15 @@ You are a cybersecurity compliance expert. Generate a complete checks.yaml entry
         
         return complete_prompt
     
-    def process_response(self, response: LLMResponse) -> str:
+    def process_response(self, response: LLMResponse) -> Check:
         """
-        Process checks YAML response and clean up formatting.
+        Process checks YAML response and validate it.
         
         Args:
             response: LLM response object
             
         Returns:
-            Cleaned YAML content ready for use
+            Validated Check object
         """
         content = response.content.strip()
         
@@ -330,13 +329,21 @@ You are a cybersecurity compliance expert. Generate a complete checks.yaml entry
         
         # Ensure proper YAML structure
         if not content.startswith('checks:'):
-            # If the response doesn't start with 'checks:', add it
-            if content.startswith('- id:'):
+            if content.startswith('- '):
                 content = 'checks:\n' + content
+            else:
+                content = 'checks:\n- ' + content
 
-        # print(f'Content: {content}')
-        return content
+        # Parse YAML and validate
+        yaml_data = yaml.safe_load(content)
+        checks = yaml_data['checks']
+        # We expect a single check
+        if len(checks) != 1:
+            raise ValueError(f"Expected 1 check, got {len(checks)}")
+        check_dict = checks[0]
 
+        # TODO: check_dict['resource_type'] is resource_type. import value directly and replace
+        return Check(**check_dict)
 
 class PromptResult(BaseModel):
     """
@@ -356,11 +363,10 @@ def generate_checks_yaml(
     control_name: str,
     control_text: str,
     control_id: int,
-    control_title: Optional[str] = None,
-    resource_type: str = "github",
-    connection_id: int = 1,
+    control_title: str,
+    resource_type: str,
     **kwargs
-) -> str:
+) -> Check:
     """
     Quick function to generate complete checks.yaml entry.
     
@@ -374,7 +380,7 @@ def generate_checks_yaml(
         **kwargs: Additional LLM parameters
         
     Returns:
-        Generated YAML content
+        Generated and validated Check object
     """
     prompt = ChecksYamlPrompt()
     return prompt.generate(
@@ -382,7 +388,6 @@ def generate_checks_yaml(
         control_text=control_text,
         control_title=control_title,
         resource_type=resource_type,
-        connection_id=connection_id,
         control_id=control_id,
         **kwargs
     )
