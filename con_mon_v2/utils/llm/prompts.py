@@ -168,12 +168,26 @@ checks:
       # 1. NEVER use 'return' statements - this is not a function!
       # 2. ALWAYS set 'result = True' for compliance, 'result = False' for non-compliance
       # 3. Use 'fetched_value' variable to access the field data
+      # 4. NEVER use TODO comments - implement complete working logic
+      # 5. Handle edge cases like None values, empty lists, missing fields
       
       result = False  # Default to non-compliant
-      # Your validation logic here using fetched_value
-      if fetched_value and some_condition:
-          result = True
-      else:
+      
+      # Implement complete validation logic here
+      # Example for checking if admins exist in members list:
+      if fetched_value and isinstance(fetched_value, list):
+          admin_count = sum(1 for member in fetched_value if member.get('role') == 'admin')
+          member_count = len(fetched_value)
+          
+          # Check multiple compliance criteria
+          has_admins = admin_count > 0
+          reasonable_admin_ratio = admin_count / member_count <= 0.5 if member_count > 0 else False
+          has_members = member_count > 0
+          
+          if has_admins and reasonable_admin_ratio and has_members:
+              result = True
+      elif fetched_value is None:
+          # Handle case where field doesn't exist
           result = False
   expected_value: null
   tags:
@@ -217,9 +231,24 @@ checks:
 - NEVER use 'return' statements in custom_logic - this causes execution errors
 - ALWAYS use 'result = True' for compliance, 'result = False' for non-compliance
 - Use 'fetched_value' variable to access the extracted field data
-- Incase the logic fails to execute, don't catch and absorb the error. Let it bubble up
+- NEVER use TODO comments - implement complete, working logic
+- Handle all edge cases: None values, empty lists, missing fields, wrong types
+- Implement specific checks for each control requirement
+- Use proper error handling and validation
+- Make logic robust and production-ready
+- Include meaningful variable names and logic flow
+- Test multiple compliance criteria, not just one simple check
 
-Generate ONLY the YAML check entry, no explanations or additional text:
+**Implementation Requirements:**
+- Generate complete, executable Python code
+- Handle data type validation (lists, dicts, strings, None)
+- Implement multiple validation checks per control requirement
+- Use descriptive variable names
+- Include proper conditional logic
+- Handle edge cases gracefully
+- Make the logic comprehensive and thorough
+
+Generate ONLY the YAML check entry with complete implementation, no explanations or additional text:
     """
     
     def __init__(
@@ -380,11 +409,37 @@ You are a cybersecurity compliance expert. Generate a complete checks.yaml entry
         if len(checks) != 1:
             raise ValueError(f"Expected 1 check, got {len(checks)}")
         check_dict = checks[0]
-        check_dict['resource_type'] = self.resource_type
-        check_dict['id'] = check_dict['name']
+        
+        # Extract custom logic before modifying operation
+        custom_logic = None
+        if 'operation' in check_dict:
+            operation = check_dict['operation']
+            if isinstance(operation, dict) and 'custom_logic' in operation:
+                custom_logic = operation['custom_logic']
+
+        output_statements = check_dict['output_statements']
+        output_statements.update(dict(
+            success=output_statements.get('success', 'Check was successful'),
+            failure=output_statements.get('success', 'Check was failure'),
+            partial=output_statements.get('success', 'Check was partially successful'),
+        ))
+        # Prepare check dictionary for CSV storage
+        check_dict.update({
+            'resource_type': self.resource_type,
+            'id': check_dict['name'],
+            'created_by': 'system',
+            'updated_by': 'system',
+            'is_deleted': False,
+            'metadata': {
+                'logic': custom_logic
+            } if custom_logic else {}
+        })
         
         # Create and validate the check
         check = Check(**check_dict)
+        
+        # Store raw YAML for debugging
+        check._raw_yaml = content
         
         # Test the check against a resource collection
         success, message = self.test_check(check)

@@ -74,7 +74,8 @@ class CheckMetadata(BaseModel):
     category: Optional[str] = None
 
     # Evaluation Metadata in DB
-    field_path: Optional[str] = None
+    field_path: str
+    expected_value: Any = None
     operation: Optional[str] = None
     name: Optional[str] = None
     logic: Optional[str] = None
@@ -101,10 +102,6 @@ class Check(BaseModel):
     id: str
     name: str
     category: Optional[str] = None
-    resource_type: Type[BaseModel] = Field(None, description="Specific resource class to target (e.g., 'aws.AWSEC2Resource')")
-    field_path: str = Field(..., description="e.g., 'price', 'metadata.status', 'tags[0]'")
-    operation: ComparisonOperation
-    expected_value: Any
     description: Optional[str] = None
 
     # Database-specific fields (these are completely new)
@@ -147,6 +144,16 @@ class Check(BaseModel):
     # control_id: int    # Reference to control ID from CSV
     # framework_name: str  # Reference to framework name from CSV
     # control_name: str    # Reference to control name from CSV
+
+    @property
+    def operation(self) -> ComparisonOperation:
+        # TODO: implement
+        return None
+
+    @property
+    def resource_type(self) -> Type[BaseModel]:
+        # TODO: implement
+        return None
 
     def evaluate(self, resources: List[Resource]) -> List["CheckResult"]:
         """
