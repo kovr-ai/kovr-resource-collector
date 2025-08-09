@@ -9,7 +9,7 @@ import logging
 from typing import List, Dict, Any, Optional, Union, Tuple
 from datetime import datetime
 from con_mon.utils.db import get_db
-from .models import Check, ComparisonOperation, ComparisonOperationEnum, CheckMetadata, CheckResultStatement, CheckFailureFix
+from .models import Check, ComparisonOperation, ComparisonOperationEnum, CheckMetadata, CheckResultStatement, CheckFailureFix, CheckOperation
 
 logger = logging.getLogger(__name__)
 
@@ -149,7 +149,14 @@ def _create_check_from_db_row(row: Dict[str, Any]) -> Optional[Check]:
     check_metadata = CheckMetadata(
         tags=metadata.get('tags', []),
         severity=metadata.get('severity'),
-        category=metadata.get('category')
+        category=metadata.get('category'),
+        field_path=field_path,
+        expected_value=expected_value,
+        operation=CheckOperation(
+            name=metadata.get('operation', {}).get('name', 'custom') if isinstance(metadata.get('operation'), dict) else metadata.get('operation', 'custom'),
+            logic=metadata.get('operation', {}).get('logic', '') if isinstance(metadata.get('operation'), dict) else ''
+        ),
+        name=row.get('name')
     )
 
     # Create output_statements object
@@ -205,15 +212,10 @@ def _create_check_from_db_row(row: Dict[str, Any]) -> Optional[Check]:
 
     # Create Check object
     check = Check(
-        id=row['id'],
-        connection_id=connection_id,
+        id=str(row['id']),
         name=row['name'],
-        field_path=field_path,
-        operation=operation,
-        expected_value=expected_value,
         description=row.get('description'),
-        resource_type=resource_type,
-        # Database-specific fields with proper type conversion
+        category=row.get('category'),
         output_statements=output_statements,
         fix_details=fix_details,
         created_by=row.get('created_by', 'system'),

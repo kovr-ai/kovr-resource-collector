@@ -67,6 +67,11 @@ class ComparisonOperation(BaseModel):
             raise ValueError(f"Unsupported operation: {self.name}")
 
 
+class CheckOperation(BaseModel):
+    name: str
+    logic: str
+
+
 class CheckMetadata(BaseModel):
     # Additional metadata fields from YAML
     tags: Optional[List[str]] = None
@@ -75,8 +80,8 @@ class CheckMetadata(BaseModel):
 
     # Evaluation Metadata in DB
     field_path: str
+    operation: CheckOperation
     expected_value: Any = None
-    operation: Optional[str] = None
     name: Optional[str] = None
     logic: Optional[str] = None
 
