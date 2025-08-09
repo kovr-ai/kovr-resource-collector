@@ -21,6 +21,7 @@ from con_mon_v2.resources import Resource
 from con_mon_v2.checks import Check
 from con_mon_v2.checks.models import CheckMetadata, CheckResultStatement, CheckFailureFix, CheckOperation
 from con_mon_v2.utils.services import ResourceCollectionService
+from con_mon_v2.connectors.models import ConnectorType
 
 from .client import get_llm_client, LLMRequest, LLMResponse
 
@@ -263,8 +264,9 @@ Generate ONLY the YAML check entry with complete implementation, no explanations
         control_name: str,
         control_text: str,
         control_title: str,
-        resource_type: Type[Resource],
         control_id: int,
+        resource_type: Type[Resource],
+        connector_type: ConnectorType,
     ):
         """
         Initialize the prompt with required parameters.
@@ -273,20 +275,22 @@ Generate ONLY the YAML check entry with complete implementation, no explanations
             control_name: Control identifier (e.g., "AC-2")
             control_text: Full control description/requirement
             control_title: Control title/name
-            resource_type: Target resource type class
             control_id: Database ID of the control
+            resource_type: Target resource type class
+            connector_type: The type of connector being used
         """
         self.control_name = control_name
         self.control_text = control_text
         self.control_title = control_title
         self.resource_type = resource_type
         self.control_id = control_id
+        self.connector_type = connector_type
         
         # Pre-compute derived values
         self.resource_type_lower = re.sub(r'([a-z])([A-Z])', r'\1_\2', resource_type.__name__).lower()
         self.control_name_lower = control_name.lower().replace('-', '_')
-        self.connector_type_lower = self.resource_type_lower.split('_')[0]
         self.control_family = control_name.split('-')[0] if '-' in control_name else control_name[:2]
+        self.connector_type_lower = connector_type.value.lower()
 
     def format_prompt(self, **kwargs) -> str:
         """Format the prompt template with stored parameters."""
@@ -512,6 +516,7 @@ def generate_checks_yaml(
     control_id: int,
     control_title: str,
     resource_type: Type[Resource],
+    connector_type: ConnectorType,
     **kwargs
 ) -> Check:
     """
@@ -523,6 +528,7 @@ def generate_checks_yaml(
         control_title: Control title/name
         resource_type: Target resource type class
         control_id: Database ID of the control
+        connector_type: The type of connector being used
         **kwargs: Additional LLM parameters
         
     Returns:
@@ -534,5 +540,6 @@ def generate_checks_yaml(
         control_title=control_title,
         resource_type=resource_type,
         control_id=control_id,
+        connector_type=connector_type,
     )
     return prompt.generate(**kwargs)
