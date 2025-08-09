@@ -34,4 +34,4 @@ def test_load_checks_from_csv():
     # Print summary
     print(f"\nLoaded {len(loaded_checks)} checks from CSV")
     print(f"Sample check name: {sample_check.name}")
-    print(f"Sample check type: {sample_check.resource_type}") 
+    print(f"Sample check type: {sample_check.resource_type}")
