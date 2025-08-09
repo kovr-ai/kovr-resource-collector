@@ -19,6 +19,7 @@ from typing import Dict, Any, Optional, Type, Tuple
 from pydantic import BaseModel
 from con_mon_v2.resources import Resource
 from con_mon_v2.checks import Check
+from con_mon_v2.checks.models import CheckMetadata, CheckResultStatement, CheckFailureFix, CheckOperation
 from con_mon_v2.utils.services import ResourceCollectionService
 
 from .client import get_llm_client, LLMRequest, LLMResponse
@@ -116,7 +117,7 @@ class ChecksYamlPrompt(BasePrompt):
     Prompt for generating complete checks.yaml entries.
     
     Generates a complete YAML check entry with all required fields including
-    ID, connection details, operations, tags, severity, and control mappings.
+    ID, operations, tags, severity, and control mappings stored in metadata.
     """
 
     CONTROL_INFORMATION = """
@@ -134,21 +135,20 @@ class ChecksYamlPrompt(BasePrompt):
 1. Generate a complete YAML check entry following the exact format shown in the example
 2. Create a descriptive name using snake_case format
 3. Write a clear description explaining what the check validates
-4. Set appropriate resource_type using the resources structure below
+4. Set appropriate resource_type using the resources structure below in metadata
 4.1 resource_type can only be one of resources_field_schemas
-5. Determine the correct field_path for the resource data using the resources structure below
+5. Determine the correct field_path for the resource data using the resources structure below in metadata
 5.1 field_path must be available in the resource_type
 5.2 field_path must use dot notation to navigate nested structures
 5.3 field_path should start with one of the top level resource fields
 5.4 then navigate through nested objects using dots to reach the specific field you want to validate
-6. Generate Python code for the custom_logic that validates compliance
+6. Generate Python code for the custom_logic that validates compliance in metadata.operation.logic
 6.1 the value at resource_type.field_path would be stored in fetched_value
 6.2 fetched_value would be a pydantic class or primitive type
-6. Generate Python code for the custom_logic that validates compliance
-7. Set expected_value to null for custom logic checks
-8. Add relevant tags for categorization
-9. Set appropriate severity level (low, medium, high, critical)
-10. Choose the correct category
+7. Set expected_value to null for custom logic checks in metadata
+8. Add relevant tags for categorization in metadata
+9. Set appropriate severity level (low, medium, high, critical) in metadata
+10. Choose the correct category in metadata
 11. Map to relevant control IDs - USE NUMERIC DATABASE ID {control_id}, NOT control name
     """
 
@@ -159,46 +159,7 @@ checks:
 - id: {resource_type_lower}_{control_name_lower}_compliance
   name: {resource_type_lower}_{control_name_lower}_compliance
   description: Verify compliance with NIST 800-53 {control_name}: {control_title}
-  resource_type: # Choose specific resource type (GithubResource, AWSIAMResource, AWSEC2Resource, etc.)
-  field_path: # Examples: "repository_data.basic_info.description", "security_data.security_analysis.advanced_security_enabled", "organization_data.members"
-  operation:
-    name: custom
-    custom_logic: |
-      # CRITICAL: Custom logic rules:
-      # 1. NEVER use 'return' statements - this is not a function!
-      # 2. ALWAYS set 'result = True' for compliance, 'result = False' for non-compliance
-      # 3. Use 'fetched_value' variable to access the field data
-      # 4. NEVER use TODO comments - implement complete working logic
-      # 5. Handle edge cases like None values, empty lists, missing fields
-      
-      result = False  # Default to non-compliant
-      
-      # Implement complete validation logic here
-      # Example for checking if admins exist in members list:
-      if fetched_value and isinstance(fetched_value, list):
-          admin_count = sum(1 for member in fetched_value if member.get('role') == 'admin')
-          member_count = len(fetched_value)
-          
-          # Check multiple compliance criteria
-          has_admins = admin_count > 0
-          reasonable_admin_ratio = admin_count / member_count <= 0.5 if member_count > 0 else False
-          has_members = member_count > 0
-          
-          if has_admins and reasonable_admin_ratio and has_members:
-              result = True
-      elif fetched_value is None:
-          # Handle case where field doesn't exist
-          result = False
-  expected_value: null
-  tags:
-  - compliance
-  - nist
-  - {control_family_tag}
-  - {resource_type_lower}
-  severity: {suggested_severity}
   category: {suggested_category}
-  control_ids:
-  - {control_id}
   output_statements:
     success: "Check passed: [describe what was verified]"
     failure: "Check failed: [describe what was missing or incorrect]" 
@@ -210,6 +171,52 @@ checks:
     - "Step 2: [specific action]"
     estimated_date: "2024-12-31"
     automation_available: false
+  created_by: "system"
+  updated_by: "system"
+  is_deleted: false
+  metadata:
+    # Resource evaluation fields
+    resource_type: # Choose specific resource type (GithubResource, AWSIAMResource, AWSEC2Resource, etc.)
+    field_path: # Examples: "repository_data.basic_info.description", "security_data.security_analysis.advanced_security_enabled", "organization_data.members"
+    operation:
+      name: custom
+      logic: |
+        # CRITICAL: Custom logic rules:
+        # 1. NEVER use 'return' statements - this is not a function!
+        # 2. ALWAYS set 'result = True' for compliance, 'result = False' for non-compliance
+        # 3. Use 'fetched_value' variable to access the field data
+        # 4. NEVER use TODO comments - implement complete working logic
+        # 5. Handle edge cases like None values, empty lists, missing fields
+        
+        result = False  # Default to non-compliant
+        
+        # Implement complete validation logic here
+        # Example for checking if admins exist in members list:
+        if fetched_value and isinstance(fetched_value, list):
+            admin_count = sum(1 for member in fetched_value if member.get('role') == 'admin')
+            member_count = len(fetched_value)
+            
+            # Check multiple compliance criteria
+            has_admins = admin_count > 0
+            reasonable_admin_ratio = admin_count / member_count <= 0.5 if member_count > 0 else False
+            has_members = member_count > 0
+            
+            if has_admins and reasonable_admin_ratio and has_members:
+                result = True
+        elif fetched_value is None:
+            # Handle case where field doesn't exist
+            result = False
+    expected_value: null
+    # Categorization and compliance fields
+    tags:
+    - compliance
+    - nist
+    - {control_family_tag}
+    - {resource_type_lower}
+    severity: {suggested_severity}
+    category: {suggested_category}
+    control_ids:
+    - {control_id}
 ```
     """
 
@@ -360,7 +367,7 @@ You are a cybersecurity compliance expert. Generate a complete checks.yaml entry
             validation_report = rc_service.validate_resource_field_paths(rc)
             
             # Check if our field path exists in any resource
-            field_path = check.field_path
+            field_path = check.metadata.field_path
             for resource_name, fields in validation_report.items():
                 if field_path in fields:
                     field_status = fields[field_path]
@@ -410,33 +417,68 @@ You are a cybersecurity compliance expert. Generate a complete checks.yaml entry
             raise ValueError(f"Expected 1 check, got {len(checks)}")
         check_dict = checks[0]
         
-        # Extract custom logic before modifying operation
+        # Extract metadata and ensure it exists
+        metadata = check_dict.get('metadata', {})
+        
+        # Extract custom logic from metadata.operation.logic
         custom_logic = None
-        if 'operation' in check_dict:
-            operation = check_dict['operation']
-            if isinstance(operation, dict) and 'custom_logic' in operation:
-                custom_logic = operation['custom_logic']
+        if 'operation' in metadata:
+            operation = metadata['operation']
+            if isinstance(operation, dict) and 'logic' in operation:
+                custom_logic = operation['logic']
 
-        output_statements = check_dict['output_statements']
-        output_statements.update(dict(
-            success=output_statements.get('success', 'Check was successful'),
-            failure=output_statements.get('success', 'Check was failure'),
-            partial=output_statements.get('success', 'Check was partially successful'),
-        ))
-        # Prepare check dictionary for CSV storage
-        check_dict.update({
-            'resource_type': self.resource_type,
-            'id': check_dict['name'],
+        # Create CheckResultStatement object
+        output_statements_data = check_dict.get('output_statements', {})
+        output_statements = CheckResultStatement(
+            success=output_statements_data.get('success', 'Check was successful'),
+            failure=output_statements_data.get('failure', 'Check failed'),
+            partial=output_statements_data.get('partial', 'Check was partially successful')
+        )
+        
+        # Create CheckFailureFix object
+        fix_details_data = check_dict.get('fix_details', {})
+        fix_details = CheckFailureFix(
+            description=fix_details_data.get('description', 'Fix description not provided'),
+            instructions=fix_details_data.get('instructions', ['No instructions provided']),
+            estimated_date=fix_details_data.get('estimated_date', '2024-12-31'),
+            automation_available=fix_details_data.get('automation_available', False)
+        )
+        
+        # Create CheckOperation object
+        operation_data = metadata.get('operation', {})
+        check_operation = CheckOperation(
+            name=operation_data.get('name', 'custom'),
+            logic=custom_logic or ''
+        )
+        
+        # Create CheckMetadata object
+        check_metadata = CheckMetadata(
+            tags=metadata.get('tags', []),
+            severity=metadata.get('severity', 'medium'),
+            category=metadata.get('category', 'configuration'),
+            field_path=metadata.get('field_path', 'data'),
+            operation=check_operation,
+            expected_value=metadata.get('expected_value'),
+            name=check_dict.get('name'),
+            logic=custom_logic
+        )
+        
+        # Prepare check dictionary for the new schema
+        check_dict_final = {
+            'id': check_dict.get('name', check_dict.get('id')),
+            'name': check_dict.get('name'),
+            'description': check_dict.get('description'),
+            'category': check_dict.get('category'),
             'created_by': 'system',
             'updated_by': 'system',
             'is_deleted': False,
-            'metadata': {
-                'logic': custom_logic
-            } if custom_logic else {}
-        })
+            'metadata': check_metadata,
+            'output_statements': output_statements,
+            'fix_details': fix_details
+        }
         
         # Create and validate the check
-        check = Check(**check_dict)
+        check = Check(**check_dict_final)
         
         # Store raw YAML for debugging
         check._raw_yaml = content
