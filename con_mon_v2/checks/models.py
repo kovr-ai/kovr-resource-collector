@@ -154,7 +154,8 @@ class Check(BaseModel):
     @property
     def operation(self) -> ComparisonOperation:
         """Get the comparison operation from metadata."""
-        from con_mon_v2.checks.db import _create_operation_from_metadata
+        # Import and create operation from metadata
+        from con_mon_v2.checks.db_loader import _create_operation_from_metadata
         
         # Create a metadata dict that includes the operation
         metadata_dict = {
@@ -168,7 +169,7 @@ class Check(BaseModel):
     @property
     def resource_type(self) -> Optional[Type[BaseModel]]:
         """Get the resource type from metadata."""
-        from con_mon_v2.checks.db import _resolve_resource_type
+        from con_mon_v2.checks.db_loader import _resolve_resource_type
         return _resolve_resource_type(self.metadata.resource_type)
 
     @property 

@@ -1,7 +1,7 @@
 """Tests for loading checks from CSV."""
 import os
 from datetime import datetime
-from con_mon_v2.checks.db import load_checks_from_csv
+from con_mon_v2.checks.db_loader import load_checks_from_csv
 from con_mon_v2.checks.models import Check, CheckMetadata, CheckResultStatement, CheckFailureFix, CheckOperation
 
 def test_load_checks_from_csv():
