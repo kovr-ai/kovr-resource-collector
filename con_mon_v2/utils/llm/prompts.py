@@ -15,11 +15,12 @@ import re
 import os
 import yaml
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Type
 from pydantic import BaseModel
 from con_mon_v2.checks import Check
 
 from .client import get_llm_client, LLMRequest, LLMResponse
+from ...resources import Resource
 
 
 def load_resource_schema(resource_type: str) -> str:
@@ -215,41 +216,43 @@ checks:
 - NEVER use 'return' statements in custom_logic - this causes execution errors
 - ALWAYS use 'result = True' for compliance, 'result = False' for non-compliance
 - Use 'fetched_value' variable to access the extracted field data
-- Default 'result = False' for safety (non-compliant by default)
+- Incase the logic fails to execute, don't catch and absorb the error. Let it bubble up
 
 Generate ONLY the YAML check entry, no explanations or additional text:
     """
     
-    def format_prompt(
+    def __init__(
         self,
         control_name: str,
         control_text: str,
         control_title: str,
-        resource_type: str,
+        resource_type: Type[Resource],
         control_id: int,
-        **kwargs
-    ) -> str:
+    ):
         """
-        Format checks YAML generation prompt.
+        Initialize the prompt with required parameters.
         
         Args:
             control_name: Control identifier (e.g., "AC-2")
             control_text: Full control description/requirement
             control_title: Control title/name
-            resource_type: Target resource type (github, aws, etc.)
-            connection_id: Connection ID for the check
+            resource_type: Target resource type class
             control_id: Database ID of the control
-            **kwargs: Additional parameters
-            
-        Returns:
-            Formatted prompt string
         """
-        # Generate suggestions based on control and resource type
-        resource_type_lower = re.sub(r'([a-z])([A-Z])', r'\1_\2', resource_type.__name__).lower()
-        control_name_lower = control_name.lower().replace('-', '_')
-        # Get the appropriate resource schema based on connector_type
-        connector_type_lower = resource_type_lower.split('_')[0]
+        self.control_name = control_name
+        self.control_text = control_text
+        self.control_title = control_title
+        self.resource_type = resource_type
+        self.control_id = control_id
         
+        # Pre-compute derived values
+        self.resource_type_lower = re.sub(r'([a-z])([A-Z])', r'\1_\2', resource_type.__name__).lower()
+        self.control_name_lower = control_name.lower().replace('-', '_')
+        self.connector_type_lower = self.resource_type_lower.split('_')[0]
+        self.control_family = control_name.split('-')[0] if '-' in control_name else control_name[:2]
+
+    def format_prompt(self, **kwargs) -> str:
+        """Format the prompt template with stored parameters."""
         # Suggest severity based on control family
         severity_suggestions = {
             "AC": "high",  # Access Control
@@ -270,31 +273,29 @@ Generate ONLY the YAML check entry, no explanations or additional text:
             "SI": "monitoring",
         }
         
-        control_family = control_name.split('-')[0] if '-' in control_name else control_name[:2]
-
-        resource_schema = load_resource_schema(connector_type_lower)
+        resource_schema = load_resource_schema(self.connector_type_lower)
         
         # Format each template part
         control_info = self.CONTROL_INFORMATION.format(
-            control_name=control_name,
-            control_title=control_title or "Compliance Check",
-            connector_type=resource_type,
-            control_text=control_text
+            control_name=self.control_name,
+            control_title=self.control_title,
+            connector_type=self.resource_type.__name__,
+            control_text=self.control_text
         )
         
         instructions = self.INSTRUCTIONS.format(
-            control_id=control_id
+            control_id=self.control_id
         )
         
         sample_format = self.SAMPLE_FORMAT.format(
-            resource_type_lower=resource_type_lower,
-            control_name_lower=control_name_lower,
-            control_name=control_name,
-            control_title=control_title or "Compliance Check",
-            control_family_tag=control_family.lower(),
-            suggested_severity=severity_suggestions.get(control_family, "medium"),
-            suggested_category=category_suggestions.get(control_family, "configuration"),
-            control_id=control_id
+            resource_type_lower=self.resource_type_lower,
+            control_name_lower=self.control_name_lower,
+            control_name=self.control_name,
+            control_title=self.control_title,
+            control_family_tag=self.control_family.lower(),
+            suggested_severity=severity_suggestions.get(self.control_family, "medium"),
+            suggested_category=category_suggestions.get(self.control_family, "configuration"),
+            control_id=self.control_id
         )
         
         # Assemble the complete prompt
@@ -341,9 +342,11 @@ You are a cybersecurity compliance expert. Generate a complete checks.yaml entry
         if len(checks) != 1:
             raise ValueError(f"Expected 1 check, got {len(checks)}")
         check_dict = checks[0]
+        check_dict['resource_type'] = self.resource_type
+        check_dict['id'] = check_dict['name']
 
-        # TODO: check_dict['resource_type'] is resource_type. import value directly and replace
         return Check(**check_dict)
+
 
 class PromptResult(BaseModel):
     """
@@ -364,7 +367,7 @@ def generate_checks_yaml(
     control_text: str,
     control_id: int,
     control_title: str,
-    resource_type: str,
+    resource_type: Type[Resource],
     **kwargs
 ) -> Check:
     """
@@ -374,20 +377,18 @@ def generate_checks_yaml(
         control_name: Control identifier
         control_text: Control requirement text
         control_title: Control title/name
-        resource_type: Target resource type
-        connection_id: Connection ID for the check
+        resource_type: Target resource type class
         control_id: Database ID of the control
         **kwargs: Additional LLM parameters
         
     Returns:
         Generated and validated Check object
     """
-    prompt = ChecksYamlPrompt()
-    return prompt.generate(
+    prompt = ChecksYamlPrompt(
         control_name=control_name,
         control_text=control_text,
         control_title=control_title,
         resource_type=resource_type,
         control_id=control_id,
-        **kwargs
     )
+    return prompt.generate(**kwargs)
