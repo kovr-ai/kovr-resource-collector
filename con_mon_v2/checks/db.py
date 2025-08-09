@@ -142,8 +142,9 @@ def _create_check_from_db_row(row: Dict[str, Any]) -> Optional[Check]:
     # Get expected_value from metadata
     expected_value = metadata.get('expected_value')
 
-    # Get resource_type from metadata
-    resource_type = _resolve_resource_type(metadata.get('resource_type'))
+    # Get resource_type from metadata and clean up the format
+    resource_type_raw = metadata['resource_type']
+    resource_type_cleaned = resource_type_raw[8:-2]  # Remove "<class '" and "'>"
 
     # Create nested objects with proper type conversion
     check_metadata = CheckMetadata(
@@ -156,7 +157,8 @@ def _create_check_from_db_row(row: Dict[str, Any]) -> Optional[Check]:
             name=metadata.get('operation', {}).get('name', 'custom') if isinstance(metadata.get('operation'), dict) else metadata.get('operation', 'custom'),
             logic=metadata.get('operation', {}).get('logic', '') if isinstance(metadata.get('operation'), dict) else ''
         ),
-        name=row.get('name')
+        name=row.get('name'),
+        resource_type=resource_type_cleaned
     )
 
     # Create output_statements object

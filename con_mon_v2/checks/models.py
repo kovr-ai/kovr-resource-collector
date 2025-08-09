@@ -84,6 +84,7 @@ class CheckMetadata(BaseModel):
     expected_value: Any = None
     name: Optional[str] = None
     logic: Optional[str] = None
+    resource_type: str  # Store resource type name/path
 
 
 
@@ -152,13 +153,33 @@ class Check(BaseModel):
 
     @property
     def operation(self) -> ComparisonOperation:
-        # TODO: implement
-        return None
+        """Get the comparison operation from metadata."""
+        from con_mon_v2.checks.db import _create_operation_from_metadata
+        
+        # Create a metadata dict that includes the operation
+        metadata_dict = {
+            'operation': {
+                'name': self.metadata.operation.name,
+                'logic': self.metadata.operation.logic
+            }
+        }
+        return _create_operation_from_metadata(metadata_dict)
 
     @property
-    def resource_type(self) -> Type[BaseModel]:
-        # TODO: implement
-        return None
+    def resource_type(self) -> Optional[Type[BaseModel]]:
+        """Get the resource type from metadata."""
+        from con_mon_v2.checks.db import _resolve_resource_type
+        return _resolve_resource_type(self.metadata.resource_type)
+
+    @property 
+    def field_path(self) -> str:
+        """Get the field path from metadata."""
+        return self.metadata.field_path
+    
+    @property
+    def expected_value(self) -> Any:
+        """Get the expected value from metadata."""
+        return self.metadata.expected_value
 
     def evaluate(self, resources: List[Resource]) -> List["CheckResult"]:
         """

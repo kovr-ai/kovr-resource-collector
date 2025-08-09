@@ -460,7 +460,8 @@ You are a cybersecurity compliance expert. Generate a complete checks.yaml entry
             operation=check_operation,
             expected_value=metadata.get('expected_value'),
             name=check_dict.get('name'),
-            logic=custom_logic
+            logic=custom_logic,
+            resource_type=f"{self.resource_type.__module__}.{self.resource_type.__name__}"
         )
         
         # Prepare check dictionary for the new schema
