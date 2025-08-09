@@ -527,7 +527,3 @@ def test_aws_cloudtrail_resource_mapping():
             print(f"\nChecking event_selector.{field}...")
             assert hasattr(selector, field), f"Event selector should have {field}"
             print(f"Value: {getattr(selector, field)}")
-
-
-if __name__ == "__main__":
-    test_aws_ec2_resource_mapping()

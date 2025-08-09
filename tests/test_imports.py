@@ -55,7 +55,3 @@ def test_imports():
     from con_mon_v2.checks import get_checks_by_ids
     print("\nTesting get_checks_by_ids... ")
     print(f"\nGot {len(get_checks_by_ids())} checks... ")
-
-
-if __name__ == "__main__":
-    test_imports()
