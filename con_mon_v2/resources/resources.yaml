@@ -99,15 +99,8 @@ github:
           created_at: "string"
           updated_at: "string"
           closed_at: "string"
-          labels[]:
-            id: "integer"
-            name: "string"
-            description: "string"
-            color: "string"
-          assignees[]:
-            login: "string"
-            id: "integer"
-            type: "string"
+          labels[]: "string"
+          assignees[]: "string"
           comments_count: "integer"
           is_pull_request: "boolean"
         pull_requests[]:

@@ -9,3 +9,7 @@ def test_load_data():
     github_rc_service = ResourceCollectionService('github')
     github_rc = github_rc_service.get_resource_collection()
     github_rc_service.validate_resource_field_paths(github_rc)
+
+
+if __name__ == "__main__":
+    test_load_data()

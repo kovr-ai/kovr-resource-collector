@@ -151,15 +151,15 @@ class ResourceCollectionService(object):
                     for i, item in enumerate(current):
                         print(f"  Item {i}:")
                         for field in item.__dict__:
-                            value = getattr(item, field)
-                            print(f"    ✓ {field} = {value}")
+                            getattr(item, field)
+                            print(f"    ✓ {field}")
                 else:
                     print("  (Empty list)")
                 return "success"
 
             # If we got here and the value exists, it's a success
             if current is not None:
-                print(f"✅ Found value: {current}")
+                print(f"✅ Found value")
                 return "success"
             
             print(f"⚠️  Field exists but value is None")
