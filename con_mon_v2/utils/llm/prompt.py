@@ -279,39 +279,86 @@ class ProviderConfig:
             # Generate field path examples for each resource
             self.field_path_examples = {}
             for resource_name, schema in self.resources.items():
-                self.field_path_examples[resource_name] = self._extract_field_paths(schema, resource_name.lower())
+                # Use the new Resource.field_paths() method instead of _extract_field_paths
+                try:
+                    # Dynamically import and get the resource class
+                    resource_class = self._get_resource_class(resource_name)
+                    if resource_class:
+                        self.field_path_examples[resource_name] = resource_class.field_paths(max_depth=4)
+                    else:
+                        # Fallback to basic field paths if class not found
+                        self.field_path_examples[resource_name] = self._extract_basic_field_paths(schema)
+                except Exception as e:
+                    print(f"⚠️ Error generating field paths for {resource_name}: {e}")
+                    # Fallback to basic field paths
+                    self.field_path_examples[resource_name] = self._extract_basic_field_paths(schema)
                 
         except Exception as e:
             self.resources = {}
             self.resource_collection = {}
             self.resource_models = []
             self.field_path_examples = {}
-    
-    def _extract_field_paths(self, schema: Dict[str, Any], prefix: str = "") -> List[str]:
-        """Extract all possible field paths from a resource schema"""
-        paths = []
+
+    def _get_resource_class(self, resource_name: str) -> Optional[Type[Resource]]:
+        """Dynamically import and return the Resource class for a given resource name."""
+        try:
+            # Construct the full module path
+            module_path = f"con_mon_v2.mappings.{self.provider_name}"
+            # Import the module and get the class
+            module = __import__(module_path, fromlist=[resource_name])
+            resource_class = getattr(module, resource_name)
+            
+            # Verify it's a Resource subclass
+            if issubclass(resource_class, Resource):
+                return resource_class
+            else:
+                print(f"⚠️ {resource_name} is not a Resource subclass")
+                return None
+                
+        except ImportError:
+            print(f"⚠️ Resource class not found for {resource_name} in {self.provider_name}")
+            return None
+        except AttributeError:
+            print(f"⚠️ Class {resource_name} not found in module {module_path}")
+            return None
+        except Exception as e:
+            print(f"⚠️ Error loading resource class for {resource_name}: {e}")
+            return None
+
+    def _extract_basic_field_paths(self, schema: Dict[str, Any], prefix: str = "") -> List[str]:
+        """Extract basic field paths from a resource schema for fallback."""
+        field_paths = []
         
-        def extract_paths(obj, current_path=""):
-            if isinstance(obj, dict):
-                for key, value in obj.items():
-                    new_path = f"{current_path}.{key}" if current_path else key
-                    paths.append(new_path)
-                    
-                    # Handle arrays
-                    if key.endswith('[]'):
-                        base_key = key[:-2]
-                        new_path = f"{current_path}.{base_key}" if current_path else base_key
-                        paths.append(new_path)
-                        if isinstance(value, dict):
-                            extract_paths(value, new_path)
-                    elif isinstance(value, dict):
-                        extract_paths(value, new_path)
-            elif isinstance(obj, list) and obj:
-                if isinstance(obj[0], dict):
-                    extract_paths(obj[0], current_path)
+        for key, value in schema.items():
+            current_path = f"{prefix}.{key}" if prefix else key
+            field_paths.append(current_path)
+            
+            if isinstance(value, dict):
+                # Recursively extract nested field paths
+                nested_paths = self._extract_basic_field_paths(value, current_path)
+                field_paths.extend(nested_paths)
+                
+            elif isinstance(value, list) and value:
+                # For arrays, add wildcard patterns
+                field_paths.extend([
+                    f"{current_path}[*]",
+                    f"{current_path}[]",
+                    f"{current_path}.*"
+                ])
+                
+                # If the first item is a dict, extract its paths with wildcards
+                if isinstance(value[0], dict):
+                    nested_paths = self._extract_basic_field_paths(value[0], current_path)
+                    for nested_path in nested_paths:
+                        if nested_path.startswith(current_path):
+                            # Add wildcard versions
+                            field_paths.extend([
+                                nested_path.replace(current_path, f"{current_path}[*]", 1),
+                                nested_path.replace(current_path, f"{current_path}[]", 1),
+                                nested_path.replace(current_path, f"{current_path}.*", 1)
+                            ])
         
-        extract_paths(schema)
-        return paths[:10]  # Return top 10 most relevant paths
+        return field_paths
 
 
 class CheckPrompt(ABC):
