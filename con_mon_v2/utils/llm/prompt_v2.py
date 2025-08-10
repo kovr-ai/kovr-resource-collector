@@ -268,7 +268,7 @@ Generate ONLY the YAML check entry with complete implementation. No explanations
         )
     
     def process_response(self, response: LLMResponse) -> Check:
-        """Process the LLM response and create a validated Check object"""
+        """Process the LLM response and create a validated Check object using from_row"""
         content = response.content.strip()
         
         # Clean up the response
@@ -302,48 +302,25 @@ Generate ONLY the YAML check entry with complete implementation. No explanations
                 if field not in check_dict:
                     raise ValueError(f"Missing required field: {field}")
             
-            # Create nested models
-            metadata_dict = check_dict['metadata']
+            # Convert nested objects to JSON strings (as they would come from database)
+            row_data = {}
             
-            # Create CheckOperation
-            operation_dict = metadata_dict['operation']
-            check_operation = CheckOperation(
-                name=ComparisonOperationEnum(operation_dict['name'].lower()),
-                logic=operation_dict.get('logic')
-            )
+            # Copy simple fields directly
+            for field in ['id', 'name', 'description', 'category', 'created_by', 'updated_by', 'is_deleted']:
+                row_data[field] = check_dict[field]
             
-            # Create CheckMetadata
-            check_metadata = CheckMetadata(
-                tags=metadata_dict.get('tags', []),
-                category=metadata_dict.get('category'),
-                severity=metadata_dict.get('severity'),
-                operation=check_operation,
-                field_path=metadata_dict['field_path'],
-                resource_type=metadata_dict['resource_type'],
-                expected_value=metadata_dict.get('expected_value')
-            )
+            # Add timestamps (Check.from_row expects these)
+            row_data['created_at'] = datetime.now()
+            row_data['updated_at'] = datetime.now()
             
-            # Create OutputStatements
-            output_statements = OutputStatements(**check_dict['output_statements'])
+            # Convert complex fields to JSON strings (simulating database JSONB fields)
+            import json
+            row_data['output_statements'] = json.dumps(check_dict['output_statements'])
+            row_data['fix_details'] = json.dumps(check_dict['fix_details'])
+            row_data['metadata'] = json.dumps(check_dict['metadata'])
             
-            # Create FixDetails
-            fix_details = FixDetails(**check_dict['fix_details'])
-            
-            # Create the final Check object
-            check = Check(
-                id=check_dict['id'],
-                name=check_dict['name'],
-                description=check_dict['description'],
-                category=check_dict['category'],
-                created_by=check_dict['created_by'],
-                updated_by=check_dict['updated_by'],
-                created_at=datetime.now(),
-                updated_at=datetime.now(),
-                is_deleted=check_dict['is_deleted'],
-                metadata=check_metadata,
-                output_statements=output_statements,
-                fix_details=fix_details
-            )
+            # Create the Check object using from_row (standard pattern)
+            check = Check.from_row(row_data)
             
             # Store raw YAML for debugging
             check._raw_yaml = content
@@ -372,58 +349,67 @@ Generate ONLY the YAML check entry with complete implementation. No explanations
             return self._create_mock_check()
     
     def _create_mock_check(self) -> Check:
-        """Create a mock Check object that matches the expected schema exactly"""
+        """Create a mock Check object using from_row method"""
         from datetime import datetime
+        import json
         
         # Generate mock check data using template variables
-        mock_yaml_content = f"""checks:
-- id: "{self.template_vars['check_id']}"
-  name: "{self.template_vars['check_name']}"
-  description: "{self.template_vars['check_description']}"
-  category: "{self.template_vars['suggested_category']}"
-  output_statements:
-    success: "Check passed: {self.control_name} compliance verified"
-    failure: "Check failed: {self.control_name} compliance not met"
-    partial: "Check partially passed: {self.control_name} needs review"
-  fix_details:
-    description: "Ensure {self.control_title} compliance requirements are met"
-    instructions:
-    - "Review {self.provider_config.provider_name} {self.resource_model_name} configuration"
-    - "Apply necessary security controls for {self.control_name}"
-    - "Validate compliance with {self.control_title}"
-    estimated_time: "{self.template_vars['estimated_time']}"
-    automation_available: false
-  created_by: "system"
-  updated_by: "system"
-  is_deleted: false
-  metadata:
-    resource_type: "{self.template_vars['resource_type_full_path']}"
-    field_path: "{self._get_example_field_path()}"
-    operation:
-      name: "custom"
-      logic: |
-        result = False
+        mock_check_dict = {
+            'id': self.template_vars['check_id'],
+            'name': self.template_vars['check_name'],
+            'description': self.template_vars['check_description'],
+            'category': self.template_vars['suggested_category'],
+            'created_by': 'system',
+            'updated_by': 'system',
+            'is_deleted': False,
+            'created_at': datetime.now(),
+            'updated_at': datetime.now()
+        }
         
-        # Mock validation logic for {self.control_name}
-        if fetched_value is not None:
-            if isinstance(fetched_value, str) and len(fetched_value.strip()) > 0:
-                result = True
-            elif isinstance(fetched_value, (list, dict)) and len(fetched_value) > 0:
-                result = True
-            elif isinstance(fetched_value, bool):
-                result = fetched_value
-            elif isinstance(fetched_value, (int, float)):
-                result = fetched_value > 0
-    expected_value: null
-    tags: {self.template_vars['tags']}
-    severity: "{self.template_vars['suggested_severity']}"
-    category: "{self.template_vars['suggested_category']}"
-"""
+        # Create JSONB fields as JSON strings
+        mock_check_dict['output_statements'] = json.dumps({
+            'success': f"Check passed: {self.control_name} compliance verified",
+            'failure': f"Check failed: {self.control_name} compliance not met",
+            'partial': f"Check partially passed: {self.control_name} needs review"
+        })
         
-        # Process the mock YAML through the same validation pipeline
-        from .client import LLMResponse
-        mock_response = LLMResponse(content=mock_yaml_content, model_id="mock", usage={})
-        return self.process_response(mock_response)
+        mock_check_dict['fix_details'] = json.dumps({
+            'description': f"Ensure {self.control_title} compliance requirements are met",
+            'instructions': [
+                f"Review {self.provider_config.provider_name} {self.resource_model_name} configuration",
+                f"Apply necessary security controls for {self.control_name}",
+                f"Validate compliance with {self.control_title}"
+            ],
+            'estimated_time': self.template_vars['estimated_time'],
+            'automation_available': False
+        })
+        
+        mock_check_dict['metadata'] = json.dumps({
+            'resource_type': self.template_vars['resource_type_full_path'],
+            'field_path': self._get_example_field_path(),
+            'operation': {
+                'name': 'custom',
+                'logic': f'''result = False
+
+# Mock validation logic for {self.control_name}
+if fetched_value is not None:
+    if isinstance(fetched_value, str) and len(fetched_value.strip()) > 0:
+        result = True
+    elif isinstance(fetched_value, (list, dict)) and len(fetched_value) > 0:
+        result = True
+    elif isinstance(fetched_value, bool):
+        result = fetched_value
+    elif isinstance(fetched_value, (int, float)):
+        result = fetched_value > 0'''
+            },
+            'expected_value': None,
+            'tags': self.template_vars['tags'],
+            'severity': self.template_vars['suggested_severity'],
+            'category': self.template_vars['suggested_category']
+        })
+        
+        # Create Check using from_row (standard pattern)
+        return Check.from_row(mock_check_dict)
     
     def _get_example_field_path(self) -> str:
         """Get an example field path for the current resource"""
