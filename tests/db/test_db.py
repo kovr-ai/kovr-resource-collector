@@ -4,9 +4,6 @@ import tempfile
 import shutil
 from pathlib import Path
 from unittest.mock import Mock, patch
-import pytest
-
-# Import the unified database interface
 from con_mon_v2.utils.db import get_db
 
 
@@ -37,6 +34,15 @@ class TestUnifiedDatabaseAbstraction:
         # Reset environment variable
         if 'DB_USE_POSTGRES' in os.environ:
             del os.environ['DB_USE_POSTGRES']
+        
+        # Reset CSV database singleton to prevent test isolation issues
+        from con_mon_v2.utils.db.csv import CSVDatabase
+        CSVDatabase._instance = None
+        CSVDatabase._initialized = False
+        
+        # Also reset the module-level db variable
+        import con_mon_v2.utils.db.csv as csv_module
+        csv_module.db = CSVDatabase()
     
     def test_get_db_returns_csv_by_default(self):
         """Test that get_db returns CSV database by default."""

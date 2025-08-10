@@ -56,11 +56,7 @@ def test_imports():
             print(f"\n{stmt}")
             print(f"Error: {error}")
 
-    loader = ChecksLoader()
-
-    # Test that we can create a loader instance
-    assert loader is not None
     print("✅ ChecksLoader instance created successfully")
-    checks = loader.load_all()
+    checks = ChecksLoader().load_all()
     print(f"\nGot {len(checks)} checks... ")
     assert checks

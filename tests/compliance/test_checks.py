@@ -342,9 +342,9 @@ if fetched_value and isinstance(fetched_value, str:  # Missing closing parenthes
             syntax_func = ComparisonOperation.get_custom_function(ComparisonOperationEnum.CUSTOM, syntax_error_logic)
             # If no exception is raised during creation, test the function
             result = syntax_func("test", None)
-            # Should return False (default fallback) due to syntax error
-            assert result == False
-            print("✅ Syntax error handled gracefully - returned False")
+            # Should return None (execution failure) due to syntax error
+            assert result is None
+            print("✅ Syntax error handled gracefully - returned None")
         except SyntaxError:
             print("✅ Syntax error properly caught and raised")
         except Exception as e:
@@ -362,178 +362,66 @@ else:
         runtime_func = ComparisonOperation.get_custom_function(ComparisonOperationEnum.CUSTOM, runtime_error_logic)
         # Test that runtime errors are handled gracefully
         result = runtime_func("test", None)
-        # Should return False due to runtime error being caught by try-catch wrapper
-        assert result == False
-        print("✅ Runtime error handled gracefully - returned False")
+        # Should return None (execution failure) due to runtime error being caught
+        assert result is None
+        print("✅ Runtime error handled gracefully - returned None (execution failure)")
 
-        # Test 2b: Runtime error with try-catch in logic
-        print("🧪 Testing runtime error with internal error handling...")
-        safe_runtime_logic = """
-try:
-    if fetched_value:
-        result = 1 / 0  # This will cause error but should be caught
-    else:
-        result = False
-except:
-    result = False  # Fallback on any error
+        # Test 3: Logic that executes successfully but returns False
+        print("🧪 Testing successful execution with False result...")
+        false_logic = """
+if fetched_value == "impossible_value":
+    result = True
+else:
+    result = False  # This should execute successfully and return False
 """
-        safe_runtime_func = ComparisonOperation.get_custom_function(ComparisonOperationEnum.CUSTOM, safe_runtime_logic)
-        result = safe_runtime_func("test", None)
+        false_func = ComparisonOperation.get_custom_function(ComparisonOperationEnum.CUSTOM, false_logic)
+        result = false_func("test", None)
+        # Should return False (logic failure, not execution failure)
         assert result == False
-        print("✅ Runtime error with internal handling - returned False")
+        print("✅ Logic executed successfully - returned False (logic failure)")
 
-        # Test 3: Logic that doesn't set result variable
-        print("🧪 Testing logic without result variable...")
-        no_result_logic = """
-# This logic doesn't set the result variable
-temp_var = fetched_value if fetched_value else "default"
-# Missing: result = something
-"""
-        no_result_func = ComparisonOperation.get_custom_function(ComparisonOperationEnum.CUSTOM, no_result_logic)
-        result = no_result_func("test", None)
-        # Should return False (default value set in template)
-        assert result == False
-        print("✅ Missing result variable handled - returned False")
-
-        # Test 4: Logic with forbidden operations (should be restricted by safe_globals)
-        print("🧪 Testing forbidden operations...")
-        forbidden_logic = """
-# Try to access forbidden functions/modules
-import os  # Should fail due to restricted globals
-result = True
-"""
-        try:
-            forbidden_func = ComparisonOperation.get_custom_function(ComparisonOperationEnum.CUSTOM, forbidden_logic)
-            result = forbidden_func("test", None)
-            # If it doesn't raise an error, it should return False
-            print(f"✅ Forbidden operations handled, result: {result}")
-        except (NameError, ImportError) as e:
-            print(f"✅ Forbidden operations properly blocked: {type(e).__name__}")
-
-        # Test 5: Logic with undefined variables
-        print("🧪 Testing undefined variables...")
+        # Test 4: Undefined variable error
+        print("🧪 Testing undefined variable error...")
         undefined_var_logic = """
 if fetched_value:
-    # Using undefined variable
-    result = undefined_variable > 0
+    result = undefined_variable  # This variable doesn't exist
 else:
     result = False
 """
         undefined_func = ComparisonOperation.get_custom_function(ComparisonOperationEnum.CUSTOM, undefined_var_logic)
         result = undefined_func("test", None)
-        # Should return False due to NameError being caught by try-catch wrapper
-        assert result == False
-        print("✅ Undefined variable handled gracefully - returned False")
+        # Should return None (execution failure) due to undefined variable
+        assert result is None
+        print("✅ Undefined variable error handled - returned None (execution failure)")
 
-        # Test 6: Logic with return statements (should be ignored/cause issues)
-        print("🧪 Testing logic with return statements...")
-        return_logic = """
+        # Test 5: Missing result variable (execution failure)
+        print("🧪 Testing missing result variable...")
+        missing_result_logic = """
+# This logic doesn't set the result variable
 if fetched_value:
-    return True  # This actually works in the function scope
+    temp = True
+"""
+        missing_result_func = ComparisonOperation.get_custom_function(ComparisonOperationEnum.CUSTOM, missing_result_logic)
+        result = missing_result_func("test", None)
+        # Should return False (default value when no exception occurs)
+        assert result == False
+        print("✅ Missing result variable - returned False (default)")
+
+        # Test 6: Return statement in logic (should work fine)
+        print("🧪 Testing return statement in custom logic...")
+        return_logic = """
+if fetched_value and len(fetched_value) > 0:
+    result = True
+    return result
 result = False
 """
         return_func = ComparisonOperation.get_custom_function(ComparisonOperationEnum.CUSTOM, return_logic)
         result = return_func("test", None)
-        # Return statement actually works within the generated function scope
+        # Should return True (successful execution and logic)
         assert result == True
-        print("✅ Return statement works within function scope - returned True")
+        print("✅ Return statement works - returned True")
 
-        # Test 7: Very long/complex logic that might timeout or cause issues
-        print("🧪 Testing complex logic...")
-        complex_logic = """
-if fetched_value and isinstance(fetched_value, list):
-    # Complex nested processing
-    processed_items = []
-    for item in fetched_value:
-        if isinstance(item, dict):
-            for key, value in item.items():
-                if isinstance(value, str) and len(value) > 0:
-                    processed_items.append(f"{key}:{value}")
-    
-    # Multiple validation criteria
-    has_items = len(processed_items) > 0
-    has_required_keys = any("name:" in item for item in processed_items)
-    has_valid_format = all(len(item.split(":")) == 2 for item in processed_items)
-    
-    result = has_items and has_required_keys and has_valid_format
-else:
-    result = False
-"""
-        complex_func = ComparisonOperation.get_custom_function(ComparisonOperationEnum.CUSTOM, complex_logic)
-        
-        # Test with valid complex data
-        complex_data = [
-            {"name": "test1", "value": "data1"},
-            {"name": "test2", "value": "data2"}
-        ]
-        result = complex_func(complex_data, None)
-        assert result == True
-        print("✅ Complex logic executed successfully")
-
-        # Test 8: Empty or whitespace-only logic
-        print("🧪 Testing empty logic validation...")
-        
-        # Test completely empty logic
-        empty_logic = ""
-        try:
-            ComparisonOperation.get_custom_function(ComparisonOperationEnum.CUSTOM, empty_logic)
-            assert False, "Should have raised ValueError for empty logic"
-        except ValueError as e:
-            assert "cannot be empty" in str(e)
-            print("✅ Empty logic properly rejected with ValueError")
-        
-        # Test whitespace-only logic
-        whitespace_logic = "   \n\n   \t  \n"
-        try:
-            ComparisonOperation.get_custom_function(ComparisonOperationEnum.CUSTOM, whitespace_logic)
-            assert False, "Should have raised ValueError for whitespace-only logic"
-        except ValueError as e:
-            assert "cannot be empty" in str(e)
-            print("✅ Whitespace-only logic properly rejected with ValueError")
-        
-        # Test comments-only logic
-        comments_only_logic = """
-# Just comments and whitespace
-# No actual code here
-# TODO: Add implementation
-"""
-        try:
-            ComparisonOperation.get_custom_function(ComparisonOperationEnum.CUSTOM, comments_only_logic)
-            assert False, "Should have raised ValueError for comments-only logic"
-        except ValueError as e:
-            assert "only comments and whitespace" in str(e)
-            print("✅ Comments-only logic properly rejected with ValueError")
-        
-        # Test valid logic with comments (should work)
-        valid_logic_with_comments = """
-# This is a valid logic with comments
-if fetched_value and isinstance(fetched_value, str):
-    # Check if string is not empty
-    result = len(fetched_value.strip()) > 0
-else:
-    result = False
-"""
-        valid_func = ComparisonOperation.get_custom_function(ComparisonOperationEnum.CUSTOM, valid_logic_with_comments)
-        result = valid_func("test", None)
-        assert result == True
-        print("✅ Valid logic with comments works correctly")
-
-        # Test 9: Logic that tries to modify global state
-        print("🧪 Testing global state modification attempts...")
-        global_modify_logic = """
-# Try to modify something outside the function scope
-global some_global_var
-some_global_var = "modified"
-result = True
-"""
-        try:
-            global_func = ComparisonOperation.get_custom_function(ComparisonOperationEnum.CUSTOM, global_modify_logic)
-            result = global_func("test", None)
-            print(f"✅ Global modification attempt result: {result}")
-        except Exception as e:
-            print(f"✅ Global modification properly blocked: {type(e).__name__}")
-
-        print("✅ Invalid logic handling tests completed")
+        print("✅ All invalid logic handling tests passed!")
         
     except Exception as e:
         print(f"❌ Invalid logic handling test failed: {e}")

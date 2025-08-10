@@ -112,8 +112,8 @@ def get_function():
 {indented_logic}
         except Exception as e:
             # Log the error if needed (for debugging)
-            # In production, we silently return False for any runtime errors
-            result = False
+            # Return None to indicate execution failure (vs False for logic failure)
+            result = None
         return result
     return {name.value}
 function = get_function()
@@ -148,6 +148,13 @@ function = get_function()
                 'abs': abs,
                 'round': round,
                 'Exception': Exception,
+                'NameError': NameError,
+                'TypeError': TypeError,
+                'ValueError': ValueError,
+                'AttributeError': AttributeError,
+                'KeyError': KeyError,
+                'IndexError': IndexError,
+                'ZeroDivisionError': ZeroDivisionError,
             }
         }
         exec(get_function_code, safe_globals, local_ns)
