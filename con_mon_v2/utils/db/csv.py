@@ -6,6 +6,7 @@ CRUD operations on CSV files stored in data/csv/ folder.
 """
 import os
 import csv
+import json
 import pandas as pd
 from typing import Optional, List, Dict, Any, Union
 from contextlib import contextmanager
@@ -117,6 +118,57 @@ class CSVDatabase:
         except Exception as e:
             logger.warning(f"⚠️ Backup cleanup failed: {e}")
     
+    def _serialize_nested_data(self, data: Union[Dict[str, Any], List[Dict[str, Any]]]) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
+        """
+        Serialize nested dictionaries and lists to JSON strings for CSV storage.
+        
+        Args:
+            data: Dictionary or list of dictionaries to serialize
+            
+        Returns:
+            Data with nested structures serialized to JSON strings
+        """
+        def serialize_value(value):
+            if isinstance(value, (dict, list)):
+                return json.dumps(value, ensure_ascii=False, separators=(',', ':'))
+            return value
+        
+        if isinstance(data, list):
+            return [
+                {key: serialize_value(val) for key, val in row.items()}
+                for row in data
+            ]
+        elif isinstance(data, dict):
+            return {key: serialize_value(val) for key, val in data.items()}
+        return data
+    
+    def _deserialize_nested_data(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Deserialize JSON strings back to nested dictionaries and lists.
+        
+        Args:
+            data: List of dictionaries with JSON strings to deserialize
+            
+        Returns:
+            Data with JSON strings deserialized back to nested structures
+        """
+        def deserialize_value(value):
+            if isinstance(value, str):
+                # Try to parse as JSON if it looks like JSON
+                if (value.startswith('{') and value.endswith('}')) or \
+                   (value.startswith('[') and value.endswith(']')):
+                    try:
+                        return json.loads(value)
+                    except (json.JSONDecodeError, ValueError):
+                        # If JSON parsing fails, return as string
+                        pass
+            return value
+        
+        return [
+            {key: deserialize_value(val) for key, val in row.items()}
+            for row in data
+        ]
+    
     def execute_query(self, table_name: str, conditions: Optional[Dict[str, Any]] = None, 
                      columns: Optional[List[str]] = None) -> List[Dict[str, Any]]:
         """
@@ -160,6 +212,9 @@ class CSVDatabase:
             # Convert to list of dictionaries
             results = df.to_dict('records')
             
+            # Deserialize nested JSON data back to dictionaries/lists
+            results = self._deserialize_nested_data(results)
+            
             logger.info(f"✅ Query executed on {table_name}, returned {len(results)} rows")
             return results
             
@@ -188,13 +243,16 @@ class CSVDatabase:
             if not data:
                 return 0
             
+            # Serialize nested data for CSV storage
+            serialized_data = self._serialize_nested_data(data)
+            
             with self._backup_table(table_name):
                 if table_path.exists():
                     # Read existing data
                     existing_df = pd.read_csv(table_path)
                     
                     # Create new dataframe from insert data
-                    new_df = pd.DataFrame(data)
+                    new_df = pd.DataFrame(serialized_data)
                     
                     # Ensure columns match (add missing columns with NaN)
                     for col in existing_df.columns:
@@ -209,7 +267,7 @@ class CSVDatabase:
                     result_df = pd.concat([existing_df, new_df], ignore_index=True)
                 else:
                     # Create new table
-                    result_df = pd.DataFrame(data)
+                    result_df = pd.DataFrame(serialized_data)
                 
                 # Write back to CSV
                 result_df.to_csv(table_path, index=False)
@@ -247,6 +305,9 @@ class CSVDatabase:
                 df = pd.read_csv(table_path)
                 original_count = len(df)
                 
+                # Serialize nested data for CSV storage
+                serialized_data = self._serialize_nested_data(data)
+                
                 # Create mask for rows to update
                 mask = pd.Series([True] * len(df))
                 
@@ -262,7 +323,7 @@ class CSVDatabase:
                 
                 # Update matching rows
                 affected_rows = mask.sum()
-                for column, value in data.items():
+                for column, value in serialized_data.items():
                     df.loc[mask, column] = value
                 
                 # Write back to CSV
@@ -352,7 +413,9 @@ class CSVDatabase:
             
             # Add initial data if provided
             if data:
-                df = pd.DataFrame(data, columns=columns)
+                # Serialize nested data for CSV storage
+                serialized_data = self._serialize_nested_data(data)
+                df = pd.DataFrame(serialized_data, columns=columns)
             
             # Write to CSV
             df.to_csv(table_path, index=False)
