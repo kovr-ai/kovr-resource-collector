@@ -226,7 +226,7 @@ checks:
     resource_type: "{resource_type_full_path}"
     field_path: "[CHOOSE FROM EXAMPLES ABOVE]"
     operation:
-      name: "CUSTOM"
+      name: "custom"
       logic: |
         result = False
         

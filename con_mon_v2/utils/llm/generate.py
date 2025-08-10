@@ -61,14 +61,14 @@ def get_provider_resources_mapping() -> Dict[ConnectorType, List[str]]:
         }
 
 
-def evaluate_check_against_rc(check, connector_type: str) -> None:
+def evaluate_check_against_rc(check):
     """
     Evaluate a check against a resource collection.
 
     Args:
         check: Check object to test
-        connector_type: Connector type (github, aws)
     """
+    connector_type = check.metadata.resource_type.split('.')[2]
     # Get resource collection service for the connector type
     rc_service = ResourceCollectionService(connector_type)
 
@@ -102,6 +102,7 @@ def evaluate_check_against_rc(check, connector_type: str) -> None:
     print("-" * 80)
 
     # Evaluate check against each resource
+    all_results = list()
     for resource in rc.resources:
         print(f"\n🔍 Evaluating against {resource.__class__.__name__}: {resource.id}")
         # Use the check's evaluate method
@@ -114,6 +115,8 @@ def evaluate_check_against_rc(check, connector_type: str) -> None:
                 print(f"❌ {result.message}")
                 if result.error:
                     print(f"   Error: {result.error}")
+        all_results.extend(results)
+    return all_results
 
 
 def generate_check(

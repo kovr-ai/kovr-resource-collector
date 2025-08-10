@@ -4,7 +4,7 @@ Modern class-based architecture with no backward compatibility.
 """
 
 from .models import BaseModel, Framework, Control, Standard, StandardControlMapping, FrameworkWithControls, StandardWithControls, ControlWithStandards
-from .data_loader import BaseLoader
+from .data_loader import BaseLoader, ChecksLoader, ControlLoader
 
 __all__ = [
     # Models
@@ -18,4 +18,6 @@ __all__ = [
     'ControlWithStandards',
     # Loader Classes
     'BaseLoader',
+    'ChecksLoader',
+    'ControlLoader',
 ] 
