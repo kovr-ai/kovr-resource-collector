@@ -282,52 +282,47 @@ Generate ONLY the YAML check entry with complete implementation. No explanations
                 content = 'checks:\n' + content
             else:
                 content = 'checks:\n- ' + content
-        
-        # Parse YAML
-        try:
-            yaml_data = yaml.safe_load(content)
-            checks = yaml_data['checks']
-            if len(checks) != 1:
-                raise ValueError(f"Expected exactly 1 check, got {len(checks)}")
-            
-            check_dict = checks[0]
-            
-            # Validate required fields exist
-            required_fields = ['id', 'name', 'description', 'category', 'output_statements', 
-                             'fix_details', 'created_by', 'updated_by', 'is_deleted', 'metadata']
-            
-            for field in required_fields:
-                if field not in check_dict:
-                    raise ValueError(f"Missing required field: {field}")
-            
-            # Convert nested objects to JSON strings (as they would come from database)
-            row_data = {}
-            
-            # Copy simple fields directly
-            for field in ['id', 'name', 'description', 'category', 'created_by', 'updated_by', 'is_deleted']:
-                row_data[field] = check_dict[field]
-            
-            # Add timestamps (Check.from_row expects these)
-            row_data['created_at'] = datetime.now()
-            row_data['updated_at'] = datetime.now()
-            
-            # Convert complex fields to JSON strings (simulating database JSONB fields)
-            import json
-            row_data['output_statements'] = json.dumps(check_dict['output_statements'])
-            row_data['fix_details'] = json.dumps(check_dict['fix_details'])
-            row_data['metadata'] = json.dumps(check_dict['metadata'])
-            
-            # Create the Check object using from_row (standard pattern)
-            check = Check.from_row(row_data)
-            
-            # Store raw YAML for debugging
-            check._raw_yaml = content
-            
-            return check
-            
-        except Exception as e:
-            raise ValueError(f"Failed to parse or validate check YAML: {str(e)}\n\nGenerated YAML:\n{content}")
-    
+
+        yaml_data = yaml.safe_load(content)
+        checks = yaml_data['checks']
+        if len(checks) != 1:
+            raise ValueError(f"Expected exactly 1 check, got {len(checks)}")
+
+        check_dict = checks[0]
+
+        # Validate required fields exist
+        required_fields = ['id', 'name', 'description', 'category', 'output_statements',
+                         'fix_details', 'created_by', 'updated_by', 'is_deleted', 'metadata']
+
+        for field in required_fields:
+            if field not in check_dict:
+                raise ValueError(f"Missing required field: {field}")
+
+        # Convert nested objects to JSON strings (as they would come from database)
+        row_data = {}
+
+        # Copy simple fields directly
+        for field in ['id', 'name', 'description', 'category', 'created_by', 'updated_by', 'is_deleted']:
+            row_data[field] = check_dict[field]
+
+        # Add timestamps (Check.from_row expects these)
+        row_data['created_at'] = datetime.now()
+        row_data['updated_at'] = datetime.now()
+
+        # Convert complex fields to JSON strings (simulating database JSONB fields)
+        import json
+        row_data['output_statements'] = json.dumps(check_dict['output_statements'])
+        row_data['fix_details'] = json.dumps(check_dict['fix_details'])
+        row_data['metadata'] = json.dumps(check_dict['metadata'])
+
+        # Create the Check object using from_row (standard pattern)
+        check = Check.from_row(row_data)
+
+        # Store raw YAML for debugging
+        check._raw_yaml = content
+
+        return check
+
     def generate(self, **kwargs) -> Check:
         """Generate a complete Check object using LLM"""
         # Format prompt
@@ -353,84 +348,3 @@ Generate ONLY the YAML check entry with complete implementation. No explanations
             'aws': 'instance_data.state.name'
         }
         return provider_defaults.get(self.provider_config.provider_name, 'data.field')
-
-
-def generate_check(
-    control_name: str,
-    control_text: str,
-    control_title: str,
-    control_id: int,
-    connector_type: ConnectorType,
-    resource_model_name: str,
-    **kwargs
-) -> Check:
-    """
-    Generate a single check using the V2 prompt system.
-    
-    Args:
-        control_name: Control identifier (e.g., "AC-2")
-        control_text: Full control requirement text
-        control_title: Control title/name
-        control_id: Database ID of the control
-        connector_type: Provider type (AWS, GitHub, etc.)
-        resource_model_name: Specific resource model (e.g., "GithubResource", "EC2Resource")
-        **kwargs: Additional LLM parameters
-        
-    Returns:
-        Validated Check object that matches schema exactly
-    """
-    prompt = CheckPrompt(
-        control_name=control_name,
-        control_text=control_text,
-        control_title=control_title,
-        control_id=control_id,
-        connector_type=connector_type,
-        resource_model_name=resource_model_name,
-    )
-    
-    return prompt.generate(**kwargs)
-
-
-def generate_checks_for_all_providers(
-    control_name: str,
-    control_text: str,
-    control_title: str,
-    control_id: int,
-    **kwargs
-) -> List[Check]:
-    """
-    Generate checks for all available providers and their resource models.
-    
-    Args:
-        control_name: Control identifier
-        control_text: Control requirement text
-        control_title: Control title
-        control_id: Database ID of the control
-        **kwargs: Additional LLM parameters
-        
-    Returns:
-        List of Check objects for all provider/resource combinations
-    """
-    checks = []
-    
-    # Provider to resource model mapping
-    provider_resources = {
-        ConnectorType.GITHUB: ['GithubResource'],
-        ConnectorType.AWS: ['EC2Resource', 'IAMResource', 'S3Resource', 'CloudTrailResource', 'CloudWatchResource'],
-        # Add more providers as needed
-    }
-    
-    for connector_type, resource_models in provider_resources.items():
-        for resource_model in resource_models:
-            check = generate_check(
-                control_name=control_name,
-                control_text=control_text,
-                control_title=control_title,
-                control_id=control_id,
-                connector_type=connector_type,
-                resource_model_name=resource_model,
-                **kwargs
-            )
-            checks.append(check)
-    
-    return checks 

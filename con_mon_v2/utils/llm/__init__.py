@@ -5,10 +5,8 @@ Provides prompt templates, LLM client interfaces, and response processing.
 """
 
 from .client import get_llm_client, LLMClient, LLMRequest, LLMResponse
-from .prompt import (
-    CheckPrompt,
-    generate_checks_for_all_providers
-)
+from .prompt import CheckPrompt
+from .generate import generate_check, generate_checks_for_all_providers
 
 __all__ = [
     # Client
@@ -17,7 +15,7 @@ __all__ = [
     'LLMRequest',
     'LLMResponse',
     # Prompts
-    'BasePrompt',
-    'ChecksPrompt',
-    'generate_checks'
+    'CheckPrompt',
+    'generate_check',
+    'generate_checks_for_all_providers'
 ] 

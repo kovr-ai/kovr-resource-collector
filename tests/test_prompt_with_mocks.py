@@ -15,13 +15,10 @@ import yaml
 from unittest.mock import patch, Mock
 import pytest
 
-from con_mon_v2.utils.llm.prompt import CheckPrompt, generate_check
-from con_mon_v2.connectors.models import ConnectorType
-from con_mon_v2.compliance.models import (
-    Check, CheckMetadata, CheckOperation, OutputStatements, 
-    FixDetails, ComparisonOperationEnum
-)
-from con_mon_v2.utils.llm.client import LLMResponse, LLMRequest
+from con_mon_v2.utils.llm import CheckPrompt, generate_check
+from con_mon_v2.connectors import ConnectorType
+from con_mon_v2.compliance.models import ComparisonOperationEnum
+from con_mon_v2.utils.llm.client import LLMResponse
 
 
 class TestCheckPromptWithMocks:
