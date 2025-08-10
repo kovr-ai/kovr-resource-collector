@@ -14,8 +14,9 @@ def get_db(*args, **kwargs):
 __all__ = [
     # PostgreSQL Database
     'PostgreSQLDatabase',
-    'get_db',
     # CSV Database  
     'CSVDatabase',
-    'get_csv_db'
+
+    # Database Function
+    'get_db',
 ]
