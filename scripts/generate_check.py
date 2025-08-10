@@ -17,9 +17,13 @@ def check_is_invalid(check_results: List[CheckResult]) -> bool:
     Return True if check is invalid and should be regenerated.
     
     A check is considered invalid if:
-    1. All results failed (no passing results)
-    2. There are critical errors (syntax errors, field not found, etc.)
-    3. The check logic appears to be fundamentally flawed
+    1. No results available (can't evaluate)
+    2. All results have passed=None (evaluation errors/exceptions)
+    3. There are critical errors that prevent proper evaluation
+    
+    A check is considered VALID (should not be regenerated) if:
+    1. At least one result has passed=True or passed=False (successful evaluation)
+    2. The check logic executed properly, even if it failed compliance
     
     Args:
         check_results: List of CheckResult objects from evaluating the check
@@ -37,12 +41,28 @@ def check_is_invalid(check_results: List[CheckResult]) -> bool:
     for i, result in enumerate(check_results):
         print(f"   Result {i+1}: passed={result.passed}, error={result.error}")
     
-    for check_result in check_results:
-        if check_result.passed is not None:
-            print(f"✅ Found result with passed={check_result.passed} - considering valid")
-            return False
+    # Count results with actual boolean values (successful evaluations)
+    successful_evaluations = 0
+    error_evaluations = 0
     
-    print("❌ All results have passed=None - considering invalid")
+    for check_result in check_results:
+        if check_result.passed is not None:  # Either True or False
+            successful_evaluations += 1
+            print(f"   ✅ Successful evaluation: passed={check_result.passed}")
+        else:
+            error_evaluations += 1
+            print(f"   ❌ Error evaluation: passed=None, error={check_result.error}")
+    
+    # Check is VALID if we have at least some successful evaluations
+    # Even if all evaluations failed (passed=False), the check logic worked
+    if successful_evaluations > 0:
+        print(f"✅ Check has {successful_evaluations} successful evaluations - considering VALID")
+        print("   (Check logic executed properly, even if compliance failed)")
+        return False
+    
+    # Check is INVALID if all evaluations failed with errors
+    print(f"❌ All {error_evaluations} evaluations had errors (passed=None) - considering INVALID")
+    print("   (Check logic has fundamental issues and needs regeneration)")
     return True
 
 def generate_for_control_with_self_improvement(
@@ -62,7 +82,12 @@ def generate_for_control_with_self_improvement(
 
     for check_idx, check in enumerate(checks):
         print(f"\n🔍 Processing check {check_idx + 1}/{len(checks)}: {check.name}")
-
+        
+        # DEBUG: Only process first check to see prompts clearly
+        if check_idx > 0:
+            print("🛑 Skipping remaining checks for debug - only processing first check")
+            break
+        
         print("📊 Evaluating check against resources...")
         check_results = evaluate_check_against_rc(check)
         print(f"📊 Got {len(check_results)} evaluation results")

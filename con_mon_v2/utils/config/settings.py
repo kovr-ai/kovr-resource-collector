@@ -60,8 +60,8 @@ class Settings(BaseModel):
     
     # AWS Bedrock Configuration
     BEDROCK_REGION: str = "us-east-1"
-    BEDROCK_MODEL_ID: str = "anthropic.claude-3-sonnet-20240229-v1:0"
-    BEDROCK_MAX_TOKENS: int = 4096
+    BEDROCK_MODEL_ID: str = "anthropic.claude-3-5-sonnet-20240620-v1:0"  # Upgraded to Claude 3.5 Sonnet
+    BEDROCK_MAX_TOKENS: int = 8192  # Increased for longer, more detailed prompts
     BEDROCK_TEMPERATURE: float = 0.1
     BEDROCK_TOP_P: float = 0.9
     BEDROCK_TIMEOUT: int = 300

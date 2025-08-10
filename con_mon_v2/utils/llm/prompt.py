@@ -179,8 +179,14 @@ class CheckPrompt(ABC):
     def format_prompt(self, **kwargs) -> str:
         """Format the complete prompt with all template variables"""
         
-        # Core prompt template
-        prompt_template = """You are a cybersecurity compliance expert. Generate a YAML check entry that matches the Check model schema EXACTLY.
+        # Core prompt template with extensive guidance
+        prompt_template = """You are a cybersecurity compliance expert creating automated compliance checks for NIST 800-53 controls.
+
+**CRITICAL UNDERSTANDING: CHECKS ARE PER INDIVIDUAL RESOURCE**
+- Each check validates ONE resource instance at a time
+- The fetched_value contains data from a SINGLE resource
+- Logic should determine if THIS ONE resource is compliant
+- Do NOT try to aggregate or compare across multiple resources
 
 **Control Information:**
 - Control ID: {control_name}
@@ -191,6 +197,22 @@ class CheckPrompt(ABC):
 **Control Requirement:**
 {control_text}
 
+**CONTROL TYPE GUIDANCE:**
+
+**POLICY CONTROLS (AC-1, AT-1, AU-1, etc. - ending in "-1"):**
+For technical resources, look for configuration that enforces policy requirements.
+
+**ACCESS CONTROL CONTROLS (AC-2, AC-3, AC-4, etc.):**
+Focus on authentication, authorization, and access management settings.
+
+**AUDIT CONTROLS (AU-2, AU-3, AU-4, etc.):**
+Focus on logging, monitoring, and audit capabilities.
+
+**FIELD PATH SELECTION:**
+1. For GitHub Resources: Look for security settings, branch protection, access controls
+2. For AWS Resources: Look for security configurations, IAM settings, logging, monitoring
+3. Choose paths that contain security-relevant data for the specific control
+
 {resource_schema}
 
 **Available Operations:** {available_operations}
@@ -198,16 +220,14 @@ class CheckPrompt(ABC):
 **Field Path Examples for {resource_model_name}:**
 {field_path_examples_formatted}
 
-**CRITICAL REQUIREMENTS:**
-1. Generate YAML that matches the Check model schema EXACTLY
-2. Use operation name from: {available_operations}
-3. Use full resource type path: {resource_type_full_path}
-4. Implement complete custom logic (no TODO comments)
-5. Handle all edge cases: None, empty lists, missing fields
-6. Set result = True for compliance, result = False for non-compliance
-7. Use fetched_value variable to access field data
+**VALIDATION LOGIC REQUIREMENTS:**
+1. Validate THIS ONE resource instance (not multiple resources)
+2. Handle edge cases: None, empty lists, missing fields
+3. Set result = True for compliance, result = False for non-compliance
+4. Use fetched_value variable to access field data
+5. Implement meaningful compliance checks (not just existence checks)
 
-**EXACT YAML SCHEMA TO FOLLOW:**
+**YAML SCHEMA TO FOLLOW:**
 ```yaml
 checks:
 - id: "{check_id}"
@@ -215,14 +235,14 @@ checks:
   description: "{check_description}"
   category: "{suggested_category}"
   output_statements:
-    success: "Check passed: [specific success message]"
-    failure: "Check failed: [specific failure message]"
-    partial: "Check partially passed: [specific partial message]"
+    success: "Resource is compliant with {control_name}"
+    failure: "Resource is not compliant with {control_name}"
+    partial: "Resource partially complies with {control_name}"
   fix_details:
-    description: "[Specific remediation steps]"
+    description: "Configure the resource to meet {control_name} requirements"
     instructions:
-    - "[Step 1 with specific action]"
-    - "[Step 2 with specific action]"
+    - "Review the {control_name} control requirements"
+    - "Update resource configuration to implement required security controls"
     estimated_time: "{estimated_time}"
     automation_available: false
   created_by: "system"
@@ -230,38 +250,54 @@ checks:
   is_deleted: false
   metadata:
     resource_type: "{resource_type_full_path}"
-    field_path: "[CHOOSE FROM EXAMPLES ABOVE]"
+    field_path: "[CHOOSE APPROPRIATE PATH FROM EXAMPLES ABOVE]"
     operation:
       name: "custom"
       logic: |
         result = False
         
-        # Implement complete validation logic here
-        # Example structure:
-        if fetched_value and isinstance(fetched_value, [EXPECTED_TYPE]):
-            # Multiple validation criteria
-            condition1 = [validation logic]
-            condition2 = [validation logic]
-            condition3 = [validation logic]
-            
-            if condition1 and condition2 and condition3:
-                result = True
-        elif fetched_value is None:
+        # Validate THIS ONE resource for compliance
+        if fetched_value is None:
             result = False
+        elif not fetched_value:
+            result = False
+        else:
+            # Implement specific compliance logic here
+            # Example - customize for actual control requirements:
+            if isinstance(fetched_value, dict):
+                # Check multiple compliance criteria
+                condition1 = fetched_value.get('security_setting1', False)
+                condition2 = fetched_value.get('security_setting2') is not None
+                if condition1 and condition2:
+                    result = True
+            elif isinstance(fetched_value, list):
+                # Check if any items meet criteria
+                for item in fetched_value:
+                    if isinstance(item, dict) and item.get('enabled', False):
+                        result = True
+                        break
     expected_value: null
     tags: {tags}
     severity: "{suggested_severity}"
     category: "{suggested_category}"
 ```
 
-Generate ONLY the YAML check entry with complete implementation. No explanations, no additional text, no markdown code blocks."""
+**REQUIREMENTS:**
+- Generate ONLY the YAML check entry
+- No explanations, no markdown code blocks, no additional text
+- Implement complete custom logic (no TODO comments)
+- Choose field paths that contain relevant data for this control
+
+Generate the complete YAML check entry now:"""
 
         # Format field path examples
         field_paths_formatted = '\n'.join([f"- {path}" for path in self.template_vars['field_path_examples']])
         
         # Format the complete prompt
+        resource_schema = self.get_resource_schema_section()
+        
         return prompt_template.format(
-            resource_schema=self.get_resource_schema_section(),
+            resource_schema=resource_schema,
             field_path_examples_formatted=field_paths_formatted,
             **self.template_vars
         )
@@ -329,10 +365,38 @@ Generate ONLY the YAML check entry with complete implementation. No explanations
         # Format prompt
         prompt = self.format_prompt(**kwargs)
         
+        # Debug: Save the prompt to a file
+        import os
+        debug_dir = "debug_prompts"
+        os.makedirs(debug_dir, exist_ok=True)
+        
+        with open(f"{debug_dir}/standard_prompt.txt", "w") as f:
+            f.write("="*80 + "\n")
+            f.write("🤖 SENDING PROMPT TO LLM (CheckPrompt)\n")
+            f.write("="*80 + "\n")
+            f.write(prompt)
+            f.write("\n" + "="*80 + "\n")
+            f.write("END PROMPT\n")
+            f.write("="*80 + "\n")
+        
+        print(f"📝 Standard prompt saved to {debug_dir}/standard_prompt.txt")
+        
         # Generate response using LLM
         client = get_llm_client()
         request = LLMRequest(prompt=prompt)
         response = client.generate_response(request)
+        
+        # Debug: Save the LLM response to a file
+        with open(f"{debug_dir}/standard_response.txt", "w") as f:
+            f.write("="*80 + "\n")
+            f.write("🤖 LLM RESPONSE (CheckPrompt)\n")
+            f.write("="*80 + "\n")
+            f.write(response.content)
+            f.write("\n" + "="*80 + "\n")
+            f.write("END RESPONSE\n")
+            f.write("="*80 + "\n")
+        
+        print(f"📝 Standard response saved to {debug_dir}/standard_response.txt")
         
         # Process and return the LLM response
         return self.process_response(response)
@@ -481,7 +545,13 @@ class CheckPromptWithResults(CheckPrompt):
         """Format the enhanced prompt with previous results analysis"""
         
         # Enhanced prompt template that includes results analysis
-        enhanced_prompt_template = """You are a cybersecurity compliance expert. Generate a YAML check entry that matches the Check model schema EXACTLY.
+        enhanced_prompt_template = """You are a cybersecurity compliance expert creating automated compliance checks for NIST 800-53 controls.
+
+**CRITICAL UNDERSTANDING: CHECKS ARE PER INDIVIDUAL RESOURCE**
+- Each check validates ONE resource instance at a time
+- The fetched_value contains data from a SINGLE resource
+- Logic should determine if THIS ONE resource is compliant
+- Do NOT try to aggregate or compare across multiple resources
 
 IMPORTANT: Learn from the previous failed attempts shown below to create a BETTER check.
 
@@ -500,6 +570,13 @@ IMPORTANT: Learn from the previous failed attempts shown below to create a BETTE
 **Control Requirement:**
 {control_text}
 
+**FIELD PATH SELECTION STRATEGY:**
+1. For GitHub Resources: Look for security settings, branch protection, access controls
+2. For AWS Resources: Look for security configurations, IAM settings, logging, monitoring
+3. AVOID generic metadata unless it directly relates to the control
+4. CHOOSE paths that contain security-relevant data for the specific control family
+5. LEARN FROM FAILURES: Avoid field paths that failed in previous attempts (shown above)
+
 {resource_schema}
 
 **Available Operations:** {available_operations}
@@ -507,18 +584,14 @@ IMPORTANT: Learn from the previous failed attempts shown below to create a BETTE
 **Field Path Examples for {resource_model_name}:**
 {field_path_examples_formatted}
 
-**CRITICAL REQUIREMENTS:**
-1. Generate YAML that matches the Check model schema EXACTLY
-2. Use operation name from: {available_operations}
-3. Use full resource type path: {resource_type_full_path}
-4. Implement complete custom logic (no TODO comments)
-5. Handle all edge cases: None, empty lists, missing fields
-6. Set result = True for compliance, result = False for non-compliance
-7. Use fetched_value variable to access field data
-8. LEARN FROM FAILURES: Avoid field paths and logic that failed before
-9. Choose field paths that contain RELEVANT data for this specific control
+**VALIDATION LOGIC REQUIREMENTS:**
+1. Validate THIS ONE resource instance (not multiple resources)
+2. Handle edge cases: None, empty lists, missing fields
+3. Set result = True for compliance, result = False for non-compliance
+4. Use fetched_value variable to access field data
+5. LEARN from the failed attempts shown above to choose better validation criteria
 
-**EXACT YAML SCHEMA TO FOLLOW:**
+**YAML SCHEMA TO FOLLOW:**
 ```yaml
 checks:
 - id: "{check_id}"
@@ -526,14 +599,15 @@ checks:
   description: "{check_description}"
   category: "{suggested_category}"
   output_statements:
-    success: "Check passed: [specific success message]"
-    failure: "Check failed: [specific failure message]"
-    partial: "Check partially passed: [specific partial message]"
+    success: "Resource is compliant with {control_name}"
+    failure: "Resource is not compliant with {control_name}"
+    partial: "Resource partially complies with {control_name}"
   fix_details:
-    description: "[Specific remediation steps]"
+    description: "Configure the resource to meet {control_name} requirements based on analysis of failures"
     instructions:
-    - "[Step 1 with specific action]"
-    - "[Step 2 with specific action]"
+    - "Review the {control_name} control requirements and previous failure patterns"
+    - "Update resource configuration to implement required security controls"
+    - "Focus on areas identified as problematic in previous attempts"
     estimated_time: "{estimated_time}"
     automation_available: false
   created_by: "system"
@@ -541,32 +615,52 @@ checks:
   is_deleted: false
   metadata:
     resource_type: "{resource_type_full_path}"
-    field_path: "[CHOOSE BETTER PATH BASED ON ANALYSIS ABOVE]"
+    field_path: "[CHOOSE BETTER PATH BASED ON ANALYSIS ABOVE - AVOID FAILED PATHS]"
     operation:
       name: "custom"
       logic: |
         result = False
         
-        # Implement complete validation logic here
+        # Validate THIS ONE resource for compliance
         # LEARN FROM PREVIOUS FAILURES - create logic that works with actual data
-        # Example structure:
-        if fetched_value and isinstance(fetched_value, [EXPECTED_TYPE]):
-            # Multiple validation criteria based on ACTUAL control requirements
-            condition1 = [validation logic]
-            condition2 = [validation logic]
-            condition3 = [validation logic]
-            
-            if condition1 and condition2 and condition3:
-                result = True
-        elif fetched_value is None:
+        
+        if fetched_value is None:
             result = False
+        elif not fetched_value:
+            result = False
+        else:
+            # Implement specific compliance logic based on control requirements
+            # Use insights from previous failures to create better validation
+            
+            if isinstance(fetched_value, dict):
+                # For dict data, check multiple compliance criteria
+                # Customize these based on actual control requirements and failed attempts
+                condition1 = fetched_value.get('security_setting1', False)
+                condition2 = fetched_value.get('security_setting2') is not None
+                
+                if condition1 and condition2:
+                    result = True
+                    
+            elif isinstance(fetched_value, list):
+                # For list data, check if any/all items meet criteria
+                for item in fetched_value:
+                    if isinstance(item, dict) and item.get('enabled', False):
+                        result = True
+                        break
     expected_value: null
     tags: {tags}
     severity: "{suggested_severity}"
     category: "{suggested_category}"
 ```
 
-Generate ONLY the YAML check entry with complete implementation. No explanations, no additional text, no markdown code blocks."""
+**REQUIREMENTS:**
+- Generate ONLY the YAML check entry
+- No explanations, no markdown code blocks, no additional text
+- LEARN from the previous failures shown above to choose better field paths and logic
+- Choose field paths that contain data relevant to the specific control
+- Implement complete custom logic (no TODO comments)
+
+Generate the complete YAML check entry now:"""
 
         # Format field path examples
         field_paths_formatted = '\n'.join([f"- {path}" for path in self.template_vars['field_path_examples']])
@@ -577,3 +671,45 @@ Generate ONLY the YAML check entry with complete implementation. No explanations
             field_path_examples_formatted=field_paths_formatted,
             **self.template_vars
         )
+    
+    def generate(self, **kwargs) -> Check:
+        """Generate a complete Check object using LLM with enhanced prompt"""
+        # Format prompt
+        prompt = self.format_prompt(**kwargs)
+        
+        # Debug: Save the enhanced prompt to a file
+        import os
+        debug_dir = "debug_prompts"
+        os.makedirs(debug_dir, exist_ok=True)
+        
+        with open(f"{debug_dir}/enhanced_prompt.txt", "w") as f:
+            f.write("="*80 + "\n")
+            f.write(f"🧠 SENDING ENHANCED PROMPT TO LLM (CheckPromptWithResults)\n")
+            f.write(f"📊 Learning from {len(self.check_results)} previous results\n")
+            f.write("="*80 + "\n")
+            f.write(prompt)
+            f.write("\n" + "="*80 + "\n")
+            f.write("END ENHANCED PROMPT\n")
+            f.write("="*80 + "\n")
+        
+        print(f"📝 Enhanced prompt saved to {debug_dir}/enhanced_prompt.txt (learning from {len(self.check_results)} results)")
+        
+        # Generate response using LLM
+        client = get_llm_client()
+        request = LLMRequest(prompt=prompt)
+        response = client.generate_response(request)
+        
+        # Debug: Save the LLM response to a file
+        with open(f"{debug_dir}/enhanced_response.txt", "w") as f:
+            f.write("="*80 + "\n")
+            f.write("🧠 LLM RESPONSE (CheckPromptWithResults)\n")
+            f.write("="*80 + "\n")
+            f.write(response.content)
+            f.write("\n" + "="*80 + "\n")
+            f.write("END ENHANCED RESPONSE\n")
+            f.write("="*80 + "\n")
+        
+        print(f"📝 Enhanced response saved to {debug_dir}/enhanced_response.txt")
+        
+        # Process and return the LLM response
+        return self.process_response(response)
