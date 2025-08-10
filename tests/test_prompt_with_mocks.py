@@ -1,7 +1,7 @@
 """
-Test CheckPromptV2 with Mock Responses
+Test CheckPrompt with Mock Responses
 
-Tests the complete CheckPromptV2 system using real mock responses generated
+Tests the complete CheckPrompt system using real mock responses generated
 by the LLM, validating:
 1. Mock response loading and parsing
 2. Check object creation from mock YAML
@@ -15,7 +15,7 @@ import yaml
 from unittest.mock import patch, Mock
 import pytest
 
-from con_mon_v2.utils.llm.prompt_v2 import CheckPromptV2, generate_check_v2
+from con_mon_v2.utils.llm.prompt import CheckPrompt, generate_check
 from con_mon_v2.connectors.models import ConnectorType
 from con_mon_v2.compliance.models import (
     Check, CheckMetadata, CheckOperation, OutputStatements, 
@@ -24,8 +24,8 @@ from con_mon_v2.compliance.models import (
 from con_mon_v2.utils.llm.client import LLMResponse, LLMRequest
 
 
-class TestCheckPromptV2WithMocks:
-    """Test CheckPromptV2 using real mock responses"""
+class TestCheckPromptWithMocks:
+    """Test CheckPrompt using real mock responses"""
     
     @pytest.fixture
     def github_mock_yaml(self):
@@ -43,8 +43,8 @@ class TestCheckPromptV2WithMocks:
     
     def test_github_mock_response_parsing(self, github_mock_yaml):
         """Test parsing GitHub mock response into Check object"""
-        # Create CheckPromptV2 instance
-        prompt = CheckPromptV2(
+        # Create CheckPrompt instance
+        prompt = CheckPrompt(
             control_name='AC-2',
             control_text='The organization manages information system accounts.',
             control_title='Account Management',
@@ -102,8 +102,8 @@ class TestCheckPromptV2WithMocks:
     
     def test_aws_mock_response_parsing(self, aws_mock_yaml):
         """Test parsing AWS mock response into Check object"""
-        # Create CheckPromptV2 instance
-        prompt = CheckPromptV2(
+        # Create CheckPrompt instance
+        prompt = CheckPrompt(
             control_name='SC-7',
             control_text='The information system monitors and controls communications at boundaries.',
             control_title='Boundary Protection',
@@ -144,7 +144,7 @@ class TestCheckPromptV2WithMocks:
     def test_github_check_logic_execution(self, github_mock_yaml):
         """Test GitHub check logic execution with mock data"""
         # Parse the check
-        prompt = CheckPromptV2(
+        prompt = CheckPrompt(
             control_name='AC-2',
             control_text='Account management test',
             control_title='Account Management',
@@ -215,7 +215,7 @@ class TestCheckPromptV2WithMocks:
     def test_aws_check_logic_execution(self, aws_mock_yaml):
         """Test AWS check logic execution with mock data"""
         # Parse the check
-        prompt = CheckPromptV2(
+        prompt = CheckPrompt(
             control_name='SC-7',
             control_text='Boundary protection test',
             control_title='Boundary Protection', 
@@ -318,7 +318,7 @@ class TestCheckPromptV2WithMocks:
         
         print("✅ Mock YAML schema compliance test passed")
     
-    @patch('con_mon_v2.utils.llm.prompt_v2.get_llm_client')
+    @patch('con_mon_v2.utils.llm.prompt.get_llm_client')
     def test_end_to_end_prompt_to_check_flow(self, mock_get_llm_client):
         """Test complete flow from prompt generation to check validation"""
         
@@ -358,7 +358,7 @@ class TestCheckPromptV2WithMocks:
         mock_client.generate_response.side_effect = [mock_github_response, mock_aws_response]
         
         # Test GitHub flow
-        github_check = generate_check_v2(
+        github_check = generate_check(
             control_name='AC-3',
             control_text='The information system enforces approved authorizations for logical access.',
             control_title='Access Enforcement',
@@ -376,7 +376,7 @@ class TestCheckPromptV2WithMocks:
         assert 'github' in github_check.metadata.tags
         
         # Test AWS flow
-        aws_check = generate_check_v2(
+        aws_check = generate_check(
             control_name='AU-2',
             control_text='The organization determines that the information system is capable of auditing events.',
             control_title='Audit Events',
@@ -393,7 +393,7 @@ class TestCheckPromptV2WithMocks:
         assert aws_check.metadata.operation.logic
         assert any('aws' in tag or 'ec2' in tag.lower() for tag in aws_check.metadata.tags)  # Changed from cloudtrail to ec2
         
-        # Verify that the mock was called twice (once for each generate_check_v2 call)
+        # Verify that the mock was called twice (once for each generate_check call)
         assert mock_client.generate_response.call_count == 2
         
         print("✅ End-to-end prompt to check flow test passed")
@@ -402,7 +402,7 @@ class TestCheckPromptV2WithMocks:
         """Test that provider-specific field paths are used correctly"""
         
         # GitHub should use GitHub-specific field paths
-        github_prompt = CheckPromptV2(
+        github_prompt = CheckPrompt(
             control_name='CM-2',
             control_text='Configuration management test',
             control_title='Baseline Configuration',
@@ -415,7 +415,7 @@ class TestCheckPromptV2WithMocks:
         assert any('repository_data' in path for path in github_field_paths), "Should have GitHub-specific paths"
         
         # AWS should use AWS-specific field paths
-        aws_prompt = CheckPromptV2(
+        aws_prompt = CheckPrompt(
             control_name='CM-2',
             control_text='Configuration management test',
             control_title='Baseline Configuration',
@@ -433,7 +433,7 @@ class TestCheckPromptV2WithMocks:
     def test_template_variable_generation(self):
         """Test that template variables are generated correctly"""
         
-        prompt = CheckPromptV2(
+        prompt = CheckPrompt(
             control_name='SI-4',
             control_text='The organization monitors the information system.',
             control_title='Information System Monitoring',
@@ -539,7 +539,7 @@ class TestMockDataIntegrity:
 
 if __name__ == "__main__":
     # Run all tests
-    test_classes = [TestCheckPromptV2WithMocks, TestMockDataIntegrity]
+    test_classes = [TestCheckPromptWithMocks, TestMockDataIntegrity]
     
     for test_class in test_classes:
         print(f"\n🧪 Running {test_class.__name__}...")
@@ -582,4 +582,4 @@ if __name__ == "__main__":
                     import traceback
                     traceback.print_exc()
     
-    print("\n🎉 All CheckPromptV2 mock tests completed!") 
+    print("\n🎉 All CheckPrompt mock tests completed!") 

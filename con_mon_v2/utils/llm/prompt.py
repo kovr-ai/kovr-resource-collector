@@ -90,10 +90,8 @@ class ProviderConfig:
         return paths[:10]  # Return top 10 most relevant paths
 
 
-class CheckPromptV2(ABC):
+class CheckPrompt(ABC):
     """
-    Version 2 of Check Prompt - Exact Schema Match
-    
     This prompt generates YAML that matches the Check model schema exactly,
     with no instructions or comments that don't belong in the final YAML.
     """
@@ -357,7 +355,7 @@ Generate ONLY the YAML check entry with complete implementation. No explanations
         return provider_defaults.get(self.provider_config.provider_name, 'data.field')
 
 
-def generate_check_v2(
+def generate_check(
     control_name: str,
     control_text: str,
     control_title: str,
@@ -381,7 +379,7 @@ def generate_check_v2(
     Returns:
         Validated Check object that matches schema exactly
     """
-    prompt = CheckPromptV2(
+    prompt = CheckPrompt(
         control_name=control_name,
         control_text=control_text,
         control_title=control_title,
@@ -393,7 +391,7 @@ def generate_check_v2(
     return prompt.generate(**kwargs)
 
 
-def generate_checks_for_all_providers_v2(
+def generate_checks_for_all_providers(
     control_name: str,
     control_text: str,
     control_title: str,
@@ -424,19 +422,15 @@ def generate_checks_for_all_providers_v2(
     
     for connector_type, resource_models in provider_resources.items():
         for resource_model in resource_models:
-            try:
-                check = generate_check_v2(
-                    control_name=control_name,
-                    control_text=control_text,
-                    control_title=control_title,
-                    control_id=control_id,
-                    connector_type=connector_type,
-                    resource_model_name=resource_model,
-                    **kwargs
-                )
-                checks.append(check)
-                print(f"✅ Generated check for {connector_type.value}/{resource_model}")
-            except Exception as e:
-                print(f"❌ Failed to generate check for {connector_type.value}/{resource_model}: {e}")
+            check = generate_check(
+                control_name=control_name,
+                control_text=control_text,
+                control_title=control_title,
+                control_id=control_id,
+                connector_type=connector_type,
+                resource_model_name=resource_model,
+                **kwargs
+            )
+            checks.append(check)
     
     return checks 
