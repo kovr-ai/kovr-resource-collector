@@ -69,6 +69,10 @@ class BaseModel(PydanticBaseModel):
                 data[key] = value.isoformat()
         return data
 
+    @classmethod
+    def from_db_to_object(cls, row) -> PydanticBaseModel:
+        pass
+
 
 class Framework(BaseModel):
     """
