@@ -10,9 +10,11 @@ This module provides a new generation of prompts that:
 
 import os
 import yaml
+import json
 from typing import Dict, Any, List, Type, Optional
 from datetime import datetime
 from abc import ABC, abstractmethod
+from functools import lru_cache
 
 from con_mon_v2.compliance.models import (
     Check, 
@@ -26,6 +28,227 @@ from con_mon_v2.compliance.models import (
 from con_mon_v2.connectors.models import ConnectorType
 from con_mon_v2.resources import Resource
 from .client import get_llm_client, LLMRequest, LLMResponse
+
+
+# Pydantic models for preprocessing guidance
+from pydantic import BaseModel, Field
+from enum import Enum
+
+class ControlCategory(str, Enum):
+    """Categories of NIST 800-53 controls"""
+    POLICY = "policy"
+    TECHNICAL = "technical" 
+    OPERATIONAL = "operational"
+    HYBRID = "hybrid"
+
+class RiskLevel(str, Enum):
+    """Risk levels for compliance validation"""
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    CRITICAL = "critical"
+
+class ControlGuidance(BaseModel):
+    """Preprocessed guidance for a specific NIST control"""
+    control_name: str
+    control_category: ControlCategory
+    key_compliance_indicators: List[str] = Field(description="What to look for to determine compliance")
+    implementation_patterns: List[str] = Field(description="Common ways this control is implemented")
+    risk_areas: List[str] = Field(description="High-risk areas to focus validation on")
+    validation_approach: str = Field(description="How to approach validating this control")
+    
+class ResourceGuidance(BaseModel):
+    """Resource-specific guidance for implementing a control"""
+    resource_model_name: str
+    provider: str
+    relevant_field_paths: List[str] = Field(description="Most relevant field paths for this control")
+    expected_data_patterns: Dict[str, Any] = Field(description="Expected data patterns for compliance")
+    compliance_indicators: List[str] = Field(description="Specific indicators of compliance in this resource")
+    non_compliance_indicators: List[str] = Field(description="Specific indicators of non-compliance")
+    edge_cases: List[str] = Field(description="Edge cases to handle in validation logic")
+    suggested_field_path: str = Field(description="Best field path to use for this control-resource combination")
+
+class EnhancedGuidance(BaseModel):
+    """Combined control and resource guidance"""
+    control_guidance: ControlGuidance
+    resource_guidance: ResourceGuidance
+    specific_instructions: str = Field(description="Specific instructions for this control-resource combination")
+    validation_logic_hints: List[str] = Field(description="Hints for implementing the validation logic")
+
+
+# Preprocessing functions for dynamic guidance generation
+@lru_cache(maxsize=500)
+def generate_control_guidance(control_name: str, control_text: str, control_title: str) -> ControlGuidance:
+    """
+    Generate control-specific guidance using LLM preprocessing.
+    Cached to avoid repeated calls for the same control.
+    """
+    prompt = f"""You are a NIST 800-53 cybersecurity expert. Analyze this control and provide structured guidance.
+
+Control: {control_name} - {control_title}
+Control Text: {control_text}
+
+Provide a JSON response with this exact structure:
+{{
+    "control_name": "{control_name}",
+    "control_category": "policy|technical|operational|hybrid",
+    "key_compliance_indicators": ["indicator1", "indicator2", "..."],
+    "implementation_patterns": ["pattern1", "pattern2", "..."],
+    "risk_areas": ["risk1", "risk2", "..."],
+    "validation_approach": "detailed approach description"
+}}
+
+Guidelines:
+- control_category: "policy" for procedures/documentation, "technical" for system configurations, "operational" for processes, "hybrid" for mixed
+- key_compliance_indicators: What evidence shows this control is implemented
+- implementation_patterns: Common ways organizations implement this control
+- risk_areas: What could go wrong or be misconfigured
+- validation_approach: How to verify compliance programmatically
+
+Generate ONLY valid JSON, no explanations."""
+
+    try:
+        client = get_llm_client()
+        request = LLMRequest(prompt=prompt)
+        response = client.generate_response(request)
+        
+        # Parse JSON response
+        guidance_data = json.loads(response.content.strip())
+        return ControlGuidance(**guidance_data)
+        
+    except Exception as e:
+        print(f"⚠️  Failed to generate control guidance for {control_name}: {e}")
+        # Fallback to basic guidance
+        return ControlGuidance(
+            control_name=control_name,
+            control_category=ControlCategory.TECHNICAL,
+            key_compliance_indicators=["Configuration exists", "Settings are secure"],
+            implementation_patterns=["Standard configuration", "Security hardening"],
+            risk_areas=["Misconfiguration", "Default settings"],
+            validation_approach="Check for secure configuration settings"
+        )
+
+@lru_cache(maxsize=1000)
+def generate_resource_guidance(
+    control_guidance_json: str,  # JSON string for caching
+    resource_model_name: str,
+    provider: str,
+    resource_schema_json: str,  # JSON string for caching
+    field_paths: tuple  # Tuple for caching
+) -> ResourceGuidance:
+    """
+    Generate resource-specific guidance for implementing a control.
+    Uses JSON strings and tuples for caching compatibility.
+    """
+    control_guidance = ControlGuidance.parse_raw(control_guidance_json)
+    resource_schema = json.loads(resource_schema_json)
+    
+    prompt = f"""You are a cloud security expert. Map this NIST control to specific resource capabilities.
+
+Control Guidance:
+- Control: {control_guidance.control_name}
+- Category: {control_guidance.control_category}
+- Key Indicators: {', '.join(control_guidance.key_compliance_indicators)}
+- Validation Approach: {control_guidance.validation_approach}
+
+Resource Information:
+- Provider: {provider}
+- Resource Type: {resource_model_name}
+- Available Field Paths: {', '.join(field_paths)}
+
+Resource Schema (first 1000 chars): {str(resource_schema)[:1000]}...
+
+Provide a JSON response with this exact structure:
+{{
+    "resource_model_name": "{resource_model_name}",
+    "provider": "{provider}",
+    "relevant_field_paths": ["path1", "path2", "..."],
+    "expected_data_patterns": {{"field": "expected_pattern"}},
+    "compliance_indicators": ["indicator1", "indicator2", "..."],
+    "non_compliance_indicators": ["problem1", "problem2", "..."],
+    "edge_cases": ["edge_case1", "edge_case2", "..."],
+    "suggested_field_path": "best_field_path_for_this_control"
+}}
+
+Guidelines:
+- relevant_field_paths: Choose 3-5 most relevant paths from available field paths
+- expected_data_patterns: What values/structures indicate compliance
+- compliance_indicators: Specific data patterns that show compliance
+- non_compliance_indicators: Specific data patterns that show problems
+- edge_cases: Null values, empty lists, missing fields to handle
+- suggested_field_path: Single best field path for this control validation
+
+Generate ONLY valid JSON, no explanations."""
+
+    try:
+        client = get_llm_client()
+        request = LLMRequest(prompt=prompt)
+        response = client.generate_response(request)
+        
+        # Parse JSON response
+        guidance_data = json.loads(response.content.strip())
+        return ResourceGuidance(**guidance_data)
+        
+    except Exception as e:
+        print(f"⚠️  Failed to generate resource guidance for {resource_model_name}: {e}")
+        # Fallback to basic guidance
+        return ResourceGuidance(
+            resource_model_name=resource_model_name,
+            provider=provider,
+            relevant_field_paths=list(field_paths)[:3],
+            expected_data_patterns={"enabled": True, "configured": True},
+            compliance_indicators=["Feature is enabled", "Security settings configured"],
+            non_compliance_indicators=["Feature disabled", "Default configuration"],
+            edge_cases=["Null values", "Empty configurations"],
+            suggested_field_path=field_paths[0] if field_paths else "id"
+        )
+
+def generate_enhanced_guidance(
+    control_name: str,
+    control_text: str, 
+    control_title: str,
+    resource_model_name: str,
+    provider: str,
+    resource_schema: Dict[str, Any],
+    field_paths: List[str]
+) -> EnhancedGuidance:
+    """
+    Generate complete enhanced guidance combining control and resource analysis.
+    """
+    # Step 1: Get control-specific guidance
+    control_guidance = generate_control_guidance(control_name, control_text, control_title)
+    
+    # Step 2: Get resource-specific guidance (using JSON/tuple for caching)
+    resource_guidance = generate_resource_guidance(
+        control_guidance.json(),
+        resource_model_name,
+        provider,
+        json.dumps(resource_schema),
+        tuple(field_paths)
+    )
+    
+    # Step 3: Combine into specific instructions
+    specific_instructions = f"""
+For {control_name} on {provider} {resource_model_name}:
+- Focus on: {', '.join(control_guidance.key_compliance_indicators)}
+- Check field: {resource_guidance.suggested_field_path}
+- Look for: {', '.join(resource_guidance.compliance_indicators)}
+- Avoid: {', '.join(resource_guidance.non_compliance_indicators)}
+"""
+    
+    validation_hints = [
+        f"Use field path: {resource_guidance.suggested_field_path}",
+        f"Control category: {control_guidance.control_category}",
+        f"Expected patterns: {resource_guidance.expected_data_patterns}",
+        f"Handle edge cases: {', '.join(resource_guidance.edge_cases)}"
+    ]
+    
+    return EnhancedGuidance(
+        control_guidance=control_guidance,
+        resource_guidance=resource_guidance,
+        specific_instructions=specific_instructions.strip(),
+        validation_logic_hints=validation_hints
+    )
 
 
 class ProviderConfig:
@@ -120,6 +343,18 @@ class CheckPrompt(ABC):
         # Load provider configuration
         self.provider_config = ProviderConfig(connector_type)
         
+        # Generate enhanced guidance using preprocessing LLM
+        print(f"🧠 Generating enhanced guidance for {control_name} + {resource_model_name}...")
+        self.enhanced_guidance = generate_enhanced_guidance(
+            control_name=control_name,
+            control_text=control_text,
+            control_title=control_title,
+            resource_model_name=resource_model_name,
+            provider=connector_type.value,
+            resource_schema=self.provider_config.resources.get(resource_model_name, {}),
+            field_paths=self.provider_config.field_path_examples.get(resource_model_name, [])
+        )
+        
         # Generate template variables
         self.template_vars = self._generate_template_variables()
     
@@ -133,7 +368,8 @@ class CheckPrompt(ABC):
         # Extract control family for tags
         control_family = self.control_name.split('-')[0] if '-' in self.control_name else self.control_name[:2]
         
-        return {
+        # Base template variables
+        base_vars = {
             # Core identifiers
             'check_id': f"{resource_name_clean}_{control_name_clean}_compliance",
             'check_name': f"{resource_name_clean}_{control_name_clean}_compliance",
@@ -167,6 +403,31 @@ class CheckPrompt(ABC):
             'current_timestamp': datetime.now().isoformat(),
             'estimated_time': '2 weeks',
         }
+        
+        # Add enhanced guidance variables
+        enhanced_vars = {
+            # Control guidance
+            'control_category': self.enhanced_guidance.control_guidance.control_category.value,
+            'key_compliance_indicators': self.enhanced_guidance.control_guidance.key_compliance_indicators,
+            'implementation_patterns': self.enhanced_guidance.control_guidance.implementation_patterns,
+            'risk_areas': self.enhanced_guidance.control_guidance.risk_areas,
+            'validation_approach': self.enhanced_guidance.control_guidance.validation_approach,
+            
+            # Resource guidance  
+            'relevant_field_paths': self.enhanced_guidance.resource_guidance.relevant_field_paths,
+            'expected_data_patterns': self.enhanced_guidance.resource_guidance.expected_data_patterns,
+            'compliance_indicators': self.enhanced_guidance.resource_guidance.compliance_indicators,
+            'non_compliance_indicators': self.enhanced_guidance.resource_guidance.non_compliance_indicators,
+            'edge_cases': self.enhanced_guidance.resource_guidance.edge_cases,
+            'suggested_field_path': self.enhanced_guidance.resource_guidance.suggested_field_path,
+            
+            # Combined guidance
+            'specific_instructions': self.enhanced_guidance.specific_instructions,
+            'validation_logic_hints': self.enhanced_guidance.validation_logic_hints,
+        }
+        
+        # Merge base and enhanced variables
+        return {**base_vars, **enhanced_vars}
     
     def get_resource_schema_section(self) -> str:
         """Get the resource schema section for the specific provider and resource"""
@@ -197,21 +458,26 @@ class CheckPrompt(ABC):
 **Control Requirement:**
 {control_text}
 
-**CONTROL TYPE GUIDANCE:**
+**ENHANCED CONTROL ANALYSIS:**
+- Control Category: {control_category}
+- Key Compliance Indicators: {key_compliance_indicators}
+- Implementation Patterns: {implementation_patterns}
+- Risk Areas: {risk_areas}
+- Validation Approach: {validation_approach}
 
-**POLICY CONTROLS (AC-1, AT-1, AU-1, etc. - ending in "-1"):**
-For technical resources, look for configuration that enforces policy requirements.
+**RESOURCE-SPECIFIC GUIDANCE:**
+- Suggested Field Path: {suggested_field_path}
+- Relevant Field Paths: {relevant_field_paths}
+- Compliance Indicators: {compliance_indicators}
+- Non-Compliance Indicators: {non_compliance_indicators}
+- Edge Cases to Handle: {edge_cases}
+- Expected Data Patterns: {expected_data_patterns}
 
-**ACCESS CONTROL CONTROLS (AC-2, AC-3, AC-4, etc.):**
-Focus on authentication, authorization, and access management settings.
+**SPECIFIC INSTRUCTIONS FOR THIS CONTROL-RESOURCE COMBINATION:**
+{specific_instructions}
 
-**AUDIT CONTROLS (AU-2, AU-3, AU-4, etc.):**
-Focus on logging, monitoring, and audit capabilities.
-
-**FIELD PATH SELECTION:**
-1. For GitHub Resources: Look for security settings, branch protection, access controls
-2. For AWS Resources: Look for security configurations, IAM settings, logging, monitoring
-3. Choose paths that contain security-relevant data for the specific control
+**VALIDATION LOGIC HINTS:**
+{validation_logic_hints}
 
 {resource_schema}
 
@@ -226,6 +492,7 @@ Focus on logging, monitoring, and audit capabilities.
 3. Set result = True for compliance, result = False for non-compliance
 4. Use fetched_value variable to access field data
 5. Implement meaningful compliance checks (not just existence checks)
+6. Use the suggested field path: {suggested_field_path}
 
 **YAML SCHEMA TO FOLLOW:**
 ```yaml
@@ -250,7 +517,7 @@ checks:
   is_deleted: false
   metadata:
     resource_type: "{resource_type_full_path}"
-    field_path: "[CHOOSE APPROPRIATE PATH FROM EXAMPLES ABOVE]"
+    field_path: "{suggested_field_path}"
     operation:
       name: "custom"
       logic: |
@@ -262,20 +529,24 @@ checks:
         elif not fetched_value:
             result = False
         else:
-            # Implement specific compliance logic here
-            # Example - customize for actual control requirements:
+            # Implement specific compliance logic here based on enhanced guidance
+            # Control Category: {control_category}
+            # Expected Data Patterns: {expected_data_patterns}
+            # Compliance Indicators: {compliance_indicators}
+            # Non-Compliance Indicators: {non_compliance_indicators}
+            
             if isinstance(fetched_value, dict):
-                # Check multiple compliance criteria
-                condition1 = fetched_value.get('security_setting1', False)
-                condition2 = fetched_value.get('security_setting2') is not None
-                if condition1 and condition2:
-                    result = True
+                # Check multiple compliance criteria based on guidance
+                # TODO: Implement based on expected_data_patterns and compliance_indicators
+                pass
             elif isinstance(fetched_value, list):
-                # Check if any items meet criteria
-                for item in fetched_value:
-                    if isinstance(item, dict) and item.get('enabled', False):
-                        result = True
-                        break
+                # Check if any items meet criteria based on guidance
+                # TODO: Implement based on expected_data_patterns and compliance_indicators  
+                pass
+            elif isinstance(fetched_value, (str, bool, int)):
+                # Check simple values based on guidance
+                # TODO: Implement based on expected_data_patterns and compliance_indicators
+                pass
     expected_value: null
     tags: {tags}
     severity: "{suggested_severity}"
@@ -286,7 +557,8 @@ checks:
 - Generate ONLY the YAML check entry
 - No explanations, no markdown code blocks, no additional text
 - Implement complete custom logic (no TODO comments)
-- Choose field paths that contain relevant data for this control
+- Use the suggested field path: {suggested_field_path}
+- Follow the enhanced guidance provided above
 
 Generate the complete YAML check entry now:"""
 
@@ -347,7 +619,6 @@ Generate the complete YAML check entry now:"""
         row_data['updated_at'] = datetime.now()
 
         # Convert complex fields to JSON strings (simulating database JSONB fields)
-        import json
         row_data['output_statements'] = json.dumps(check_dict['output_statements'])
         row_data['fix_details'] = json.dumps(check_dict['fix_details'])
         row_data['metadata'] = json.dumps(check_dict['metadata'])
@@ -570,12 +841,28 @@ IMPORTANT: Learn from the previous failed attempts shown below to create a BETTE
 **Control Requirement:**
 {control_text}
 
-**FIELD PATH SELECTION STRATEGY:**
-1. For GitHub Resources: Look for security settings, branch protection, access controls
-2. For AWS Resources: Look for security configurations, IAM settings, logging, monitoring
-3. AVOID generic metadata unless it directly relates to the control
-4. CHOOSE paths that contain security-relevant data for the specific control family
-5. LEARN FROM FAILURES: Avoid field paths that failed in previous attempts (shown above)
+**ENHANCED CONTROL ANALYSIS:**
+- Control Category: {control_category}
+- Key Compliance Indicators: {key_compliance_indicators}
+- Implementation Patterns: {implementation_patterns}
+- Risk Areas: {risk_areas}
+- Validation Approach: {validation_approach}
+
+**RESOURCE-SPECIFIC GUIDANCE:**
+- Suggested Field Path: {suggested_field_path}
+- Relevant Field Paths: {relevant_field_paths}
+- Compliance Indicators: {compliance_indicators}
+- Non-Compliance Indicators: {non_compliance_indicators}
+- Edge Cases to Handle: {edge_cases}
+- Expected Data Patterns: {expected_data_patterns}
+
+**SPECIFIC INSTRUCTIONS FOR THIS CONTROL-RESOURCE COMBINATION:**
+{specific_instructions}
+
+**VALIDATION LOGIC HINTS:**
+{validation_logic_hints}
+
+**LEARN FROM FAILURES:** Avoid field paths and logic that failed in previous attempts (shown above)
 
 {resource_schema}
 
@@ -590,6 +877,7 @@ IMPORTANT: Learn from the previous failed attempts shown below to create a BETTE
 3. Set result = True for compliance, result = False for non-compliance
 4. Use fetched_value variable to access field data
 5. LEARN from the failed attempts shown above to choose better validation criteria
+6. Use the suggested field path: {suggested_field_path} (unless previous failures suggest otherwise)
 
 **YAML SCHEMA TO FOLLOW:**
 ```yaml
@@ -615,7 +903,7 @@ checks:
   is_deleted: false
   metadata:
     resource_type: "{resource_type_full_path}"
-    field_path: "[CHOOSE BETTER PATH BASED ON ANALYSIS ABOVE - AVOID FAILED PATHS]"
+    field_path: "[CHOOSE BETTER PATH BASED ON ANALYSIS ABOVE - PREFER {suggested_field_path}]"
     operation:
       name: "custom"
       logic: |
@@ -629,24 +917,28 @@ checks:
         elif not fetched_value:
             result = False
         else:
-            # Implement specific compliance logic based on control requirements
+            # Implement specific compliance logic based on enhanced guidance and failure analysis
+            # Control Category: {control_category}
+            # Expected Data Patterns: {expected_data_patterns}
+            # Compliance Indicators: {compliance_indicators}
+            # Non-Compliance Indicators: {non_compliance_indicators}
             # Use insights from previous failures to create better validation
             
             if isinstance(fetched_value, dict):
                 # For dict data, check multiple compliance criteria
                 # Customize these based on actual control requirements and failed attempts
-                condition1 = fetched_value.get('security_setting1', False)
-                condition2 = fetched_value.get('security_setting2') is not None
-                
-                if condition1 and condition2:
-                    result = True
+                # TODO: Implement based on enhanced guidance and failure analysis
+                pass
                     
             elif isinstance(fetched_value, list):
                 # For list data, check if any/all items meet criteria
-                for item in fetched_value:
-                    if isinstance(item, dict) and item.get('enabled', False):
-                        result = True
-                        break
+                # TODO: Implement based on enhanced guidance and failure analysis
+                pass
+                        
+            elif isinstance(fetched_value, (str, bool, int)):
+                # For simple values, check if they meet compliance criteria
+                # TODO: Implement based on enhanced guidance and failure analysis
+                pass
     expected_value: null
     tags: {tags}
     severity: "{suggested_severity}"
@@ -657,7 +949,7 @@ checks:
 - Generate ONLY the YAML check entry
 - No explanations, no markdown code blocks, no additional text
 - LEARN from the previous failures shown above to choose better field paths and logic
-- Choose field paths that contain data relevant to the specific control
+- Use the enhanced guidance provided above
 - Implement complete custom logic (no TODO comments)
 
 Generate the complete YAML check entry now:"""
