@@ -386,27 +386,98 @@ class Check(TableModel):
         return check_results
 
     def _extract_field_value(self, resource: Resource, field_path: str) -> Any:
-        """Extract value from nested dictionary using dot notation, with support for functions like len()."""
+        """Extract value from nested dictionary using dot notation, with support for functions and array operations."""
 
-        # Check if field_path contains a function call like len()
-        if field_path.startswith('len(') and field_path.endswith(')'):
-            # Extract the inner field path from len(field.path)
-            inner_field_path = field_path[4:-1]  # Remove 'len(' and ')'
+        # Check if field_path contains a function call
+        function_patterns = [
+            ('len(', ')'),
+            ('any(', ')'),
+            ('all(', ')'),
+            ('count(', ')'),
+            ('sum(', ')'),
+            ('max(', ')'),
+            ('min(', ')')
+        ]
+        
+        for func_start, func_end in function_patterns:
+            if field_path.startswith(func_start) and field_path.endswith(func_end):
+                # Extract the inner field path from function(field.path)
+                inner_field_path = field_path[len(func_start):-len(func_end)]
+                
+                # Extract the value using the inner field path
+                inner_value = self._extract_nested_value(resource, inner_field_path)
+                
+                # Apply the appropriate function
+                function_name = func_start[:-1]  # Remove the '('
+                return self._apply_function(function_name, inner_value)
+        
+        # Regular field path extraction (including wildcard support)
+        return self._extract_nested_value(resource, field_path)
 
-            # Extract the value using the inner field path
-            inner_value = self._extract_nested_value(resource, inner_field_path)
-
-            # Apply len() function
-            try:
-                return len(inner_value) if hasattr(inner_value, '__len__') else 0
-            except TypeError:
+    def _apply_function(self, function_name: str, value: Any) -> Any:
+        """Apply built-in functions to extracted values."""
+        try:
+            if function_name == 'len':
+                return len(value) if hasattr(value, '__len__') else 0
+            
+            elif function_name == 'any':
+                if isinstance(value, (list, tuple)):
+                    return any(bool(item) for item in value)
+                return bool(value)
+            
+            elif function_name == 'all':
+                if isinstance(value, (list, tuple)):
+                    return all(bool(item) for item in value)
+                return bool(value)
+            
+            elif function_name == 'count':
+                if isinstance(value, (list, tuple)):
+                    return sum(1 for item in value if bool(item))
+                return 1 if bool(value) else 0
+            
+            elif function_name == 'sum':
+                if isinstance(value, (list, tuple)):
+                    # Only sum numeric values
+                    numeric_values = [item for item in value if isinstance(item, (int, float))]
+                    return sum(numeric_values)
+                return value if isinstance(value, (int, float)) else 0
+            
+            elif function_name == 'max':
+                if isinstance(value, (list, tuple)) and value:
+                    # Only get max of numeric values
+                    numeric_values = [item for item in value if isinstance(item, (int, float))]
+                    return max(numeric_values) if numeric_values else 0
+                return value if isinstance(value, (int, float)) else 0
+            
+            elif function_name == 'min':
+                if isinstance(value, (list, tuple)) and value:
+                    # Only get min of numeric values
+                    numeric_values = [item for item in value if isinstance(item, (int, float))]
+                    return min(numeric_values) if numeric_values else 0
+                return value if isinstance(value, (int, float)) else 0
+            
+            else:
+                raise ValueError(f"Unsupported function: {function_name}")
+                
+        except (TypeError, ValueError, AttributeError):
+            # Return safe defaults on error
+            if function_name in ['len', 'count', 'sum']:
                 return 0
-        else:
-            # Regular field path extraction
-            return self._extract_nested_value(resource, field_path)
+            elif function_name in ['any', 'all']:
+                return False
+            elif function_name in ['max', 'min']:
+                return 0
+            else:
+                return None
 
     def _extract_nested_value(self, resource: Resource, field_path: str) -> Any:
-        """Extract value from nested object using dot notation."""
+        """Extract value from nested object using dot notation with wildcard array support."""
+        
+        # Check if the field path contains wildcard array access
+        if '.*.' in field_path or field_path.endswith('.*'):
+            return self._extract_array_values(resource, field_path)
+        
+        # Regular dot notation extraction
         keys = field_path.split('.')
         value = resource
         for key in keys:
@@ -417,6 +488,70 @@ class Check(TableModel):
             else:
                 raise AttributeError(f"Field '{key}' not found in path '{field_path}'")
         return value
+
+    def _extract_array_values(self, resource: Resource, field_path: str) -> List[Any]:
+        """Extract values from arrays using wildcard syntax like 'branches.*.protection_details'."""
+        
+        # Split path into parts, handling wildcards
+        parts = field_path.split('.')
+        
+        # Find the wildcard position
+        wildcard_index = None
+        for i, part in enumerate(parts):
+            if part == '*':
+                wildcard_index = i
+                break
+        
+        if wildcard_index is None:
+            # No wildcard found, shouldn't happen but handle gracefully
+            return self._extract_nested_value(resource, field_path)
+        
+        # Extract up to the array (before wildcard)
+        array_path_parts = parts[:wildcard_index]
+        remaining_path_parts = parts[wildcard_index + 1:]
+        
+        # Get the array
+        array_value = resource
+        for key in array_path_parts:
+            if hasattr(array_value, key):
+                array_value = getattr(array_value, key)
+            elif isinstance(array_value, dict) and key in array_value:
+                array_value = array_value[key]
+            else:
+                raise AttributeError(f"Field '{key}' not found in array path")
+        
+        # Ensure we have an array/list
+        if not isinstance(array_value, (list, tuple)):
+            raise ValueError(f"Expected array at '{'.'.join(array_path_parts)}', got {type(array_value)}")
+        
+        # Extract values from each array element
+        results = []
+        for item in array_value:
+            if not remaining_path_parts:
+                # Wildcard at end of path, return the items themselves
+                results.append(item)
+            else:
+                # Extract nested value from each array item
+                try:
+                    nested_value = item
+                    for key in remaining_path_parts:
+                        if hasattr(nested_value, key):
+                            nested_value = getattr(nested_value, key)
+                        elif isinstance(nested_value, dict) and key in nested_value:
+                            nested_value = nested_value[key]
+                        else:
+                            # Field not found in this item, skip it or use None
+                            nested_value = None
+                            break
+                    
+                    if nested_value is not None:
+                        results.append(nested_value)
+                        
+                except (AttributeError, TypeError):
+                    # Skip items that don't have the required structure
+                    continue
+        
+        return results
 
 
 class CheckResult(PydanticBaseModel):
