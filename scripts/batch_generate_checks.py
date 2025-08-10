@@ -17,6 +17,7 @@ import argparse
 import csv
 import json
 import os
+import sys
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -24,6 +25,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
 from dataclasses import dataclass
+
+# Add project root to Python path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
 
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn, TimeRemainingColumn
@@ -62,7 +67,11 @@ class ProcessingStats:
 class StatusTracker:
     """Tracks and persists processing status"""
     
-    def __init__(self, status_file: str = "data/batch_status.csv"):
+    def __init__(self, status_file: str = None):
+        if status_file is None:
+            # Use project root data/generate_checks/ for status file
+            status_file = project_root / "data" / "generate_checks" / "batch_status.csv"
+        
         self.status_file = Path(status_file)
         self.status_file.parent.mkdir(parents=True, exist_ok=True)
         self.lock = threading.Lock()
@@ -145,14 +154,18 @@ class StatusTracker:
 class PromptLogger:
     """Logs LLM input and output prompts"""
     
-    def __init__(self, base_dir: str = "prompts"):
+    def __init__(self, base_dir: str = None):
+        if base_dir is None:
+            # Use project root data/generate_checks/prompts/ for prompts
+            base_dir = project_root / "data" / "generate_checks" / "prompts"
+        
         self.base_dir = Path(base_dir)
         self.base_dir.mkdir(parents=True, exist_ok=True)
     
     def log_prompt(self, control_name: str, provider: str, resource_type: str,
                    input_prompt: str, output_response: str):
         """Log input and output prompts"""
-        # Create directory structure: prompts/control/provider/resource/
+        # Create directory structure: data/generate_checks/prompts/control/provider/resource/
         prompt_dir = self.base_dir / control_name / provider / resource_type
         prompt_dir.mkdir(parents=True, exist_ok=True)
         
@@ -507,7 +520,7 @@ Examples:
             if stats.error_checks > 0:
                 console.print(f"⚠️  [bold yellow]{stats.error_checks} checks had errors[/bold yellow]")
             
-            console.print(f"\n📁 [cyan]Prompts saved to: prompts/[/cyan]")
+            console.print(f"\n📁 [cyan]Prompts saved to: data/generate_checks/prompts/[/cyan]")
             console.print(f"📊 [cyan]Status tracking: {status_tracker.status_file}[/cyan]")
     
     except KeyboardInterrupt:

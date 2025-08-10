@@ -82,12 +82,7 @@ def generate_for_control_with_self_improvement(
 
     for check_idx, check in enumerate(checks):
         print(f"\n🔍 Processing check {check_idx + 1}/{len(checks)}: {check.name}")
-        
-        # DEBUG: Only process first check to see prompts clearly
-        if check_idx > 0:
-            print("🛑 Skipping remaining checks for debug - only processing first check")
-            break
-        
+
         print("📊 Evaluating check against resources...")
         check_results = evaluate_check_against_rc(check)
         print(f"📊 Got {len(check_results)} evaluation results")
@@ -136,8 +131,9 @@ def generate_for_control_with_self_improvement(
 
         if check is not None:
             print(f"✅ Check {check.name} is valid! Adding to final list")
-            validated_checks.append(check)
+            valid_checks.append(check)
         else:
+            invalid_checks.append(check)
             print(f"❌ Check failed validation after {max_attempts} attempts")
 
     print(f"\n🎉 Completed control {control.control_name}")
@@ -148,9 +144,12 @@ if __name__ == "__main__":
     controls = ControlLoader().load_all()
     print(f"📋 Loaded {len(controls)} controls")
 
-    validated_checks = list()
-    
-    for control_idx, control in enumerate(controls):
-        generate_for_control_with_self_improvement(control_idx, control)
-    
-    print(f"\n🏁 Final result: {len(validated_checks)} valid checks generated")
+    valid_checks = list()
+    invalid_checks = list()
+
+    # for control_idx, control in enumerate(controls):
+    #     generate_for_control_with_self_improvement(control_idx, control)
+
+    generate_for_control_with_self_improvement(100, controls[100])
+
+    print(f"\n🏁 Final result: {len(valid_checks)} valid checks generated.\n {len(invalid_checks)} checks failed to pass")
