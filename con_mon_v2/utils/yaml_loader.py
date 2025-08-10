@@ -202,10 +202,6 @@ class ConnectorYamlMapping(BaseModel):
         return result
 
 
-class YamlModel(BaseModel):
-    pass
-
-
 class YamlFieldType(str, Enum):
     STRING = "string"
     INTEGER = "integer"
@@ -244,7 +240,7 @@ class YamlModelMapping(BaseModel):
             annotations: dict,
             fields: dict,
             base_class: Type[BaseModel] = BaseModel
-    ) -> Type[YamlModel]:
+    ) -> Type[BaseModel]:
         """Create a new Pydantic model type with the given fields."""
         # Create the model class with only YAML-defined fields
         model = type(

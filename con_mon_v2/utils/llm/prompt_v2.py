@@ -106,6 +106,8 @@ class CheckPromptV2(ABC):
         control_id: int,
         connector_type: ConnectorType,
         resource_model_name: str,
+        suggested_severity: Optional[str] = None,
+        suggested_category: Optional[str] = None,
     ):
         self.control_name = control_name
         self.control_text = control_text
@@ -113,6 +115,8 @@ class CheckPromptV2(ABC):
         self.control_id = control_id
         self.connector_type = connector_type
         self.resource_model_name = resource_model_name
+        self.suggested_severity = suggested_severity or 'medium'
+        self.suggested_category = suggested_category or 'configuration'
         
         # Load provider configuration
         self.provider_config = ProviderConfig(connector_type)
@@ -127,7 +131,7 @@ class CheckPromptV2(ABC):
         control_name_clean = self.control_name.lower().replace('-', '_').replace('.', '_')
         resource_name_clean = self.resource_model_name.lower().replace('resource', '')
         
-        # Severity and category mapping based on control family
+        # Extract control family for tags
         control_family = self.control_name.split('-')[0] if '-' in self.control_name else self.control_name[:2]
         
         return {
@@ -149,9 +153,9 @@ class CheckPromptV2(ABC):
             'resource_model_name': self.resource_model_name,
             'resource_type_full_path': f"con_mon_v2.mappings.{self.provider_config.provider_name}.{self.resource_model_name}",
             
-            # Classification
-            'suggested_severity': severity_map.get(control_family, 'medium'),
-            'suggested_category': category_map.get(control_family, 'configuration'),
+            # Classification (use defaults, can be overridden via parameters)
+            'suggested_severity': self.suggested_severity,
+            'suggested_category': self.suggested_category,
             'tags': ['compliance', 'nist', control_family.lower(), resource_name_clean],
             
             # Schema information
@@ -227,25 +231,12 @@ checks:
   is_deleted: false
   metadata:
     resource_type: "{resource_type_full_path}"
-    field_path: "[CHOOSE FROM EXAMPLES ABOVE]"
+    field_path: "{field_path}"
     operation:
-      name: "CUSTOM"
+      name: "{operation_name}"
       logic: |
-        result = False
-        
-        # Implement complete validation logic here
-        # Example structure:
-        if fetched_value and isinstance(fetched_value, [EXPECTED_TYPE]):
-            # Multiple validation criteria
-            condition1 = [validation logic]
-            condition2 = [validation logic]
-            condition3 = [validation logic]
-            
-            if condition1 and condition2 and condition3:
-                result = True
-        elif fetched_value is None:
-            result = False
-    expected_value: null
+        {operation_logic}
+    expected_value: {expected_value}
     tags: {tags}
     severity: "{suggested_severity}"
     category: "{suggested_category}"

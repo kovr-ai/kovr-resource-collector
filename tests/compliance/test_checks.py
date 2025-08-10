@@ -11,7 +11,7 @@ def test_check_model_structure():
             operation=CheckOperation(name=ComparisonOperationEnum.CUSTOM, logic="result = True"),
             field_path="test.path",
             tags=["test"],
-            category="test",
+            category="test",  # RESTORED: Keep category field in metadata
             severity="medium"
         )
         
@@ -32,7 +32,7 @@ def test_check_model_structure():
             id="test_check",
             name="Test Check",
             description="Test description",
-            category="test",
+            category="test",  # Category is at root level
             created_by="test",
             updated_by="test",
             created_at=datetime.now(),
@@ -43,10 +43,16 @@ def test_check_model_structure():
         )
         
         assert check.id == "test_check"
+        assert check.category == "test"  # Verify root level category
         assert check.metadata.field_path == "test.path"
         assert check.metadata.operation.name == ComparisonOperationEnum.CUSTOM
+        assert check.metadata.severity == "medium"  # Verify metadata severity
+        assert check.metadata.tags == ["test"]  # Verify metadata tags
+        assert check.metadata.category == "test"  # Verify metadata category
         assert check.output_statements.success == "Test passed"
         assert check.fix_details.description == "Test fix"
+        assert check.fix_details.estimated_time == "2 weeks"  # Verify estimated_time field
+        
         print("✅ Check model structure test passed")
         
     except Exception as e:
