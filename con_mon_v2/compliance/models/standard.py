@@ -6,10 +6,10 @@ from typing import Optional, ClassVar, List, Any
 from datetime import datetime
 from pydantic import Field
 
-from .base import BaseModel
+from .base import TableModel
 
 
-class Standard(BaseModel):
+class Standard(TableModel):
     """
     Standard model matching database schema exactly.
     
@@ -19,7 +19,7 @@ class Standard(BaseModel):
     """
     
     # Table configuration
-    _table_name: ClassVar[str] = "standard"
+    table_name: ClassVar[str] = "standard"
     
     # Database fields (exact 1:1 mapping)
     id: Optional[int] = Field(None, description="Auto-generated primary key")

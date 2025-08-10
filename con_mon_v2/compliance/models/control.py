@@ -6,10 +6,10 @@ from typing import Optional, ClassVar, Any
 from datetime import datetime
 from pydantic import Field
 
-from .base import BaseModel
+from .base import TableModel
 
 
-class Control(BaseModel):
+class Control(TableModel):
     """
     Control model matching database schema exactly.
     
@@ -21,7 +21,7 @@ class Control(BaseModel):
     """
     
     # Table configuration
-    _table_name: ClassVar[str] = "control"
+    table_name: ClassVar[str] = "control"
     
     # Database fields (exact 1:1 mapping)
     id: int = Field(..., description="Primary key")

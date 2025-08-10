@@ -6,10 +6,10 @@ from typing import Optional, ClassVar
 from datetime import datetime
 from pydantic import Field
 
-from .base import BaseModel
+from .base import TableModel
 
 
-class StandardControlMapping(BaseModel):
+class StandardControlMapping(TableModel):
     """
     StandardControlMapping model matching database schema exactly.
     
@@ -19,7 +19,7 @@ class StandardControlMapping(BaseModel):
     """
     
     # Table configuration
-    _table_name: ClassVar[str] = "standard_control_mapping"
+    table_name: ClassVar[str] = "standard_control_mapping"
     
     # Database fields (exact 1:1 mapping)
     id: Optional[int] = Field(None, description="Auto-generated primary key")

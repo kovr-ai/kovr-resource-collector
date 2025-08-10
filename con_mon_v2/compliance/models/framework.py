@@ -6,10 +6,10 @@ from typing import Optional, ClassVar
 from datetime import datetime
 from pydantic import Field
 
-from .base import BaseModel
+from .base import TableModel
 
 
-class Framework(BaseModel):
+class Framework(TableModel):
     """
     Framework model matching database schema exactly.
     
@@ -18,7 +18,7 @@ class Framework(BaseModel):
     """
     
     # Table configuration
-    _table_name: ClassVar[str] = "framework"
+    table_name: ClassVar[str] = "framework"
     
     # Database fields (exact 1:1 mapping)
     id: Optional[int] = Field(None, description="Auto-generated primary key")
