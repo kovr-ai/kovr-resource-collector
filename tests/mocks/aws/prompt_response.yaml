@@ -1,0 +1,45 @@
+checks:
+- id: "ec2_sc_7_compliance"
+  name: "ec2_sc_7_compliance"
+  description: "Verify compliance with NIST 800-53 SC-7: Boundary Protection"
+  category: "configuration"
+  output_statements:
+    success: "Check passed: EC2 resources are configured with boundary protection controls."
+    failure: "Check failed: EC2 resources are not configured with boundary protection controls."
+    partial: "Check partially passed: Some EC2 resources are configured with boundary protection controls."
+  fix_details:
+    description: "Configure EC2 resources with boundary protection controls."
+    instructions:
+    - "Create security groups with inbound and outbound rules to control communications at external and internal boundaries."
+    - "Assign security groups to EC2 instances and network interfaces to enforce boundary protection."
+    estimated_time: "2 weeks"
+    automation_available: false
+  created_by: "system"
+  updated_by: "system"
+  is_deleted: false
+  metadata:
+    resource_type: "con_mon_v2.mappings.aws.EC2Resource"
+    field_path: "security_groups"
+    operation:
+      name: "CUSTOM"
+      logic: |
+        result = False
+        
+        if fetched_value:
+            inbound_rules_exist = False
+            outbound_rules_exist = False
+            
+            for group in fetched_value:
+                if group.inbound_rules:
+                    inbound_rules_exist = True
+                if group.outbound_rules:
+                    outbound_rules_exist = True
+            
+            if inbound_rules_exist and outbound_rules_exist:
+                result = True
+        elif fetched_value is None:
+            result = False
+    expected_value: null
+    tags: ['compliance', 'nist', 'sc', 'ec2']
+    severity: "medium"
+    category: "configuration"

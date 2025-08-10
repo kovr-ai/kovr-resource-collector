@@ -1,0 +1,61 @@
+checks:
+- id: "github_ac_2_compliance"
+  name: "github_ac_2_compliance"
+  description: "Verify compliance with NIST 800-53 AC-2: Account Management"
+  category: "configuration"
+  output_statements:
+    success: "Check passed: All account types are identified, conditions for group membership are established, and authorized users with access privileges are specified."
+    failure: "Check failed: Account types are not identified, conditions for group membership are not established, or authorized users with access privileges are not specified."
+    partial: "Check partially passed: Some account types are identified, some conditions for group membership are established, or some authorized users with access privileges are specified."
+  fix_details:
+    description: "Ensure that all account types are identified, conditions for group membership are established, and authorized users with access privileges are specified."
+    instructions:
+    - "Identify and document all account types (individual, group, system, application, guest/anonymous, temporary) used in the GitHub repository."
+    - "Establish and document conditions for group membership in the GitHub repository."
+    - "Identify and document all authorized users of the GitHub repository and specify their access privileges."
+    estimated_time: "2 weeks"
+    automation_available: false
+  created_by: "system"
+  updated_by: "system"
+  is_deleted: false
+  metadata:
+    resource_type: "con_mon_v2.mappings.github.GithubResource"
+    field_path: "collaboration_data"
+    operation:
+      name: "CUSTOM"
+      logic: |
+        result = False
+        
+        if fetched_value:
+            account_types_identified = False
+            group_membership_conditions_established = False
+            authorized_users_identified = False
+            
+            # Check if account types are identified
+            if fetched_value.get("collaborators"):
+                account_types_identified = True
+            
+            # Check if conditions for group membership are established
+            if fetched_value.get("collaborators"):
+                for collaborator in fetched_value["collaborators"]:
+                    if collaborator.get("role_name"):
+                        group_membership_conditions_established = True
+                        break
+            
+            # Check if authorized users with access privileges are specified
+            if fetched_value.get("collaborators"):
+                for collaborator in fetched_value["collaborators"]:
+                    if collaborator.get("permissions"):
+                        authorized_users_identified = True
+                        break
+            
+            if account_types_identified and group_membership_conditions_established and authorized_users_identified:
+                result = True
+            elif not account_types_identified and not group_membership_conditions_established and not authorized_users_identified:
+                result = False
+            else:
+                result = "partial"
+    expected_value: null
+    tags: ['compliance', 'nist', 'ac', 'github']
+    severity: "medium"
+    category: "configuration"
