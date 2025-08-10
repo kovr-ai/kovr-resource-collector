@@ -152,8 +152,5 @@ if __name__ == "__main__":
     
     for control_idx, control in enumerate(controls):
         generate_for_control_with_self_improvement(control_idx, control)
-        # Process only first control for debugging
-        print("🛑 Breaking after first control for debugging")
-        break
     
     print(f"\n🏁 Final result: {len(validated_checks)} valid checks generated")
