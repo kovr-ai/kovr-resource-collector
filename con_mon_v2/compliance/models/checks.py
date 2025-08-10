@@ -561,3 +561,7 @@ class CheckResult(PydanticBaseModel):
     resource: Resource
     message: Optional[str] = None
     error: Optional[str] = None
+
+    @property
+    def resource_model(self) -> Type[Resource]:
+        return self.resource.__class__

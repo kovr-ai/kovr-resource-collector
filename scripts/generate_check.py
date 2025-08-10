@@ -4,14 +4,15 @@ Script to generate compliance checks from controls using LLM.
 """
 
 from typing import List
-from con_mon_v2.compliance.models import CheckResult
+from con_mon_v2.compliance.models import Check, CheckResult
 from con_mon_v2.utils.llm.generate import (
     generate_checks_for_all_providers,
     evaluate_check_against_rc,
 )
 from con_mon_v2.compliance import ControlLoader
 
-def check_is_invalid(check_results: List[CheckResult]) -> bool:
+
+def check_is_invalid(check: Check, check_results: List[CheckResult]) -> bool:
     """
     Validate based on any errors in check results if check should be used in production.
     Return True if check is invalid and should be regenerated.
@@ -36,7 +37,14 @@ def check_is_invalid(check_results: List[CheckResult]) -> bool:
     if not check_results:
         print("❌ No check results - considering invalid")
         return True
-    
+
+    check_results = [
+        check_result
+        for check_result in check_results
+        if check_result.resource_model == check.resource_model
+    ]
+    if not check_results:
+        return False
     # Debug: Print all results
     for i, result in enumerate(check_results):
         print(f"   Result {i+1}: passed={result.passed}, error={result.error}")
@@ -93,7 +101,7 @@ def generate_for_control_with_self_improvement(
 
         print(f"🔄 Starting regeneration loop (max {max_attempts} attempts)...")
 
-        while check_is_invalid(current_results):
+        while check_is_invalid(check, current_results):
             counter += 1
             print(f"\n🔄 Attempt {counter}/{max_attempts}: Check is invalid, regenerating with feedback...")
 
