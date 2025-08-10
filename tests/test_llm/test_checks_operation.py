@@ -17,6 +17,7 @@ from con_mon_v2.compliance.models import (
     Check, CheckMetadata, CheckOperation, OutputStatements, 
     FixDetails
 )
+from con_mon_v2.compliance.models.checks import ComparisonOperationEnum
 from con_mon_v2.utils.llm.prompts import ChecksPrompt
 from con_mon_v2.compliance.models import Control
 from con_mon_v2.mappings.github import GithubResource
@@ -363,8 +364,8 @@ class TestCheckEvaluateMethodComprehensive:
             is_deleted=False,
             metadata=CheckMetadata(
                 resource_type='con_mon_v2.mappings.github.GithubResource',
-                field_path='len(organization_data.members)',  # Get length of members
-                operation=CheckOperation(name='equals', logic=''),
+                field_path='len(organization_data.members123)',  # Get length of members
+                operation=CheckOperation(name=ComparisonOperationEnum.EQUAL, logic=''),
                 expected_value=3,  # Expect 3 members (matching the test data)
                 tags=['production'],
                 severity='high',
@@ -403,9 +404,74 @@ class TestCheckEvaluateMethodComprehensive:
         result = results[0]
         
         # The result should be successful because we have 3 members and expect 3
+        assert result.passed is False
+        assert result.error
+        
+        # This demonstrates that the production workflow now works!
+
+    def test_evaluate_end_to_end_workflow(self):
+        """Test the complete end-to-end workflow that would be used in production."""
+        # This test simulates what would happen in real usage:
+        # 1. Load a check from YAML/database
+        # 2. Get some resources
+        # 3. Evaluate the check against the resources
+
+        # Step 1: Create a check (simulating loaded from database/YAML)
+        check = Check(
+            id='production_test',
+            name='production_test',
+            description='Production-style check test',
+            category='access_control',
+            created_by='system',
+            updated_by='system',
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
+            is_deleted=False,
+            metadata=CheckMetadata(
+                resource_type='con_mon_v2.mappings.github.GithubResource',
+                field_path='len(organization_data.members)',  # Get length of members
+                operation=CheckOperation(name=ComparisonOperationEnum.EQUAL, logic=''),
+                expected_value=3,  # Expect 3 members (matching the test data)
+                tags=['production'],
+                severity='high',
+                category='access_control'
+            ),
+            output_statements=OutputStatements(
+                success='Production check passed',
+                failure='Production check failed',
+                partial='Production check partially passed'
+            ),
+            fix_details=FixDetails(
+                description='Fix production issue',
+                instructions=['Contact admin'],
+                estimated_date='2024-12-31',
+                automation_available=False
+            )
+        )
+
+        # Step 2: Create a proper GitHub resource (simulating real resource collection)
+        github_resource = GithubResource(
+            id="production_github_resource",
+            source_connector="github",
+            repository_data={},
+            actions_data={},
+            collaboration_data={},
+            security_data={},
+            organization_data={"members": [{"name": f"user{i}", "role": "member"} for i in range(3)]},
+            advanced_features_data={}
+        )
+
+        # Step 3: Evaluate (this is what would happen in production)
+        results = check.evaluate([github_resource])
+
+        # Should return one result
+        assert len(results) == 1
+        result = results[0]
+
+        # The result should be successful because we have 3 members and expect 3
         assert result.passed is True
         assert "passed" in result.message.lower()
-        
+
         # This demonstrates that the production workflow now works!
 
 

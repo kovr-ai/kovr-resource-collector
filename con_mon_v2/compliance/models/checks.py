@@ -140,7 +140,7 @@ class CheckOperation(PydanticBaseModel):
     """
     Nested model for check operation within metadata JSONB field.
     """
-    name: str = Field(..., description="Operation name (e.g., 'custom', 'equals')")
+    name: ComparisonOperationEnum = Field(..., description="Operation name (e.g., 'custom', 'equals')")
     logic: Optional[str] = Field(None, description="Custom logic code for operation")
 
 
@@ -155,7 +155,6 @@ class CheckMetadata(PydanticBaseModel):
         "severity": "medium",
         "operation": {"name": "custom", "logic": "..."},
         "field_path": "repository_data.basic_info.description",
-        "connection_id": 1,
         "resource_type": "con_mon_v2.mappings.github.GithubResource",
         "expected_value": null
     }
@@ -165,9 +164,8 @@ class CheckMetadata(PydanticBaseModel):
     severity: Optional[str] = Field(None, description="Severity level")
     operation: CheckOperation = Field(..., description="Operation configuration")
     field_path: str = Field(..., description="Resource field path")
-    connection_id: Optional[int] = Field(None, description="Connection ID")
-    resource_type: Optional[str] = Field(None, description="Resource type class path")
-    expected_value: Optional[Any] = Field(None, description="Expected value for comparison")
+    resource_type: str = Field(None, description="Resource type class path")
+    expected_value: Any = Field(None, description="Expected value for comparison")
 
 
 class OutputStatements(PydanticBaseModel):
