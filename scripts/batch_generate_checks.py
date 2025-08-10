@@ -608,28 +608,160 @@ def create_progress_table(stats: ProcessingStats) -> Table:
     return table
 
 def show_progress_stats(status_tracker: StatusTracker):
-    """Show current progress statistics"""
+    """Show current progress statistics with time estimation"""
     stats = status_tracker.get_statistics()
     
-    table = Table(title="📈 Current Progress", box=box.ROUNDED)
-    table.add_column("Status", style="cyan")
+    # Create comprehensive progress table
+    table = Table(title="📈 Current Progress with Time Estimation", box=box.ROUNDED)
+    table.add_column("Metric", style="cyan", no_wrap=True)
     table.add_column("Count", style="magenta")
-    table.add_column("Percentage", style="green")
+    table.add_column("Details", style="green")
     
     total = stats['total']
     if total > 0:
         success_pct = (stats['success'] / total) * 100
         error_pct = (stats['error'] / total) * 100
         pending_pct = (stats['pending'] / total) * 100
+        completion_pct = ((stats['success'] + stats['error']) / total) * 100
     else:
-        success_pct = error_pct = pending_pct = 0
+        success_pct = error_pct = pending_pct = completion_pct = 0
     
+    # Basic statistics
     table.add_row("✅ Success", str(stats['success']), f"{success_pct:.1f}%")
     table.add_row("❌ Errors", str(stats['error']), f"{error_pct:.1f}%")
     table.add_row("⏳ Pending", str(stats['pending']), f"{pending_pct:.1f}%")
     table.add_row("📊 Total", str(total), "100%")
+    table.add_row("🎯 Completed", str(stats['success'] + stats['error']), f"{completion_pct:.1f}%")
+    
+    # Time estimation based on historical data
+    table.add_row("─" * 15, "─" * 10, "─" * 15)  # Separator
+    
+    # Get time estimation from status file
+    time_stats = _calculate_time_stats_from_status(status_tracker)
+    
+    table.add_row("⏱️ Processing Rate", time_stats['rate'], "")
+    table.add_row("📅 Est. Remaining", time_stats['estimated_remaining'], "")
+    table.add_row("🏁 Est. Completion", time_stats['estimated_completion'], "")
+    table.add_row("📊 Last Updated", time_stats['last_update'], "")
     
     console.print(table)
+    
+    # Show error summary if there are errors
+    if stats['error'] > 0:
+        error_tracker = ErrorTracker()
+        error_summary = error_tracker.get_error_summary()
+        if error_summary:
+            console.print("\n📊 [bold red]Error Summary:[/bold red]")
+            error_table = Table(title="Error Types", box=box.ROUNDED)
+            error_table.add_column("Error Type", style="red")
+            error_table.add_column("Count", style="magenta")
+            error_table.add_column("Percentage", style="yellow")
+            
+            total_errors = sum(error_summary.values())
+            for error_type, count in error_summary.items():
+                percentage = (count / total_errors) * 100 if total_errors > 0 else 0
+                error_table.add_row(error_type, str(count), f"{percentage:.1f}%")
+            
+            console.print(error_table)
+
+def _calculate_time_stats_from_status(status_tracker: StatusTracker) -> dict:
+    """Calculate time statistics from status file"""
+    try:
+        if not status_tracker.status_file.exists():
+            return {
+                'rate': 'No data',
+                'estimated_remaining': 'No data',
+                'estimated_completion': 'No data',
+                'last_update': 'No data'
+            }
+        
+        # Read status file to get timestamps
+        timestamps = []
+        total_entries = 0
+        success_count = 0
+        last_timestamp = None
+        
+        with open(status_tracker.status_file, 'r') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                total_entries += 1
+                if row['status'] == 'success':
+                    success_count += 1
+                
+                try:
+                    timestamp = datetime.fromisoformat(row['timestamp'])
+                    timestamps.append(timestamp)
+                    if not last_timestamp or timestamp > last_timestamp:
+                        last_timestamp = timestamp
+                except:
+                    continue
+        
+        if len(timestamps) < 2:
+            return {
+                'rate': 'Insufficient data',
+                'estimated_remaining': 'Calculating...',
+                'estimated_completion': 'Calculating...',
+                'last_update': last_timestamp.strftime('%H:%M:%S') if last_timestamp else 'No data'
+            }
+        
+        # Calculate processing rate
+        timestamps.sort()
+        start_time = timestamps[0]
+        end_time = timestamps[-1]
+        duration = (end_time - start_time).total_seconds()
+        
+        if duration > 0:
+            rate_per_second = len(timestamps) / duration
+            rate_per_minute = rate_per_second * 60
+            rate_str = f"{rate_per_minute:.1f} tasks/min"
+        else:
+            rate_str = "∞ tasks/min"
+        
+        # Get provider mappings to calculate total expected tasks
+        try:
+            from con_mon_v2.utils.llm.generate import get_provider_resources_mapping
+            from con_mon_v2.compliance import ControlLoader
+            
+            provider_resources = get_provider_resources_mapping()
+            controls = ControlLoader().load_all()
+            active_controls = [c for c in controls if c.active]
+            
+            total_expected_tasks = sum(len(resources) for resources in provider_resources.values()) * len(active_controls)
+            remaining_tasks = total_expected_tasks - total_entries
+            
+            if remaining_tasks > 0 and rate_per_second > 0:
+                estimated_remaining_seconds = remaining_tasks / rate_per_second
+                
+                # Format remaining time
+                remaining_hours = int(estimated_remaining_seconds // 3600)
+                remaining_minutes = int((estimated_remaining_seconds % 3600) // 60)
+                remaining_secs = int(estimated_remaining_seconds % 60)
+                estimated_remaining = f"{remaining_hours:02d}:{remaining_minutes:02d}:{remaining_secs:02d}"
+                
+                # Calculate estimated completion time
+                completion_time = datetime.now() + timedelta(seconds=estimated_remaining_seconds)
+                completion_str = completion_time.strftime('%H:%M:%S on %m/%d')
+            else:
+                estimated_remaining = "Completed!" if remaining_tasks <= 0 else "Calculating..."
+                completion_str = "Completed!" if remaining_tasks <= 0 else "Calculating..."
+        except:
+            estimated_remaining = "Unable to calculate"
+            completion_str = "Unable to calculate"
+        
+        return {
+            'rate': rate_str,
+            'estimated_remaining': estimated_remaining,
+            'estimated_completion': completion_str,
+            'last_update': last_timestamp.strftime('%H:%M:%S on %m/%d') if last_timestamp else 'No data'
+        }
+        
+    except Exception as e:
+        return {
+            'rate': f'Error: {str(e)[:20]}...',
+            'estimated_remaining': 'Error calculating',
+            'estimated_completion': 'Error calculating',
+            'last_update': 'Error'
+        }
 
 def main():
     """Main batch processing function"""
