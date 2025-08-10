@@ -24,7 +24,7 @@ def test_check_model_structure():
         fix_details = FixDetails(
             description="Test fix",
             instructions=["Step 1", "Step 2"],
-            estimated_date="2024-12-31",
+            estimated_time="2 weeks",
             automation_available=False
         )
         

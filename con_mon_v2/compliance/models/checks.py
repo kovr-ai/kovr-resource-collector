@@ -223,7 +223,7 @@ class FixDetails(PydanticBaseModel):
     """
     description: str = Field(..., description="Fix description")
     instructions: List[str] = Field(..., description="Step-by-step instructions")
-    estimated_time: str = Field(..., description="Estimated time for fix in format W weeks D days H hours")
+    estimated_time: Optional[str] = Field("1-2 weeks", description="Estimated time for fix in format W weeks D days H hours")
     automation_available: bool = Field(False, description="Whether automation is available")
 
 
