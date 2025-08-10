@@ -6,15 +6,6 @@ from typing import Any, Dict
 from con_mon_v2.utils.services import ResourceCollectionService
 
 
-def load_sample_response(provider: str) -> Dict[str, Any]:
-    """Load sample response JSON from file."""
-    file_path = f"{provider}_response.json"
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"Sample response file not found: {file_path}")
-    with open(file_path, 'r') as f:
-        return json.load(f)
-
-
 def get_field_value(obj: Any, field_path: str) -> Any:
     """Get value from nested object using dot notation field path."""
     parts = field_path.split('.')
