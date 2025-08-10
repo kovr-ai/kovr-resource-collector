@@ -38,12 +38,17 @@ class ComparisonOperation(PydanticBaseModel):
         return self.function(fetched_value, config_value)
 
     @classmethod
-    def get_function(cls, name: str, logic: str | None = None) -> Callable[[Any, Any], bool]:
+    def get_function(
+        cls,
+        name: ComparisonOperationEnum,
+        logic: str | None = None
+    ) -> Callable[[Any, Any], bool]:
         """
         Return function which matches comparison operation.
 
         Args:
             name: Name for standard operation function.
+            logic: Optional Custom logic in case of custom for comparison.
 
         Returns:
             bool: True if comparison passes, False otherwise
@@ -70,7 +75,11 @@ class ComparisonOperation(PydanticBaseModel):
             raise ValueError(f"Unsupported operation: {name}")
 
     @classmethod
-    def get_custom_function(cls, name: ComparisonOperationEnum, logic: str) -> Callable[[Any, Any], bool]:
+    def get_custom_function(
+        cls,
+        name: ComparisonOperationEnum,
+        logic: str
+    ) -> Callable[[Any, Any], bool]:
         """
         Return function using the logic for comparison in logic.
 
@@ -88,6 +97,7 @@ def get_function():
         result = False
     {indented_logic}
         return result
+    return {name}
 function = get_function()
         """
         local_ns = {
@@ -228,12 +238,63 @@ class Check(TableModel):
     @property
     def resource_model(self) -> Type[Resource]:
         """Get the resource type from metadata."""
-        raise NotImplementedError
+        if not self.metadata.resource_type:
+            raise ValueError("Resource type not specified in metadata")
+        
+        # Handle string resource type paths like "con_mon_v2.mappings.github.GithubResource"
+        resource_type_str = self.metadata.resource_type
+        
+        try:
+            # Split the module path and class name
+            module_parts = resource_type_str.split('.')
+            class_name = module_parts[-1]
+            module_path = '.'.join(module_parts[:-1])
+            
+            # Import the module dynamically
+            import importlib
+            module = importlib.import_module(module_path)
+            
+            # Get the class from the module
+            resource_class = getattr(module, class_name)
+            
+            # Verify it's a Resource subclass
+            if not issubclass(resource_class, Resource):
+                raise ValueError(f"Class {class_name} is not a Resource subclass")
+            
+            return resource_class
+            
+        except (ImportError, AttributeError, ValueError) as e:
+            raise ValueError(f"Could not resolve resource type '{resource_type_str}': {e}")
 
     @property
-    def comparison_operation(self) -> Type[ComparisonOperation]:
+    def comparison_operation(self) -> ComparisonOperation:
         """Get Comparison Operation Model generated from metadata."""
-        raise NotImplementedError
+        if not self.metadata.operation:
+            raise ValueError("Operation not specified in metadata")
+        
+        operation_data = self.metadata.operation
+        operation_enum = ComparisonOperationEnum(operation_data.name)
+        
+        # Get the appropriate function based on operation name and logic
+        if operation_enum == ComparisonOperationEnum.CUSTOM:
+            if not operation_data.logic:
+                raise ValueError("Logic not specified in metadata")
+            # For custom operations, use the custom logic
+            function = ComparisonOperation.get_custom_function(
+                operation_enum,
+                operation_data.logic
+            )
+        else:
+            # For standard operations, get the standard function
+            function = ComparisonOperation.get_function(
+                operation_enum
+            )
+
+        # Create and return the ComparisonOperation instance
+        return ComparisonOperation(
+            name=operation_enum,
+            function=function
+        )
 
     @property
     def expected_value(self) -> Any:
@@ -259,7 +320,7 @@ class Check(TableModel):
         resources_to_check = []
         for resource in resources:
             # Check if the resource is an instance of the specified type
-            if isinstance(resource, self.resource_type):
+            if isinstance(resource, self.resource_model):
                 resources_to_check.append(resource)
 
         check_results = []
