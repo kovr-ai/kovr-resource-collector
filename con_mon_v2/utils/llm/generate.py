@@ -213,6 +213,5 @@ def generate_checks_for_all_providers(
                 **kwargs
             )
             checks.append(check)
-            break
 
     return checks
