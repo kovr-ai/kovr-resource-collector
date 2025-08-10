@@ -350,38 +350,70 @@ class Check(TableModel):
             bool: True if check is invalid and should be regenerated, False if acceptable
         """
         print(f"🔍 check_is_invalid called with {len(check_results) if check_results else 0} results")
+        print(f"🔍 Check name: {self.name}")
+        print(f"🔍 Check field_path: {self.field_path}")
+        print(f"🔍 Check resource_model: {self.resource_model}")
+        print(f"🔍 Check operation: {self.metadata.operation.name}")
+        if self.metadata.operation.logic:
+            print(f"🔍 Check logic:")
+            # Print logic with line numbers for better debugging
+            logic_lines = self.metadata.operation.logic.split('\n')
+            for i, line in enumerate(logic_lines, 1):
+                print(f"    {i:2d}: {line}")
+        else:
+            print(f"🔍 Check logic: None (standard operation)")
 
         if not check_results:
             print("❌ No check results - considering invalid")
             return True
 
+        print(f"🔍 Original results count: {len(check_results)}")
+        
+        # Filter results by resource model
+        original_count = len(check_results)
         check_results = [
             check_result
             for check_result in check_results
             if check_result.resource_model == self.resource_model
         ]
+        filtered_count = len(check_results)
+        
+        print(f"🔍 After filtering by resource_model: {filtered_count} results (was {original_count})")
+        
         if not check_results:
+            print("🟡 No results after resource model filtering - considering valid (no applicable resources)")
             return False
+            
         # Debug: Print all results
+        print(f"🔍 Analyzing {len(check_results)} check results:")
         for i, result in enumerate(check_results):
             print(f"   Result {i + 1}: passed={result.passed}, error={result.error}")
+            if result.error:
+                print(f"      Error details: {result.error}")
+            print(f"      Message: {result.message}")
 
         # Count results with actual boolean values (successful evaluations)
         successful_evaluations = 0
-        # error_evaluations = 0
+        error_evaluations = 0
 
         for check_result in check_results:
             if check_result.passed is not None:  # Either True or False
                 successful_evaluations += 1
-            # else:
-            #     error_evaluations += 1
+                print(f"   ✅ Successful evaluation: passed={check_result.passed}")
+            else:
+                error_evaluations += 1
+                print(f"   ❌ Error evaluation: {check_result.error}")
+
+        print(f"🔍 Summary: {successful_evaluations} successful, {error_evaluations} errors")
 
         # Check is VALID if we have at least some successful evaluations
         # Even if all evaluations failed (passed=False), the check logic worked
         if successful_evaluations > 0:
+            print(f"✅ Check is VALID - has {successful_evaluations} successful evaluations")
             return False
 
         # Check is INVALID if all evaluations failed with errors
+        print(f"❌ Check is INVALID - all {error_evaluations} evaluations had errors")
         return True
 
     def evaluate(self, resources: List[Resource]) -> List["CheckResult"]:
