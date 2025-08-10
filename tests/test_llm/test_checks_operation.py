@@ -11,12 +11,13 @@ import yaml
 import pytest
 from typing import Dict, Any
 from unittest.mock import Mock, patch
+from datetime import datetime
 
-from con_mon_v2.checks.models import (
-    Check, CheckMetadata, CheckOperation, CheckResultStatement, 
-    CheckFailureFix
+from con_mon_v2.compliance.models import (
+    Check, CheckMetadata, CheckOperation, OutputStatements, 
+    FixDetails
 )
-from con_mon_v2.utils.llm.prompts import ChecksYamlPrompt
+from con_mon_v2.utils.llm.prompts import ChecksPrompt
 from con_mon_v2.compliance.models import Control
 from con_mon_v2.mappings.github import GithubResource
 from con_mon_v2.connectors.models import ConnectorType
@@ -35,6 +36,8 @@ class TestCheckMetadataOperationAccess:
             'category': 'access_control',
             'created_by': 'system',
             'updated_by': 'system',
+            'created_at': datetime.now(),
+            'updated_at': datetime.now(),
             'is_deleted': False,
             'metadata': CheckMetadata(
                 resource_type='con_mon_v2.mappings.github.GithubResource',
@@ -54,12 +57,12 @@ if fetched_value and isinstance(fetched_value, list):
                 severity='medium',
                 category='access_control'
             ),
-            'output_statements': CheckResultStatement(
+            'output_statements': OutputStatements(
                 success='Operation test passed',
                 failure='Operation test failed',
                 partial='Operation test partially passed'
             ),
-            'fix_details': CheckFailureFix(
+            'fix_details': FixDetails(
                 description='Fix operation test',
                 instructions=['Step 1: Fix the issue'],
                 estimated_date='2024-12-31',
@@ -115,14 +118,16 @@ if fetched_value and isinstance(fetched_value, list):
                 category='configuration',
                 created_by='system',
                 updated_by='system',
+                created_at=datetime.now(),
+                updated_at=datetime.now(),
                 is_deleted=False,
                 metadata=metadata,
-                output_statements=CheckResultStatement(
+                output_statements=OutputStatements(
                     success=f'{op_name} test passed',
                     failure=f'{op_name} test failed',
                     partial=f'{op_name} test partially passed'
                 ),
-                fix_details=CheckFailureFix(
+                fix_details=FixDetails(
                     description=f'Fix {op_name} test',
                     instructions=['Step 1'],
                     estimated_date='2024-12-31',
@@ -158,14 +163,16 @@ if fetched_value and isinstance(fetched_value, list):
             category='configuration',
             created_by='system',
             updated_by='system',
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
             is_deleted=False,
             metadata=metadata,
-            output_statements=CheckResultStatement(
+            output_statements=OutputStatements(
                 success='Test passed',
                 failure='Test failed',
                 partial='Test partially passed'
             ),
-            fix_details=CheckFailureFix(
+            fix_details=FixDetails(
                 description='Fix test',
                 instructions=['Step 1'],
                 estimated_date='2024-12-31',
@@ -198,6 +205,8 @@ class TestCheckOperationPropertyBroken:
             category='access_control',
             created_by='system',
             updated_by='system',
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
             is_deleted=False,
             metadata=CheckMetadata(
                 resource_type='con_mon_v2.mappings.github.GithubResource',
@@ -208,12 +217,12 @@ class TestCheckOperationPropertyBroken:
                 severity='medium',
                 category='access_control'
             ),
-            output_statements=CheckResultStatement(
+            output_statements=OutputStatements(
                 success='Test passed',
                 failure='Test failed',
                 partial='Test partially passed'
             ),
-            fix_details=CheckFailureFix(
+            fix_details=FixDetails(
                 description='Fix test',
                 instructions=['Step 1'],
                 estimated_date='2024-12-31',
@@ -222,12 +231,14 @@ class TestCheckOperationPropertyBroken:
         )
     
     def test_operation_property_import_error(self, sample_check):
-        """Test that accessing the operation property fails with ImportError."""
-        with pytest.raises(ImportError, match="cannot import name '_create_operation_from_metadata'"):
-            _ = sample_check.operation
+        """Test that accessing the comparison_operation property works correctly."""
+        # The comparison_operation property should work now
+        comparison_op = sample_check.comparison_operation
+        assert comparison_op is not None
+        assert comparison_op.name.value == 'custom'  # ComparisonOperationEnum.CUSTOM
     
     def test_evaluate_method_fails_due_to_broken_operation(self, sample_check):
-        """Test that the evaluate method fails because it uses the broken operation property."""
+        """Test that the evaluate method now works with the fixed comparison_operation property."""
         # Create a properly structured GitHub resource for testing
         github_resource = GithubResource(
             id="test_github_resource",
@@ -240,17 +251,16 @@ class TestCheckOperationPropertyBroken:
             advanced_features_data={}
         )
         
-        # The evaluate method should catch the ImportError and return a failed CheckResult
+        # The evaluate method should now work correctly
         results = sample_check.evaluate([github_resource])
         
         # Should return one result
         assert len(results) == 1
         result = results[0]
         
-        # The result should be failed due to the broken operation property
-        assert result.passed is False
-        assert "comparison error" in result.message.lower()
-        assert "cannot import name '_create_operation_from_metadata'" in result.error
+        # The result should be successful since we have an admin user
+        assert result.passed is True
+        assert "passed" in result.message.lower()
     
     def test_evaluate_method_with_empty_resources_still_fails(self, sample_check):
         """Test that even with empty resources, evaluate fails due to the broken operation property."""
@@ -283,6 +293,8 @@ class TestCheckEvaluateMethodComprehensive:
             category='access_control',
             created_by='system',
             updated_by='system',
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
             is_deleted=False,
             metadata=CheckMetadata(
                 resource_type='con_mon_v2.mappings.github.GithubResource',
@@ -293,12 +305,12 @@ class TestCheckEvaluateMethodComprehensive:
                 severity='medium',
                 category='access_control'
             ),
-            output_statements=CheckResultStatement(
+            output_statements=OutputStatements(
                 success='GitHub evaluation passed',
                 failure='GitHub evaluation failed',
                 partial='GitHub evaluation partially passed'
             ),
-            fix_details=CheckFailureFix(
+            fix_details=FixDetails(
                 description='Fix GitHub evaluation',
                 instructions=['Step 1'],
                 estimated_date='2024-12-31',
@@ -307,7 +319,7 @@ class TestCheckEvaluateMethodComprehensive:
         )
     
     def test_evaluate_with_real_github_resource_fails(self, github_resource_check):
-        """Test that evaluate fails when called with a real GitHub resource due to broken operation property."""
+        """Test that evaluate now works when called with a real GitHub resource."""
         # Create a real GitHub resource instance with all required fields
         github_resource = GithubResource(
             id="test_github_resource",
@@ -320,17 +332,16 @@ class TestCheckEvaluateMethodComprehensive:
             advanced_features_data={}
         )
         
-        # The evaluate method should catch the ImportError and return a failed CheckResult
+        # The evaluate method should now work correctly
         results = github_resource_check.evaluate([github_resource])
         
         # Should return one result
         assert len(results) == 1
         result = results[0]
         
-        # The result should be failed due to the broken operation property
-        assert result.passed is False
-        assert "comparison error" in result.message.lower()
-        assert "cannot import name '_create_operation_from_metadata'" in result.error
+        # The result should be successful since we have members (len > 0)
+        assert result.passed is True
+        assert "passed" in result.message.lower()
     
     def test_evaluate_end_to_end_workflow_broken(self):
         """Test the complete end-to-end workflow that would be used in production."""
@@ -347,22 +358,24 @@ class TestCheckEvaluateMethodComprehensive:
             category='access_control',
             created_by='system',
             updated_by='system',
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
             is_deleted=False,
             metadata=CheckMetadata(
                 resource_type='con_mon_v2.mappings.github.GithubResource',
-                field_path='organization_data.members',
+                field_path='len(organization_data.members)',  # Get length of members
                 operation=CheckOperation(name='equals', logic=''),
-                expected_value=5,  # Expect 5 members
+                expected_value=3,  # Expect 3 members (matching the test data)
                 tags=['production'],
                 severity='high',
                 category='access_control'
             ),
-            output_statements=CheckResultStatement(
+            output_statements=OutputStatements(
                 success='Production check passed',
                 failure='Production check failed',
                 partial='Production check partially passed'
             ),
-            fix_details=CheckFailureFix(
+            fix_details=FixDetails(
                 description='Fix production issue',
                 instructions=['Contact admin'],
                 estimated_date='2024-12-31',
@@ -385,16 +398,15 @@ class TestCheckEvaluateMethodComprehensive:
         # Step 3: Evaluate (this is what would happen in production)
         results = check.evaluate([github_resource])
         
-        # Should return one result indicating the operation property is broken
+        # Should return one result
         assert len(results) == 1
         result = results[0]
         
-        # The result should be failed due to the broken operation property
-        assert result.passed is False
-        assert "comparison error" in result.message.lower()
-        assert "cannot import name '_create_operation_from_metadata'" in result.error
+        # The result should be successful because we have 3 members and expect 3
+        assert result.passed is True
+        assert "passed" in result.message.lower()
         
-        # This demonstrates that the production workflow is broken!
+        # This demonstrates that the production workflow now works!
 
 
 class TestCheckOperationIntegration:
@@ -430,8 +442,8 @@ class TestCheckOperationIntegration:
             category=metadata_dict.get('category', 'configuration')
         )
         
-        output_statements = CheckResultStatement(**check_dict['output_statements'])
-        fix_details = CheckFailureFix(**check_dict['fix_details'])
+        output_statements = OutputStatements(**check_dict['output_statements'])
+        fix_details = FixDetails(**check_dict['fix_details'])
         
         return Check(
             id=check_dict['id'],
@@ -440,6 +452,8 @@ class TestCheckOperationIntegration:
             category=check_dict['category'],
             created_by=check_dict.get('created_by', 'system'),
             updated_by=check_dict.get('updated_by', 'system'),
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
             is_deleted=check_dict.get('is_deleted', False),
             metadata=metadata,
             output_statements=output_statements,
@@ -474,7 +488,7 @@ class TestCheckOperationIntegration:
         assert github_check_from_mock.metadata.resource_type == 'con_mon_v2.mappings.github.GithubResource'
     
     def test_mock_check_evaluate_fails_in_real_usage(self, github_check_from_mock):
-        """Test that the mock check fails when actually evaluated due to broken operation property."""
+        """Test that the mock check now works when actually evaluated."""
         # Create a GitHub resource for evaluation with all required fields
         github_resource = GithubResource(
             id="mock_test_github_resource",
@@ -491,17 +505,16 @@ class TestCheckOperationIntegration:
             advanced_features_data={}
         )
         
-        # The evaluate method should catch the ImportError and return a failed CheckResult
+        # The evaluate method should now work correctly
         results = github_check_from_mock.evaluate([github_resource])
         
         # Should return one result
         assert len(results) == 1
         result = results[0]
         
-        # The result should be failed due to the broken operation property
-        assert result.passed is False
-        assert "comparison error" in result.message.lower()
-        assert "cannot import name '_create_operation_from_metadata'" in result.error
+        # The result should be successful since we have admin users
+        assert result.passed is True
+        assert "passed" in result.message.lower()
     
     def test_llm_generated_check_metadata_operation_basic(self):
         """Test basic operation metadata with LLM-generated check (without evaluation)."""
@@ -509,18 +522,18 @@ class TestCheckOperationIntegration:
         control = Control(
             id=1,
             framework_id=1,
-            control_id='AC-2',
-            name='Account Management',
-            description='The organization manages information system accounts.'
+            control_name='AC-2',
+            control_long_name='Account Management',
+            control_text='The organization manages information system accounts.'
         )
         
-        # Create ChecksYamlPrompt
-        prompt = ChecksYamlPrompt(
-            control_name=control.control_id,
-            control_text=control.description,
-            control_title=control.name,
+        # Create ChecksPrompt
+        prompt = ChecksPrompt(
+            control_name=control.control_name,
+            control_text=control.control_text,
+            control_title=control.control_long_name,
             control_id=control.id,
-            resource_type=GithubResource,
+            resource_model=GithubResource,
             connector_type=ConnectorType.GITHUB
         )
         

@@ -1,7 +1,7 @@
 """
 Tests for LLM-based check generation functionality - Common tests.
 
-This module tests common functionality of the ChecksYamlPrompt class
+This module tests common functionality of the ChecksPrompt class
 that applies to all providers.
 """
 import yaml
@@ -9,14 +9,14 @@ import pytest
 from unittest.mock import Mock, patch
 from typing import Dict, Any
 
-from con_mon_v2.utils.llm.prompts import ChecksYamlPrompt
+from con_mon_v2.utils.llm.prompts import ChecksPrompt
 from con_mon_v2.utils.llm.client import LLMResponse
 from con_mon_v2.mappings.github import GithubResource
 from con_mon_v2.connectors.models import ConnectorType
 
 
-class TestChecksYamlPromptCommon:
-    """Test cases for common ChecksYamlPrompt functionality."""
+class TestChecksPromptCommon:
+    """Test cases for common ChecksPrompt functionality."""
     
     @pytest.fixture
     def sample_control_data(self) -> Dict[str, Any]:
@@ -41,12 +41,12 @@ k. Establishes a process for reissuing shared/group account credentials (if depl
     
     def test_process_response_invalid_yaml(self, sample_control_data):
         """Test processing an invalid LLM response."""
-        prompt = ChecksYamlPrompt(
+        prompt = ChecksPrompt(
             control_name=sample_control_data['control_name'],
             control_text=sample_control_data['control_text'],
             control_title=sample_control_data['control_title'],
             control_id=sample_control_data['control_id'],
-            resource_type=GithubResource,
+            resource_model=GithubResource,
             connector_type=ConnectorType.GITHUB
         )
         
@@ -63,12 +63,12 @@ k. Establishes a process for reissuing shared/group account credentials (if depl
     
     def test_process_response_missing_checks_key(self, sample_control_data):
         """Test processing response without 'checks' key gets auto-corrected."""
-        prompt = ChecksYamlPrompt(
+        prompt = ChecksPrompt(
             control_name=sample_control_data['control_name'],
             control_text=sample_control_data['control_text'],
             control_title=sample_control_data['control_title'],
             control_id=sample_control_data['control_id'],
-            resource_type=GithubResource,
+            resource_model=GithubResource,
             connector_type=ConnectorType.GITHUB
         )
         
@@ -91,12 +91,12 @@ k. Establishes a process for reissuing shared/group account credentials (if depl
     
     def test_process_response_multiple_checks(self, sample_control_data):
         """Test processing response with multiple checks (should fail)."""
-        prompt = ChecksYamlPrompt(
+        prompt = ChecksPrompt(
             control_name=sample_control_data['control_name'],
             control_text=sample_control_data['control_text'],
             control_title=sample_control_data['control_title'],
             control_id=sample_control_data['control_id'],
-            resource_type=GithubResource,
+            resource_model=GithubResource,
             connector_type=ConnectorType.GITHUB
         )
         
@@ -120,12 +120,12 @@ k. Establishes a process for reissuing shared/group account credentials (if depl
     
     def test_process_response_markdown_removal(self, sample_control_data):
         """Test that markdown code blocks are properly removed."""
-        prompt = ChecksYamlPrompt(
+        prompt = ChecksPrompt(
             control_name=sample_control_data['control_name'],
             control_text=sample_control_data['control_text'],
             control_title=sample_control_data['control_title'],
             control_id=sample_control_data['control_id'],
-            resource_type=GithubResource,
+            resource_model=GithubResource,
             connector_type=ConnectorType.GITHUB
         )
         
@@ -187,12 +187,12 @@ checks:
         ]
 
         for control_name, expected_severity in test_cases:
-            prompt = ChecksYamlPrompt(
+            prompt = ChecksPrompt(
                 control_name=control_name,
                 control_text=sample_control_data['control_text'],
                 control_title=sample_control_data['control_title'],
                 control_id=sample_control_data['control_id'],
-                resource_type=GithubResource,
+                resource_model=GithubResource,
                 connector_type=ConnectorType.GITHUB
             )
             
@@ -212,12 +212,12 @@ checks:
         ]
 
         for control_name, expected_category in test_cases:
-            prompt = ChecksYamlPrompt(
+            prompt = ChecksPrompt(
                 control_name=control_name,
                 control_text=sample_control_data['control_text'],
                 control_title=sample_control_data['control_title'],
                 control_id=sample_control_data['control_id'],
-                resource_type=GithubResource,
+                resource_model=GithubResource,
                 connector_type=ConnectorType.GITHUB
             )
             

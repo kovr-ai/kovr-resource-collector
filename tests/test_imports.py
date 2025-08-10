@@ -1,57 +1,124 @@
-"""Test that all dynamic imports work correctly."""
+#!/usr/bin/env python3
+"""
+Test that all imports work correctly across the con_mon_v2 package.
+"""
 
-def test_imports():
-    """Try importing all possible paths from our dynamic mapping system."""
-    successful_imports = []
-    failed_imports = []
+import sys
+from pathlib import Path
 
-    # List of all expected imports
-    imports_to_test = [
-        # Base mappings
-        "from con_mon_v2 import mappings",
-        
-        # GitHub imports
-        "from con_mon_v2.mappings.github import GithubConnectorService",
-        "from con_mon_v2.mappings.github import GithubConnectorInput",
-        "from con_mon_v2.mappings.github import github_connector_service",
-        "from con_mon_v2.mappings.github import GithubResource",
-        "from con_mon_v2.mappings.github import GithubResourceCollection",
+# Add project root to path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
 
-        # AWS imports
-        "from con_mon_v2.mappings.aws import AwsConnectorService",
-        "from con_mon_v2.mappings.aws import AwsConnectorInput",
-        "from con_mon_v2.mappings.aws import aws_connector_service",
-        "from con_mon_v2.mappings.aws import EC2Resource",
-        "from con_mon_v2.mappings.aws import S3Resource",
-        "from con_mon_v2.mappings.aws import IAMResource",
-        "from con_mon_v2.mappings.aws import CloudTrailResource",
-        "from con_mon_v2.mappings.aws import CloudWatchResource",
-        "from con_mon_v2.mappings.aws import AwsResourceCollection"
+def test_basic_imports():
+    """Test basic package imports."""
+    try:
+        import con_mon_v2
+        print("✅ con_mon_v2 package import successful")
+    except Exception as e:
+        print(f"❌ con_mon_v2 package import failed: {e}")
+        return False
+    
+    return True
+
+def test_resource_imports():
+    """Test resource-related imports."""
+    try:
+        from con_mon_v2.resources import Resource
+        from con_mon_v2.mappings.github import GithubResource
+        print("✅ Resource imports successful")
+    except Exception as e:
+        print(f"❌ Resource imports failed: {e}")
+        return False
+    
+    return True
+
+def test_compliance_imports():
+    """Test compliance model imports."""
+    try:
+        from con_mon_v2.compliance.models import Check, CheckMetadata, OutputStatements, FixDetails
+        print("✅ Compliance model imports successful")
+    except Exception as e:
+        print(f"❌ Compliance model imports failed: {e}")
+        return False
+    
+    return True
+
+def test_llm_imports():
+    """Test LLM utility imports."""
+    try:
+        from con_mon_v2.utils.llm.prompts import ChecksPrompt, generate_checks
+        print("✅ LLM utility imports successful")
+    except Exception as e:
+        print(f"❌ LLM utility imports failed: {e}")
+        return False
+    
+    return True
+
+def test_connector_imports():
+    """Test connector-related imports."""
+    try:
+        from con_mon_v2.connectors.models import ConnectorType
+        print("✅ Connector imports successful")
+    except Exception as e:
+        print(f"❌ Connector imports failed: {e}")
+        return False
+    
+    return True
+
+def test_database_imports():
+    """Test database utility imports."""
+    try:
+        from con_mon_v2.utils.db import get_db
+        print("✅ Database utility imports successful")
+    except Exception as e:
+        print(f"❌ Database utility imports failed: {e}")
+        return False
+    
+    return True
+
+def test_service_imports():
+    """Test service imports."""
+    try:
+        from con_mon_v2.utils.services import ResourceCollectionService
+        print("✅ Service imports successful")
+    except Exception as e:
+        print(f"❌ Service imports failed: {e}")
+        return False
+    
+    return True
+
+def main():
+    """Run all import tests."""
+    print("🧪 Testing con_mon_v2 imports...")
+    print("=" * 50)
+    
+    tests = [
+        test_basic_imports,
+        test_resource_imports,
+        test_compliance_imports,
+        test_llm_imports,
+        test_connector_imports,
+        test_database_imports,
+        test_service_imports
     ]
+    
+    passed = 0
+    total = len(tests)
+    
+    for test in tests:
+        if test():
+            passed += 1
+    
+    print("=" * 50)
+    print(f"📊 Results: {passed}/{total} tests passed")
+    
+    if passed == total:
+        print("🎉 All import tests passed!")
+        return 0
+    else:
+        print("❌ Some import tests failed")
+        return 1
 
-    print("\nTesting imports...")
-    for import_stmt in imports_to_test:
-        try:
-            exec(import_stmt)
-            successful_imports.append(import_stmt)
-            print(f"✅ {import_stmt}")
-        except ImportError as e:
-            failed_imports.append((import_stmt, str(e)))
-            print(f"❌ {import_stmt}")
-            print(f"   Error: {str(e)}")
-
-    # Print summary
-    print("\nImport Test Summary:")
-    print(f"Total imports tested: {len(imports_to_test)}")
-    print(f"Successful imports: {len(successful_imports)}")
-    print(f"Failed imports: {len(failed_imports)}")
-
-    if failed_imports:
-        print("\nFailed imports details:")
-        for stmt, error in failed_imports:
-            print(f"\n{stmt}")
-            print(f"Error: {error}")
-
-    from con_mon_v2.checks import get_checks_by_ids
-    print("\nTesting get_checks_by_ids... ")
-    print(f"\nGot {len(get_checks_by_ids())} checks... ")
+if __name__ == "__main__":
+    sys.exit(main())

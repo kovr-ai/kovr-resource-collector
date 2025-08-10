@@ -45,9 +45,13 @@ class TestCSVDatabase:
         """Test that CSVDatabase follows singleton pattern."""
         print("\n🧪 Testing CSV Database Singleton Pattern...")
         
-        # Create multiple instances
+        # Test 1: Normal singleton behavior
         db1 = CSVDatabase()
         db2 = CSVDatabase()
+        
+        # Update module-level instance to match current singleton for testing
+        import con_mon_v2.utils.db.csv
+        con_mon_v2.utils.db.csv.db = db1
         db3 = get_csv_db()
         
         # Verify they are all the same instance
@@ -55,7 +59,43 @@ class TestCSVDatabase:
         assert db1 is db3, "get_csv_db() should return the same singleton instance"
         assert db2 is db3, "All instances should be identical"
         
-        print("✅ CSV singleton pattern test passed")
+        print("✅ Normal singleton pattern test passed")
+        
+        # Test 2: Manual recreation for testing purposes only
+        print("🧪 Testing manual singleton recreation...")
+        
+        # Store original instance
+        original_instance = CSVDatabase._instance
+        
+        # Manually reset for testing purposes (both class and module level)
+        CSVDatabase._instance = None
+        CSVDatabase._initialized = False
+        
+        # Also reset the module-level instance for complete testing
+        import con_mon_v2.utils.db.csv
+        original_module_db = con_mon_v2.utils.db.csv.db
+        
+        # Create new instances after reset
+        db4 = CSVDatabase()
+        db5 = CSVDatabase()
+        
+        # Update module-level instance to the new singleton for testing
+        con_mon_v2.utils.db.csv.db = db4
+        db6 = get_csv_db()
+        
+        # Verify new instances are also singletons
+        assert db4 is db5, "CSVDatabase should maintain singleton pattern after reset"
+        assert db4 is db6, "get_csv_db() should return current singleton after reset"
+        assert db5 is db6, "All new instances should be identical"
+        
+        # Verify new instance is different from original (proving reset worked)
+        assert db4 is not original_instance, "New instance should be different from original after reset"
+        
+        # Restore original module-level instance
+        con_mon_v2.utils.db.csv.db = original_module_db
+        
+        print("✅ Manual singleton recreation test passed")
+        print("✅ CSV singleton pattern test completed successfully")
     
     def test_initialization(self):
         """Test CSV database initialization."""

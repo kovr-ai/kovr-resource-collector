@@ -90,14 +90,14 @@ class ComparisonOperation(PydanticBaseModel):
         Returns:
             bool: True if comparison passes, False otherwise
         """
-        indented_logic = '\n'.join('    ' + line for line in logic.split('\n'))
+        indented_logic = '\n'.join('        ' + line for line in logic.split('\n'))
         get_function_code = f"""
 def get_function():
-    def {name}(fetched_value, config_value):
+    def {name.value}(fetched_value, config_value):
         result = False
-    {indented_logic}
+{indented_logic}
         return result
-    return {name}
+    return {name.value}
 function = get_function()
         """
         local_ns = {

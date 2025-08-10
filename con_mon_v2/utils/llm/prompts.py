@@ -26,12 +26,12 @@ from datetime import datetime
 from .client import get_llm_client, LLMRequest, LLMResponse
 
 
-def load_resource_schema(resource_type: str) -> str:
+def load_resource_schema(resource_model: str) -> str:
     """
     Dynamically load resource schema from resources.yaml file.
     
     Args:
-        resource_type: Resource type to load (github, aws, etc.)
+        resource_model: Resource type to load (github, aws, etc.)
         
     Returns:
         Formatted resource schema string for the specified type
@@ -46,21 +46,21 @@ def load_resource_schema(resource_type: str) -> str:
             resources_data = yaml.safe_load(f)
         
         # Extract the specific resource type section
-        if resource_type.lower() in resources_data:
-            resource_section = resources_data[resource_type.lower()]
+        if resource_model.lower() in resources_data:
+            resource_section = resources_data[resource_model.lower()]
             
             # Convert back to YAML format for the prompt
-            schema_yaml = yaml.dump({resource_type.lower(): resource_section}, 
+            schema_yaml = yaml.dump({resource_model.lower(): resource_section}, 
                                   default_flow_style=False, 
                                   sort_keys=False,
                                   allow_unicode=True)
             
             return f"**Resource Schema:**\n{schema_yaml}"
         else:
-            return f"**Resource Schema:**\n# No schema found for resource type: {resource_type}"
+            return f"**Resource Schema:**\n# No schema found for resource type: {resource_model}"
             
     except Exception as e:
-        return f"**Resource Schema:**\n# Error loading schema for {resource_type}: {str(e)}"
+        return f"**Resource Schema:**\n# Error loading schema for {resource_model}: {str(e)}"
 
 
 class BasePrompt(ABC):
@@ -136,15 +136,15 @@ class ChecksPrompt(BasePrompt):
 1. Generate a complete YAML check entry following the exact format shown in the example
 2. Create a descriptive name using snake_case format
 3. Write a clear description explaining what the check validates
-4. Set appropriate resource_type using the resources structure below in metadata
-4.1 resource_type can only be one of resources_field_schemas
+4. Set appropriate resource_model using the resources structure below in metadata
+4.1 resource_model can only be one of resources_field_schemas
 5. Determine the correct field_path for the resource data using the resources structure below in metadata
-5.1 field_path must be available in the resource_type
+5.1 field_path must be available in the resource_model
 5.2 field_path must use dot notation to navigate nested structures
 5.3 field_path should start with one of the top level resource fields
 5.4 then navigate through nested objects using dots to reach the specific field you want to validate
 6. Generate Python code for the logic that validates compliance in metadata.operation.logic
-6.1 the value at resource_type.field_path would be stored in fetched_value
+6.1 the value at resource_model.field_path would be stored in fetched_value
 6.2 fetched_value would be a pydantic class or primitive type
 7. Set expected_value to null for custom logic checks in metadata
 8. Add relevant tags for categorization in metadata
@@ -158,8 +158,8 @@ class ChecksPrompt(BasePrompt):
 **Example Format:**
 ```yaml
 checks:
-- id: {resource_type_lower}_{control_name_lower}_compliance
-  name: {resource_type_lower}_{control_name_lower}_compliance
+- id: {resource_model_lower}_{control_name_lower}_compliance
+  name: {resource_model_lower}_{control_name_lower}_compliance
   description: Verify compliance with NIST 800-53 {control_name}: {control_title}
   category: {suggested_category}
   output_statements:
@@ -178,7 +178,7 @@ checks:
   is_deleted: false
   metadata:
     # Resource evaluation fields
-    resource_type: # Choose specific resource type (con_mon_v2.mappings.github.GithubResource, etc.)
+    resource_model: # Choose specific resource type (con_mon_v2.mappings.github.GithubResource, etc.)
     field_path: # Examples: "repository_data.basic_info.description", "security_data.security_analysis.advanced_security_enabled", "organization_data.members"
     connection_id: # Database connection ID for resource relationships
     operation:
@@ -217,7 +217,7 @@ checks:
     - compliance
     - nist
     - {control_family_tag}
-    - {resource_type_lower}
+    - {resource_model_lower}
     severity: {suggested_severity}
     category: {suggested_category}
     control_ids:
@@ -272,7 +272,7 @@ Generate ONLY the YAML check entry with complete implementation, no explanations
         control_text: str,
         control_title: str,
         control_id: int,
-        resource_type: Type[Resource],
+        resource_model: Type[Resource],
         connector_type: ConnectorType,
     ):
         """
@@ -283,18 +283,18 @@ Generate ONLY the YAML check entry with complete implementation, no explanations
             control_text: Full control description/requirement
             control_title: Control title/name
             control_id: Database ID of the control
-            resource_type: Target resource type class
+            resource_model: Target resource type class
             connector_type: The type of connector being used
         """
         self.control_name = control_name
         self.control_text = control_text
         self.control_title = control_title
-        self.resource_type = resource_type
+        self.resource_model = resource_model
         self.control_id = control_id
         self.connector_type = connector_type
         
         # Pre-compute derived values
-        self.resource_type_lower = re.sub(r'([a-z])([A-Z])', r'\1_\2', resource_type.__name__).lower()
+        self.resource_model_lower = re.sub(r'([a-z])([A-Z])', r'\1_\2', resource_model.__name__).lower()
         self.control_name_lower = control_name.lower().replace('-', '_')
         self.control_family = control_name.split('-')[0] if '-' in control_name else control_name[:2]
         self.connector_type_lower = connector_type.value.lower()
@@ -327,7 +327,7 @@ Generate ONLY the YAML check entry with complete implementation, no explanations
         control_info = self.CONTROL_INFORMATION.format(
             control_name=self.control_name,
             control_title=self.control_title,
-            connector_type=self.resource_type.__name__,
+            connector_type=self.resource_model.__name__,
             control_text=self.control_text
         )
         
@@ -336,7 +336,7 @@ Generate ONLY the YAML check entry with complete implementation, no explanations
         )
         
         sample_format = self.SAMPLE_FORMAT.format(
-            resource_type_lower=self.resource_type_lower,
+            resource_model_lower=self.resource_model_lower,
             control_name_lower=self.control_name_lower,
             control_name=self.control_name,
             control_title=self.control_title,
@@ -470,7 +470,7 @@ You are a cybersecurity compliance expert. Generate a complete checks.yaml entry
             operation=check_operation,
             field_path=metadata.get('field_path', 'data'),
             connection_id=metadata.get('connection_id'),
-            resource_type=f"{self.resource_type.__module__}.{self.resource_type.__name__}",
+            resource_type=f"{self.resource_model.__module__}.{self.resource_model.__name__}",
             expected_value=metadata.get('expected_value')
         )
         
@@ -523,7 +523,7 @@ def generate_checks(
     control_text: str,
     control_id: int,
     control_title: str,
-    resource_type: Type[Resource],
+    resource_model: Type[Resource],
     **kwargs
 ) -> List[Check]:
     """
@@ -533,7 +533,7 @@ def generate_checks(
         control_name: Control identifier
         control_text: Control requirement text
         control_title: Control title/name
-        resource_type: Target resource type class
+        resource_model: Target resource type class
         control_id: Database ID of the control
         connector_type: The type of connector being used
         **kwargs: Additional LLM parameters
@@ -547,7 +547,7 @@ def generate_checks(
             control_name=control_name,
             control_text=control_text,
             control_title=control_title,
-            resource_type=resource_type,
+            resource_model=resource_model,
             control_id=control_id,
             connector_type=connector_type,
         )

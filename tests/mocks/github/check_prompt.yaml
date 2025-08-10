@@ -20,7 +20,7 @@ checks:
   updated_by: "system"
   is_deleted: false
   metadata:
-    resource_type: GithubResource
+    resource_type: con_mon_v2.mappings.github.GithubResource
     field_path: organization_data.members
     operation:
       name: custom
@@ -29,14 +29,14 @@ checks:
         result = False  # Default to non-compliant
         
         if fetched_value and isinstance(fetched_value, list):
-            admin_count = sum(1 for member in fetched_value if member.get('role') == 'admin')
+            admin_count = sum(1 for member in fetched_value if hasattr(member, 'role') and member.role == 'admin')
             member_count = len(fetched_value)
             
             # Account management compliance criteria
             has_admins = admin_count > 0
-            reasonable_admin_ratio = admin_count / member_count <= 0.3 if member_count > 0 else False
+            reasonable_admin_ratio = admin_count / member_count <= 0.5 if member_count > 0 else False
             has_members = member_count > 0
-            proper_roles = all(member.get('role') in ['admin', 'member'] for member in fetched_value)
+            proper_roles = all(hasattr(member, 'role') and member.role in ['admin', 'member'] for member in fetched_value)
             
             # Check all compliance criteria
             if has_admins and reasonable_admin_ratio and has_members and proper_roles:

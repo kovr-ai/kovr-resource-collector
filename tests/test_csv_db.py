@@ -7,7 +7,7 @@ from datetime import datetime
 import pandas as pd
 
 # Import the CSV database class
-from con_mon.utils.csv_db import CSVDatabase, get_csv_db
+from con_mon_v2.utils.db.csv import CSVDatabase, get_db as get_csv_db
 
 
 def setup_test_environment():
@@ -37,6 +37,10 @@ def test_csv_database_singleton():
     # Create multiple instances
     db1 = CSVDatabase()
     db2 = CSVDatabase()
+    
+    # Update module-level instance to match current singleton for testing
+    import con_mon_v2.utils.db.csv
+    con_mon_v2.utils.db.csv.db = db1
     db3 = get_csv_db()
     
     # Verify they are all the same instance
