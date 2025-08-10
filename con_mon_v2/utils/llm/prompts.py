@@ -15,13 +15,13 @@ import re
 import os
 import yaml
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional, Type, Tuple
+from typing import Dict, Any, Optional, Type, Tuple, List
 from pydantic import BaseModel
 from con_mon_v2.resources import Resource
-from con_mon_v2.checks import Check
-from con_mon_v2.checks.models import CheckMetadata, CheckResultStatement, CheckFailureFix, CheckOperation
+from con_mon_v2.compliance.models import Check, CheckMetadata, OutputStatements, FixDetails, CheckOperation
 from con_mon_v2.utils.services import ResourceCollectionService
 from con_mon_v2.connectors.models import ConnectorType
+from datetime import datetime
 
 from .client import get_llm_client, LLMRequest, LLMResponse
 
@@ -113,7 +113,7 @@ class BasePrompt(ABC):
         return self.process_response(response)
 
 
-class ChecksYamlPrompt(BasePrompt):
+class ChecksPrompt(BasePrompt):
     """
     Prompt for generating complete checks.yaml entries.
     
@@ -143,7 +143,7 @@ class ChecksYamlPrompt(BasePrompt):
 5.2 field_path must use dot notation to navigate nested structures
 5.3 field_path should start with one of the top level resource fields
 5.4 then navigate through nested objects using dots to reach the specific field you want to validate
-6. Generate Python code for the custom_logic that validates compliance in metadata.operation.logic
+6. Generate Python code for the logic that validates compliance in metadata.operation.logic
 6.1 the value at resource_type.field_path would be stored in fetched_value
 6.2 fetched_value would be a pydantic class or primitive type
 7. Set expected_value to null for custom logic checks in metadata
@@ -151,6 +151,7 @@ class ChecksYamlPrompt(BasePrompt):
 9. Set appropriate severity level (low, medium, high, critical) in metadata
 10. Choose the correct category in metadata
 11. Map to relevant control IDs - USE NUMERIC DATABASE ID {control_id}, NOT control name
+12. Include connection_id in metadata for database relationships
     """
 
     SAMPLE_FORMAT = """
@@ -177,17 +178,20 @@ checks:
   is_deleted: false
   metadata:
     # Resource evaluation fields
-    resource_type: # Choose specific resource type (GithubResource, AWSIAMResource, AWSEC2Resource, etc.)
+    resource_type: # Choose specific resource type (con_mon_v2.mappings.github.GithubResource, etc.)
     field_path: # Examples: "repository_data.basic_info.description", "security_data.security_analysis.advanced_security_enabled", "organization_data.members"
+    connection_id: # Database connection ID for resource relationships
     operation:
       name: custom
       logic: |
-        # CRITICAL: Custom logic rules:
+        # CRITICAL: Custom logic rules for compliance Check model:
         # 1. NEVER use 'return' statements - this is not a function!
         # 2. ALWAYS set 'result = True' for compliance, 'result = False' for non-compliance
         # 3. Use 'fetched_value' variable to access the field data
         # 4. NEVER use TODO comments - implement complete working logic
         # 5. Handle edge cases like None values, empty lists, missing fields
+        # 6. This logic will be executed via ComparisonOperation.__call__()
+        # 7. The logic will be dynamically compiled and executed safely
         
         result = False  # Default to non-compliant
         
@@ -235,8 +239,8 @@ checks:
 - data_protection: Encryption, data handling
 - network_security: Firewall, network controls
 
-**Custom Logic Rules (CRITICAL):**
-- NEVER use 'return' statements in custom_logic - this causes execution errors
+**Custom Logic Rules (CRITICAL FOR COMPLIANCE MODEL):**
+- NEVER use 'return' statements in logic - this causes execution errors
 - ALWAYS use 'result = True' for compliance, 'result = False' for non-compliance
 - Use 'fetched_value' variable to access the extracted field data
 - NEVER use TODO comments - implement complete, working logic
@@ -246,6 +250,8 @@ checks:
 - Make logic robust and production-ready
 - Include meaningful variable names and logic flow
 - Test multiple compliance criteria, not just one simple check
+- Logic will be executed via ComparisonOperation.get_custom_function()
+- The logic is dynamically compiled with safe globals and executed securely
 
 **Implementation Requirements:**
 - Generate complete, executable Python code
@@ -255,6 +261,7 @@ checks:
 - Include proper conditional logic
 - Handle edge cases gracefully
 - Make the logic comprehensive and thorough
+- Ensure logic works with the compliance Check model's execution flow
 
 Generate ONLY the YAML check entry with complete implementation, no explanations or additional text:
     """
@@ -389,13 +396,13 @@ You are a cybersecurity compliance expert. Generate a complete checks.yaml entry
 
     def process_response(self, response: LLMResponse) -> Check:
         """
-        Process checks YAML response and validate it.
+        Process checks YAML response and validate it for the new compliance Check model.
         
         Args:
             response: LLM response object
             
         Returns:
-            Validated Check object
+            Validated Check object using compliance models
         """
         content = response.content.strip()
         
@@ -431,58 +438,59 @@ You are a cybersecurity compliance expert. Generate a complete checks.yaml entry
             if isinstance(operation, dict) and 'logic' in operation:
                 custom_logic = operation['logic']
 
-        # Create CheckResultStatement object
+        # Create OutputStatements object (new compliance model)
         output_statements_data = check_dict.get('output_statements', {})
-        output_statements = CheckResultStatement(
+        output_statements = OutputStatements(
             success=output_statements_data.get('success', 'Check was successful'),
             failure=output_statements_data.get('failure', 'Check failed'),
             partial=output_statements_data.get('partial', 'Check was partially successful')
         )
         
-        # Create CheckFailureFix object
+        # Create FixDetails object (new compliance model)
         fix_details_data = check_dict.get('fix_details', {})
-        fix_details = CheckFailureFix(
+        fix_details = FixDetails(
             description=fix_details_data.get('description', 'Fix description not provided'),
             instructions=fix_details_data.get('instructions', ['No instructions provided']),
             estimated_date=fix_details_data.get('estimated_date', '2024-12-31'),
             automation_available=fix_details_data.get('automation_available', False)
         )
         
-        # Create CheckOperation object
+        # Create CheckOperation object (new compliance model)
         operation_data = metadata.get('operation', {})
         check_operation = CheckOperation(
             name=operation_data.get('name', 'custom'),
             logic=custom_logic or ''
         )
         
-        # Create CheckMetadata object
+        # Create CheckMetadata object (new compliance model)
         check_metadata = CheckMetadata(
             tags=metadata.get('tags', []),
-            severity=metadata.get('severity', 'medium'),
             category=metadata.get('category', 'configuration'),
-            field_path=metadata.get('field_path', 'data'),
+            severity=metadata.get('severity', 'medium'),
             operation=check_operation,
-            expected_value=metadata.get('expected_value'),
-            name=check_dict.get('name'),
-            logic=custom_logic,
-            resource_type=f"{self.resource_type.__module__}.{self.resource_type.__name__}"
+            field_path=metadata.get('field_path', 'data'),
+            connection_id=metadata.get('connection_id'),
+            resource_type=f"{self.resource_type.__module__}.{self.resource_type.__name__}",
+            expected_value=metadata.get('expected_value')
         )
         
-        # Prepare check dictionary for the new schema
+        # Prepare check dictionary for the new compliance schema
         check_dict_final = {
             'id': check_dict.get('name', check_dict.get('id')),
             'name': check_dict.get('name'),
             'description': check_dict.get('description'),
             'category': check_dict.get('category'),
-            'created_by': 'system',
-            'updated_by': 'system',
-            'is_deleted': False,
+            'created_by': check_dict.get('created_by', 'system'),
+            'updated_by': check_dict.get('updated_by', 'system'),
+            'created_at': datetime.now(),
+            'updated_at': datetime.now(),
+            'is_deleted': check_dict.get('is_deleted', False),
             'metadata': check_metadata,
             'output_statements': output_statements,
             'fix_details': fix_details
         }
         
-        # Create and validate the check
+        # Create and validate the check using the new compliance model
         check = Check(**check_dict_final)
         
         # Store raw YAML for debugging
@@ -510,15 +518,14 @@ class PromptResult(BaseModel):
     error: Optional[str] = None
 
 
-def generate_checks_yaml(
+def generate_checks(
     control_name: str,
     control_text: str,
     control_id: int,
     control_title: str,
     resource_type: Type[Resource],
-    connector_type: ConnectorType,
     **kwargs
-) -> Check:
+) -> List[Check]:
     """
     Quick function to generate complete checks.yaml entry.
     
@@ -534,12 +541,16 @@ def generate_checks_yaml(
     Returns:
         Generated and validated Check object
     """
-    prompt = ChecksYamlPrompt(
-        control_name=control_name,
-        control_text=control_text,
-        control_title=control_title,
-        resource_type=resource_type,
-        control_id=control_id,
-        connector_type=connector_type,
-    )
-    return prompt.generate(**kwargs)
+    checks: List[Check] = []
+    for connector_type in ConnectorType.__members__.values():
+        prompt = ChecksPrompt(
+            control_name=control_name,
+            control_text=control_text,
+            control_title=control_title,
+            resource_type=resource_type,
+            control_id=control_id,
+            connector_type=connector_type,
+        )
+        check = prompt.generate(**kwargs)
+        checks.append(check)
+    return checks
