@@ -32,7 +32,7 @@ if __name__ == "__main__":
             check_results = evaluate_check_against_rc(check)
             counter = 0
             while check_is_invalid(check_results):
-                fixed_check = generate_checks_for_all_providers(
+                check = generate_checks_for_all_providers(
                     control_name=control.control_name,
                     control_text=control.control_text,
                     control_title=control.control_long_name,
@@ -41,6 +41,8 @@ if __name__ == "__main__":
                 )
                 counter += 1
                 if counter > 3:
+                    check = None
                     break
-        checks.extend(checks)
+            if check is not None:
+                checks.append(check)
     print(f"{len(checks)} checks generated")
