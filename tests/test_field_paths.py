@@ -1040,68 +1040,6 @@ def list_of_field_paths(resource_name) -> List[str]:
     return field_paths[resource_name]
 
 
-def check_is_invalid(check: Check, check_results: List[CheckResult]) -> bool:
-    """
-    Validate based on any errors in check results if check should be used in production.
-    Return True if check is invalid and should be regenerated.
-
-    A check is considered invalid if:
-    1. No results available (can't evaluate)
-    2. All results have passed=None (evaluation errors/exceptions)
-    3. There are critical errors that prevent proper evaluation
-
-    A check is considered VALID (should not be regenerated) if:
-    1. At least one result has passed=True or passed=False (successful evaluation)
-    2. The check logic executed properly, even if it failed compliance
-
-    Args:
-        check_results: List of CheckResult objects from evaluating the check
-
-    Returns:
-        bool: True if check is invalid and should be regenerated, False if acceptable
-    """
-    print(f"🔍 check_is_invalid called with {len(check_results) if check_results else 0} results")
-
-    if not check_results:
-        print("❌ No check results - considering invalid")
-        return True
-
-    check_results = [
-        check_result
-        for check_result in check_results
-        if check_result.resource_model == check.resource_model
-    ]
-    if not check_results:
-        return False
-    # Debug: Print all results
-    for i, result in enumerate(check_results):
-        print(f"   Result {i + 1}: passed={result.passed}, error={result.error}")
-
-    # Count results with actual boolean values (successful evaluations)
-    successful_evaluations = 0
-    error_evaluations = 0
-
-    for check_result in check_results:
-        if check_result.passed is not None:  # Either True or False
-            successful_evaluations += 1
-            print(f"   ✅ Successful evaluation: passed={check_result.passed}")
-        else:
-            error_evaluations += 1
-            print(f"   ❌ Error evaluation: passed=None, error={check_result.error}")
-
-    # Check is VALID if we have at least some successful evaluations
-    # Even if all evaluations failed (passed=False), the check logic worked
-    if successful_evaluations > 0:
-        print(f"✅ Check has {successful_evaluations} successful evaluations - considering VALID")
-        print("   (Check logic executed properly, even if compliance failed)")
-        return False
-
-    # Check is INVALID if all evaluations failed with errors
-    print(f"❌ All {error_evaluations} evaluations had errors (passed=None) - considering INVALID")
-    print("   (Check logic has fundamental issues and needs regeneration)")
-    return True
-
-
 def test_github_resource_collection():
     rc = setup_github_resource_service()
     check = setup_test_check()
@@ -1110,19 +1048,23 @@ def test_github_resource_collection():
         for field_path in list_of_field_paths(resource_name):
             check.metadata.field_path = field_path
             check_results = check.evaluate(rc.resources)
-            assert check_is_invalid(check, check_results) is False, f'Check Evaluation failed for {resource_name}.{field_path}'
+            assert check.is_invalid(check_results) is False, f'Check Evaluation failed for {resource_name}.{field_path}'
 
 def test_aws_resource_collection():
     rc = setup_aws_resource_service()
     check = setup_test_check()
     for resource in rc.resources:
         resource_name = resource.__class__.__name__
+        # Update the resource type to match the current resource being tested
+        # AWS resources are in con_mon_v2.mappings.aws module
+        resource_type_path = f"con_mon_v2.mappings.aws.{resource_name}"
+        check.metadata.resource_type = resource_type_path
+        
         for field_path in list_of_field_paths(resource_name):
             check.metadata.field_path = field_path
             check_results = check.evaluate(rc.resources)
-            assert check_is_invalid(check, check_results) is False, f'Check Evaluation failed for {resource_name}.{field_path}'
+            assert check.is_invalid(check_results) is False, f'Check Evaluation failed for {resource_name}.{field_path}'
 
-
-if __name__ == '__main__':
+def test_all_field_paths():
     test_github_resource_collection()
     test_aws_resource_collection()

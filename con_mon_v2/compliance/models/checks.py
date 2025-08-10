@@ -329,6 +329,61 @@ class Check(TableModel):
         """Get the field_path to fetch value from metadata."""
         return self.metadata.field_path
 
+    def is_invalid(self, check_results: List['CheckResult']) -> bool:
+        """
+        Validate based on any errors in check results if check should be used in production.
+        Return True if check is invalid and should be regenerated.
+
+        A check is considered invalid if:
+        1. No results available (can't evaluate)
+        2. All results have passed=None (evaluation errors/exceptions)
+        3. There are critical errors that prevent proper evaluation
+
+        A check is considered VALID (should not be regenerated) if:
+        1. At least one result has passed=True or passed=False (successful evaluation)
+        2. The check logic executed properly, even if it failed compliance
+
+        Args:
+            check_results: List of CheckResult objects from evaluating the check
+
+        Returns:
+            bool: True if check is invalid and should be regenerated, False if acceptable
+        """
+        print(f"🔍 check_is_invalid called with {len(check_results) if check_results else 0} results")
+
+        if not check_results:
+            print("❌ No check results - considering invalid")
+            return True
+
+        check_results = [
+            check_result
+            for check_result in check_results
+            if check_result.resource_model == self.resource_model
+        ]
+        if not check_results:
+            return False
+        # Debug: Print all results
+        for i, result in enumerate(check_results):
+            print(f"   Result {i + 1}: passed={result.passed}, error={result.error}")
+
+        # Count results with actual boolean values (successful evaluations)
+        successful_evaluations = 0
+        # error_evaluations = 0
+
+        for check_result in check_results:
+            if check_result.passed is not None:  # Either True or False
+                successful_evaluations += 1
+            # else:
+            #     error_evaluations += 1
+
+        # Check is VALID if we have at least some successful evaluations
+        # Even if all evaluations failed (passed=False), the check logic worked
+        if successful_evaluations > 0:
+            return False
+
+        # Check is INVALID if all evaluations failed with errors
+        return True
+
     def evaluate(self, resources: List[Resource]) -> List["CheckResult"]:
         """
         Evaluate this check against a resource's data.
@@ -398,15 +453,15 @@ class Check(TableModel):
             ('max(', ')'),
             ('min(', ')')
         ]
-        
+
         for func_start, func_end in function_patterns:
             if field_path.startswith(func_start) and field_path.endswith(func_end):
                 # Extract the inner field path from function(field.path)
                 inner_field_path = field_path[len(func_start):-len(func_end)]
-                
+
                 # Extract the value using the inner field path
                 inner_value = self._extract_nested_value(resource, inner_field_path)
-                
+
                 # Apply the appropriate function
                 function_name = func_start[:-1]  # Remove the '('
                 return self._apply_function(function_name, inner_value)
@@ -473,8 +528,10 @@ class Check(TableModel):
     def _extract_nested_value(self, resource: Resource, field_path: str) -> Any:
         """Extract value from nested object using dot notation with wildcard array support."""
         
-        # Check if the field path contains wildcard array access
-        if '.*.' in field_path or field_path.endswith('.*'):
+        # Check if the field path contains any wildcard array access patterns
+        if (('.*.' in field_path or field_path.endswith('.*')) or
+            ('[*]' in field_path) or
+            ('[]' in field_path)):
             return self._extract_array_values(resource, field_path)
         
         # Regular dot notation extraction
@@ -490,68 +547,143 @@ class Check(TableModel):
         return value
 
     def _extract_array_values(self, resource: Resource, field_path: str) -> List[Any]:
-        """Extract values from arrays using wildcard syntax like 'branches.*.protection_details'."""
+        """
+        Extract values from arrays using various wildcard syntaxes:
+        - 'branches.*.protection_details' (dot-star)
+        - 'branches[*].protection_details' (bracket-star)  
+        - 'branches[].protection_details' (empty brackets)
+        - 'webhooks[*].events[*]' (nested patterns)
+        """
         
-        # Split path into parts, handling wildcards
+        # Normalize the field path to handle different bracket patterns
+        normalized_path = self._normalize_wildcard_path(field_path)
+        
+        # Split path into segments that may contain wildcards
+        segments = self._parse_path_segments(normalized_path)
+        
+        # Process the path recursively to handle nested wildcards
+        return self._extract_recursive_array_values(resource, segments)
+    
+    def _normalize_wildcard_path(self, field_path: str) -> str:
+        """
+        Normalize different wildcard syntaxes to a consistent format.
+        Converts [*] and [] patterns to .* for consistent processing.
+        """
+        import re
+        
+        # Convert [*] to .*
+        normalized = re.sub(r'\[\*\]', '.*', field_path)
+        
+        # Convert [] to .*
+        normalized = re.sub(r'\[\]', '.*', normalized)
+        
+        return normalized
+    
+    def _parse_path_segments(self, field_path: str) -> List[dict]:
+        """
+        Parse field path into segments that identify arrays and field access.
+        Returns list of segments with metadata about wildcards.
+        """
+        segments = []
         parts = field_path.split('.')
         
-        # Find the wildcard position
-        wildcard_index = None
-        for i, part in enumerate(parts):
+        i = 0
+        while i < len(parts):
+            part = parts[i]
+            
             if part == '*':
-                wildcard_index = i
+                # This is a wildcard - the previous segment should be marked as an array
+                if segments:
+                    segments[-1]['is_array'] = True
+                    segments[-1]['wildcard_type'] = 'star'
+                
+                # Add remaining path as the field to extract from each array element
+                remaining_parts = parts[i + 1:]
+                if remaining_parts:
+                    segments.append({
+                        'path': '.'.join(remaining_parts),
+                        'is_array': False,
+                        'is_remaining_path': True
+                    })
                 break
-        
-        if wildcard_index is None:
-            # No wildcard found, shouldn't happen but handle gracefully
-            return self._extract_nested_value(resource, field_path)
-        
-        # Extract up to the array (before wildcard)
-        array_path_parts = parts[:wildcard_index]
-        remaining_path_parts = parts[wildcard_index + 1:]
-        
-        # Get the array
-        array_value = resource
-        for key in array_path_parts:
-            if hasattr(array_value, key):
-                array_value = getattr(array_value, key)
-            elif isinstance(array_value, dict) and key in array_value:
-                array_value = array_value[key]
             else:
-                raise AttributeError(f"Field '{key}' not found in array path")
+                segments.append({
+                    'field': part,
+                    'is_array': False,
+                    'wildcard_type': None,
+                    'is_remaining_path': False
+                })
+            
+            i += 1
         
-        # Ensure we have an array/list
-        if not isinstance(array_value, (list, tuple)):
-            raise ValueError(f"Expected array at '{'.'.join(array_path_parts)}', got {type(array_value)}")
+        return segments
+    
+    def _extract_recursive_array_values(self, resource: Resource, segments: List[dict]) -> List[Any]:
+        """
+        Recursively extract values following the parsed segments.
+        Handles nested wildcards and complex path structures.
+        """
+        if not segments:
+            return [resource] if resource is not None else []
         
-        # Extract values from each array element
-        results = []
-        for item in array_value:
-            if not remaining_path_parts:
-                # Wildcard at end of path, return the items themselves
-                results.append(item)
+        current_segment = segments[0]
+        remaining_segments = segments[1:]
+        
+        # Handle remaining path segment (everything after a wildcard)
+        if current_segment.get('is_remaining_path'):
+            remaining_path = current_segment['path']
+            if remaining_path:
+                # Check if the remaining path has more wildcards
+                if (('.*.' in remaining_path or remaining_path.endswith('.*')) or
+                    ('[*]' in remaining_path) or
+                    ('[]' in remaining_path)):
+                    # Recursively handle nested wildcards
+                    return self._extract_array_values(resource, remaining_path)
+                else:
+                    # Simple field extraction
+                    try:
+                        return [self._extract_nested_value(resource, remaining_path)]
+                    except (AttributeError, TypeError):
+                        return []
             else:
-                # Extract nested value from each array item
-                try:
-                    nested_value = item
-                    for key in remaining_path_parts:
-                        if hasattr(nested_value, key):
-                            nested_value = getattr(nested_value, key)
-                        elif isinstance(nested_value, dict) and key in nested_value:
-                            nested_value = nested_value[key]
-                        else:
-                            # Field not found in this item, skip it or use None
-                            nested_value = None
-                            break
-                    
-                    if nested_value is not None:
-                        results.append(nested_value)
-                        
-                except (AttributeError, TypeError):
-                    # Skip items that don't have the required structure
-                    continue
+                return [resource] if resource is not None else []
         
-        return results
+        # Navigate to the field
+        field_name = current_segment['field']
+        try:
+            if hasattr(resource, field_name):
+                field_value = getattr(resource, field_name)
+            elif isinstance(resource, dict) and field_name in resource:
+                field_value = resource[field_name]
+            else:
+                raise AttributeError(f"Field '{field_name}' not found")
+        except (AttributeError, TypeError):
+            return []
+        
+        # If this segment is an array, extract from each element
+        if current_segment.get('is_array'):
+            if not isinstance(field_value, (list, tuple)):
+                # If it's not an array but marked as one, treat as single item
+                field_value = [field_value] if field_value is not None else []
+            
+            results = []
+            for item in field_value:
+                if remaining_segments:
+                    # Continue processing with remaining segments
+                    sub_results = self._extract_recursive_array_values(item, remaining_segments)
+                    results.extend(sub_results)
+                else:
+                    # No more segments, return the item itself
+                    if item is not None:
+                        results.append(item)
+            
+            return results
+        else:
+            # Not an array, continue with next segment
+            if remaining_segments:
+                return self._extract_recursive_array_values(field_value, remaining_segments)
+            else:
+                return [field_value] if field_value is not None else []
 
 
 class CheckResult(PydanticBaseModel):

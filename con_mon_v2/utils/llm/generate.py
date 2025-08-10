@@ -84,7 +84,7 @@ def evaluate_check_against_rc(check):
     print(f"Operation details:")
 
     # Show metadata
-    print(f"\nMetadata: {check.metadata}")
+    print(f"\nMetadata: {check.metadata.operation.logic}")
     print(f"Metadata type: {type(check.metadata)}")
 
     if check.metadata and check.metadata.operation and check.metadata.operation.logic:
