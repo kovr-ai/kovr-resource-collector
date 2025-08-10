@@ -159,7 +159,7 @@ checks:
             # Verify GitHub-specific details
             assert 'github' in check.metadata.resource_type.lower()
             assert check.metadata.field_path == 'organization_data.members'
-            assert check.metadata.operation.name == 'custom'
+            assert check.metadata.operation.name.value == 'custom'
             assert 'admin_count' in check.metadata.operation.logic
             
             # Verify tags and metadata
