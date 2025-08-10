@@ -4,7 +4,7 @@ from con_mon_v2.connectors import ConnectorType
 from con_mon_v2.utils.yaml_loader import ResourceYamlMapping
 from pathlib import Path
 from .prompt import CheckPrompt
-from con_mon_v2.compliance.models import Check
+from con_mon_v2.compliance.models import Check, CheckResult
 
 
 def get_provider_resources_mapping() -> Dict[ConnectorType, List[str]]:
@@ -126,10 +126,12 @@ def generate_check(
         control_id: int,
         connector_type: ConnectorType,
         resource_model_name: str,
+        check_results: List[CheckResult] | None = None,
         **kwargs
 ) -> Check:
     """
     Generate a single check using the V2 prompt system.
+    Uses Optional check_results to provide additional details in prompt to LLM for better results.
 
     Args:
         control_name: Control identifier (e.g., "AC-2")
@@ -138,12 +140,13 @@ def generate_check(
         control_id: Database ID of the control
         connector_type: Provider type (AWS, GitHub, etc.)
         resource_model_name: Specific resource model (e.g., "GithubResource", "EC2Resource")
+        check_results: List of CheckResult objects
         **kwargs: Additional LLM parameters
 
     Returns:
         Validated Check object that matches schema exactly
     """
-    prompt = CheckPrompt(
+    prompt_kwargs = dict(
         control_name=control_name,
         control_text=control_text,
         control_title=control_title,
@@ -151,6 +154,15 @@ def generate_check(
         connector_type=connector_type,
         resource_model_name=resource_model_name,
     )
+    if check_results:
+        prompt_kwargs.update(dict(check_results=check_results))
+
+    if check_results:
+        # prompt = CheckPromptWithResults(**prompt_kwargs)
+        prompt = CheckPrompt(**prompt_kwargs)
+    else:
+        prompt = CheckPrompt(**prompt_kwargs)
+
 
     return prompt.generate(**kwargs)
 
@@ -160,6 +172,7 @@ def generate_checks_for_all_providers(
         control_text: str,
         control_title: str,
         control_id: int,
+        check_results: List[CheckResult] | None = None,
         **kwargs
 ) -> List[Check]:
     """
@@ -167,12 +180,14 @@ def generate_checks_for_all_providers(
     
     This function now dynamically loads provider-to-resource mappings from 
     con_mon_v2.mappings (resources.yaml) instead of using hardcoded values.
+    Uses Optional check_results to provide additional details in prompt to LLM for better results.
 
     Args:
         control_name: Control identifier
         control_text: Control requirement text
         control_title: Control title
         control_id: Database ID of the control
+        check_results: List of CheckResult objects
         **kwargs: Additional LLM parameters
 
     Returns:
@@ -193,6 +208,7 @@ def generate_checks_for_all_providers(
                 control_id=control_id,
                 connector_type=connector_type,
                 resource_model_name=resource_model,
+                check_results=check_results,
                 **kwargs
             )
             checks.append(check)

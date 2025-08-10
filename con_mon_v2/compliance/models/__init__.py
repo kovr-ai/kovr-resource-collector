@@ -8,7 +8,7 @@ from .framework import Framework
 from .control import Control
 from .standard import Standard
 from .standard_control_mapping import StandardControlMapping
-from .checks import Check, OutputStatements, FixDetails, CheckMetadata, CheckOperation, ComparisonOperationEnum, ComparisonOperation
+from .checks import Check, CheckResult, OutputStatements, FixDetails, CheckMetadata, CheckOperation, ComparisonOperationEnum, ComparisonOperation
 from .helpers import (
     FrameworkWithControls, 
     StandardWithControls, 
@@ -27,7 +27,8 @@ __all__ = [
     'Standard',
     'StandardControlMapping',
     'Check',
-    
+    'CheckResult',
+
     # JSONB Nested Models
     'OutputStatements',
     'FixDetails', 
