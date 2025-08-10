@@ -33,14 +33,10 @@ class CheckMetadata(PydanticBaseModel):
         "expected_value": null
     }
     """
-    tags: Optional[List[str]] = Field(None, description="Tags array")
-    category: Optional[str] = Field(None, description="Check category")
-    severity: Optional[str] = Field(None, description="Severity level")
     operation: CheckOperation = Field(..., description="Operation configuration")
     field_path: str = Field(..., description="Resource field path")
-    connection_id: Optional[int] = Field(None, description="Connection ID")
-    resource_type: Optional[str] = Field(None, description="Resource type class path")
-    expected_value: Optional[Any] = Field(None, description="Expected value for comparison")
+    resource_type: str = Field(..., description="Resource type class path")
+    expected_value: Any = Field(..., description="Expected value for comparison")
 
 
 class OutputStatements(PydanticBaseModel):
@@ -54,9 +50,9 @@ class OutputStatements(PydanticBaseModel):
         "success": "Check passed: ..."
     }
     """
-    failure: Optional[str] = Field(None, description="Failure message")
-    partial: Optional[str] = Field(None, description="Partial success message")
-    success: Optional[str] = Field(None, description="Success message")
+    failure: str = Field(..., description="Failure message")
+    partial: str = Field(..., description="Partial success message")
+    success: str = Field(..., description="Success message")
 
 
 class FixDetails(PydanticBaseModel):
@@ -71,9 +67,9 @@ class FixDetails(PydanticBaseModel):
         "automation_available": false
     }
     """
-    description: Optional[str] = Field(None, description="Fix description")
-    instructions: Optional[List[str]] = Field(None, description="Step-by-step instructions")
-    estimated_date: Optional[str] = Field(None, description="Estimated completion date")
+    description: str = Field(..., description="Fix description")
+    instructions: List[str] = Field(..., description="Step-by-step instructions")
+    estimated_time: str = Field(..., description="Estimated time for fix in format W weeks D days H hours")
     automation_available: bool = Field(False, description="Whether automation is available")
 
 
