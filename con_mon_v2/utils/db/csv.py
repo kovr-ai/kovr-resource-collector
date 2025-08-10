@@ -510,14 +510,14 @@ class CSVDatabase:
 
 
 # Create singleton instance
-csv_db = CSVDatabase()
+db = CSVDatabase()
 
 
-def get_csv_db() -> CSVDatabase:
+def get_db() -> CSVDatabase:
     """
     Get the CSV database singleton instance.
     
     Returns:
         CSVDatabase singleton instance
     """
-    return csv_db 
+    return db

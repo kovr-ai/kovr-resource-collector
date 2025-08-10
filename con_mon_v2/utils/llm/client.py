@@ -25,7 +25,7 @@ import boto3
 from botocore.config import Config
 from botocore.exceptions import ClientError, NoCredentialsError, ProfileNotFound
 
-from con_mon.utils.config import settings
+from con_mon_v2.utils.config import settings
 
 # Set up logging
 logger = logging.getLogger(__name__)

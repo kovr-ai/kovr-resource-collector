@@ -47,6 +47,9 @@ class Settings(BaseModel):
     DB_NAME: str
     DB_USER: str
     DB_PASSWORD: str
+
+    # CSV Configuration
+    CSV_DATA: str
     LOG_LEVEL: str = "DEBUG"
     
     # AWS Configuration

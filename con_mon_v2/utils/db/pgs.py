@@ -10,7 +10,7 @@ import psycopg2.pool
 from typing import Optional, List, Dict, Any
 from contextlib import contextmanager
 import logging
-from con_mon.utils.config import settings
+from con_mon_v2.utils.config import settings
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)

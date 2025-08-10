@@ -12,7 +12,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Union, Tuple
-from con_mon.utils.db import get_db
+from con_mon_v2.utils.db import get_db
 from .models import (
     Check, ComparisonOperation, ComparisonOperationEnum, 
     CheckMetadata, CheckResultStatement, CheckFailureFix, CheckOperation
