@@ -119,6 +119,7 @@ class ChecksPrompt(BasePrompt):
     
     Generates a complete YAML check entry with all required fields including
     ID, operations, tags, severity, and control mappings stored in metadata.
+    This prompt is compatible with the compliance Check model structure.
     """
 
     CONTROL_INFORMATION = """
@@ -136,20 +137,21 @@ class ChecksPrompt(BasePrompt):
 1. Generate a complete YAML check entry following the exact format shown in the example
 2. Create a descriptive name using snake_case format
 3. Write a clear description explaining what the check validates
-4. Set appropriate resource_model using the resources structure below in metadata
-4.1 resource_model can only be one of resources_field_schemas
+4. Set appropriate resource_type using the resources structure below in metadata
+4.1 resource_type MUST be the full module path (e.g., con_mon_v2.mappings.github.GithubResource)
 5. Determine the correct field_path for the resource data using the resources structure below in metadata
-5.1 field_path must be available in the resource_model
+5.1 field_path must be available in the resource_type
 5.2 field_path must use dot notation to navigate nested structures
 5.3 field_path should start with one of the top level resource fields
 5.4 then navigate through nested objects using dots to reach the specific field you want to validate
 6. Generate Python code for the logic that validates compliance in metadata.operation.logic
-6.1 the value at resource_model.field_path would be stored in fetched_value
+6.1 the value at resource_type.field_path would be stored in fetched_value
 6.2 fetched_value would be a pydantic class or primitive type
 7. Set expected_value to null for custom logic checks in metadata
 8. Add relevant tags for categorization in metadata
 9. Set appropriate severity level (low, medium, high, critical) in metadata
 10. Choose the correct category in metadata
+11. The operation name MUST be a valid ComparisonOperationEnum value (CUSTOM, EQUAL, NOT_EQUAL, etc.)
     """
 
     SAMPLE_FORMAT = """
@@ -169,18 +171,17 @@ checks:
     instructions:
     - "Step 1: [specific action]"
     - "Step 2: [specific action]"
-    estimated_date: "2024-12-31"
+    estimated_time: "2 weeks"
     automation_available: false
   created_by: "system"
   updated_by: "system"
   is_deleted: false
   metadata:
-    # Resource evaluation fields
-    resource_type: # Choose specific resource type (con_mon_v2.mappings.github.GithubResource, etc.)
+    resource_type: # MUST be full module path (e.g., con_mon_v2.mappings.github.GithubResource)
     field_path: # Examples: "repository_data.basic_info.description", "security_data.security_analysis.advanced_security_enabled", "organization_data.members"
     operation:
-      name: CUSTOM  # Must be ComparisonOperationEnum value: CUSTOM, EQUAL, NOT_EQUAL, etc.
-      logic: |
+      name: CUSTOM  # MUST be ComparisonOperationEnum value: CUSTOM, EQUAL, NOT_EQUAL, etc. (uppercase)
+      logic: |  # CRITICAL: Use 'logic' not 'custom_logic'
         # CRITICAL: Custom logic rules for compliance Check model:
         # 1. MUST implement actual validation logic - empty logic will be rejected
         # 2. ALWAYS set 'result = True' for compliance, 'result = False' for non-compliance
@@ -257,6 +258,13 @@ checks:
 - Handle edge cases gracefully
 - Make the logic comprehensive and thorough
 - Ensure logic works with the compliance Check model's execution flow
+
+**YAML Format Requirements (CRITICAL):**
+- Use uppercase enum values for operation.name (CUSTOM, EQUAL, etc.)
+- Put resource_type, field_path, operation, expected_value, tags, severity, category in metadata
+- Use full module paths for resource_type (e.g., con_mon_v2.mappings.github.GithubResource)
+- Include all required root-level fields: id, name, description, category, output_statements, fix_details, created_by, updated_by, is_deleted, metadata
+- Use 'estimated_time' not 'estimated_date' in fix_details
 
 Generate ONLY the YAML check entry with complete implementation, no explanations or additional text:
     """
