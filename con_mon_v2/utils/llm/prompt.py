@@ -10,15 +10,21 @@ This module provides a new generation of prompts that:
 
 import os
 import yaml
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Type, Optional
 from datetime import datetime
-from abc import ABC
+from abc import ABC, abstractmethod
 
 from con_mon_v2.compliance.models import (
-    Check,
-    ComparisonOperationEnum
+    Check, 
+    CheckMetadata, 
+    CheckOperation, 
+    OutputStatements, 
+    FixDetails, 
+    ComparisonOperationEnum,
+    CheckResult
 )
 from con_mon_v2.connectors.models import ConnectorType
+from con_mon_v2.resources import Resource
 from .client import get_llm_client, LLMRequest, LLMResponse
 
 
@@ -330,3 +336,244 @@ Generate ONLY the YAML check entry with complete implementation. No explanations
         
         # Process and return the LLM response
         return self.process_response(response)
+
+
+class CheckPromptWithResults(CheckPrompt):
+    """
+    Enhanced prompt that includes previous check results and errors to help LLM generate better checks.
+    This version learns from failed attempts to create more appropriate field paths and logic.
+    """
+    
+    def __init__(
+        self,
+        control_name: str,
+        control_text: str,
+        control_title: str,
+        control_id: int,
+        connector_type: ConnectorType,
+        resource_model_name: str,
+        check_results: List[CheckResult],
+        suggested_severity: Optional[str] = None,
+        suggested_category: Optional[str] = None,
+    ):
+        # Initialize parent class
+        super().__init__(
+            control_name=control_name,
+            control_text=control_text,
+            control_title=control_title,
+            control_id=control_id,
+            connector_type=connector_type,
+            resource_model_name=resource_model_name,
+            suggested_severity=suggested_severity,
+            suggested_category=suggested_category,
+        )
+        
+        self.check_results = check_results
+        
+        # Override template variables to include results analysis
+        self.template_vars = self._generate_template_variables_with_results()
+    
+    def _generate_template_variables_with_results(self) -> Dict[str, Any]:
+        """Generate template variables including analysis of previous check results"""
+        # Start with base template variables
+        template_vars = super()._generate_template_variables()
+        
+        # Add results analysis
+        template_vars.update({
+            'previous_results_analysis': self._analyze_previous_results(),
+            'failed_field_paths': self._get_failed_field_paths(),
+            'actual_data_examples': self._get_actual_data_examples(),
+            'improvement_suggestions': self._get_improvement_suggestions()
+        })
+        
+        return template_vars
+    
+    def _analyze_previous_results(self) -> str:
+        """Analyze previous check results to understand what went wrong"""
+        if not self.check_results:
+            return "No previous results available."
+        
+        analysis = []
+        analysis.append("**Previous Check Results Analysis:**")
+        
+        total_results = len(self.check_results)
+        failed_results = [r for r in self.check_results if not r.passed]
+        passed_results = [r for r in self.check_results if r.passed]
+        
+        analysis.append(f"- Total resources tested: {total_results}")
+        analysis.append(f"- Failed: {len(failed_results)}")
+        analysis.append(f"- Passed: {len(passed_results)}")
+        
+        if failed_results:
+            analysis.append("\n**Common Failure Patterns:**")
+            
+            # Analyze field paths that failed
+            field_paths = set()
+            for result in failed_results:
+                if hasattr(result.check, 'field_path'):
+                    field_paths.add(result.check.field_path)
+            
+            if field_paths:
+                analysis.append(f"- Field paths that failed: {', '.join(field_paths)}")
+            
+            # Analyze errors
+            errors = [r.error for r in failed_results if r.error]
+            if errors:
+                analysis.append("- Common errors:")
+                for error in errors[:3]:  # Show first 3 errors
+                    analysis.append(f"  * {error}")
+        
+        return "\n".join(analysis)
+    
+    def _get_failed_field_paths(self) -> List[str]:
+        """Get list of field paths that failed in previous attempts"""
+        failed_paths = set()
+        for result in self.check_results:
+            if not result.passed and hasattr(result.check, 'field_path'):
+                failed_paths.add(result.check.field_path)
+        return list(failed_paths)
+    
+    def _get_actual_data_examples(self) -> str:
+        """Get examples of actual data found in resources to guide field selection"""
+        if not self.check_results:
+            return "No data examples available."
+        
+        examples = []
+        examples.append("**Actual Data Found in Resources:**")
+        
+        # Group by resource type and show actual values
+        resource_data = {}
+        for result in self.check_results:
+            resource_type = result.resource.__class__.__name__
+            if resource_type not in resource_data:
+                resource_data[resource_type] = []
+            
+            # Extract actual value from message if available
+            if "Actual:" in result.message:
+                actual_value = result.message.split("Actual: ")[-1]
+                field_path = getattr(result.check, 'field_path', 'unknown')
+                resource_data[resource_type].append(f"{field_path} = {actual_value}")
+        
+        for resource_type, data_points in resource_data.items():
+            examples.append(f"\n{resource_type}:")
+            for data_point in data_points[:5]:  # Show first 5 examples
+                examples.append(f"  - {data_point}")
+        
+        return "\n".join(examples)
+    
+    def _get_improvement_suggestions(self) -> str:
+        """Generate suggestions for improving the check based on failures"""
+        suggestions = []
+        suggestions.append("**Improvement Suggestions:**")
+        
+        failed_paths = self._get_failed_field_paths()
+        if failed_paths:
+            suggestions.append("- AVOID these field paths that failed previously:")
+            for path in failed_paths:
+                suggestions.append(f"  * {path}")
+
+        suggestions.append("- Choose field paths that contain RELEVANT data for the control requirement")
+        suggestions.append("- Ensure custom logic checks for meaningful compliance indicators")
+        
+        return "\n".join(suggestions)
+    
+    def format_prompt(self, **kwargs) -> str:
+        """Format the enhanced prompt with previous results analysis"""
+        
+        # Enhanced prompt template that includes results analysis
+        enhanced_prompt_template = """You are a cybersecurity compliance expert. Generate a YAML check entry that matches the Check model schema EXACTLY.
+
+IMPORTANT: Learn from the previous failed attempts shown below to create a BETTER check.
+
+{previous_results_analysis}
+
+{actual_data_examples}
+
+{improvement_suggestions}
+
+**Control Information:**
+- Control ID: {control_name}
+- Control Title: {control_title}
+- Provider: {provider_name} ({connector_type})
+- Resource Type: {resource_model_name}
+
+**Control Requirement:**
+{control_text}
+
+{resource_schema}
+
+**Available Operations:** {available_operations}
+
+**Field Path Examples for {resource_model_name}:**
+{field_path_examples_formatted}
+
+**CRITICAL REQUIREMENTS:**
+1. Generate YAML that matches the Check model schema EXACTLY
+2. Use operation name from: {available_operations}
+3. Use full resource type path: {resource_type_full_path}
+4. Implement complete custom logic (no TODO comments)
+5. Handle all edge cases: None, empty lists, missing fields
+6. Set result = True for compliance, result = False for non-compliance
+7. Use fetched_value variable to access field data
+8. LEARN FROM FAILURES: Avoid field paths and logic that failed before
+9. Choose field paths that contain RELEVANT data for this specific control
+
+**EXACT YAML SCHEMA TO FOLLOW:**
+```yaml
+checks:
+- id: "{check_id}"
+  name: "{check_name}"
+  description: "{check_description}"
+  category: "{suggested_category}"
+  output_statements:
+    success: "Check passed: [specific success message]"
+    failure: "Check failed: [specific failure message]"
+    partial: "Check partially passed: [specific partial message]"
+  fix_details:
+    description: "[Specific remediation steps]"
+    instructions:
+    - "[Step 1 with specific action]"
+    - "[Step 2 with specific action]"
+    estimated_time: "{estimated_time}"
+    automation_available: false
+  created_by: "system"
+  updated_by: "system"
+  is_deleted: false
+  metadata:
+    resource_type: "{resource_type_full_path}"
+    field_path: "[CHOOSE BETTER PATH BASED ON ANALYSIS ABOVE]"
+    operation:
+      name: "custom"
+      logic: |
+        result = False
+        
+        # Implement complete validation logic here
+        # LEARN FROM PREVIOUS FAILURES - create logic that works with actual data
+        # Example structure:
+        if fetched_value and isinstance(fetched_value, [EXPECTED_TYPE]):
+            # Multiple validation criteria based on ACTUAL control requirements
+            condition1 = [validation logic]
+            condition2 = [validation logic]
+            condition3 = [validation logic]
+            
+            if condition1 and condition2 and condition3:
+                result = True
+        elif fetched_value is None:
+            result = False
+    expected_value: null
+    tags: {tags}
+    severity: "{suggested_severity}"
+    category: "{suggested_category}"
+```
+
+Generate ONLY the YAML check entry with complete implementation. No explanations, no additional text, no markdown code blocks."""
+
+        # Format field path examples
+        field_paths_formatted = '\n'.join([f"- {path}" for path in self.template_vars['field_path_examples']])
+        
+        # Format the complete enhanced prompt
+        return enhanced_prompt_template.format(
+            resource_schema=self.get_resource_schema_section(),
+            field_path_examples_formatted=field_paths_formatted,
+            **self.template_vars
+        )

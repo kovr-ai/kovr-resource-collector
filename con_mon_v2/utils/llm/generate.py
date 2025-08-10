@@ -3,7 +3,7 @@ from con_mon_v2.utils.services import ResourceCollectionService
 from con_mon_v2.connectors import ConnectorType
 from con_mon_v2.utils.yaml_loader import ResourceYamlMapping
 from pathlib import Path
-from .prompt import CheckPrompt
+from .prompt import CheckPrompt, CheckPromptWithResults
 from con_mon_v2.compliance.models import Check, CheckResult
 
 
@@ -140,7 +140,7 @@ def generate_check(
         control_id: Database ID of the control
         connector_type: Provider type (AWS, GitHub, etc.)
         resource_model_name: Specific resource model (e.g., "GithubResource", "EC2Resource")
-        check_results: List of CheckResult objects
+        check_results: List of CheckResult objects from previous failed attempts
         **kwargs: Additional LLM parameters
 
     Returns:
@@ -154,15 +154,16 @@ def generate_check(
         connector_type=connector_type,
         resource_model_name=resource_model_name,
     )
+    
     if check_results:
+        # Use enhanced prompt with previous results analysis
         prompt_kwargs.update(dict(check_results=check_results))
-
-    if check_results:
-        # prompt = CheckPromptWithResults(**prompt_kwargs)
-        prompt = CheckPrompt(**prompt_kwargs)
+        prompt = CheckPromptWithResults(**prompt_kwargs)
+        print(f"🔄 Using CheckPromptWithResults with {len(check_results)} previous results for learning")
     else:
+        # Use standard prompt
         prompt = CheckPrompt(**prompt_kwargs)
-
+        print("🆕 Using standard CheckPrompt (no previous results)")
 
     return prompt.generate(**kwargs)
 
@@ -212,5 +213,6 @@ def generate_checks_for_all_providers(
                 **kwargs
             )
             checks.append(check)
+            break
 
     return checks

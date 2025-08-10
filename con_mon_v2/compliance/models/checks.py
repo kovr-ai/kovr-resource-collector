@@ -354,7 +354,7 @@ class Check(TableModel):
             except Exception as field_error:
                 # Field extraction failed - create failed result with error details
                 check_result = CheckResult(
-                    passed=False,
+                    passed=None,
                     check=self,
                     resource=resource,
                     message=f"Check '{self.name}' failed due to missing field",
@@ -375,7 +375,7 @@ class Check(TableModel):
             except Exception as compare_error:
                 # Comparison failed - create failed result with error details
                 check_result = CheckResult(
-                    passed=False,
+                    passed=None,
                     check=self,
                     resource=resource,
                     message=f"Check '{self.name}' failed due to comparison error",
@@ -421,7 +421,7 @@ class Check(TableModel):
 
 class CheckResult(PydanticBaseModel):
     """Result of a check evaluation."""
-    passed: bool
+    passed: bool | None
     check: Check
     resource: Resource
     message: Optional[str] = None
