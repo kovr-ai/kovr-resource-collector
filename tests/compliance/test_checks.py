@@ -2,6 +2,54 @@
 
 from datetime import datetime
 from con_mon_v2.compliance.models import Check, CheckMetadata, OutputStatements, FixDetails, CheckOperation, ComparisonOperationEnum, ComparisonOperation
+from con_mon_v2.resources import Resource
+
+# Mock Resource for testing
+class MockResource(Resource):
+    """Mock resource for testing field extraction"""
+    
+    # Define the additional fields that aren't in the base Resource class
+    repository_data: dict
+    collaborators: list
+    
+    def __init__(self, **data):
+        # Set required Resource fields
+        if 'id' not in data:
+            data['id'] = "mock_resource"
+        if 'source_connector' not in data:
+            data['source_connector'] = "mock"
+        
+        # Set mock data
+        if 'repository_data' not in data:
+            data['repository_data'] = {
+                'branches': [
+                    {'name': 'main', 'protection_details': {'enabled': True, 'required_reviewers': 2}},
+                    {'name': 'dev', 'protection_details': {'enabled': False, 'required_reviewers': 1}},
+                    {'name': 'feature', 'protection_details': {'enabled': True, 'required_reviewers': 3}},
+                    {'name': 'hotfix', 'protection_details': None}  # Test missing data
+                ],
+                'security_settings': {
+                    'alerts': [
+                        {'type': 'secret_scanning', 'enabled': True},
+                        {'type': 'dependency_scanning', 'enabled': False},
+                        {'type': 'code_scanning', 'enabled': True}
+                    ]
+                },
+                'basic_info': {
+                    'description': 'Test repository',
+                    'visibility': 'private'
+                }
+            }
+        
+        if 'collaborators' not in data:
+            data['collaborators'] = [
+                {'login': 'admin1', 'permissions': {'admin': True, 'push': True}},
+                {'login': 'dev1', 'permissions': {'admin': False, 'push': True}},
+                {'login': 'viewer1', 'permissions': {'admin': False, 'push': False}}
+            ]
+        
+        # Call parent constructor
+        super().__init__(**data)
 
 def test_check_model_structure():
     """Test that the new Check model has the expected structure."""
@@ -57,6 +105,261 @@ def test_check_model_structure():
         
     except Exception as e:
         print(f"❌ Check model structure test failed: {e}")
+        raise
+
+def test_enhanced_field_extraction_wildcards():
+    """Test enhanced field extraction with wildcard array operations."""
+    try:
+        # Create a test check with custom operation for field extraction
+        metadata = CheckMetadata(
+            operation=CheckOperation(name=ComparisonOperationEnum.CUSTOM, logic="result = True"),
+            field_path="repository_data.branches.*.protection_details.enabled",
+            resource_type="tests.compliance.test_checks.MockResource",
+            tags=["test"],
+            category="test",
+            severity="medium"
+        )
+        
+        check = Check(
+            id="test_wildcard",
+            name="Wildcard Test Check",
+            description="Test wildcard extraction",
+            category="test",
+            created_by="test",
+            updated_by="test",
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
+            metadata=metadata,
+            output_statements=OutputStatements(
+                success="Test passed", failure="Test failed", partial="Test partial"
+            ),
+            fix_details=FixDetails(
+                description="Test fix", instructions=["Step 1"], automation_available=False
+            )
+        )
+        
+        resource = MockResource()
+        
+        # Test wildcard extraction
+        enabled_values = check._extract_field_value(resource, "repository_data.branches.*.protection_details.enabled")
+        expected = [True, False, True]  # Note: None values are filtered out
+        assert enabled_values == expected, f"Expected {expected}, got {enabled_values}"
+        
+        # Test wildcard with numeric values
+        reviewer_counts = check._extract_field_value(resource, "repository_data.branches.*.protection_details.required_reviewers")
+        expected_reviewers = [2, 1, 3]  # None values filtered out
+        assert reviewer_counts == expected_reviewers, f"Expected {expected_reviewers}, got {reviewer_counts}"
+        
+        # Test wildcard at end of path
+        branch_names = check._extract_field_value(resource, "repository_data.branches.*.name")
+        expected_names = ['main', 'dev', 'feature', 'hotfix']
+        assert branch_names == expected_names, f"Expected {expected_names}, got {branch_names}"
+        
+        print("✅ Enhanced field extraction wildcards test passed")
+        
+    except Exception as e:
+        print(f"❌ Enhanced field extraction wildcards test failed: {e}")
+        raise
+
+def test_enhanced_field_extraction_functions():
+    """Test enhanced field extraction with built-in functions."""
+    try:
+        resource = MockResource()
+        
+        # Create a test check for function testing
+        metadata = CheckMetadata(
+            operation=CheckOperation(name=ComparisonOperationEnum.CUSTOM, logic="result = True"),
+            field_path="test.path",
+            resource_type="tests.compliance.test_checks.MockResource",
+            tags=["test"],
+            category="test",
+            severity="medium"
+        )
+        
+        check = Check(
+            id="test_functions",
+            name="Functions Test Check",
+            description="Test function extraction",
+            category="test",
+            created_by="test",
+            updated_by="test",
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
+            metadata=metadata,
+            output_statements=OutputStatements(
+                success="Test passed", failure="Test failed", partial="Test partial"
+            ),
+            fix_details=FixDetails(
+                description="Test fix", instructions=["Step 1"], automation_available=False
+            )
+        )
+        
+        # Test len() function
+        branch_count = check._extract_field_value(resource, "len(repository_data.branches)")
+        assert branch_count == 4, f"Expected 4 branches, got {branch_count}"
+        
+        # Test any() function
+        any_protected = check._extract_field_value(resource, "any(repository_data.branches.*.protection_details.enabled)")
+        assert any_protected == True, f"Expected True for any protected, got {any_protected}"
+        
+        # Test all() function  
+        all_protected = check._extract_field_value(resource, "all(repository_data.branches.*.protection_details.enabled)")
+        assert all_protected == False, f"Expected False for all protected, got {all_protected}"
+        
+        # Test count() function
+        protected_count = check._extract_field_value(resource, "count(repository_data.branches.*.protection_details.enabled)")
+        assert protected_count == 2, f"Expected 2 protected branches, got {protected_count}"
+        
+        # Test sum() function
+        total_reviewers = check._extract_field_value(resource, "sum(repository_data.branches.*.protection_details.required_reviewers)")
+        assert total_reviewers == 6, f"Expected 6 total reviewers, got {total_reviewers}"  # 2+1+3
+        
+        # Test max() function
+        max_reviewers = check._extract_field_value(resource, "max(repository_data.branches.*.protection_details.required_reviewers)")
+        assert max_reviewers == 3, f"Expected 3 max reviewers, got {max_reviewers}"
+        
+        # Test min() function
+        min_reviewers = check._extract_field_value(resource, "min(repository_data.branches.*.protection_details.required_reviewers)")
+        assert min_reviewers == 1, f"Expected 1 min reviewers, got {min_reviewers}"
+        
+        print("✅ Enhanced field extraction functions test passed")
+        
+    except Exception as e:
+        print(f"❌ Enhanced field extraction functions test failed: {e}")
+        raise
+
+def test_enhanced_field_extraction_edge_cases():
+    """Test enhanced field extraction edge cases and error handling."""
+    try:
+        resource = MockResource()
+        
+        # Create a test check
+        metadata = CheckMetadata(
+            operation=CheckOperation(name=ComparisonOperationEnum.CUSTOM, logic="result = True"),
+            field_path="test.path",
+            resource_type="tests.compliance.test_checks.MockResource",
+            tags=["test"],
+            category="test",
+            severity="medium"
+        )
+        
+        check = Check(
+            id="test_edge_cases",
+            name="Edge Cases Test Check", 
+            description="Test edge cases",
+            category="test",
+            created_by="test",
+            updated_by="test",
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
+            metadata=metadata,
+            output_statements=OutputStatements(
+                success="Test passed", failure="Test failed", partial="Test partial"
+            ),
+            fix_details=FixDetails(
+                description="Test fix", instructions=["Step 1"], automation_available=False
+            )
+        )
+        
+        # Test non-existent path with function
+        try:
+            result = check._extract_field_value(resource, "len(nonexistent.path)")
+            # Should handle gracefully and return 0
+            assert result == 0, f"Expected 0 for non-existent path, got {result}"
+        except AttributeError:
+            # This is also acceptable behavior
+            pass
+        
+        # Test function with empty array - should handle missing field gracefully
+        try:
+            empty_result = check._extract_field_value(resource, "len(repository_data.empty_array)")
+            # Should handle missing field gracefully and return 0
+            assert empty_result == 0, f"Expected 0 for missing field, got {empty_result}"
+        except AttributeError:
+            # Expected for non-existent paths - this is acceptable behavior
+            pass
+        
+        # Test any() with empty results
+        try:
+            any_empty = check._extract_field_value(resource, "any(repository_data.nonexistent.*.field)")
+            # Should handle gracefully
+        except AttributeError:
+            # Expected for non-existent paths
+            pass
+        
+        # Test function on non-array data (this should work)
+        desc_length = check._extract_field_value(resource, "len(repository_data.basic_info.description)")
+        assert isinstance(desc_length, int), f"Expected int length, got {type(desc_length)}"
+        assert desc_length > 0, f"Expected positive length, got {desc_length}"
+        
+        # Test regular field extraction that should work
+        branch_count = check._extract_field_value(resource, "len(repository_data.branches)")
+        assert branch_count == 4, f"Expected 4 branches, got {branch_count}"
+        
+        print("✅ Enhanced field extraction edge cases test passed")
+        
+    except Exception as e:
+        print(f"❌ Enhanced field extraction edge cases test failed: {e}")
+        raise
+
+def test_enhanced_field_extraction_complex_scenarios():
+    """Test complex real-world scenarios with enhanced field extraction."""
+    try:
+        resource = MockResource()
+        
+        # Create a test check
+        metadata = CheckMetadata(
+            operation=CheckOperation(name=ComparisonOperationEnum.CUSTOM, logic="result = True"),
+            field_path="test.path",
+            resource_type="tests.compliance.test_checks.MockResource",
+            tags=["test"],
+            category="test",
+            severity="medium"
+        )
+        
+        check = Check(
+            id="test_complex",
+            name="Complex Scenarios Test Check",
+            description="Test complex scenarios",
+            category="test",
+            created_by="test",
+            updated_by="test",
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
+            metadata=metadata,
+            output_statements=OutputStatements(
+                success="Test passed", failure="Test failed", partial="Test partial"
+            ),
+            fix_details=FixDetails(
+                description="Test fix", instructions=["Step 1"], automation_available=False
+            )
+        )
+        
+        # Scenario 1: Check if any security alerts are enabled
+        any_alerts = check._extract_field_value(resource, "any(repository_data.security_settings.alerts.*.enabled)")
+        assert any_alerts == True, f"Expected True for any alerts enabled, got {any_alerts}"
+        
+        # Scenario 2: Count admin collaborators
+        admin_perms = check._extract_field_value(resource, "collaborators.*.permissions.admin")
+        admin_count = check._extract_field_value(resource, "count(collaborators.*.permissions.admin)")
+        assert admin_count == 1, f"Expected 1 admin, got {admin_count}"  # Only one True value
+        
+        # Scenario 3: Check if all branches have protection (should be False)
+        all_protected = check._extract_field_value(resource, "all(repository_data.branches.*.protection_details.enabled)")
+        assert all_protected == False, f"Expected False for all protected, got {all_protected}"
+        
+        # Scenario 4: Get maximum required reviewers across all branches
+        max_reviewers = check._extract_field_value(resource, "max(repository_data.branches.*.protection_details.required_reviewers)")
+        assert max_reviewers == 3, f"Expected 3 max reviewers, got {max_reviewers}"
+        
+        # Scenario 5: Count total security alert types
+        alert_count = check._extract_field_value(resource, "len(repository_data.security_settings.alerts)")
+        assert alert_count == 3, f"Expected 3 alert types, got {alert_count}"
+        
+        print("✅ Enhanced field extraction complex scenarios test passed")
+        
+    except Exception as e:
+        print(f"❌ Enhanced field extraction complex scenarios test failed: {e}")
         raise
 
 def test_check_operation_enum_validation():
@@ -497,6 +800,10 @@ except NameError:
 
 if __name__ == "__main__":
     test_check_model_structure()
+    test_enhanced_field_extraction_wildcards()
+    test_enhanced_field_extraction_functions()
+    test_enhanced_field_extraction_edge_cases()
+    test_enhanced_field_extraction_complex_scenarios()
     test_check_operation_enum_validation()
     test_check_operation_empty_logic_validation()
     test_comparison_operation_standard_functions()
