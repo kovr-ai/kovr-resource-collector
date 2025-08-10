@@ -350,7 +350,7 @@ class Check(TableModel):
         for resource in resources_to_check:
             try:
                 # Try to extract field value - may fail if field is missing
-                actual_value = self._extract_field_value(resource, self.field_path)
+                fetched_value = self._extract_field_value(resource, self.field_path)
             except Exception as field_error:
                 # Field extraction failed - create failed result with error details
                 check_result = CheckResult(
@@ -365,12 +365,12 @@ class Check(TableModel):
 
             try:
                 # Try to compare values - may fail due to type mismatch or other issues
-                passed = self.comparison_operation(actual_value, self.expected_value)
+                passed = self.comparison_operation(fetched_value, self.expected_value)
                 check_result = CheckResult(
                     passed=passed,
                     check=self,
                     resource=resource,
-                    message=f"Check '{self.name}' {'passed' if passed else 'failed'}. Expected: {self.expected_value}, Actual: {actual_value}"
+                    message=f"Check '{self.name}' {'passed' if passed else 'failed'}. Expected: {self.expected_value}, Fetched: {fetched_value}"
                 )
             except Exception as compare_error:
                 # Comparison failed - create failed result with error details
@@ -379,7 +379,7 @@ class Check(TableModel):
                     check=self,
                     resource=resource,
                     message=f"Check '{self.name}' failed due to comparison error",
-                    error=f"Comparison failed: {str(compare_error)}. Field path: {self.field_path}, Expected: {self.expected_value}, Actual: {actual_value}"
+                    error=f"Comparison failed: {str(compare_error)}. Field path: {self.field_path}, Expected: {self.expected_value}, Fetched: {fetched_value}"
                 )
 
             check_results.append(check_result)

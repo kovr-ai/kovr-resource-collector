@@ -87,7 +87,7 @@ def evaluate_check_against_rc(check):
     print(f"\nMetadata: {check.metadata}")
     print(f"Metadata type: {type(check.metadata)}")
 
-    if check.metadata and hasattr(check, 'comparison_operation') and check.comparison_operation.logic:
+    if check.metadata and check.metadata.operation and check.metadata.operation.logic:
         print("\nCustom Logic from metadata:")
         print("-" * 40)
         print("Field Path:")
@@ -95,7 +95,7 @@ def evaluate_check_against_rc(check):
         print(check.metadata.field_path)  # Pretty print
         print("Formatted Custom Logic:")
         print("-" * 40)
-        print(check.comparison_operation.logic)  # Pretty print
+        print(check.metadata.operation.logic)  # Pretty print
         print("-" * 40)
     else:
         print("No custom logic found in metadata")
