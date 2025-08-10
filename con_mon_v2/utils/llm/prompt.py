@@ -566,6 +566,56 @@ Full Resource Object:
    → `fetched_value = [{{"alarm_name": "HighCPU", "alarm_actions": [...]}}, {{"alarm_name": "LowMemory", "alarm_actions": [...]}}]`
    → Logic should iterate through this list of alarm objects
 
+**🚨 CRITICAL: PYDANTIC MODEL ACCESS 🚨**
+
+**IMPORTANT:** When field_path extracts nested data, the results may be **Pydantic model objects**, NOT Python dictionaries!
+
+**❌ WRONG - Using dict methods on Pydantic objects:**
+```python
+# This will FAIL with AttributeError
+for statement in fetched_value:
+    if statement.get('Effect') == 'Allow':  # ERROR: Pydantic models don't have .get()
+        condition = statement.get('Condition')  # ERROR: Use attribute access instead
+```
+
+**✅ CORRECT - Using attribute access on Pydantic objects:**
+```python
+# This works with both dicts AND Pydantic models
+for statement in fetched_value:
+    if hasattr(statement, 'Effect'):
+        effect = statement.Effect
+    elif isinstance(statement, dict):
+        effect = statement.get('Effect')
+    else:
+        effect = getattr(statement, 'Effect', None)
+    
+    if effect == 'Allow':
+        # Access nested attributes safely
+        condition = getattr(statement, 'Condition', None)
+        if condition:
+            # Handle condition logic...
+```
+
+**✅ BEST PRACTICE - Safe attribute/key access:**
+```python
+def safe_get(obj, key, default=None):
+    \"\"\"Safely get value from dict or Pydantic object\"\"\"
+    if hasattr(obj, key):
+        return getattr(obj, key, default)
+    elif isinstance(obj, dict):
+        return obj.get(key, default)
+    return default
+
+# Usage:
+for statement in fetched_value:
+    effect = safe_get(statement, 'Effect')
+    if effect == 'Allow':
+        condition = safe_get(statement, 'Condition')
+        if condition:
+            bool_condition = safe_get(condition, 'Bool')
+            # etc...
+```
+
 **❌ WRONG LOGIC (assumes full resource):**
 ```python
 # This will FAIL because fetched_value is NOT the full resource
@@ -592,10 +642,59 @@ if isinstance(fetched_value, list):
 - Do NOT assume fetched_value has the full resource structure
 - Write logic that works with the specific data format returned by this field path
 
+**🚨 CRITICAL: VARIABLE SCOPE IN CUSTOM LOGIC 🚨**
+
+**IMPORTANT:** In your custom logic, you can ONLY use these variables:
+- `fetched_value` - the data extracted by the field_path
+- `result` - the variable to set (True/False for compliance)
+
+**❌ DO NOT use these variables (they don't exist):**
+- `resource` - This variable is NOT available in custom logic scope
+- Any other variable names not listed above
+
+**❌ WRONG - Using undefined variables:**
+```python
+# This will cause NameError - 'resource' is not defined
+policy_statements = safe_get(resource, 'policies.*.default_version.Document.Statement')
+log_groups = safe_get(resource, 'log_groups', [])
+```
+
+**✅ CORRECT - Only use fetched_value:**
+```python
+# Only use the data extracted by your field_path
+if isinstance(fetched_value, list):
+    for item in fetched_value:
+        # Process the extracted data
+        if item and hasattr(item, 'some_attribute'):
+            result = True
+            break
+```
+
 **Available Operations:** {available_operations}
 
 **Field Path Examples for {resource_model_name}:**
 {field_path_examples_formatted}
+
+**🚨 CRITICAL: FIELD PATH RESTRICTION 🚨**
+
+**MANDATORY:** You MUST choose your field_path from the list above. DO NOT create custom field paths!
+
+**✅ VALID - Choose from the provided list:**
+- Pick ONE field path from the {resource_model_name} list above
+- Use the EXACT spelling and format shown
+- The path must exist in the list above
+
+**❌ INVALID - Do NOT create custom paths:**
+- Do NOT invent new field paths
+- Do NOT modify the provided paths
+- Do NOT combine multiple paths
+- Do NOT use paths not in the list
+
+**Example:**
+If the list contains `alarms[*].alarm_actions`, use exactly:
+```yaml
+field_path: "alarms[*].alarm_actions"
+```
 
 **VALIDATION LOGIC REQUIREMENTS:**
 1. Validate THIS ONE resource instance (not multiple resources)
@@ -1021,6 +1120,56 @@ Full Resource Object:
    → `fetched_value = [{{"alarm_name": "HighCPU", "alarm_actions": [...]}}, {{"alarm_name": "LowMemory", "alarm_actions": [...]}}]`
    → Logic should iterate through this list of alarm objects
 
+**🚨 CRITICAL: PYDANTIC MODEL ACCESS 🚨**
+
+**IMPORTANT:** When field_path extracts nested data, the results may be **Pydantic model objects**, NOT Python dictionaries!
+
+**❌ WRONG - Using dict methods on Pydantic objects:**
+```python
+# This will FAIL with AttributeError
+for statement in fetched_value:
+    if statement.get('Effect') == 'Allow':  # ERROR: Pydantic models don't have .get()
+        condition = statement.get('Condition')  # ERROR: Use attribute access instead
+```
+
+**✅ CORRECT - Using attribute access on Pydantic objects:**
+```python
+# This works with both dicts AND Pydantic models
+for statement in fetched_value:
+    if hasattr(statement, 'Effect'):
+        effect = statement.Effect
+    elif isinstance(statement, dict):
+        effect = statement.get('Effect')
+    else:
+        effect = getattr(statement, 'Effect', None)
+    
+    if effect == 'Allow':
+        # Access nested attributes safely
+        condition = getattr(statement, 'Condition', None)
+        if condition:
+            # Handle condition logic...
+```
+
+**✅ BEST PRACTICE - Safe attribute/key access:**
+```python
+def safe_get(obj, key, default=None):
+    \"\"\"Safely get value from dict or Pydantic object\"\"\"
+    if hasattr(obj, key):
+        return getattr(obj, key, default)
+    elif isinstance(obj, dict):
+        return obj.get(key, default)
+    return default
+
+# Usage:
+for statement in fetched_value:
+    effect = safe_get(statement, 'Effect')
+    if effect == 'Allow':
+        condition = safe_get(statement, 'Condition')
+        if condition:
+            bool_condition = safe_get(condition, 'Bool')
+            # etc...
+```
+
 **❌ WRONG LOGIC (assumes full resource):**
 ```python
 # This will FAIL because fetched_value is NOT the full resource
@@ -1047,10 +1196,59 @@ if isinstance(fetched_value, list):
 - Do NOT assume fetched_value has the full resource structure
 - Write logic that works with the specific data format returned by this field path
 
+**🚨 CRITICAL: VARIABLE SCOPE IN CUSTOM LOGIC 🚨**
+
+**IMPORTANT:** In your custom logic, you can ONLY use these variables:
+- `fetched_value` - the data extracted by the field_path
+- `result` - the variable to set (True/False for compliance)
+
+**❌ DO NOT use these variables (they don't exist):**
+- `resource` - This variable is NOT available in custom logic scope
+- Any other variable names not listed above
+
+**❌ WRONG - Using undefined variables:**
+```python
+# This will cause NameError - 'resource' is not defined
+policy_statements = safe_get(resource, 'policies.*.default_version.Document.Statement')
+log_groups = safe_get(resource, 'log_groups', [])
+```
+
+**✅ CORRECT - Only use fetched_value:**
+```python
+# Only use the data extracted by your field_path
+if isinstance(fetched_value, list):
+    for item in fetched_value:
+        # Process the extracted data
+        if item and hasattr(item, 'some_attribute'):
+            result = True
+            break
+```
+
 **Available Operations:** {available_operations}
 
 **Field Path Examples for {resource_model_name}:**
 {field_path_examples_formatted}
+
+**🚨 CRITICAL: FIELD PATH RESTRICTION 🚨**
+
+**MANDATORY:** You MUST choose your field_path from the list above. DO NOT create custom field paths!
+
+**✅ VALID - Choose from the provided list:**
+- Pick ONE field path from the {resource_model_name} list above
+- Use the EXACT spelling and format shown
+- The path must exist in the list above
+
+**❌ INVALID - Do NOT create custom paths:**
+- Do NOT invent new field paths
+- Do NOT modify the provided paths
+- Do NOT combine multiple paths
+- Do NOT use paths not in the list
+
+**Example:**
+If the list contains `alarms[*].alarm_actions`, use exactly:
+```yaml
+field_path: "alarms[*].alarm_actions"
+```
 
 **VALIDATION LOGIC REQUIREMENTS:**
 1. Validate THIS ONE resource instance (not multiple resources)

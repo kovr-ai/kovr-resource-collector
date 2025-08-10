@@ -36,7 +36,7 @@ def generate_for_control_with_self_improvement(
 
         current_results = check_results
         counter = 0
-        max_attempts = 1
+        max_attempts = 2
 
         print(f"🔄 Starting regeneration loop (max {max_attempts} attempts)...")
 
