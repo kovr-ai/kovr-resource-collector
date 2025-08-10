@@ -563,8 +563,24 @@ class TestCheckPromptWithMocks:
         
         print("✅ Provider-specific field paths test passed")
     
-    def test_template_variable_generation(self):
+    @patch('con_mon_v2.utils.llm.prompt.get_llm_client')
+    def test_template_variable_generation(self, mock_get_llm_client):
         """Test that template variables are generated correctly"""
+        
+        # Create mock LLM client to prevent real LLM calls during CheckPrompt initialization
+        mock_client = Mock()
+        mock_get_llm_client.return_value = mock_client
+        
+        # Mock the LLM responses for the enhanced guidance generation
+        # This prevents the CheckPrompt.__init__ from making real LLM calls
+        mock_response = LLMResponse(
+            content='{"control_name": "SI-4", "control_category": "technical", "key_compliance_indicators": ["Monitoring enabled"], "implementation_patterns": ["System monitoring"], "risk_areas": ["Unmonitored systems"], "validation_approach": "Check monitoring configuration"}',
+            model_id="mock",
+            usage={},
+            stop_reason="end_turn", 
+            raw_response={}
+        )
+        mock_client.generate_response.return_value = mock_response
         
         prompt = CheckPrompt(
             control_name='SI-4',
