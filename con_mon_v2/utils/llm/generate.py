@@ -1,8 +1,64 @@
-from typing import List
+from typing import List, Dict
 from con_mon_v2.utils.services import ResourceCollectionService
 from con_mon_v2.connectors import ConnectorType
+from con_mon_v2.utils.yaml_loader import ResourceYamlMapping
+from pathlib import Path
 from .prompt import CheckPrompt
 from con_mon_v2.compliance.models import Check
+
+
+def get_provider_resources_mapping() -> Dict[ConnectorType, List[str]]:
+    """
+    Dynamically get provider to resource models mapping from con_mon_v2.mappings.
+    
+    Returns:
+        Dictionary mapping ConnectorType to list of resource model names
+    """
+    # Load resource mappings from YAML
+    resources_yaml = Path(__file__).parent.parent.parent / 'resources' / 'resources.yaml'
+    
+    if not resources_yaml.exists():
+        # Fallback to hardcoded mapping if YAML not found
+        return {
+            ConnectorType.GITHUB: ['GithubResource'],
+            ConnectorType.AWS: ['EC2Resource', 'IAMResource', 'S3Resource', 'CloudTrailResource', 'CloudWatchResource'],
+        }
+    
+    try:
+        # Load mappings using the existing YAML loader
+        resource_mappings = ResourceYamlMapping.load_yaml(resources_yaml)
+        
+        provider_resources = {}
+        
+        for provider_name, mapping in resource_mappings.items():
+            # Convert provider name to ConnectorType (use lowercase as that's what the enum expects)
+            try:
+                connector_type = ConnectorType(provider_name.lower())
+            except ValueError:
+                # Skip unknown connector types
+                continue
+            
+            # Extract resource model names from the YamlModelMapping objects
+            resource_names = []
+            for resource_mapping in mapping.resources:
+                # Get the actual model class name
+                model_class = resource_mapping.pydantic_model
+                resource_names.append(model_class.__name__)
+            
+            if resource_names:
+                provider_resources[connector_type] = resource_names
+        
+        return provider_resources
+        
+    except Exception as e:
+        print(f"⚠️  Warning: Failed to load dynamic provider resources: {e}")
+        print("   Falling back to hardcoded mapping")
+        
+        # Fallback to hardcoded mapping
+        return {
+            ConnectorType.GITHUB: ['GithubResource'],
+            ConnectorType.AWS: ['EC2Resource', 'IAMResource', 'S3Resource', 'CloudTrailResource', 'CloudWatchResource'],
+        }
 
 
 def evaluate_check_against_rc(check, connector_type: str) -> None:
@@ -105,6 +161,9 @@ def generate_checks_for_all_providers(
 ) -> List[Check]:
     """
     Generate checks for all available providers and their resource models.
+    
+    This function now dynamically loads provider-to-resource mappings from 
+    con_mon_v2.mappings (resources.yaml) instead of using hardcoded values.
 
     Args:
         control_name: Control identifier
@@ -118,12 +177,9 @@ def generate_checks_for_all_providers(
     """
     checks = []
 
-    # Provider to resource model mapping
-    provider_resources = {
-        ConnectorType.GITHUB: ['GithubResource'],
-        ConnectorType.AWS: ['EC2Resource', 'IAMResource', 'S3Resource', 'CloudTrailResource', 'CloudWatchResource'],
-        # Add more providers as needed
-    }
+    # Get provider to resource model mapping dynamically from con_mon_v2.mappings
+    # This replaces the previously hardcoded provider_resources dictionary
+    provider_resources = get_provider_resources_mapping()
 
     for connector_type, resource_models in provider_resources.items():
         for resource_model in resource_models:

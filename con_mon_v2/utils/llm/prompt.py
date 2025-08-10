@@ -10,20 +10,15 @@ This module provides a new generation of prompts that:
 
 import os
 import yaml
-from typing import Dict, Any, List, Type, Optional
+from typing import Dict, Any, List, Optional
 from datetime import datetime
-from abc import ABC, abstractmethod
+from abc import ABC
 
 from con_mon_v2.compliance.models import (
-    Check, 
-    CheckMetadata, 
-    CheckOperation, 
-    OutputStatements, 
-    FixDetails, 
+    Check,
     ComparisonOperationEnum
 )
 from con_mon_v2.connectors.models import ConnectorType
-from con_mon_v2.resources import Resource
 from .client import get_llm_client, LLMRequest, LLMResponse
 
 
@@ -335,16 +330,3 @@ Generate ONLY the YAML check entry with complete implementation. No explanations
         
         # Process and return the LLM response
         return self.process_response(response)
-    
-    def _get_example_field_path(self) -> str:
-        """Get an example field path for the current resource"""
-        field_paths = self.template_vars.get('field_path_examples', [])
-        if field_paths:
-            return field_paths[0]
-        
-        # Fallback field paths based on provider
-        provider_defaults = {
-            'github': 'repository_data.basic_info.name',
-            'aws': 'instance_data.state.name'
-        }
-        return provider_defaults.get(self.provider_config.provider_name, 'data.field')
