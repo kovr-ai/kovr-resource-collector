@@ -295,27 +295,6 @@ Generate ONLY the YAML check entry with complete implementation, no explanations
         self.connector_type_lower = connector_type.value.lower()
 
     def format_prompt(self, **kwargs) -> str:
-        """Format the prompt template with stored parameters."""
-        # Suggest severity based on control family
-        severity_suggestions = {
-            "AC": "high",  # Access Control
-            "AU": "medium",  # Audit and Accountability
-            "CM": "medium",  # Configuration Management
-            "IA": "high",  # Identification and Authentication
-            "SC": "high",  # System and Communications Protection
-            "SI": "medium",  # System and Information Integrity
-        }
-        
-        # Suggest category based on control family
-        category_suggestions = {
-            "AC": "access_control",
-            "AU": "monitoring",
-            "CM": "configuration",
-            "IA": "access_control",
-            "SC": "network_security",
-            "SI": "monitoring",
-        }
-        
         resource_schema = load_resource_schema(self.connector_type_lower)
         
         # Format each template part

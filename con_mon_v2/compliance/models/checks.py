@@ -89,8 +89,19 @@ class ComparisonOperation(PydanticBaseModel):
 
         Returns:
             bool: True if comparison passes, False otherwise
+            
+        Raises:
+            ValueError: If logic is empty or contains only whitespace/comments
         """
-        # Clean and prepare logic
+        # Validate that logic is not empty
+        if not logic or not logic.strip():
+            raise ValueError("Custom logic cannot be empty")
+        
+        # Check if logic contains only comments and whitespace
+        logic_lines = [line.strip() for line in logic.split('\n') if line.strip()]
+        if not logic_lines or all(line.startswith('#') for line in logic_lines):
+            raise ValueError("Custom logic cannot contain only comments and whitespace")
+        
         indented_logic = '\n'.join('            ' + line for line in logic.split('\n'))
 
         get_function_code = f"""

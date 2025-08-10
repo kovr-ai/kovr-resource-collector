@@ -103,10 +103,55 @@ def test_check_operation_enum_validation():
             operation = CheckOperation(name=op_enum, logic="result = True")
             assert operation.name == op_enum
             
+        # Test that CUSTOM operation requires valid logic
+        try:
+            CheckOperation(name=ComparisonOperationEnum.CUSTOM, logic="")
+            # This should work at model level, but fail when used with get_custom_function
+        except Exception:
+            pass  # Model validation might not catch this
+            
         print("✅ CheckOperation enum validation test passed")
         
     except Exception as e:
         print(f"❌ CheckOperation enum validation test failed: {e}")
+        raise
+
+def test_check_operation_empty_logic_validation():
+    """Test that CheckOperation properly validates empty logic when creating comparison functions."""
+    try:
+        # Test that empty logic is rejected when creating the actual function
+        operation = CheckOperation(name=ComparisonOperationEnum.CUSTOM, logic="")
+        
+        # This should fail when trying to create the comparison function
+        try:
+            ComparisonOperation.get_custom_function(operation.name, operation.logic)
+            assert False, "Should have raised ValueError for empty logic"
+        except ValueError as e:
+            assert "cannot be empty" in str(e)
+            print("✅ Empty logic in CheckOperation properly rejected")
+        
+        # Test that whitespace-only logic is rejected
+        operation_whitespace = CheckOperation(name=ComparisonOperationEnum.CUSTOM, logic="   \n\t   ")
+        try:
+            ComparisonOperation.get_custom_function(operation_whitespace.name, operation_whitespace.logic)
+            assert False, "Should have raised ValueError for whitespace-only logic"
+        except ValueError as e:
+            assert "cannot be empty" in str(e)
+            print("✅ Whitespace-only logic in CheckOperation properly rejected")
+        
+        # Test that comments-only logic is rejected
+        operation_comments = CheckOperation(name=ComparisonOperationEnum.CUSTOM, logic="# Only comments")
+        try:
+            ComparisonOperation.get_custom_function(operation_comments.name, operation_comments.logic)
+            assert False, "Should have raised ValueError for comments-only logic"
+        except ValueError as e:
+            assert "only comments and whitespace" in str(e)
+            print("✅ Comments-only logic in CheckOperation properly rejected")
+        
+        print("✅ CheckOperation empty logic validation test passed")
+        
+    except Exception as e:
+        print(f"❌ CheckOperation empty logic validation test failed: {e}")
         raise
 
 def test_comparison_operation_standard_functions():
@@ -461,17 +506,52 @@ else:
         print("✅ Complex logic executed successfully")
 
         # Test 8: Empty or whitespace-only logic
-        print("🧪 Testing empty logic...")
-        empty_logic = """
+        print("🧪 Testing empty logic validation...")
+        
+        # Test completely empty logic
+        empty_logic = ""
+        try:
+            ComparisonOperation.get_custom_function(ComparisonOperationEnum.CUSTOM, empty_logic)
+            assert False, "Should have raised ValueError for empty logic"
+        except ValueError as e:
+            assert "cannot be empty" in str(e)
+            print("✅ Empty logic properly rejected with ValueError")
+        
+        # Test whitespace-only logic
+        whitespace_logic = "   \n\n   \t  \n"
+        try:
+            ComparisonOperation.get_custom_function(ComparisonOperationEnum.CUSTOM, whitespace_logic)
+            assert False, "Should have raised ValueError for whitespace-only logic"
+        except ValueError as e:
+            assert "cannot be empty" in str(e)
+            print("✅ Whitespace-only logic properly rejected with ValueError")
+        
+        # Test comments-only logic
+        comments_only_logic = """
 # Just comments and whitespace
-
-
+# No actual code here
+# TODO: Add implementation
 """
-        empty_func = ComparisonOperation.get_custom_function(ComparisonOperationEnum.CUSTOM, empty_logic)
-        result = empty_func("test", None)
-        # Should return False (default value)
-        assert result == False
-        print("✅ Empty logic handled - returned False")
+        try:
+            ComparisonOperation.get_custom_function(ComparisonOperationEnum.CUSTOM, comments_only_logic)
+            assert False, "Should have raised ValueError for comments-only logic"
+        except ValueError as e:
+            assert "only comments and whitespace" in str(e)
+            print("✅ Comments-only logic properly rejected with ValueError")
+        
+        # Test valid logic with comments (should work)
+        valid_logic_with_comments = """
+# This is a valid logic with comments
+if fetched_value and isinstance(fetched_value, str):
+    # Check if string is not empty
+    result = len(fetched_value.strip()) > 0
+else:
+    result = False
+"""
+        valid_func = ComparisonOperation.get_custom_function(ComparisonOperationEnum.CUSTOM, valid_logic_with_comments)
+        result = valid_func("test", None)
+        assert result == True
+        print("✅ Valid logic with comments works correctly")
 
         # Test 9: Logic that tries to modify global state
         print("🧪 Testing global state modification attempts...")
@@ -560,6 +640,7 @@ if __name__ == "__main__":
     test_load_checks_from_csv()
     test_check_model_structure()
     test_check_operation_enum_validation()
+    test_check_operation_empty_logic_validation()
     test_comparison_operation_standard_functions()
     test_comparison_operation_custom_logic()
     test_comparison_operation_edge_cases()
