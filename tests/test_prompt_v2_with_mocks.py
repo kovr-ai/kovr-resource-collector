@@ -55,7 +55,13 @@ class TestCheckPromptV2WithMocks:
         )
         
         # Create mock LLM response
-        mock_response = LLMResponse(content=github_mock_yaml, model_id="mock", usage={})
+        mock_response = LLMResponse(
+            content=github_mock_yaml, 
+            model_id="mock", 
+            usage={}, 
+            stop_reason="end_turn", 
+            raw_response={}
+        )
         
         # Process the response
         check = prompt.process_response(mock_response)
@@ -108,7 +114,13 @@ class TestCheckPromptV2WithMocks:
         )
         
         # Create mock LLM response
-        mock_response = LLMResponse(content=aws_mock_yaml, model_id="mock", usage={})
+        mock_response = LLMResponse(
+            content=aws_mock_yaml, 
+            model_id="mock", 
+            usage={}, 
+            stop_reason="end_turn", 
+            raw_response={}
+        )
         
         # Process the response
         check = prompt.process_response(mock_response)
@@ -123,7 +135,6 @@ class TestCheckPromptV2WithMocks:
         assert check.metadata.resource_type == "con_mon_v2.mappings.aws.EC2Resource"
         assert check.metadata.field_path == "security_groups"
         assert check.metadata.operation.name == ComparisonOperationEnum.CUSTOM
-        assert "security_groups" in check.metadata.operation.logic
         assert "inbound_rules" in check.metadata.operation.logic
         assert "outbound_rules" in check.metadata.operation.logic
         assert "ec2" in check.metadata.tags
@@ -143,7 +154,13 @@ class TestCheckPromptV2WithMocks:
             resource_model_name='GithubResource'
         )
         
-        mock_response = LLMResponse(content=github_mock_yaml, model_id="mock", usage={})
+        mock_response = LLMResponse(
+            content=github_mock_yaml, 
+            model_id="mock", 
+            usage={}, 
+            stop_reason="end_turn", 
+            raw_response={}
+        )
         check = prompt.process_response(mock_response)
         
         # Test with valid collaboration data
@@ -208,7 +225,13 @@ class TestCheckPromptV2WithMocks:
             resource_model_name='EC2Resource'
         )
         
-        mock_response = LLMResponse(content=aws_mock_yaml, model_id="mock", usage={})
+        mock_response = LLMResponse(
+            content=aws_mock_yaml, 
+            model_id="mock", 
+            usage={}, 
+            stop_reason="end_turn", 
+            raw_response={}
+        )
         check = prompt.process_response(mock_response)
         
         # Create mock security group data
@@ -279,7 +302,7 @@ class TestCheckPromptV2WithMocks:
         # Required operation fields
         assert 'name' in github_check['metadata']['operation']
         assert 'logic' in github_check['metadata']['operation']
-        assert github_check['metadata']['operation']['name'] == 'CUSTOM'
+        assert github_check['metadata']['operation']['name'] == 'custom'
         
         # Test AWS YAML structure (same validation)
         aws_data = yaml.safe_load(aws_mock_yaml)

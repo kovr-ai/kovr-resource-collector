@@ -22,7 +22,7 @@ checks:
     resource_type: "con_mon_v2.mappings.github.GithubResource"
     field_path: "collaboration_data"
     operation:
-      name: "CUSTOM"
+      name: "custom"
       logic: |
         result = False
         

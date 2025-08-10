@@ -21,7 +21,7 @@ checks:
     resource_type: "con_mon_v2.mappings.aws.EC2Resource"
     field_path: "security_groups"
     operation:
-      name: "CUSTOM"
+      name: "custom"
       logic: |
         result = False
         
