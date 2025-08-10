@@ -607,7 +607,7 @@ def create_progress_table(stats: ProcessingStats) -> Table:
     
     return table
 
-def show_progress_stats(status_tracker: StatusTracker):
+def show_progress_stats(status_tracker: StatusTracker, limit: int = None, threads: int = 1):
     """Show current progress statistics with time estimation"""
     stats = status_tracker.get_statistics()
     
@@ -636,13 +636,23 @@ def show_progress_stats(status_tracker: StatusTracker):
     # Time estimation based on historical data
     table.add_row("─" * 15, "─" * 10, "─" * 15)  # Separator
     
-    # Get time estimation from status file
-    time_stats = _calculate_time_stats_from_status(status_tracker)
+    # Get time estimation from status file with smart parameters
+    time_stats = _calculate_time_stats_from_status(status_tracker, limit=limit, threads=threads)
     
     table.add_row("⏱️ Processing Rate", time_stats['rate'], "")
     table.add_row("📅 Est. Remaining", time_stats['estimated_remaining'], "")
     table.add_row("🏁 Est. Completion", time_stats['estimated_completion'], "")
     table.add_row("📊 Last Updated", time_stats['last_update'], "")
+    
+    # Add scope information
+    scope_info = []
+    if limit:
+        scope_info.append(f"Limit: {limit} controls")
+    if threads > 1:
+        scope_info.append(f"Threads: {threads}")
+    
+    if scope_info:
+        table.add_row("🎯 Scope", " | ".join(scope_info), "")
     
     console.print(table)
     
@@ -664,8 +674,8 @@ def show_progress_stats(status_tracker: StatusTracker):
             
             console.print(error_table)
 
-def _calculate_time_stats_from_status(status_tracker: StatusTracker) -> dict:
-    """Calculate time statistics from status file"""
+def _calculate_time_stats_from_status(status_tracker: StatusTracker, limit: int = None, threads: int = 1) -> dict:
+    """Calculate time statistics from status file with smart estimation"""
     try:
         if not status_tracker.status_file.exists():
             return {
@@ -675,11 +685,12 @@ def _calculate_time_stats_from_status(status_tracker: StatusTracker) -> dict:
                 'last_update': 'No data'
             }
         
-        # Read status file to get timestamps
+        # Read status file to get timestamps and processed controls
         timestamps = []
         total_entries = 0
         success_count = 0
         last_timestamp = None
+        processed_control_ids = set()
         
         with open(status_tracker.status_file, 'r') as f:
             reader = csv.DictReader(f)
@@ -687,6 +698,13 @@ def _calculate_time_stats_from_status(status_tracker: StatusTracker) -> dict:
                 total_entries += 1
                 if row['status'] == 'success':
                     success_count += 1
+                
+                # Track which controls have been processed
+                try:
+                    control_id = int(row['control_id'])
+                    processed_control_ids.add(control_id)
+                except:
+                    pass
                 
                 try:
                     timestamp = datetime.fromisoformat(row['timestamp'])
@@ -717,20 +735,47 @@ def _calculate_time_stats_from_status(status_tracker: StatusTracker) -> dict:
         else:
             rate_str = "∞ tasks/min"
         
-        # Get provider mappings to calculate total expected tasks
+        # Smart calculation of remaining work
         try:
             from con_mon_v2.utils.llm.generate import get_provider_resources_mapping
             from con_mon_v2.compliance import ControlLoader
             
             provider_resources = get_provider_resources_mapping()
+            tasks_per_control = sum(len(resources) for resources in provider_resources.values())
+            
+            # Get all active controls
             controls = ControlLoader().load_all()
             active_controls = [c for c in controls if c.active]
             
-            total_expected_tasks = sum(len(resources) for resources in provider_resources.values()) * len(active_controls)
-            remaining_tasks = total_expected_tasks - total_entries
+            # Determine scope based on parameters
+            if limit:
+                # Case 1: Limited run - only estimate for the specified limit
+                # Get the last processed control to determine where to start
+                last_processed_control = status_tracker.get_last_processed_control()
+                start_from = (last_processed_control + 1) if last_processed_control else 1
+                
+                # Filter controls to match the limit scope
+                remaining_controls = [c for c in active_controls if c.id >= start_from][:limit]
+                
+                # Calculate remaining tasks for limited scope
+                remaining_control_ids = {c.id for c in remaining_controls}
+                already_processed_in_scope = len(processed_control_ids & remaining_control_ids)
+                remaining_controls_to_process = len(remaining_control_ids) - already_processed_in_scope
+                
+                remaining_tasks = remaining_controls_to_process * tasks_per_control
+                scope_description = f"limited to {limit} controls"
+                
+            else:
+                # Case 2: Full run - estimate for all remaining unprocessed controls
+                all_active_control_ids = {c.id for c in active_controls}
+                unprocessed_control_ids = all_active_control_ids - processed_control_ids
+                
+                remaining_tasks = len(unprocessed_control_ids) * tasks_per_control
+                scope_description = f"all remaining controls ({len(unprocessed_control_ids)} controls)"
             
             if remaining_tasks > 0 and rate_per_second > 0:
-                estimated_remaining_seconds = remaining_tasks / rate_per_second
+                # Account for threading - parallel processing reduces time
+                estimated_remaining_seconds = remaining_tasks / (rate_per_second * threads)
                 
                 # Format remaining time
                 remaining_hours = int(estimated_remaining_seconds // 3600)
@@ -740,12 +785,23 @@ def _calculate_time_stats_from_status(status_tracker: StatusTracker) -> dict:
                 
                 # Calculate estimated completion time
                 completion_time = datetime.now() + timedelta(seconds=estimated_remaining_seconds)
-                completion_str = completion_time.strftime('%H:%M:%S on %m/%d')
+                completion_str = completion_time.strftime('%H:%M:%S')
+                
+                # Update rate display to show threading benefit
+                if threads > 1:
+                    effective_rate = rate_per_minute * threads
+                    rate_str = f"{rate_per_minute:.1f} tasks/min × {threads} threads = {effective_rate:.1f} tasks/min"
+                
             else:
                 estimated_remaining = "Completed!" if remaining_tasks <= 0 else "Calculating..."
                 completion_str = "Completed!" if remaining_tasks <= 0 else "Calculating..."
-        except:
-            estimated_remaining = "Unable to calculate"
+                
+            # Add scope information to completion string
+            if remaining_tasks > 0:
+                completion_str += f" ({scope_description})"
+            
+        except Exception as e:
+            estimated_remaining = f"Error: {str(e)[:30]}..."
             completion_str = "Unable to calculate"
         
         return {
@@ -817,7 +873,7 @@ Examples:
     
     # Show progress and exit if requested
     if args.show_progress:
-        show_progress_stats(status_tracker)
+        show_progress_stats(status_tracker, args.limit, args.threads)
         return 0
     
     # Setup database mode
