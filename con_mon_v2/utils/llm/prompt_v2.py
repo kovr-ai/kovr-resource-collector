@@ -335,81 +335,13 @@ Generate ONLY the YAML check entry with complete implementation. No explanations
         # Format prompt
         prompt = self.format_prompt(**kwargs)
         
-        # For now, return a mock Check object since LLM integration may not be fully set up
-        # This ensures the prompt structure works correctly
-        try:
-            # Try to use LLM if available
-            client = get_llm_client()
-            request = LLMRequest(prompt=prompt)
-            response = client.generate_response(request)
-            return self.process_response(response)
-        except Exception as e:
-            # Fallback: Create a mock check that demonstrates the correct structure
-            print(f"⚠️ LLM generation failed ({e}), creating mock check for validation")
-            return self._create_mock_check()
-    
-    def _create_mock_check(self) -> Check:
-        """Create a mock Check object using from_row method"""
-        from datetime import datetime
-        import json
+        # Generate response using LLM
+        client = get_llm_client()
+        request = LLMRequest(prompt=prompt)
+        response = client.generate_response(request)
         
-        # Generate mock check data using template variables
-        mock_check_dict = {
-            'id': self.template_vars['check_id'],
-            'name': self.template_vars['check_name'],
-            'description': self.template_vars['check_description'],
-            'category': self.template_vars['suggested_category'],
-            'created_by': 'system',
-            'updated_by': 'system',
-            'is_deleted': False,
-            'created_at': datetime.now(),
-            'updated_at': datetime.now()
-        }
-        
-        # Create JSONB fields as JSON strings
-        mock_check_dict['output_statements'] = json.dumps({
-            'success': f"Check passed: {self.control_name} compliance verified",
-            'failure': f"Check failed: {self.control_name} compliance not met",
-            'partial': f"Check partially passed: {self.control_name} needs review"
-        })
-        
-        mock_check_dict['fix_details'] = json.dumps({
-            'description': f"Ensure {self.control_title} compliance requirements are met",
-            'instructions': [
-                f"Review {self.provider_config.provider_name} {self.resource_model_name} configuration",
-                f"Apply necessary security controls for {self.control_name}",
-                f"Validate compliance with {self.control_title}"
-            ],
-            'estimated_time': self.template_vars['estimated_time'],
-            'automation_available': False
-        })
-        
-        mock_check_dict['metadata'] = json.dumps({
-            'resource_type': self.template_vars['resource_type_full_path'],
-            'field_path': self._get_example_field_path(),
-            'operation': {
-                'name': 'custom',
-                'logic': f'''result = False
-
-# Mock validation logic for {self.control_name}
-if fetched_value is not None:
-    if isinstance(fetched_value, str) and len(fetched_value.strip()) > 0:
-        result = True
-    elif isinstance(fetched_value, (list, dict)) and len(fetched_value) > 0:
-        result = True
-    elif isinstance(fetched_value, bool):
-        result = fetched_value
-    elif isinstance(fetched_value, (int, float)):
-        result = fetched_value > 0'''
-            },
-            'expected_value': None,
-            'tags': self.template_vars['tags'],
-            'severity': self.template_vars['suggested_severity'],
-            'category': self.template_vars['suggested_category']
-        })
-        
-        # Create Check using from_row (standard pattern)
-        return Check.from_row(mock_check_dict)
+        # Process and return the LLM response
+        return self.process_response(response)
     
     def _get_example_field_path(self) -> str:
         """Get an example field path for the current resource"""
