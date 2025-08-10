@@ -528,6 +528,70 @@ class CheckPrompt(ABC):
 
 {resource_schema}
 
+**🚨 CRITICAL: FIELD PATH EXTRACTION BEHAVIOR 🚨**
+
+**IMPORTANT:** The field_path extracts ONLY specific data from the resource, NOT the full resource object!
+
+**Example for CloudWatchResource:**
+
+Full Resource Object:
+```json
+{{
+  "id": "cloudwatch-us-west-2",
+  "alarms": [
+    {{"alarm_name": "HighCPU", "alarm_actions": ["arn:aws:sns:us-west-2:123:alert"]}},
+    {{"alarm_name": "LowMemory", "alarm_actions": ["arn:aws:autoscaling:us-west-2:123:policy"]}}
+  ],
+  "log_groups": [
+    {{"log_group_name": "/aws/lambda/func", "metric_filter_count": 2}}
+  ]
+}}
+```
+
+**Field Path Examples and What fetched_value Contains:**
+
+1. `field_path: "alarms[*].alarm_actions"` 
+   → `fetched_value = [["arn:aws:sns:us-west-2:123:alert"], ["arn:aws:autoscaling:us-west-2:123:policy"]]`
+   → Logic should iterate through this list of alarm_actions arrays
+
+2. `field_path: "alarms[*].alarm_name"`
+   → `fetched_value = ["HighCPU", "LowMemory"]`
+   → Logic should check this list of alarm names
+
+3. `field_path: "log_groups[*].metric_filter_count"`
+   → `fetched_value = [2]`
+   → Logic should check this list of counts
+
+4. `field_path: "alarms"`
+   → `fetched_value = [{{"alarm_name": "HighCPU", "alarm_actions": [...]}}, {{"alarm_name": "LowMemory", "alarm_actions": [...]}}]`
+   → Logic should iterate through this list of alarm objects
+
+**❌ WRONG LOGIC (assumes full resource):**
+```python
+# This will FAIL because fetched_value is NOT the full resource
+for alarm in fetched_value.get('alarms', []):  # ERROR: fetched_value has no 'alarms' key
+    if alarm.get('alarm_actions'):
+        # ...
+```
+
+**✅ CORRECT LOGIC (works with extracted data):**
+```python
+# For field_path "alarms[*].alarm_actions"
+# fetched_value = [["arn:aws:sns:..."], ["arn:aws:autoscaling:..."]]
+if isinstance(fetched_value, list):
+    for alarm_actions_list in fetched_value:
+        if alarm_actions_list:
+            for action in alarm_actions_list:
+                if action.startswith('arn:aws:sns:'):
+                    result = True
+                    break
+```
+
+**For YOUR field_path "{suggested_field_path}":**
+- fetched_value will contain ONLY the data extracted by this path
+- Do NOT assume fetched_value has the full resource structure
+- Write logic that works with the specific data format returned by this field path
+
 **Available Operations:** {available_operations}
 
 **Field Path Examples for {resource_model_name}:**
@@ -540,6 +604,7 @@ class CheckPrompt(ABC):
 4. Use fetched_value variable to access field data
 5. Implement meaningful compliance checks (not just existence checks)
 6. Use the suggested field path: {suggested_field_path}
+7. **CRITICAL:** Write logic that works with the extracted data format, NOT the full resource
 
 **YAML SCHEMA TO FOLLOW:**
 ```yaml
@@ -571,6 +636,9 @@ checks:
         result = False
         
         # Validate THIS ONE resource for compliance
+        # REMEMBER: fetched_value contains ONLY data from field_path "{suggested_field_path}"
+        # NOT the full resource object!
+        
         if fetched_value is None:
             result = False
         elif not fetched_value:
@@ -582,6 +650,7 @@ checks:
             # Compliance Indicators: {compliance_indicators}
             # Non-Compliance Indicators: {non_compliance_indicators}
             
+            # Write logic that works with the extracted data format
             if isinstance(fetched_value, dict):
                 # Check multiple compliance criteria based on guidance
                 # TODO: Implement based on expected_data_patterns and compliance_indicators
@@ -605,6 +674,7 @@ checks:
 - No explanations, no markdown code blocks, no additional text
 - Implement complete custom logic (no TODO comments)
 - Use the suggested field path: {suggested_field_path}
+- **CRITICAL:** Write logic that works with extracted data, NOT full resource
 - Follow the enhanced guidance provided above
 
 Generate the complete YAML check entry now:"""
@@ -913,6 +983,70 @@ IMPORTANT: Learn from the previous failed attempts shown below to create a BETTE
 
 {resource_schema}
 
+**🚨 CRITICAL: FIELD PATH EXTRACTION BEHAVIOR 🚨**
+
+**IMPORTANT:** The field_path extracts ONLY specific data from the resource, NOT the full resource object!
+
+**Example for CloudWatchResource:**
+
+Full Resource Object:
+```json
+{{
+  "id": "cloudwatch-us-west-2",
+  "alarms": [
+    {{"alarm_name": "HighCPU", "alarm_actions": ["arn:aws:sns:us-west-2:123:alert"]}},
+    {{"alarm_name": "LowMemory", "alarm_actions": ["arn:aws:autoscaling:us-west-2:123:policy"]}}
+  ],
+  "log_groups": [
+    {{"log_group_name": "/aws/lambda/func", "metric_filter_count": 2}}
+  ]
+}}
+```
+
+**Field Path Examples and What fetched_value Contains:**
+
+1. `field_path: "alarms[*].alarm_actions"` 
+   → `fetched_value = [["arn:aws:sns:us-west-2:123:alert"], ["arn:aws:autoscaling:us-west-2:123:policy"]]`
+   → Logic should iterate through this list of alarm_actions arrays
+
+2. `field_path: "alarms[*].alarm_name"`
+   → `fetched_value = ["HighCPU", "LowMemory"]`
+   → Logic should check this list of alarm names
+
+3. `field_path: "log_groups[*].metric_filter_count"`
+   → `fetched_value = [2]`
+   → Logic should check this list of counts
+
+4. `field_path: "alarms"`
+   → `fetched_value = [{{"alarm_name": "HighCPU", "alarm_actions": [...]}}, {{"alarm_name": "LowMemory", "alarm_actions": [...]}}]`
+   → Logic should iterate through this list of alarm objects
+
+**❌ WRONG LOGIC (assumes full resource):**
+```python
+# This will FAIL because fetched_value is NOT the full resource
+for alarm in fetched_value.get('alarms', []):  # ERROR: fetched_value has no 'alarms' key
+    if alarm.get('alarm_actions'):
+        # ...
+```
+
+**✅ CORRECT LOGIC (works with extracted data):**
+```python
+# For field_path "alarms[*].alarm_actions"
+# fetched_value = [["arn:aws:sns:..."], ["arn:aws:autoscaling:..."]]
+if isinstance(fetched_value, list):
+    for alarm_actions_list in fetched_value:
+        if alarm_actions_list:
+            for action in alarm_actions_list:
+                if action.startswith('arn:aws:sns:'):
+                    result = True
+                    break
+```
+
+**For YOUR field_path "{suggested_field_path}":**
+- fetched_value will contain ONLY the data extracted by this path
+- Do NOT assume fetched_value has the full resource structure
+- Write logic that works with the specific data format returned by this field path
+
 **Available Operations:** {available_operations}
 
 **Field Path Examples for {resource_model_name}:**
@@ -925,6 +1059,7 @@ IMPORTANT: Learn from the previous failed attempts shown below to create a BETTE
 4. Use fetched_value variable to access field data
 5. LEARN from the failed attempts shown above to choose better validation criteria
 6. Use the suggested field path: {suggested_field_path} (unless previous failures suggest otherwise)
+7. **CRITICAL:** Write logic that works with the extracted data format, NOT the full resource
 
 **YAML SCHEMA TO FOLLOW:**
 ```yaml
@@ -958,6 +1093,7 @@ checks:
         
         # Validate THIS ONE resource for compliance
         # LEARN FROM PREVIOUS FAILURES - create logic that works with actual data
+        # REMEMBER: fetched_value contains ONLY data from field_path, NOT the full resource!
         
         if fetched_value is None:
             result = False
@@ -971,6 +1107,7 @@ checks:
             # Non-Compliance Indicators: {non_compliance_indicators}
             # Use insights from previous failures to create better validation
             
+            # Write logic that works with the extracted data format
             if isinstance(fetched_value, dict):
                 # For dict data, check multiple compliance criteria
                 # Customize these based on actual control requirements and failed attempts
@@ -998,6 +1135,7 @@ checks:
 - LEARN from the previous failures shown above to choose better field paths and logic
 - Use the enhanced guidance provided above
 - Implement complete custom logic (no TODO comments)
+- **CRITICAL:** Write logic that works with extracted data, NOT full resource
 
 Generate the complete YAML check entry now:"""
 
