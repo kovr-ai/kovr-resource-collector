@@ -8,7 +8,7 @@ from .framework import Framework
 from .control import Control
 from .standard import Standard
 from .standard_control_mapping import StandardControlMapping
-from .checks import Check, OutputStatements, FixDetails, CheckMetadata, CheckOperation
+from .checks import Check, OutputStatements, FixDetails, CheckMetadata, CheckOperation, ComparisonOperationEnum, ComparisonOperation
 from .helpers import (
     FrameworkWithControls, 
     StandardWithControls, 
@@ -33,6 +33,8 @@ __all__ = [
     'FixDetails', 
     'CheckMetadata',
     'CheckOperation',
+    'ComparisonOperationEnum',
+    'ComparisonOperation',
     
     # Helper Models (Composite Views)
     'FrameworkWithControls',

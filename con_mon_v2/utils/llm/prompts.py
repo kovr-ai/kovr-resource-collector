@@ -18,7 +18,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional, Type, Tuple, List
 from pydantic import BaseModel
 from con_mon_v2.resources import Resource
-from con_mon_v2.compliance.models import Check, CheckMetadata, OutputStatements, FixDetails, CheckOperation
+from con_mon_v2.compliance.models import Check, CheckMetadata, OutputStatements, FixDetails, CheckOperation, ComparisonOperationEnum
 from con_mon_v2.utils.services import ResourceCollectionService
 from con_mon_v2.connectors.models import ConnectorType
 from datetime import datetime
@@ -179,7 +179,7 @@ checks:
     resource_type: # Choose specific resource type (con_mon_v2.mappings.github.GithubResource, etc.)
     field_path: # Examples: "repository_data.basic_info.description", "security_data.security_analysis.advanced_security_enabled", "organization_data.members"
     operation:
-      name: custom
+      name: CUSTOM  # Must be ComparisonOperationEnum value: CUSTOM, EQUAL, NOT_EQUAL, etc.
       logic: |
         # CRITICAL: Custom logic rules for compliance Check model:
         # 1. NEVER use 'return' statements - this is not a function!
@@ -209,7 +209,7 @@ checks:
             # Handle case where field doesn't exist
             result = False
     expected_value: null
-    # Categorization and compliance fields
+    # Categorization and compliance fields (these belong in metadata)
     tags:
     - compliance
     - nist
@@ -452,8 +452,25 @@ You are a cybersecurity compliance expert. Generate a complete checks.yaml entry
         
         # Create CheckOperation object (new compliance model)
         operation_data = metadata.get('operation', {})
+        operation_name = operation_data.get('name', 'CUSTOM')
+        
+        # Handle enum conversion - accept both enum names and values
+        if isinstance(operation_name, str):
+            try:
+                # Try to get enum by name first (e.g., "CUSTOM")
+                operation_enum = ComparisonOperationEnum[operation_name.upper()]
+            except KeyError:
+                try:
+                    # Try to get enum by value (e.g., "custom")
+                    operation_enum = ComparisonOperationEnum(operation_name)
+                except ValueError:
+                    # Default to CUSTOM if neither works
+                    operation_enum = ComparisonOperationEnum.CUSTOM
+        else:
+            operation_enum = operation_name or ComparisonOperationEnum.CUSTOM
+            
         check_operation = CheckOperation(
-            name=operation_data.get('name', 'custom'),
+            name=operation_enum,
             logic=custom_logic or ''
         )
         

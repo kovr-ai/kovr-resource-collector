@@ -90,12 +90,19 @@ class ComparisonOperation(PydanticBaseModel):
         Returns:
             bool: True if comparison passes, False otherwise
         """
-        indented_logic = '\n'.join('        ' + line for line in logic.split('\n'))
+        # Clean and prepare logic
+        indented_logic = '\n'.join('            ' + line for line in logic.split('\n'))
+
         get_function_code = f"""
 def get_function():
     def {name.value}(fetched_value, config_value):
         result = False
+        try:
 {indented_logic}
+        except Exception as e:
+            # Log the error if needed (for debugging)
+            # In production, we silently return False for any runtime errors
+            result = False
         return result
     return {name.value}
 function = get_function()
