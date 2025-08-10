@@ -7,6 +7,7 @@ CRUD operations on CSV files stored in data/csv/ folder.
 import os
 import csv
 import json
+import re
 import pandas as pd
 from typing import Optional, List, Dict, Any, Union
 from contextlib import contextmanager
@@ -20,12 +21,86 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+class SQLParser:
+    """Simple SQL parser for basic SELECT statements."""
+    
+    @staticmethod
+    def parse_select(sql: str) -> Dict[str, Any]:
+        """
+        Parse a basic SELECT SQL statement.
+        
+        Args:
+            sql: SQL query string
+            
+        Returns:
+            Dictionary with parsed components: table_name, columns, conditions, order_by
+        """
+        # Clean up the SQL
+        sql = sql.strip().rstrip(';')
+        
+        # Basic SELECT pattern
+        select_pattern = r'SELECT\s+(.*?)\s+FROM\s+(\w+)(?:\s+WHERE\s+(.*?))?(?:\s+ORDER\s+BY\s+(.*?))?$'
+        match = re.match(select_pattern, sql, re.IGNORECASE | re.DOTALL)
+        
+        if not match:
+            raise ValueError(f"Unable to parse SQL query: {sql}")
+        
+        columns_str, table_name, where_clause, order_by = match.groups()
+        
+        # Parse columns
+        if columns_str.strip() == '*':
+            columns = None
+        else:
+            columns = [col.strip() for col in columns_str.split(',')]
+        
+        # Parse WHERE clause (basic support for simple conditions)
+        conditions = {}
+        if where_clause:
+            # Simple parsing for basic conditions like "id = 123" or "name = 'test'"
+            # This is a simplified parser - could be enhanced for complex queries
+            condition_parts = where_clause.split(' AND ')
+            for part in condition_parts:
+                if ' IN (' in part.upper():
+                    # Handle IN clause like "id IN (1, 2, 3)"
+                    field_match = re.match(r'(\w+)\s+IN\s*\((.*?)\)', part.strip(), re.IGNORECASE)
+                    if field_match:
+                        field, values_str = field_match.groups()
+                        # Parse comma-separated values
+                        values = [v.strip().strip("'\"") for v in values_str.split(',')]
+                        # Convert to integers if possible
+                        try:
+                            values = [int(v) for v in values]
+                        except ValueError:
+                            pass
+                        conditions[field] = values
+                elif '=' in part:
+                    # Handle simple equality like "id = 123"
+                    field, value = part.split('=', 1)
+                    field = field.strip()
+                    value = value.strip().strip("'\"")
+                    # Try to convert to int
+                    try:
+                        value = int(value)
+                    except ValueError:
+                        pass
+                    conditions[field] = value
+        
+        return {
+            'table_name': table_name,
+            'columns': columns,
+            'conditions': conditions,
+            'order_by': order_by.strip() if order_by else None
+        }
+
+
 class CSVDatabase:
     """
     Singleton class for CSV file database operations.
     
     Manages CRUD operations on CSV files where each file represents a table.
     Files are stored in data/csv/ directory.
+    
+    Now supports both SQL query strings (like PostgreSQL) and structured queries.
     """
     
     _instance: Optional['CSVDatabase'] = None
@@ -62,12 +137,7 @@ class CSVDatabase:
         """Get the file path for a given table name."""
         if not self._csv_directory:
             raise Exception("CSV directory not initialized")
-        
-        # Ensure table name ends with .csv
-        if not table_name.endswith('.csv'):
-            table_name += '.csv'
-        
-        return self._csv_directory / table_name
+        return self._csv_directory / f"{table_name}.csv"
     
     def _table_exists(self, table_name: str) -> bool:
         """Check if a table (CSV file) exists."""
@@ -144,44 +214,140 @@ class CSVDatabase:
     
     def _deserialize_nested_data(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
-        Deserialize JSON strings back to nested dictionaries and lists.
+        Deserialize nested JSON data from CSV format.
+        
+        The CSV stores nested data in flattened format with dot notation:
+        - output_statements.failure -> {"output_statements": {"failure": "..."}}
+        - metadata.tags -> {"metadata": {"tags": [...]}}
         
         Args:
-            data: List of dictionaries with JSON strings to deserialize
+            data: List of flat dictionaries from CSV
             
         Returns:
-            Data with JSON strings deserialized back to nested structures
+            List of dictionaries with proper nested structure
         """
-        def deserialize_value(value):
-            if isinstance(value, str):
-                # Try to parse as JSON if it looks like JSON
-                if (value.startswith('{') and value.endswith('}')) or \
-                   (value.startswith('[') and value.endswith(']')):
-                    try:
-                        return json.loads(value)
-                    except (json.JSONDecodeError, ValueError):
-                        # If JSON parsing fails, return as string
-                        pass
-            return value
+        result = []
         
-        return [
-            {key: deserialize_value(val) for key, val in row.items()}
-            for row in data
-        ]
+        for row in data:
+            nested_row = {}
+            
+            for key, value in row.items():
+                # Convert ID to string if it's an integer (model expects string)
+                if key == 'id' and isinstance(value, (int, float)):
+                    value = str(int(value))
+                
+                # Handle pandas NaN values
+                if pd.isna(value):
+                    value = None
+                
+                # Parse JSON strings for known JSON fields
+                if isinstance(value, str) and self._is_json_field(key):
+                    try:
+                        value = json.loads(value)
+                    except (json.JSONDecodeError, TypeError):
+                        # If JSON parsing fails, keep as string
+                        pass
+                
+                # Handle dot notation for nested fields
+                if '.' in key:
+                    self._set_nested_value(nested_row, key, value)
+                else:
+                    nested_row[key] = value
+            
+            result.append(nested_row)
+        
+        return result
     
-    def execute_query(self, table_name: str, conditions: Optional[Dict[str, Any]] = None, 
-                     columns: Optional[List[str]] = None) -> List[Dict[str, Any]]:
+    def _is_json_field(self, field_name: str) -> bool:
+        """Check if a field should be parsed as JSON."""
+        json_fields = {
+            'metadata.tags',
+            'fix_details.instructions',
+            'metadata.operation.logic',  # Sometimes contains JSON
+        }
+        return field_name in json_fields or field_name.endswith('.tags') or field_name.endswith('.instructions')
+    
+    def _set_nested_value(self, obj: Dict[str, Any], key_path: str, value: Any):
         """
-        Execute a SELECT-like query on a CSV table.
+        Set a nested value using dot notation.
         
         Args:
-            table_name: Name of the CSV file (table)
-            conditions: Dictionary of column:value pairs for filtering
-            columns: List of columns to return (None for all columns)
+            obj: Dictionary to set value in
+            key_path: Dot-separated key path (e.g., 'metadata.tags')
+            value: Value to set
+        """
+        keys = key_path.split('.')
+        current = obj
+        
+        # Navigate to the parent object, creating nested dicts as needed
+        for key in keys[:-1]:
+            if key not in current:
+                current[key] = {}
+            current = current[key]
+        
+        # Set the final value
+        final_key = keys[-1]
+        current[final_key] = value
+    
+    def execute_query(self, query_or_table: str, params_or_conditions: Optional[Union[tuple, Dict[str, Any]]] = None, 
+                     columns: Optional[List[str]] = None) -> List[Dict[str, Any]]:
+        """
+        Execute a query on a CSV table.
+        
+        This method supports two interfaces for compatibility:
+        1. PostgreSQL-style: execute_query("SELECT * FROM table WHERE id = 1")
+        2. Structured-style: execute_query("table", {"id": 1}, ["col1", "col2"])
+        
+        Args:
+            query_or_table: Either a SQL query string or table name
+            params_or_conditions: Either query params (tuple) or conditions (dict)
+            columns: List of columns to return (structured mode only)
             
         Returns:
             List of dictionaries representing query results
         """
+        try:
+            # Detect if this is a SQL query or structured call
+            if self._is_sql_query(query_or_table):
+                # PostgreSQL-compatible mode: parse SQL
+                return self._execute_sql_query(query_or_table, params_or_conditions)
+            else:
+                # Structured mode: use table name and conditions
+                return self._execute_structured_query(query_or_table, params_or_conditions, columns)
+                
+        except Exception as e:
+            logger.error(f"❌ Query execution failed: {e}")
+            return []
+    
+    def _is_sql_query(self, query_str: str) -> bool:
+        """Check if the string is a SQL query or just a table name."""
+        return query_str.strip().upper().startswith('SELECT')
+    
+    def _execute_sql_query(self, sql: str, params: Optional[tuple] = None) -> List[Dict[str, Any]]:
+        """Execute a SQL query string."""
+        try:
+            # Parse the SQL query
+            parsed = SQLParser.parse_select(sql)
+            table_name = parsed['table_name']
+            columns = parsed['columns']
+            conditions = parsed['conditions']
+            order_by = parsed['order_by']
+            
+            # Handle parameterized queries (basic support)
+            if params and conditions:
+                # This is a simplified parameter substitution
+                # In a real implementation, you'd want more robust parameter handling
+                logger.warning("⚠️ Parameterized queries not fully supported in CSV mode")
+            
+            return self._execute_structured_query(table_name, conditions, columns, order_by)
+            
+        except Exception as e:
+            logger.error(f"❌ SQL query execution failed: {e}")
+            return []
+    
+    def _execute_structured_query(self, table_name: str, conditions: Optional[Dict[str, Any]] = None, 
+                                 columns: Optional[List[str]] = None, order_by: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Execute a structured query (original CSV database interface)."""
         try:
             table_path = self._get_table_path(table_name)
             
@@ -192,22 +358,41 @@ class CSVDatabase:
             # Read CSV file
             df = pd.read_csv(table_path)
             
+            # Handle column selection for nested fields
+            if columns:
+                # Expand nested field names to their flattened equivalents
+                expanded_columns = self._expand_nested_columns(columns, df.columns)
+                available_columns = [col for col in expanded_columns if col in df.columns]
+                
+                if available_columns:
+                    df = df[available_columns]
+                else:
+                    logger.warning(f"⚠️ None of the requested columns {columns} found in table {table_name}")
+                    # If no columns found, return empty results
+                    return []
+            
             # Apply conditions (WHERE clause equivalent)
             if conditions:
                 for column, value in conditions.items():
                     if column in df.columns:
-                        if isinstance(value, str) and '*' in value:
+                        if isinstance(value, list):
+                            # Handle IN clause
+                            df = df[df[column].isin(value)]
+                        elif isinstance(value, str) and '*' in value:
                             # Handle wildcard matching
                             pattern = value.replace('*', '.*')
                             df = df[df[column].astype(str).str.match(pattern, na=False)]
                         else:
+                            # Handle equality
                             df = df[df[column] == value]
             
-            # Select specific columns if specified
-            if columns:
-                available_columns = [col for col in columns if col in df.columns]
-                if available_columns:
-                    df = df[available_columns]
+            # Apply ORDER BY
+            if order_by:
+                # Simple ORDER BY support (column name only)
+                order_column = order_by.replace('DESC', '').replace('ASC', '').strip()
+                ascending = 'DESC' not in order_by.upper()
+                if order_column in df.columns:
+                    df = df.sort_values(by=order_column, ascending=ascending)
             
             # Convert to list of dictionaries
             results = df.to_dict('records')
@@ -219,8 +404,43 @@ class CSVDatabase:
             return results
             
         except Exception as e:
-            logger.error(f"❌ Query execution failed on {table_name}: {e}")
-            raise
+            logger.error(f"❌ Structured query execution failed on {table_name}: {e}")
+            return []
+    
+    def _expand_nested_columns(self, requested_columns: List[str], available_columns: List[str]) -> List[str]:
+        """
+        Expand nested column names to their flattened equivalents.
+        
+        For example:
+        - 'output_statements' -> ['output_statements.failure', 'output_statements.partial', 'output_statements.success']
+        - 'metadata' -> ['metadata.tags', 'metadata.category', 'metadata.severity', ...]
+        
+        Args:
+            requested_columns: List of column names requested (may include nested fields)
+            available_columns: List of actual columns in the CSV
+            
+        Returns:
+            List of expanded column names that exist in the CSV
+        """
+        expanded = []
+        
+        for col in requested_columns:
+            if col in available_columns:
+                # Direct column exists, use it
+                expanded.append(col)
+            else:
+                # Look for flattened versions of this column
+                matching_columns = [
+                    csv_col for csv_col in available_columns 
+                    if csv_col.startswith(f"{col}.")
+                ]
+                if matching_columns:
+                    expanded.extend(matching_columns)
+                else:
+                    # Column not found in any form, keep original for error reporting
+                    expanded.append(col)
+        
+        return expanded
     
     def execute_insert(self, table_name: str, data: Union[Dict[str, Any], List[Dict[str, Any]]]) -> int:
         """

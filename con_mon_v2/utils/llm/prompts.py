@@ -182,13 +182,13 @@ checks:
       name: CUSTOM  # Must be ComparisonOperationEnum value: CUSTOM, EQUAL, NOT_EQUAL, etc.
       logic: |
         # CRITICAL: Custom logic rules for compliance Check model:
-        # 1. NEVER use 'return' statements - this is not a function!
+        # 1. MUST implement actual validation logic - empty logic will be rejected
         # 2. ALWAYS set 'result = True' for compliance, 'result = False' for non-compliance
         # 3. Use 'fetched_value' variable to access the field data
-        # 4. NEVER use TODO comments - implement complete working logic
+        # 4. Return statements work within the function scope if needed
         # 5. Handle edge cases like None values, empty lists, missing fields
-        # 6. This logic will be executed via ComparisonOperation.__call__()
-        # 7. The logic will be dynamically compiled and executed safely
+        # 6. This logic will be executed via ComparisonOperation with try-catch protection
+        # 7. Runtime errors will return False automatically
         
         result = False  # Default to non-compliant
         
@@ -434,23 +434,9 @@ You are a cybersecurity compliance expert. Generate a complete checks.yaml entry
         operation_name = operation_data.get('name', 'CUSTOM')
         
         # Handle enum conversion - accept both enum names and values
-        if isinstance(operation_name, str):
-            try:
-                # Try to get enum by name first (e.g., "CUSTOM")
-                operation_enum = ComparisonOperationEnum[operation_name.upper()]
-            except KeyError:
-                try:
-                    # Try to get enum by value (e.g., "custom")
-                    operation_enum = ComparisonOperationEnum(operation_name)
-                except ValueError:
-                    # Default to CUSTOM if neither works
-                    operation_enum = ComparisonOperationEnum.CUSTOM
-        else:
-            operation_enum = operation_name or ComparisonOperationEnum.CUSTOM
-            
         check_operation = CheckOperation(
-            name=operation_enum,
-            logic=custom_logic or ''
+            name=ComparisonOperationEnum(operation_name.lower()),
+            logic=custom_logic
         )
         
         # Create CheckMetadata object (new compliance model)
