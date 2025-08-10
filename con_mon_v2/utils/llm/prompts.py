@@ -150,8 +150,6 @@ class ChecksPrompt(BasePrompt):
 8. Add relevant tags for categorization in metadata
 9. Set appropriate severity level (low, medium, high, critical) in metadata
 10. Choose the correct category in metadata
-11. Map to relevant control IDs - USE NUMERIC DATABASE ID {control_id}, NOT control name
-12. Include connection_id in metadata for database relationships
     """
 
     SAMPLE_FORMAT = """
@@ -178,9 +176,8 @@ checks:
   is_deleted: false
   metadata:
     # Resource evaluation fields
-    resource_model: # Choose specific resource type (con_mon_v2.mappings.github.GithubResource, etc.)
+    resource_type: # Choose specific resource type (con_mon_v2.mappings.github.GithubResource, etc.)
     field_path: # Examples: "repository_data.basic_info.description", "security_data.security_analysis.advanced_security_enabled", "organization_data.members"
-    connection_id: # Database connection ID for resource relationships
     operation:
       name: custom
       logic: |
@@ -220,8 +217,6 @@ checks:
     - {resource_model_lower}
     severity: {suggested_severity}
     category: {suggested_category}
-    control_ids:
-    - {control_id}
 ```
     """
 
@@ -469,7 +464,6 @@ You are a cybersecurity compliance expert. Generate a complete checks.yaml entry
             severity=metadata.get('severity', 'medium'),
             operation=check_operation,
             field_path=metadata.get('field_path', 'data'),
-            connection_id=metadata.get('connection_id'),
             resource_type=f"{self.resource_model.__module__}.{self.resource_model.__name__}",
             expected_value=metadata.get('expected_value')
         )

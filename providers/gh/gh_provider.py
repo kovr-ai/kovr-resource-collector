@@ -79,7 +79,7 @@ class GitHubProvider(Provider):
     def process(self) -> GithubResourceCollection:
         """Process data collection and return GitHubReport model"""
         with open(
-            'github_response.json',
+            'tests/mocks/github/response.json',
             'r'
         ) as mock_response_file:
             mock_response = json.load(mock_response_file)

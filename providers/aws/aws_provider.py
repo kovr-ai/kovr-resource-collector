@@ -42,8 +42,8 @@ class AWSProvider(Provider):
         self.ROLE_ARN = metadata.get("AWS_ROLE_ARN")
         self.AWS_EXTERNAL_ID = metadata.get("AWS_EXTERNAL_ID")
         
-        # Check if we should use mock mode (if aws_response.json exists)
-        self.use_mock_data = os.path.exists('aws_response.json')
+        # Check if we should use mock mode (if tests/mocks/aws/response.json exists)
+        self.use_mock_data = os.path.exists('tests/mocks/aws/response.json')
         
         if not self.use_mock_data and (
             not self.AWS_ACCESS_KEY_ID
@@ -151,11 +151,11 @@ class AWSProvider(Provider):
             return self._process_real_aws_data()
     
     def _process_mock_data(self) -> AwsResourceCollection:
-        """Load and return mock data from aws_response.json as AwsResourceCollection"""
-        print("🔄 Using mock AWS data from aws_response.json")
+        """Load and return mock data from tests/mocks/aws/response.json as AwsResourceCollection"""
+        print("🔄 Using mock AWS data from tests/mocks/aws/response.json")
         
         try:
-            with open('aws_response.json', 'r') as mock_response_file:
+            with open('tests/mocks/aws/response.json', 'r') as mock_response_file:
                 mock_response = json.load(mock_response_file)
                 
             print(f"✅ Loaded mock AWS data with {len(mock_response)} regions")
@@ -166,7 +166,7 @@ class AWSProvider(Provider):
         except Exception as e:
             raise e
             print(f"❌ Error loading mock data: {e}")
-            raise RuntimeError(f"Failed to load mock data from aws_response.json: {e}")
+            raise RuntimeError(f"Failed to load mock data from tests/mocks/aws/response.json: {e}")
 
     def _process_real_aws_data(self) -> AwsResourceCollection:
         """Original AWS data collection logic using real API calls - returns AwsResourceCollection"""
