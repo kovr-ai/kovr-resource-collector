@@ -231,12 +231,25 @@ checks:
   is_deleted: false
   metadata:
     resource_type: "{resource_type_full_path}"
-    field_path: "{field_path}"
+    field_path: "[CHOOSE FROM EXAMPLES ABOVE]"
     operation:
-      name: "{operation_name}"
+      name: "CUSTOM"
       logic: |
-        {operation_logic}
-    expected_value: {expected_value}
+        result = False
+        
+        # Implement complete validation logic here
+        # Example structure:
+        if fetched_value and isinstance(fetched_value, [EXPECTED_TYPE]):
+            # Multiple validation criteria
+            condition1 = [validation logic]
+            condition2 = [validation logic]
+            condition3 = [validation logic]
+            
+            if condition1 and condition2 and condition3:
+                result = True
+        elif fetched_value is None:
+            result = False
+    expected_value: null
     tags: {tags}
     severity: "{suggested_severity}"
     category: "{suggested_category}"
