@@ -749,6 +749,7 @@ def _calculate_time_stats_from_status(status_tracker: StatusTracker, limit: int 
         timestamps = []
         total_entries = 0
         success_count = 0
+        error_count = 0
         last_timestamp = None
         processed_control_ids = set()
         
@@ -758,6 +759,8 @@ def _calculate_time_stats_from_status(status_tracker: StatusTracker, limit: int 
                 total_entries += 1
                 if row['status'] == 'success':
                     success_count += 1
+                elif row['status'] == 'error':
+                    error_count += 1
                 
                 # Track which controls have been processed
                 try:
@@ -774,22 +777,25 @@ def _calculate_time_stats_from_status(status_tracker: StatusTracker, limit: int 
                 except:
                     continue
         
+        # Only count successful entries as truly "completed" for progress calculation
+        completed_entries = success_count
+        
         if len(timestamps) < 2:
             return {
                 'rate': 'Insufficient data',
-                'estimated_remaining': 'Calculating...',
-                'estimated_completion': 'Calculating...',
+                'estimated_remaining': 'Calculating...' if error_count > 0 else 'No data',
+                'estimated_completion': 'Calculating...' if error_count > 0 else 'No data',
                 'last_update': last_timestamp.strftime('%H:%M:%S') if last_timestamp else 'No data'
             }
         
-        # Calculate processing rate
+        # Calculate processing rate based on successful completions only
         timestamps.sort()
         start_time = timestamps[0]
         end_time = timestamps[-1]
         duration = (end_time - start_time).total_seconds()
         
         if duration > 0:
-            rate_per_second = len(timestamps) / duration
+            rate_per_second = completed_entries / duration
             rate_per_minute = rate_per_second * 60
             rate_str = f"{rate_per_minute:.1f} tasks/min"
         else:
@@ -822,7 +828,8 @@ def _calculate_time_stats_from_status(status_tracker: StatusTracker, limit: int 
                 already_processed_in_scope = len(processed_control_ids & remaining_control_ids)
                 remaining_controls_to_process = len(remaining_control_ids) - already_processed_in_scope
                 
-                remaining_tasks = remaining_controls_to_process * tasks_per_control
+                # Add back error entries that need to be retried
+                remaining_tasks = remaining_controls_to_process * tasks_per_control + error_count
                 scope_description = f"limited to {limit} controls"
                 
             else:
@@ -830,7 +837,8 @@ def _calculate_time_stats_from_status(status_tracker: StatusTracker, limit: int 
                 all_active_control_ids = {c.id for c in active_controls}
                 unprocessed_control_ids = all_active_control_ids - processed_control_ids
                 
-                remaining_tasks = len(unprocessed_control_ids) * tasks_per_control
+                # Add back error entries that need to be retried
+                remaining_tasks = len(unprocessed_control_ids) * tasks_per_control + error_count
                 scope_description = f"all remaining controls ({len(unprocessed_control_ids)} controls)"
             
             if remaining_tasks > 0 and rate_per_second > 0:
@@ -853,12 +861,14 @@ def _calculate_time_stats_from_status(status_tracker: StatusTracker, limit: int 
                     rate_str = f"{rate_per_minute:.1f} tasks/min × {threads} threads = {effective_rate:.1f} tasks/min"
                 
             else:
-                estimated_remaining = "Completed!" if remaining_tasks <= 0 else "Calculating..."
-                completion_str = "Completed!" if remaining_tasks <= 0 else "Calculating..."
+                estimated_remaining = "Completed!" if remaining_tasks <= 0 and error_count == 0 else "Calculating..."
+                completion_str = "Completed!" if remaining_tasks <= 0 and error_count == 0 else "Calculating..."
                 
             # Add scope information to completion string
-            if remaining_tasks > 0:
+            if remaining_tasks > 0 or error_count > 0:
                 completion_str += f" ({scope_description})"
+                if error_count > 0:
+                    completion_str += f" + {error_count} retries"
             
         except Exception as e:
             estimated_remaining = f"Error: {str(e)[:30]}..."
@@ -970,9 +980,110 @@ Examples:
             if not error_entries:
                 console.print("✅ [green]No error entries found[/green]")
                 return 0
+            
+            # Load controls for error retry
+            console.print("📋 [yellow]Loading controls for error retry...[/yellow]")
+            loader = ControlLoader()
+            all_controls = loader.load_all()
+            control_dict = {c.id: c for c in all_controls}
+            
+            # Get provider mappings
+            provider_resources = get_provider_resources_mapping()
+            
+            # Group error entries by control_id and resource info
+            retry_tasks = []
+            for entry in error_entries:
+                control_id = int(entry['control_id'])
+                provider = entry['provider']
+                resource_type = entry['resource_type']
                 
-            # TODO: Implement error retry logic
-            console.print("⚠️  [yellow]Error retry not implemented yet[/yellow]")
+                # Find matching control
+                if control_id not in control_dict:
+                    console.print(f"⚠️ [yellow]Control ID {control_id} not found, skipping[/yellow]")
+                    continue
+                
+                # Find matching connector type
+                connector_type = None
+                for ct, resources in provider_resources.items():
+                    if ct.value == provider and resource_type in resources:
+                        connector_type = ct
+                        break
+                
+                if not connector_type:
+                    console.print(f"⚠️ [yellow]Provider {provider} with resource {resource_type} not found, skipping[/yellow]")
+                    continue
+                
+                retry_tasks.append({
+                    'control': control_dict[control_id],
+                    'connector_type': connector_type,
+                    'resource_type': resource_type,
+                    'attempts': int(entry.get('attempts', 1))
+                })
+            
+            if not retry_tasks:
+                console.print("⚠️ [yellow]No valid retry tasks found[/yellow]")
+                return 0
+            
+            console.print(f"🎯 [green]Processing {len(retry_tasks)} retry tasks[/green]")
+            stats.total_tasks = len(retry_tasks)
+            stats.total_controls = len(set(task['control'].id for task in retry_tasks))
+            
+            # Process retry tasks with threading
+            with Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}"),
+                BarColumn(),
+                TaskProgressColumn(),
+                TimeRemainingColumn(),
+                console=console
+            ) as progress:
+                
+                task = progress.add_task("Retrying failed checks...", total=len(retry_tasks))
+                
+                with ThreadPoolExecutor(max_workers=args.threads) as executor:
+                    futures = []
+                    
+                    # Submit retry tasks
+                    for retry_task in retry_tasks:
+                        future = executor.submit(
+                            process_single_control_provider,
+                            retry_task['control'], 
+                            retry_task['connector_type'], 
+                            retry_task['resource_type'],
+                            status_tracker, 
+                            prompt_logger, 
+                            error_tracker, 
+                            args.attempts
+                        )
+                        futures.append(future)
+                    
+                    # Process completed retry tasks
+                    for future in as_completed(futures):
+                        try:
+                            success, check_id, error_msg = future.result()
+                            stats.completed_tasks += 1
+                            if success:
+                                stats.successful_checks += 1
+                                console.print(f"✅ [green]Retry successful: {check_id}[/green]")
+                            else:
+                                stats.failed_checks += 1
+                                if error_msg:
+                                    stats.error_checks += 1
+                                    console.print(f"❌ [red]Retry failed: {error_msg}[/red]")
+                        except Exception as e:
+                            stats.completed_tasks += 1
+                            stats.error_checks += 1
+                            console.print(f"[red]❌ Retry task failed: {str(e)}[/red]")
+                        
+                        progress.advance(task)
+            
+            # Retry summary
+            console.print("\n" + "="*60)
+            console.print(f"🔄 [bold cyan]Error Retry Summary[/bold cyan]")
+            console.print(f"✅ [green]Successful retries: {stats.successful_checks}[/green]")
+            console.print(f"❌ [red]Failed retries: {stats.failed_checks}[/red]")
+            console.print(f"⚠️ [yellow]Error retries: {stats.error_checks}[/yellow]")
+            
             return 0
             
         else:
