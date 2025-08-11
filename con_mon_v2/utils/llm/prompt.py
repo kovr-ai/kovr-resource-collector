@@ -792,14 +792,55 @@ Generate the complete YAML check entry now:"""
     
     def process_response(self, response: LLMResponse) -> Check:
         """Process the LLM response and create a validated Check object using from_row"""
+        # Clean and extract YAML content
         content = response.content.strip()
         
-        # Clean up the response
+        # Remove markdown code blocks if present
         if content.startswith('```yaml'):
             content = content[7:]
+        elif content.startswith('```'):
+            content = content[3:]
         if content.endswith('```'):
             content = content[:-3]
         content = content.strip()
+        
+        # Clean special characters that break YAML parsing
+        char_replacements = {
+            # Fix UTF-8 encoding issues
+            'â€"': '—',  # Fix mangled em dash
+            'â€™': "'",  # Fix mangled right single quotation mark
+            'â€œ': '"',  # Fix mangled left double quotation mark
+            'â€': '"',  # Fix mangled right double quotation mark
+            'â€¢': '•',  # Fix mangled bullet point
+            'â€¦': '...',  # Fix mangled ellipsis
+            
+            # Replace problematic characters with safe alternatives
+            '—': '-',    # Em dash to hyphen
+            '–': '-',    # En dash to hyphen
+            ''': "'",    # Left single quotation mark to straight quote
+            ''': "'",    # Right single quotation mark to straight quote
+            '"': '"',    # Left double quotation mark to straight quote
+            '"': '"',    # Right double quotation mark to straight quote
+            '…': '...',  # Horizontal ellipsis to three dots
+            '•': '-',    # Bullet point to hyphen
+            '™': 'TM',   # Trademark symbol
+            '®': '(R)',  # Registered trademark
+            '©': '(C)',  # Copyright symbol
+            '°': ' degrees',  # Degree symbol
+            '±': '+/-',  # Plus-minus sign
+            '×': 'x',    # Multiplication sign
+            '÷': '/',    # Division sign
+        }
+        
+        # Apply character replacements
+        for old_char, new_char in char_replacements.items():
+            content = content.replace(old_char, new_char)
+        
+        # Remove any remaining non-ASCII characters that might cause issues
+        # Keep only printable ASCII characters, newlines, and tabs
+        import string
+        allowed_chars = string.printable
+        content = ''.join(char for char in content if char in allowed_chars)
         
         # Ensure proper YAML structure
         if not content.startswith('checks:'):
