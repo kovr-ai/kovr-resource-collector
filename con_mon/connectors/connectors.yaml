@@ -1,0 +1,29 @@
+# Connectors configuration file
+# Defines connector services for different providers
+
+github:
+  connectors:
+    name: "github"
+    description: "Collect complete GitHub data (repositories, actions, security, collaboration, etc.)"
+    connector_type: "github"
+    provider_service: "providers.gh.gh_provider"
+    method: "process"
+
+  # Input specification for this connector
+  input:
+    # {"personal_access_token": "ghp+asdas asd as das "}
+    personal_access_token: "string"
+
+aws:
+  connectors:
+    name: "aws"
+    description: "Collect AWS cloud resources (EC2, IAM, S3, CloudTrail, CloudWatch)"
+    connector_type: "aws"
+    provider_service: "providers.aws.aws_provider"
+    method: "process"
+
+  # Input specification for this connector
+  input:
+    # {"role_arn": "dsfdsfd", "external_id": "9e3f1418-c5e5-4a08-9b96-58bb74ca0129"}
+    role_arn: "string"
+    external_id: "string"
