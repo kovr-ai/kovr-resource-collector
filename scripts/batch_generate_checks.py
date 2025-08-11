@@ -190,17 +190,30 @@ class StatusTracker:
             return {'total': 0, 'success': 0, 'error': 0, 'pending': 0}
             
         stats = {'total': 0, 'success': 0, 'error': 0, 'pending': 0}
+        
+        # Track unique tasks to avoid double-counting retries
+        unique_tasks = {}  # task_key -> latest_status
+        
         try:
             with open(self.status_file, 'r') as f:
                 reader = csv.DictReader(f)
                 for row in reader:
-                    stats['total'] += 1
-                    if row['status'] == 'success':
-                        stats['success'] += 1
-                    elif row['status'] == 'error':
-                        stats['error'] += 1
-                    else:
-                        stats['pending'] += 1
+                    # Create unique task key: control_id-provider-resource_type
+                    task_key = f"{row['control_id']}-{row['provider']}-{row['resource_type']}"
+                    
+                    # Keep only the latest status for each unique task
+                    unique_tasks[task_key] = row['status']
+            
+            # Count unique tasks by their latest status
+            for task_key, status in unique_tasks.items():
+                stats['total'] += 1
+                if status == 'success':
+                    stats['success'] += 1
+                elif status == 'error':
+                    stats['error'] += 1
+                else:
+                    stats['pending'] += 1
+                    
         except:
             pass
         return stats
@@ -656,7 +669,8 @@ def show_progress_stats(status_tracker: StatusTracker, limit: int = None, thread
                 f"❌ Failed: {stats['error']}",
                 "",
                 f"⏱️  Processing Rate: {time_stats['rate']}",
-                f"🎯 ETA: {time_stats['estimated_remaining']}"
+                f"🎯 ETA (All Tasks): {time_stats['estimated_remaining']}",
+                f"🎯 ETA (All Success): {time_stats['success_eta']}"
             ])
             
             if stats['total'] > total_processed:
@@ -674,14 +688,23 @@ def show_progress_stats(status_tracker: StatusTracker, limit: int = None, thread
             
             display_lines.extend(["", "-" * 60])
             
-            # Progress bar
-            if completion_pct > 0:
-                bar_length = 40
-                filled_length = int(bar_length * min(completion_pct, 100) / 100)
-                bar = '█' * filled_length + '░' * (bar_length - filled_length)
-                display_lines.append(f"Progress: |{bar}| {completion_pct:.1f}%")
-            else:
-                display_lines.append(f"Progress: Processing... ({total_processed} tasks completed)")
+            # Two progress bars instead of one
+            total_processed = stats['success'] + stats['error']
+            completion_pct = (total_processed / stats['total'] * 100) if stats['total'] > 0 else 0
+            success_pct = (stats['success'] / total_processed * 100) if total_processed > 0 else 0
+            
+            # Progress bar 1: Overall completion (tasks processed vs total)
+            bar_length = 35
+            completion_filled = int(bar_length * min(completion_pct, 100) / 100)
+            completion_bar = '█' * completion_filled + '░' * (bar_length - completion_filled)
+            display_lines.append(f"Overall:  |{completion_bar}| {completion_pct:.1f}% ({total_processed}/{stats['total']})")
+            
+            # Progress bar 2: Success rate (successful vs processed)  
+            success_filled = int(bar_length * min(success_pct, 100) / 100)
+            success_bar = '█' * success_filled + '░' * (bar_length - success_filled)
+            display_lines.append(f"Success:  |{success_bar}| {success_pct:.1f}% ({stats['success']}/{total_processed})")
+            
+            display_lines.append("")
             
             display_lines.extend(["", "⏹️  Press Ctrl+C to exit monitor"])
             
@@ -742,23 +765,39 @@ def _calculate_time_stats_from_status(status_tracker: StatusTracker, limit: int 
                 'rate': 'No data',
                 'estimated_remaining': 'No data',
                 'estimated_completion': 'No data',
+                'success_eta': 'No data',
                 'last_update': 'No data'
             }
         
         # Read status file to get timestamps and processed controls
         timestamps = []
+        success_timestamps = []  # Track only successful completion timestamps
         total_entries = 0
         success_count = 0
         error_count = 0
         last_timestamp = None
         processed_control_ids = set()
         
+        # Track unique tasks to avoid double-counting retries
+        unique_tasks = {}  # task_key -> latest_status
+        
         with open(status_tracker.status_file, 'r') as f:
             reader = csv.DictReader(f)
             for row in reader:
                 total_entries += 1
+                
+                # Create unique task key: control_id-provider-resource_type
+                task_key = f"{row['control_id']}-{row['provider']}-{row['resource_type']}"
+                unique_tasks[task_key] = row['status']
+                
                 if row['status'] == 'success':
                     success_count += 1
+                    # Track successful completion timestamps for success rate calculation
+                    try:
+                        success_timestamp = datetime.fromisoformat(row['timestamp'])
+                        success_timestamps.append(success_timestamp)
+                    except:
+                        pass
                 elif row['status'] == 'error':
                     error_count += 1
                 
@@ -777,31 +816,74 @@ def _calculate_time_stats_from_status(status_tracker: StatusTracker, limit: int 
                 except:
                     continue
         
+        # Count unique tasks by their latest status
+        unique_success_count = 0
+        unique_error_count = 0
+        for task_key, status in unique_tasks.items():
+            if status == 'success':
+                unique_success_count += 1
+            elif status == 'error':
+                unique_error_count += 1
+        
         # Only count successful entries as truly "completed" for progress calculation
-        completed_entries = success_count
+        completed_entries = unique_success_count
         
         if len(timestamps) < 2:
             return {
                 'rate': 'Insufficient data',
-                'estimated_remaining': 'Calculating...' if error_count > 0 else 'No data',
-                'estimated_completion': 'Calculating...' if error_count > 0 else 'No data',
+                'estimated_remaining': 'Calculating...' if unique_error_count > 0 else 'No data',
+                'estimated_completion': 'Calculating...' if unique_error_count > 0 else 'No data',
+                'success_eta': 'Calculating...' if unique_error_count > 0 else 'No data',
                 'last_update': last_timestamp.strftime('%H:%M:%S') if last_timestamp else 'No data'
             }
         
-        # Calculate processing rate based on successful completions only
+        # Calculate processing rate based on all processed entries (both successful and failed)
         timestamps.sort()
         start_time = timestamps[0]
         end_time = timestamps[-1]
         duration = (end_time - start_time).total_seconds()
         
         if duration > 0:
-            rate_per_second = completed_entries / duration
+            # Use total entries processed (successful + failed) for rate calculation
+            # since both represent actual processing work done
+            total_processed = unique_success_count + unique_error_count
+            rate_per_second = total_processed / duration
             rate_per_minute = rate_per_second * 60
             rate_str = f"{rate_per_minute:.1f} tasks/min"
         else:
             rate_str = "∞ tasks/min"
         
-        # Smart calculation of remaining work
+        # Calculate success rate for second ETA
+        success_eta_str = "No successful tasks yet"
+        if len(success_timestamps) >= 2 and unique_error_count > 0:
+            success_timestamps.sort()
+            success_start = success_timestamps[0]
+            success_end = success_timestamps[-1]
+            success_duration = (success_end - success_start).total_seconds()
+            
+            if success_duration > 0:
+                success_rate_per_second = len(success_timestamps) / success_duration
+                success_rate_per_minute = success_rate_per_second * 60
+                
+                # Account for threading for success rate
+                success_rate_with_threads = success_rate_per_second * threads
+                
+                # Time to complete all remaining failed tasks successfully
+                remaining_failed_tasks = unique_error_count
+                if remaining_failed_tasks > 0:
+                    success_eta_seconds = remaining_failed_tasks / success_rate_with_threads
+                    success_eta_hours = int(success_eta_seconds // 3600)
+                    success_eta_minutes = int((success_eta_seconds % 3600) // 60)
+                    success_eta_secs = int(success_eta_seconds % 60)
+                    
+                    success_completion_time = datetime.now() + timedelta(seconds=success_eta_seconds)
+                    success_completion_str = success_completion_time.strftime('%H:%M:%S')
+                    
+                    success_eta_str = f"{success_eta_hours:02d}:{success_eta_minutes:02d}:{success_eta_secs:02d} (ETA: {success_completion_str})"
+                else:
+                    success_eta_str = "All tasks successful!"
+        
+        # Smart calculation of remaining work (existing logic)
         try:
             from con_mon_v2.utils.llm.generate import get_provider_resources_mapping
             from con_mon_v2.compliance import ControlLoader
@@ -829,7 +911,7 @@ def _calculate_time_stats_from_status(status_tracker: StatusTracker, limit: int 
                 remaining_controls_to_process = len(remaining_control_ids) - already_processed_in_scope
                 
                 # Add back error entries that need to be retried
-                remaining_tasks = remaining_controls_to_process * tasks_per_control + error_count
+                remaining_tasks = remaining_controls_to_process * tasks_per_control + unique_error_count
                 scope_description = f"limited to {limit} controls"
                 
             else:
@@ -838,7 +920,7 @@ def _calculate_time_stats_from_status(status_tracker: StatusTracker, limit: int 
                 unprocessed_control_ids = all_active_control_ids - processed_control_ids
                 
                 # Add back error entries that need to be retried
-                remaining_tasks = len(unprocessed_control_ids) * tasks_per_control + error_count
+                remaining_tasks = len(unprocessed_control_ids) * tasks_per_control + unique_error_count
                 scope_description = f"all remaining controls ({len(unprocessed_control_ids)} controls)"
             
             if remaining_tasks > 0 and rate_per_second > 0:
@@ -861,14 +943,14 @@ def _calculate_time_stats_from_status(status_tracker: StatusTracker, limit: int 
                     rate_str = f"{rate_per_minute:.1f} tasks/min × {threads} threads = {effective_rate:.1f} tasks/min"
                 
             else:
-                estimated_remaining = "Completed!" if remaining_tasks <= 0 and error_count == 0 else "Calculating..."
-                completion_str = "Completed!" if remaining_tasks <= 0 and error_count == 0 else "Calculating..."
+                estimated_remaining = "Completed!" if remaining_tasks <= 0 and unique_error_count == 0 else "Calculating..."
+                completion_str = "Completed!" if remaining_tasks <= 0 and unique_error_count == 0 else "Calculating..."
                 
             # Add scope information to completion string
-            if remaining_tasks > 0 or error_count > 0:
+            if remaining_tasks > 0 or unique_error_count > 0:
                 completion_str += f" ({scope_description})"
-                if error_count > 0:
-                    completion_str += f" + {error_count} retries"
+                if unique_error_count > 0:
+                    completion_str += f" + {unique_error_count} retries"
             
         except Exception as e:
             estimated_remaining = f"Error: {str(e)[:30]}..."
@@ -878,6 +960,7 @@ def _calculate_time_stats_from_status(status_tracker: StatusTracker, limit: int 
             'rate': rate_str,
             'estimated_remaining': estimated_remaining,
             'estimated_completion': completion_str,
+            'success_eta': success_eta_str,
             'last_update': last_timestamp.strftime('%H:%M:%S on %m/%d') if last_timestamp else 'No data'
         }
         
@@ -886,6 +969,7 @@ def _calculate_time_stats_from_status(status_tracker: StatusTracker, limit: int 
             'rate': f'Error: {str(e)[:20]}...',
             'estimated_remaining': 'Error calculating',
             'estimated_completion': 'Error calculating',
+            'success_eta': 'Error calculating',
             'last_update': 'Error'
         }
 
