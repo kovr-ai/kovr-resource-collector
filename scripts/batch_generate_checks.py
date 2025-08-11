@@ -608,71 +608,131 @@ def create_progress_table(stats: ProcessingStats) -> Table:
     return table
 
 def show_progress_stats(status_tracker: StatusTracker, limit: int = None, threads: int = 1):
-    """Show current progress statistics with time estimation"""
-    stats = status_tracker.get_statistics()
+    """Show crisp live progress statistics with clean screen updates"""
     
-    # Create comprehensive progress table
-    table = Table(title="📈 Current Progress with Time Estimation", box=box.ROUNDED)
-    table.add_column("Metric", style="cyan", no_wrap=True)
-    table.add_column("Count", style="magenta")
-    table.add_column("Details", style="green")
+    import contextlib
+    import io
     
-    total = stats['total']
-    if total > 0:
-        success_pct = (stats['success'] / total) * 100
-        error_pct = (stats['error'] / total) * 100
-        pending_pct = (stats['pending'] / total) * 100
-        completion_pct = ((stats['success'] + stats['error']) / total) * 100
-    else:
-        success_pct = error_pct = pending_pct = completion_pct = 0
+    # Suppress all other output during monitoring for crisp display
+    @contextlib.contextmanager
+    def suppress_output():
+        old_stdout = sys.stdout
+        old_stderr = sys.stderr
+        try:
+            sys.stdout = io.StringIO()
+            sys.stderr = io.StringIO()
+            yield
+        finally:
+            sys.stdout = old_stdout
+            sys.stderr = old_stderr
     
-    # Basic statistics
-    table.add_row("✅ Success", str(stats['success']), f"{success_pct:.1f}%")
-    table.add_row("❌ Errors", str(stats['error']), f"{error_pct:.1f}%")
-    table.add_row("⏳ Pending", str(stats['pending']), f"{pending_pct:.1f}%")
-    table.add_row("📊 Total", str(total), "100%")
-    table.add_row("🎯 Completed", str(stats['success'] + stats['error']), f"{completion_pct:.1f}%")
+    # Clear screen immediately and suppress any initial output
+    os.system('clear' if os.name == 'posix' else 'cls')
     
-    # Time estimation based on historical data
-    table.add_row("─" * 15, "─" * 10, "─" * 15)  # Separator
+    try:
+        while True:
+            # Clear screen for crisp display
+            print('\033[H\033[J', end='')  # ANSI escape sequence to clear screen
+            
+            # Get current stats (suppress database loading messages)
+            with suppress_output():
+                stats = status_tracker.get_statistics()
+                time_stats = _calculate_time_stats_from_status(status_tracker, limit=limit, threads=threads)
+            
+            # Build the entire display as a single string to avoid flicker
+            display_lines = [
+                "🚀 BATCH CHECK GENERATION - LIVE MONITOR",
+                "=" * 60,
+                ""
+            ]
+            
+            # Main stats
+            total_processed = stats['success'] + stats['error']
+            completion_pct = (total_processed / stats['total'] * 100) if stats['total'] > 0 else 0
+            
+            display_lines.extend([
+                f"📊 Tasks Processed: {total_processed}",
+                f"✅ Successful: {stats['success']}",
+                f"❌ Failed: {stats['error']}",
+                "",
+                f"⏱️  Processing Rate: {time_stats['rate']}",
+                f"🎯 ETA: {time_stats['estimated_remaining']}"
+            ])
+            
+            if stats['total'] > total_processed:
+                display_lines.insert(-3, f"📈 Total Expected: {stats['total']}")
+            
+            # Scope info
+            scope_parts = []
+            if limit:
+                scope_parts.append(f"Limited to {limit} controls")
+            if threads > 1:
+                scope_parts.append(f"Using {threads} threads")
+            
+            if scope_parts:
+                display_lines.extend(["", f"🎯 Scope: {' | '.join(scope_parts)}"])
+            
+            display_lines.extend(["", "-" * 60])
+            
+            # Progress bar
+            if completion_pct > 0:
+                bar_length = 40
+                filled_length = int(bar_length * min(completion_pct, 100) / 100)
+                bar = '█' * filled_length + '░' * (bar_length - filled_length)
+                display_lines.append(f"Progress: |{bar}| {completion_pct:.1f}%")
+            else:
+                display_lines.append(f"Progress: Processing... ({total_processed} tasks completed)")
+            
+            display_lines.extend(["", "⏹️  Press Ctrl+C to exit monitor"])
+            
+            # Check if completed
+            if "Completed!" in time_stats['estimated_remaining']:
+                display_lines.extend(["", "🎉 PROCESSING COMPLETE!"])
+                
+            # Print entire display at once
+            print('\n'.join(display_lines), flush=True)
+            
+            if "Completed!" in time_stats['estimated_remaining']:
+                time.sleep(2)
+                break
+            
+            time.sleep(3)  # Update every 3 seconds
+                
+    except KeyboardInterrupt:
+        print("\n👋 Monitor stopped by user")
     
-    # Get time estimation from status file with smart parameters
-    time_stats = _calculate_time_stats_from_status(status_tracker, limit=limit, threads=threads)
+    # Final summary (clear screen first for clean finish)
+    print('\033[H\033[J', end='')  # Clear screen
     
-    table.add_row("⏱️ Processing Rate", time_stats['rate'], "")
-    table.add_row("📅 Est. Remaining", time_stats['estimated_remaining'], "")
-    table.add_row("🏁 Est. Completion", time_stats['estimated_completion'], "")
-    table.add_row("📊 Last Updated", time_stats['last_update'], "")
+    with suppress_output():
+        final_stats = status_tracker.get_statistics()
     
-    # Add scope information
-    scope_info = []
-    if limit:
-        scope_info.append(f"Limit: {limit} controls")
-    if threads > 1:
-        scope_info.append(f"Threads: {threads}")
+    summary_lines = [
+        "🏁 FINAL SUMMARY",
+        "=" * 60,
+        ""
+    ]
     
-    if scope_info:
-        table.add_row("🎯 Scope", " | ".join(scope_info), "")
+    if final_stats['success'] > 0:
+        summary_lines.append(f"✅ {final_stats['success']} checks generated successfully")
     
-    console.print(table)
+    if final_stats['error'] > 0:
+        summary_lines.extend([
+            f"❌ {final_stats['error']} checks failed",
+            ""
+        ])
+    
+    summary_lines.extend([
+        "",
+        "📁 Results: data/csv/checks.csv",
+        f"📊 Status: {status_tracker.status_file}"
+    ])
+    
+    print('\n'.join(summary_lines), flush=True)
     
     # Show error summary if there are errors
-    if stats['error'] > 0:
-        error_tracker = ErrorTracker()
-        error_summary = error_tracker.get_error_summary()
-        if error_summary:
-            console.print("\n📊 [bold red]Error Summary:[/bold red]")
-            error_table = Table(title="Error Types", box=box.ROUNDED)
-            error_table.add_column("Error Type", style="red")
-            error_table.add_column("Count", style="magenta")
-            error_table.add_column("Percentage", style="yellow")
-            
-            total_errors = sum(error_summary.values())
-            for error_type, count in error_summary.items():
-                percentage = (count / total_errors) * 100 if total_errors > 0 else 0
-                error_table.add_row(error_type, str(count), f"{percentage:.1f}%")
-            
-            console.print(error_table)
+    if final_stats['error'] > 0:
+        _show_error_summary()
 
 def _calculate_time_stats_from_status(status_tracker: StatusTracker, limit: int = None, threads: int = 1) -> dict:
     """Calculate time statistics from status file with smart estimation"""
@@ -818,6 +878,24 @@ def _calculate_time_stats_from_status(status_tracker: StatusTracker, limit: int 
             'estimated_completion': 'Error calculating',
             'last_update': 'Error'
         }
+
+def _show_error_summary():
+    """Show error summary table"""
+    error_tracker = ErrorTracker()
+    error_summary = error_tracker.get_error_summary()
+    if error_summary:
+        console.print("\n📊 [bold red]Error Summary:[/bold red]")
+        error_table = Table(title="Error Types", box=box.ROUNDED)
+        error_table.add_column("Error Type", style="red")
+        error_table.add_column("Count", style="magenta")
+        error_table.add_column("Percentage", style="yellow")
+        
+        total_errors = sum(error_summary.values())
+        for error_type, count in error_summary.items():
+            percentage = (count / total_errors) * 100 if total_errors > 0 else 0
+            error_table.add_row(error_type, str(count), f"{percentage:.1f}%")
+        
+        console.print(error_table)
 
 def main():
     """Main batch processing function"""
