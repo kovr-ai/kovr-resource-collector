@@ -13,9 +13,6 @@ from collections import defaultdict, Counter
 from datetime import datetime
 from typing import Dict, List, Any, Tuple
 
-# Use CSV database by default
-os.environ['DB_USE_POSTGRES'] = 'false'
-
 # Import data loaders
 from con_mon_v2.compliance.data_loader import FrameworkLoader, ControlLoader, ChecksLoader
 from con_mon_v2.compliance.models import Check, Framework, Control

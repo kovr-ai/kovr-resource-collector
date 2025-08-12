@@ -17,9 +17,6 @@ from typing import Dict, Any, List, Optional
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-# Set environment to use CSV database
-os.environ['DB_USE_POSTGRES'] = 'false'
-
 from con_mon_v2.utils.llm.generate import get_provider_resources_mapping
 from con_mon_v2.connectors.models import ConnectorType
 from con_mon_v2.compliance.models import Check
