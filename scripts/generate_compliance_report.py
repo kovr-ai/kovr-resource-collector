@@ -2,7 +2,7 @@
 """
 Script to generate compliance checks status markdown report.
 
-This script uses pandas to load compliance data from CSV files and generates 
+This script uses data_loader to load compliance data from CSV files and generates 
 a markdown report showing coverage across NIST frameworks.
 """
 
@@ -16,101 +16,95 @@ from typing import Dict, List, Any, Tuple
 # Use CSV database by default
 os.environ['DB_USE_POSTGRES'] = 'false'
 
-# Keep the original imports for models if needed
+# Import data loaders
 from con_mon_v2.compliance.data_loader import FrameworkLoader, ControlLoader, ChecksLoader
+from con_mon_v2.compliance.models import Check, Framework, Control
 from con_mon_v2.utils.db import get_db
 
 
-def load_data_with_pandas() -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    """Load all data using pandas with better error handling."""
+class ControlCheckMappingLoader:
+    """Simple loader for control_checks_mapping table."""
     
-    # Define CSV file paths
-    csv_dir = "/Users/ironeagle-kovr/Workspace/code/kovr-resource-collector/data/csv"
+    def __init__(self):
+        self.db = get_db()
     
-    print("📊 Loading data with pandas...")
+    def load_all(self) -> List[Dict[str, Any]]:
+        """Load all control-check mappings."""
+        try:
+            results = self.db.execute_query('control_checks_mapping')
+            # Convert control_id to int and filter out invalid ones
+            valid_mappings = []
+            for mapping in results:
+                try:
+                    mapping['control_id'] = int(mapping['control_id'])
+                    valid_mappings.append(mapping)
+                except (ValueError, TypeError):
+                    continue
+            return valid_mappings
+        except Exception as e:
+            print(f"❌ Error loading control-check mappings: {e}")
+            return []
+
+
+def load_data_with_data_loader() -> Tuple[List[Framework], List[Control], List[Check], List[Dict[str, Any]]]:
+    """Load all data using data loaders."""
+    
+    print("📊 Loading data with data loaders...")
     
     # Load frameworks
     print("📊 Loading frameworks...")
-    frameworks_df = pd.read_csv(f"{csv_dir}/framework.csv")
-    print(f"✅ Loaded {len(frameworks_df)} frameworks")
+    framework_loader = FrameworkLoader()
+    frameworks = framework_loader.load_all()
+    print(f"✅ Loaded {len(frameworks)} frameworks")
     
     # Load controls  
     print("📊 Loading controls...")
-    controls_df = pd.read_csv(f"{csv_dir}/control.csv")
-    print(f"✅ Loaded {len(controls_df)} controls")
+    control_loader = ControlLoader()
+    controls = control_loader.load_all()
+    print(f"✅ Loaded {len(controls)} controls")
     
-    # Load checks
+    # Load checks using ChecksLoader
     print("📊 Loading checks...")
-    checks_df = pd.read_csv(f"{csv_dir}/checks.csv")
-    print(f"✅ Loaded {len(checks_df)} checks")
+    checks_loader = ChecksLoader()
+    checks = checks_loader.load_all()
+    print(f"✅ Loaded {len(checks)} checks")
     
-    # Load control-check mappings with error handling
+    # Load control-check mappings using custom loader
     print("📊 Loading control-check mappings...")
-    mappings_df = pd.read_csv(f"{csv_dir}/control_checks_mapping.csv")
+    mapping_loader = ControlCheckMappingLoader()
+    mappings = mapping_loader.load_all()
+    print(f"✅ Loaded {len(mappings)} valid control-check mappings")
     
-    # Clean the mappings data
-    print(f"📊 Raw mappings loaded: {len(mappings_df)} rows")
-    
-    # Convert control_id to numeric, coercing errors to NaN
-    mappings_df['control_id'] = pd.to_numeric(mappings_df['control_id'], errors='coerce')
-    
-    # Remove rows with invalid control_id (NaN values)
-    valid_mappings = mappings_df.dropna(subset=['control_id'])
-    invalid_count = len(mappings_df) - len(valid_mappings)
-    
-    if invalid_count > 0:
-        print(f"⚠️  Removed {invalid_count} invalid mapping rows with corrupted control_id values")
-    
-    # Convert control_id back to int
-    valid_mappings['control_id'] = valid_mappings['control_id'].astype(int)
-    
-    print(f"✅ Loaded {len(valid_mappings)} valid control-check mappings")
-    
-    return frameworks_df, controls_df, checks_df, valid_mappings
+    return frameworks, controls, checks, mappings
 
 
-def get_control_check_mappings_pandas(mappings_df: pd.DataFrame) -> Dict[str, List[int]]:
-    """Get control-check mappings from pandas DataFrame."""
+def get_control_check_mappings_from_objects(mappings: List[Dict[str, Any]]) -> Dict[str, List[int]]:
+    """Get control-check mappings from mapping objects."""
     try:
         # Group by check_id and collect control_ids
-        mappings = defaultdict(list)
+        mappings_dict = defaultdict(list)
         
-        for _, row in mappings_df.iterrows():
-            control_id = int(row['control_id'])
-            check_id = row['check_id']
-            mappings[check_id].append(control_id)
+        for mapping in mappings:
+            control_id = int(mapping['control_id'])
+            check_id = mapping['check_id']
+            mappings_dict[check_id].append(control_id)
         
-        print(f"✅ Processed {len(mappings_df)} control-check mappings into {len(mappings)} unique checks")
-        return dict(mappings)
+        print(f"✅ Processed {len(mappings)} control-check mappings into {len(mappings_dict)} unique checks")
+        return dict(mappings_dict)
         
     except Exception as e:
         print(f"❌ Error processing control-check mappings: {e}")
         return {}
 
 
-def parse_metadata(metadata: Any) -> Dict[str, Any]:
-    """Parse metadata field safely."""
-    if metadata is None or pd.isna(metadata):
-        return {}
-    if isinstance(metadata, str):
-        try:
-            return json.loads(metadata)
-        except json.JSONDecodeError:
-            return {}
-    if isinstance(metadata, dict):
-        return metadata
-    return {}
-
-
-def get_resource_types_from_checks_pandas(checks_df: pd.DataFrame) -> Dict[str, Dict[str, Any]]:
-    """Extract resource type information from checks metadata using pandas."""
+def get_resource_types_from_checks_objects(checks: List[Check]) -> Dict[str, Dict[str, Any]]:
+    """Extract resource type information from Check objects."""
     resource_info = defaultdict(lambda: {"count": 0, "fields": set()})
     
-    for _, check in checks_df.iterrows():
-        # Parse metadata from the check
-        metadata = parse_metadata(check.get('metadata'))
-        resource_type = metadata.get('resource_type', '')
-        field_path = metadata.get('field_path', '')
+    for check in checks:
+        # Get resource type and field path from Check object metadata
+        resource_type = check.metadata.resource_type if check.metadata and check.metadata.resource_type else ''
+        field_path = check.metadata.field_path if check.metadata and check.metadata.field_path else ''
         
         if resource_type:
             # Extract just the class name (e.g., 'GithubResource' from 'con_mon_v2.mappings.github.GithubResource')
@@ -138,16 +132,16 @@ def get_resource_types_from_checks_pandas(checks_df: pd.DataFrame) -> Dict[str, 
     return dict(resource_info)
 
 
-def analyze_framework_coverage_pandas(
+def analyze_framework_coverage_objects(
     framework_id: int,
-    controls_df: pd.DataFrame,
-    checks_df: pd.DataFrame,
+    controls: List[Control],
+    checks: List[Check],
     control_check_mappings: Dict[str, List[int]]
 ) -> Dict[str, Any]:
-    """Analyze coverage for a specific framework using pandas."""
+    """Analyze coverage for a specific framework using model objects."""
     
     # Filter controls for this framework
-    framework_controls = controls_df[controls_df['framework_id'] == framework_id]
+    framework_controls = [c for c in controls if c.framework_id == framework_id]
     print(f"🔍 Debug: Framework {framework_id} has {len(framework_controls)} controls")
     
     # Get control IDs that have checks
@@ -169,7 +163,7 @@ def analyze_framework_coverage_pandas(
         print(f"🔍 Debug: Sample control IDs with checks: {sample_mapped_controls}")
     
     if len(framework_controls) > 0:
-        sample_framework_control_ids = framework_controls['id'].head(5).tolist()
+        sample_framework_control_ids = [c.id for c in framework_controls[:5]]
         print(f"🔍 Debug: Sample framework control IDs: {sample_framework_control_ids}")
         
         # Check if any overlap
@@ -178,8 +172,8 @@ def analyze_framework_coverage_pandas(
     
     # Group controls by family
     families = defaultdict(list)
-    for _, control in framework_controls.iterrows():
-        family = control.get('family_name') or 'Unknown'
+    for control in framework_controls:
+        family = control.family_name or 'Unknown'
         families[family].append(control)
     
     # Calculate coverage by family
@@ -189,7 +183,7 @@ def analyze_framework_coverage_pandas(
     
     for family_name, family_controls in families.items():
         family_total = len(family_controls)
-        family_covered = len([c for c in family_controls if c['id'] in control_ids_with_checks])
+        family_covered = len([c for c in family_controls if c.id in control_ids_with_checks])
         family_coverage[family_name] = {
             'covered': family_covered,
             'total': family_total,
@@ -234,16 +228,25 @@ def get_family_descriptions() -> Dict[str, str]:
     }
 
 
-def generate_markdown_report_pandas(
-    frameworks_df: pd.DataFrame,
-    controls_df: pd.DataFrame, 
-    checks_df: pd.DataFrame,
+def generate_markdown_report_objects(
+    frameworks: List[Framework],
+    controls: List[Control], 
+    checks: List[Check],
     control_check_mappings: Dict[str, List[int]]
 ) -> str:
-    """Generate the complete markdown report using pandas DataFrames."""
+    """Generate the complete markdown report using model objects."""
     
     family_descriptions = get_family_descriptions()
-    resource_info = get_resource_types_from_checks_pandas(checks_df)
+    # resource_info = get_resource_types_from_checks_objects(checks)  # Removed resource section
+    
+    # Filter frameworks to only include the ones present in the report
+    # Based on the current report.md: NIST 800-53 and NIST 800-171 rev2 Catalog
+    allowed_framework_names = {'NIST 800-53', 'NIST 800-171 rev2 Catalog'}
+    filtered_frameworks = [f for f in frameworks if f.name in allowed_framework_names]
+    
+    print(f"🔍 Filtered frameworks: {len(filtered_frameworks)} out of {len(frameworks)} total")
+    for fw in filtered_frameworks:
+        print(f"   - {fw.name} (ID: {fw.id})")
     
     # Generate report timestamp
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -256,13 +259,13 @@ def generate_markdown_report_pandas(
     report.append("## Overview")
     report.append("")
     
-    # Process each framework
-    for _, framework in frameworks_df.iterrows():
-        framework_id = framework['id']
-        framework_name = framework['name']
+    # Process each filtered framework
+    for framework in filtered_frameworks:
+        framework_id = framework.id
+        framework_name = framework.name
         
         # Analyze coverage
-        coverage = analyze_framework_coverage_pandas(framework_id, controls_df, checks_df, control_check_mappings)
+        coverage = analyze_framework_coverage_objects(framework_id, controls, checks, control_check_mappings)
         
         report.append(f"# Checks for {framework_name}")
         report.append(f"- **Total Controls**: {coverage['total_controls']:,}")
@@ -311,61 +314,24 @@ def generate_markdown_report_pandas(
         report.append(f"**Summary**: {coverage['family_count']} of {coverage['family_count']} families covered • {coverage['total_covered']} of {coverage['total_controls']} controls covered • {families_above_10} families above 10% coverage • {uncovered_controls} controls in uncovered families")
         report.append("")
     
-    # Supported Frameworks summary table
+    # Supported Frameworks summary table - only filtered frameworks
     report.append("## Supported Frameworks")
     report.append("")
     report.append("| Framework ID | Framework Name | Controls | Check Coverage | Description |")
     report.append("|-------------|----------------|----------|----------------|-------------|")
     
-    for _, framework in frameworks_df.iterrows():
-        framework_id = framework['id']
-        framework_name = framework['name']
-        description = framework.get('description', 'Security and Privacy Controls')
+    for framework in filtered_frameworks:
+        framework_id = framework.id
+        framework_name = framework.name
+        description = framework.description if framework.description else 'Security and Privacy Controls'
         
-        coverage = analyze_framework_coverage_pandas(framework_id, controls_df, checks_df, control_check_mappings)
+        coverage = analyze_framework_coverage_objects(framework_id, controls, checks, control_check_mappings)
         
         report.append(f"| {framework_id} | {framework_name} | {coverage['total_controls']:,} | {coverage['check_count']} checks | {description} |")
     
     report.append("")
     
-    # Resource Types section
-    report.append("## Resource Types")
-    report.append("")
-    
-    # Group by provider
-    providers = defaultdict(list)
-    for resource_name, resource_data in resource_info.items():
-        provider = resource_data.get('provider', 'Unknown')
-        providers[provider].append((resource_name, resource_data))
-    
-    connection_id = 1
-    for provider, resources in providers.items():
-        report.append(f"### {provider} Resources (Connection ID: {connection_id})")
-        
-        for resource_name, resource_data in resources:
-            count = resource_data.get('count', 0)
-            field_count = resource_data.get('field_count', 0)
-            
-            # Generate description based on resource type
-            if 'Github' in resource_name:
-                description = "Repository-level security and configuration checks"
-            elif 'EC2' in resource_name:
-                description = f"{field_count} fields - Instances, security groups, VPCs, networking"
-            elif 'IAM' in resource_name:
-                description = f"{field_count} fields - Users, groups, roles, policies, access management"
-            elif 'S3' in resource_name:
-                description = f"{field_count} fields - Buckets, encryption, policies, lifecycle management"
-            elif 'CloudTrail' in resource_name:
-                description = f"{field_count} fields - Trails, event selectors, insight selectors, tags"
-            elif 'CloudWatch' in resource_name:
-                description = f"{field_count} fields - Log groups, metrics, alarms, dashboards"
-            else:
-                description = f"{field_count} fields - {resource_name} configuration and security"
-            
-            report.append(f"- **{resource_name}**: {description}")
-        
-        report.append("")
-        connection_id += 1
+    # Resource Types section removed as requested
     
     # Add generation timestamp
     report.append("---")
@@ -375,29 +341,29 @@ def generate_markdown_report_pandas(
 
 
 def main():
-    """Main function to generate the compliance report using pandas."""
-    print("🔍 Loading data using pandas...")
+    """Main function to generate the compliance report using data loaders."""
+    print("🔍 Loading data using data loaders...")
     
-    # Load data with pandas
+    # Load data with data loaders
     try:
-        frameworks_df, controls_df, checks_df, mappings_df = load_data_with_pandas()
+        frameworks, controls, checks, mappings = load_data_with_data_loader()
     except Exception as e:
-        print(f"❌ Error loading data with pandas: {e}")
+        print(f"❌ Error loading data with data loaders: {e}")
         return
     
     # Process control-check mappings
     print("📊 Processing control-check mappings...")
-    control_check_mappings = get_control_check_mappings_pandas(mappings_df)
+    control_check_mappings = get_control_check_mappings_from_objects(mappings)
     
-    print(f"📊 Data loaded: {len(frameworks_df)} frameworks, {len(controls_df)} controls, {len(checks_df)} checks, {len(control_check_mappings)} check mappings")
+    print(f"📊 Data loaded: {len(frameworks)} frameworks, {len(controls)} controls, {len(checks)} checks, {len(control_check_mappings)} check mappings")
     
-    if frameworks_df.empty:
+    if not frameworks:
         print("❌ No frameworks found. Cannot generate report.")
         return
     
     # Generate report
     print("📝 Generating markdown report...")
-    report = generate_markdown_report_pandas(frameworks_df, controls_df, checks_df, control_check_mappings)
+    report = generate_markdown_report_objects(frameworks, controls, checks, control_check_mappings)
     
     # Write to file
     output_file = "compliance_checks_report.md"
