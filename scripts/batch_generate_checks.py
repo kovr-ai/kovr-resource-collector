@@ -480,9 +480,10 @@ def process_single_control_provider(
         
         # Log prompts (if available)
         if hasattr(check, '_raw_yaml'):
+            input_prompt = getattr(check, '_input_prompt', 'Input prompt not available')
             prompt_logger.log_prompt(
                 control_name, provider_name, resource_model_name,
-                "Prompt not captured", check._raw_yaml
+                input_prompt, check._raw_yaml
             )
         
         # Evaluate initial check
@@ -544,9 +545,10 @@ def process_single_control_provider(
             
             # Log improved prompts
             if hasattr(check, '_raw_yaml'):
+                input_prompt = getattr(check, '_input_prompt', f'Improved attempt {counter} - Input prompt not available')
                 prompt_logger.log_prompt(
                     control_name, provider_name, resource_model_name,
-                    f"Improved attempt {counter}", check._raw_yaml
+                    input_prompt, check._raw_yaml
                 )
             
             # Evaluate improved check

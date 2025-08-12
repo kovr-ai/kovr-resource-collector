@@ -885,6 +885,10 @@ Generate the complete YAML check entry now:"""
 
         # Store raw YAML for debugging
         check._raw_yaml = content
+        
+        # Store input prompt for debugging (if available)
+        if hasattr(self, 'last_generated_prompt'):
+            check._input_prompt = self.last_generated_prompt
 
         return check
 
@@ -893,39 +897,14 @@ Generate the complete YAML check entry now:"""
         # Format prompt
         prompt = self.format_prompt(**kwargs)
         
-        # Debug: Save the prompt to a file
-        import os
-        debug_dir = "debug_prompts"
-        os.makedirs(debug_dir, exist_ok=True)
-        
-        with open(f"{debug_dir}/standard_prompt.txt", "w") as f:
-            f.write("="*80 + "\n")
-            f.write("🤖 SENDING PROMPT TO LLM (CheckPrompt)\n")
-            f.write("="*80 + "\n")
-            f.write(prompt)
-            f.write("\n" + "="*80 + "\n")
-            f.write("END PROMPT\n")
-            f.write("="*80 + "\n")
-        
-        print(f"📝 Standard prompt saved to {debug_dir}/standard_prompt.txt")
-        
+        # Store prompt for later attachment to Check object
+        self.last_generated_prompt = prompt
+
         # Generate response using LLM
         client = get_llm_client()
         request = LLMRequest(prompt=prompt)
         response = client.generate_response(request)
-        
-        # Debug: Save the LLM response to a file
-        with open(f"{debug_dir}/standard_response.txt", "w") as f:
-            f.write("="*80 + "\n")
-            f.write("🤖 LLM RESPONSE (CheckPrompt)\n")
-            f.write("="*80 + "\n")
-            f.write(response.content)
-            f.write("\n" + "="*80 + "\n")
-            f.write("END RESPONSE\n")
-            f.write("="*80 + "\n")
-        
-        print(f"📝 Standard response saved to {debug_dir}/standard_response.txt")
-        
+
         # Process and return the LLM response
         return self.process_response(response)
 
@@ -1392,6 +1371,9 @@ Generate the complete YAML check entry now:"""
         """Generate a complete Check object using LLM with enhanced prompt"""
         # Format prompt
         prompt = self.format_prompt(**kwargs)
+        
+        # Store prompt for later attachment to Check object
+        self.last_generated_prompt = prompt
         
         # Debug: Save the enhanced prompt to a file
         import os
