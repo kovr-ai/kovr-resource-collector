@@ -4,10 +4,14 @@ Database singleton for PostgreSQL operations in con_mon.
 Provides a singleton pattern for database connections with connection pooling
 and methods for executing SQL queries.
 """
-import os
+import csv
+import json
+import pandas as pd
+from pathlib import Path
+from datetime import datetime
+from typing import Optional, List, Dict, Any, Union
 import psycopg2
 import psycopg2.pool
-from typing import Optional, List, Dict, Any
 from contextlib import contextmanager
 import logging
 from con_mon_v2.utils.config import settings
@@ -15,6 +19,81 @@ from con_mon_v2.utils.config import settings
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+def datetime_handler(obj: Any) -> str:
+    """Handle datetime serialization to string."""
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
+
+
+def flatten_dict(d: Dict[str, Any], parent_key: str = '', sep: str = '.') -> Dict[str, Any]:
+    """Flatten nested dictionaries for CSV format."""
+    items: list = []
+    for k, v in d.items():
+        new_key = f"{parent_key}{sep}{k}" if parent_key else k
+        if isinstance(v, dict):
+            items.extend(flatten_dict(v, new_key, sep=sep).items())
+        else:
+            # Serialize complex types to JSON strings
+            if isinstance(v, (dict, list)):
+                items.append((new_key, json.dumps(v, default=datetime_handler)))
+            elif isinstance(v, datetime):
+                items.append((new_key, v.isoformat()))
+            else:
+                items.append((new_key, v))
+    return dict(items)
+
+
+def unflatten_dict(flat_dict: Dict[str, Any], sep: str = '.') -> Dict[str, Any]:
+    """Reconstruct nested dictionaries from flattened CSV format."""
+    result = {}
+    for key, value in flat_dict.items():
+        if sep not in key:
+            # Try to parse JSON strings back to objects
+            if isinstance(value, str):
+                try:
+                    # Try to parse as JSON
+                    parsed = json.loads(value)
+                    result[key] = parsed
+                except (json.JSONDecodeError, ValueError):
+                    # Try to parse as datetime
+                    try:
+                        if 'T' in value and (':' in value or '+' in value):
+                            result[key] = datetime.fromisoformat(value.replace('Z', '+00:00'))
+                        else:
+                            result[key] = value
+                    except ValueError:
+                        result[key] = value
+            else:
+                result[key] = value
+        else:
+            # Nested key - reconstruct hierarchy
+            keys = key.split(sep)
+            current = result
+            for k in keys[:-1]:
+                if k not in current:
+                    current[k] = {}
+                current = current[k]
+            
+            # Handle the final value
+            final_key = keys[-1]
+            if isinstance(value, str):
+                try:
+                    current[final_key] = json.loads(value)
+                except (json.JSONDecodeError, ValueError):
+                    try:
+                        if 'T' in value and (':' in value or '+' in value):
+                            current[final_key] = datetime.fromisoformat(value.replace('Z', '+00:00'))
+                        else:
+                            current[final_key] = value
+                    except ValueError:
+                        current[final_key] = value
+            else:
+                current[final_key] = value
+    
+    return result
 
 
 class PostgreSQLDatabase:
@@ -241,6 +320,220 @@ class PostgreSQLDatabase:
             'available': len(self._connection_pool._pool),
             'used': self._connection_pool.maxconn - len(self._connection_pool._pool)
         }
+
+    def export_table_to_csv(self, table_name: str, output_path: Optional[str] = None,
+                            where_clause: Optional[str] = None, flatten_jsonb: bool = True) -> str:
+        """
+        Export a PostgreSQL table to CSV format.
+
+        Args:
+            table_name: Name of the table to export
+            output_path: Output CSV file path (defaults to data/csv/{table_name}.csv)
+            where_clause: Optional WHERE clause to filter data (e.g., "is_deleted = false")
+            flatten_jsonb: Whether to flatten JSONB fields for CSV compatibility
+
+        Returns:
+            Path to the created CSV file
+
+        Raises:
+            Exception: If export fails
+        """
+        try:
+            # Set default output path
+            if output_path is None:
+                csv_dir = Path("data/csv")
+                csv_dir.mkdir(parents=True, exist_ok=True)
+                output_path = csv_dir / f"{table_name}.csv"
+            else:
+                output_path = Path(output_path)
+                output_path.parent.mkdir(parents=True, exist_ok=True)
+
+            # Build query
+            query = f"SELECT * FROM {table_name}"
+            if where_clause:
+                query += f" WHERE {where_clause}"
+            query += " ORDER BY id"
+
+            logger.info(f"🔄 Exporting table '{table_name}' to CSV...")
+            logger.info(f"   • Query: {query}")
+            logger.info(f"   • Output: {output_path}")
+
+            # Execute query
+            data = self.execute_query(query)
+
+            if not data:
+                logger.warning(f"⚠️ No data found in table '{table_name}'")
+                return str(output_path)
+
+            # Process data for CSV export
+            processed_data = []
+            for row in data:
+                if flatten_jsonb:
+                    # Flatten nested dictionaries (JSONB fields)
+                    flattened_row = flatten_dict(row)
+                    processed_data.append(flattened_row)
+                else:
+                    # Keep original structure, just serialize complex types
+                    serialized_row = {}
+                    for key, value in row.items():
+                        if isinstance(value, (dict, list)):
+                            serialized_row[key] = json.dumps(value, default=datetime_handler)
+                        elif isinstance(value, datetime):
+                            serialized_row[key] = value.isoformat()
+                        else:
+                            serialized_row[key] = value
+                    processed_data.append(serialized_row)
+
+            # Get field names from first row
+            fieldnames = list(processed_data[0].keys()) if processed_data else []
+
+            # Write to CSV
+            with open(output_path, 'w', newline='', encoding='utf-8') as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                writer.writeheader()
+                writer.writerows(processed_data)
+
+            logger.info(f"✅ Exported {len(processed_data)} rows from '{table_name}' to {output_path}")
+            return str(output_path)
+
+        except Exception as e:
+            logger.error(f"❌ Failed to export table '{table_name}': {e}")
+            raise
+
+    def import_csv_to_table(self, table_name: str, csv_path: str,
+                            update_existing: bool = True, unflatten_jsonb: bool = True,
+                            batch_size: int = 100) -> int:
+        """
+        Import CSV data to a PostgreSQL table.
+
+        Args:
+            table_name: Name of the target table
+            csv_path: Path to the CSV file to import
+            update_existing: Whether to update existing records (based on ID)
+            unflatten_jsonb: Whether to reconstruct JSONB fields from flattened CSV
+            batch_size: Number of records to process in each batch
+
+        Returns:
+            Number of records imported/updated
+
+        Raises:
+            Exception: If import fails
+        """
+        try:
+            csv_path = Path(csv_path)
+            if not csv_path.exists():
+                raise FileNotFoundError(f"CSV file not found: {csv_path}")
+
+            logger.info(f"🔄 Importing CSV data to table '{table_name}'...")
+            logger.info(f"   • Source: {csv_path}")
+            logger.info(f"   • Update existing: {update_existing}")
+            logger.info(f"   • Unflatten JSONB: {unflatten_jsonb}")
+
+            # Read CSV data
+            df = pd.read_csv(csv_path)
+
+            if df.empty:
+                logger.warning(f"⚠️ CSV file is empty: {csv_path}")
+                return 0
+
+            # Convert DataFrame to list of dictionaries
+            csv_data = df.to_dict('records')
+
+            # Process data for database import
+            processed_data = []
+            for row in csv_data:
+                # Handle NaN values
+                processed_row = {k: (None if pd.isna(v) else v) for k, v in row.items()}
+
+                if unflatten_jsonb:
+                    # Reconstruct nested dictionaries from flattened fields
+                    processed_row = unflatten_dict(processed_row)
+                else:
+                    # Try to parse JSON strings back to objects
+                    for key, value in processed_row.items():
+                        if isinstance(value, str) and value.startswith('{'):
+                            try:
+                                processed_row[key] = json.loads(value)
+                            except json.JSONDecodeError:
+                                pass  # Keep as string if not valid JSON
+
+                processed_data.append(processed_row)
+
+            # Get table schema to build proper INSERT/UPDATE queries
+            schema_query = """
+                SELECT column_name, data_type, is_nullable
+                FROM information_schema.columns 
+                WHERE table_name = %s 
+                ORDER BY ordinal_position
+            """
+            schema = self.execute_query(schema_query, (table_name,))
+
+            if not schema:
+                raise Exception(f"Table '{table_name}' not found or no access")
+
+            column_names = [col['column_name'] for col in schema]
+
+            # Process in batches
+            total_processed = 0
+
+            with self.get_connection() as conn:
+                with conn.cursor() as cursor:
+                    for i in range(0, len(processed_data), batch_size):
+                        batch = processed_data[i:i + batch_size]
+
+                        for row in batch:
+                            # Filter row to only include columns that exist in the table
+                            filtered_row = {k: v for k, v in row.items() if k in column_names}
+
+                            if not filtered_row:
+                                continue
+
+                            # Build INSERT or UPDATE query
+                            if update_existing and 'id' in filtered_row:
+                                # UPDATE existing record
+                                set_clause = ', '.join([f"{k} = %s" for k in filtered_row.keys() if k != 'id'])
+                                if set_clause:
+                                    update_query = f"""
+                                        UPDATE {table_name} 
+                                        SET {set_clause}
+                                        WHERE id = %s
+                                    """
+                                    values = [v for k, v in filtered_row.items() if k != 'id']
+                                    values.append(filtered_row['id'])
+
+                                    cursor.execute(update_query, values)
+                                    if cursor.rowcount == 0:
+                                        # Record doesn't exist, INSERT it
+                                        columns = ', '.join(filtered_row.keys())
+                                        placeholders = ', '.join(['%s'] * len(filtered_row))
+                                        insert_query = f"""
+                                            INSERT INTO {table_name} ({columns})
+                                            VALUES ({placeholders})
+                                        """
+                                        cursor.execute(insert_query, list(filtered_row.values()))
+                            else:
+                                # INSERT new record
+                                columns = ', '.join(filtered_row.keys())
+                                placeholders = ', '.join(['%s'] * len(filtered_row))
+                                insert_query = f"""
+                                    INSERT INTO {table_name} ({columns})
+                                    VALUES ({placeholders})
+                                    ON CONFLICT (id) DO NOTHING
+                                """
+                                cursor.execute(insert_query, list(filtered_row.values()))
+
+                            total_processed += 1
+
+                        # Commit batch
+                        conn.commit()
+                        logger.info(f"   • Processed batch {i // batch_size + 1}: {len(batch)} records")
+
+            logger.info(f"✅ Imported {total_processed} records to '{table_name}'")
+            return total_processed
+
+        except Exception as e:
+            logger.error(f"❌ Failed to import CSV to table '{table_name}': {e}")
+            raise
 
 
 # Create singleton instance
