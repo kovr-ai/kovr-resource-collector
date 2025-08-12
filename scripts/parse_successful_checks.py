@@ -156,6 +156,55 @@ def extract_control_id_from_path(output_file_path: Path) -> Optional[int]:
     except:
         return 1  # Default control ID
 
+def verify_check_in_csv(check_id: str, control_id: int, db) -> bool:
+    """
+    Verify that a check and its mapping were properly stored in CSV files.
+    
+    Args:
+        check_id: ID of the check to verify
+        control_id: Control ID to verify in mapping
+        db: CSV database instance
+        
+    Returns:
+        True if both check and mapping are found and valid, False otherwise
+    """
+    try:
+        # Verify check in checks.csv
+        checks_results = db.execute_query('checks', conditions={'id': check_id})
+        if not checks_results:
+            print(f"      ❌ Check {check_id} not found in checks.csv")
+            return False
+        
+        check_record = checks_results[0]
+        print(f"      ✅ Check verified in CSV: {check_record.get('name', 'Unknown')}")
+        print(f"         • ID: {check_record.get('id')}")
+        print(f"         • Description: {check_record.get('description', '')[:80]}...")
+        print(f"         • Category: {check_record.get('category')}")
+        print(f"         • Created by: {check_record.get('created_by')}")
+        
+        # Verify nested JSONB fields were properly stored and can be parsed
+        metadata_tags = check_record.get('metadata.tags')
+        if metadata_tags:
+            print(f"         • Tags: {metadata_tags}")
+        
+        # Verify mapping in control_checks_mapping.csv
+        mapping_results = db.execute_query('control_checks_mapping', 
+                                         conditions={'check_id': check_id, 'control_id': control_id})
+        if not mapping_results:
+            print(f"      ❌ Mapping not found in control_checks_mapping.csv for check_id={check_id}, control_id={control_id}")
+            return False
+        
+        mapping_record = mapping_results[0]
+        print(f"      ✅ Mapping verified in CSV: control_id={mapping_record.get('control_id')}, check_id={mapping_record.get('check_id')}")
+        print(f"         • Created at: {mapping_record.get('created_at')}")
+        print(f"         • Is deleted: {mapping_record.get('is_deleted')}")
+        
+        return True
+        
+    except Exception as e:
+        print(f"      ❌ Error verifying check {check_id} in CSV: {e}")
+        return False
+
 def insert_check_and_mapping_to_csv(check: Check, control_id: int, db) -> bool:
     """
     Insert check into checks.csv and create mapping in control_checks_mapping.csv
@@ -190,7 +239,16 @@ def insert_check_and_mapping_to_csv(check: Check, control_id: int, db) -> bool:
         print(f"      🔗 Creating control mapping: control_id={control_id}, check_id={check.id}")
         db.execute_insert('control_checks_mapping', mapping_data)
         
-        return True
+        # Verify the insertion was successful
+        print(f"      🔍 Verifying insertion in CSV files...")
+        verification_success = verify_check_in_csv(str(check.id), control_id, db)
+        
+        if verification_success:
+            print(f"      ✅ CSV verification successful")
+        else:
+            print(f"      ❌ CSV verification failed")
+            
+        return verification_success
         
     except Exception as e:
         print(f"      ❌ Failed to insert check {check.id} to CSV: {e}")
@@ -257,7 +315,9 @@ def main():
         'check_creation_errors': 0,
         'successful_checks': 0,
         'csv_insertion_success': 0,
-        'csv_insertion_errors': 0
+        'csv_insertion_errors': 0,
+        'csv_verification_success': 0,
+        'csv_verification_errors': 0
     }
     
     # Walk through control directories
@@ -330,9 +390,11 @@ def main():
                                 # Insert into CSV database
                                 if insert_check_and_mapping_to_csv(check, control_id, db):
                                     stats['csv_insertion_success'] += 1
-                                    print(f"      💾 Successfully inserted to CSV database")
+                                    stats['csv_verification_success'] += 1
+                                    print(f"      💾 Successfully inserted and verified in CSV database")
                                 else:
                                     stats['csv_insertion_errors'] += 1
+                                    stats['csv_verification_errors'] += 1
                             else:
                                 stats['check_creation_errors'] += 1
                                 print(f"      ❌ Failed to create Check object")
@@ -357,14 +419,18 @@ def main():
     print(f"Parse errors: {stats['parse_errors']}")
     print(f"Check creation errors: {stats['check_creation_errors']}")
     print(f"CSV insertion errors: {stats['csv_insertion_errors']}")
+    print(f"CSV verification success: {stats['csv_verification_success']}")
+    print(f"CSV verification errors: {stats['csv_verification_errors']}")
     
     if stats['total_output_files'] > 0:
         parse_success_rate = (stats['successfully_parsed'] / stats['total_output_files']) * 100
         check_success_rate = (stats['successful_checks'] / stats['total_output_files']) * 100
         csv_success_rate = (stats['csv_insertion_success'] / stats['total_output_files']) * 100
+        csv_verification_rate = (stats['csv_verification_success'] / stats['total_output_files']) * 100
         print(f"Parse success rate: {parse_success_rate:.1f}%")
         print(f"Check creation success rate: {check_success_rate:.1f}%")
         print(f"CSV insertion success rate: {csv_success_rate:.1f}%")
+        print(f"CSV verification success rate: {csv_verification_rate:.1f}%")
     
     print(f"\n📁 CSV files location: {db._csv_directory}")
     print("✅ Parsing and CSV insertion complete!")

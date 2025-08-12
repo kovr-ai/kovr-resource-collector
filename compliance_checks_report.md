@@ -21,31 +21,31 @@ This document tracks all implemented compliance checks for cloud resource monito
 - **Total Controls**: 1,199
 - **Control Groups**: 30 control families
 - **Group Coverage**: 30 of 30 families covered (100.0%)
-- **Control Coverage**: 0 of 1199 controls covered (0.0%)
+- **Control Coverage**: 1072 of 1199 controls covered (89.4%)
 
 ## NIST 800-53 Control Family Coverage
 
 | Family | Controls Covered | Total Controls | Coverage % | Description |
 |--------|------------------|----------------|------------|-------------|
-| Access Control | 0 | 147 | 0.0% | Access Control |
-| Awareness and Training | 0 | 17 | 0.0% | Awareness and Training |
-| Audit and Accountability | 0 | 69 | 0.0% | Audit and Accountability |
-| Assessment, Authorization, and Monitoring | 0 | 32 | 0.0% | Assessment, Authorization, and Monitoring |
-| Configuration Management | 0 | 66 | 0.0% | Configuration Management |
-| Contingency Planning | 0 | 56 | 0.0% | Contingency Planning |
-| Identification and Authentication | 0 | 70 | 0.0% | Identification and Authentication |
-| Incident Response | 0 | 42 | 0.0% | Incident Response |
-| Maintenance | 0 | 30 | 0.0% | Maintenance |
-| Media Protection | 0 | 30 | 0.0% | Media Protection |
-| Physical and Environmental Protection | 0 | 59 | 0.0% | Physical and Environmental Protection |
-| Planning | 0 | 17 | 0.0% | Planning |
-| Program Management | 0 | 37 | 0.0% | Program Management |
-| Personnel Security | 0 | 18 | 0.0% | Personnel Security |
-| PII Processing and Transparency | 0 | 21 | 0.0% | PII Processing and Transparency |
-| Risk Assessment | 0 | 26 | 0.0% | Risk Assessment |
-| System and Services Acquisition | 0 | 145 | 0.0% | System and Services Acquisition |
-| System and Communications Protection | 0 | 162 | 0.0% | System and Communications Protection |
-| System and Information Integrity | 0 | 118 | 0.0% | System and Information Integrity |
+| **Access Control** | 147 | 147 | 100.0% | Access Control |
+| **Awareness and Training** | 17 | 17 | 100.0% | Awareness and Training |
+| **Audit and Accountability** | 69 | 69 | 100.0% | Audit and Accountability |
+| **Assessment, Authorization, and Monitoring** | 32 | 32 | 100.0% | Assessment, Authorization, and Monitoring |
+| **Configuration Management** | 66 | 66 | 100.0% | Configuration Management |
+| **Contingency Planning** | 56 | 56 | 100.0% | Contingency Planning |
+| **Identification and Authentication** | 70 | 70 | 100.0% | Identification and Authentication |
+| **Incident Response** | 42 | 42 | 100.0% | Incident Response |
+| **Maintenance** | 30 | 30 | 100.0% | Maintenance |
+| **Media Protection** | 30 | 30 | 100.0% | Media Protection |
+| **Physical and Environmental Protection** | 59 | 59 | 100.0% | Physical and Environmental Protection |
+| **Planning** | 17 | 17 | 100.0% | Planning |
+| **Program Management** | 37 | 37 | 100.0% | Program Management |
+| **Personnel Security** | 18 | 18 | 100.0% | Personnel Security |
+| **PII Processing and Transparency** | 21 | 21 | 100.0% | PII Processing and Transparency |
+| **Risk Assessment** | 26 | 26 | 100.0% | Risk Assessment |
+| **System and Services Acquisition** | 145 | 145 | 100.0% | System and Services Acquisition |
+| **System and Communications Protection** | 162 | 162 | 100.0% | System and Communications Protection |
+| **System and Information Integrity** | 28 | 118 | 23.7% | System and Information Integrity |
 | Supply Chain Risk Management | 0 | 27 | 0.0% | Supply Chain Risk Management |
 | DoD PKI authentication | 0 | 1 | 0.0% | DoD PKI authentication |
 | DoD IP addressing | 0 | 1 | 0.0% | DoD IP addressing |
@@ -58,7 +58,7 @@ This document tracks all implemented compliance checks for cloud resource monito
 | CSP/CSOâ€™s Protection | 0 | 1 | 0.0% | CSP/CSOâ€™s Protection |
 | Defense in depth architecture | 0 | 1 | 0.0% | Defense in depth architecture |
 
-**Summary**: 30 of 30 families covered • 0 of 1199 controls covered • 0 families above 10% coverage • 1199 controls in uncovered families
+**Summary**: 30 of 30 families covered • 1072 of 1199 controls covered • 19 families above 10% coverage • 37 controls in uncovered families
 
 # Checks for NIST 800-171 rev2 Catalog
 - **Total Controls**: 110
@@ -120,22 +120,22 @@ This document tracks all implemented compliance checks for cloud resource monito
 
 | Framework ID | Framework Name | Controls | Check Coverage | Description |
 |-------------|----------------|----------|----------------|-------------|
-| 1 | DOD SRG | 0 | 3303 checks | The Cloud Computing Security Requirements Guide (CC SRG) outlines the security model for DoD's use of cloud computing, detailing the necessary security controls and requirements for cloud-based solutions. |
-| 2 | NIST 800-53 | 1,199 | 3303 checks | NIST cybersecurity framework is a powerful tool to organize and improve cybersecurity program |
-| 3 | NIST 800-171 rev2 Catalog | 110 | 3303 checks | Security and Privacy Controls |
-| 4 | NIST CSF 2.0 | 106 | 3303 checks | NIST CSF 2.0 cybersecurity framework |
+| 1 | DOD SRG | 0 | 5720 checks | The Cloud Computing Security Requirements Guide (CC SRG) outlines the security model for DoD's use of cloud computing, detailing the necessary security controls and requirements for cloud-based solutions. |
+| 2 | NIST 800-53 | 1,199 | 5720 checks | NIST cybersecurity framework is a powerful tool to organize and improve cybersecurity program |
+| 3 | NIST 800-171 rev2 Catalog | 110 | 5720 checks | nan |
+| 4 | NIST CSF 2.0 | 106 | 5720 checks | NIST CSF 2.0 cybersecurity framework |
 
 ## Resource Types
 
 ### AWS Resources (Connection ID: 1)
-- **CloudTrailResource**: 1 fields - Trails, event selectors, insight selectors, tags
-- **CloudWatchResource**: 4 fields - Log groups, metrics, alarms, dashboards
-- **EC2Resource**: 8 fields - Instances, security groups, VPCs, networking
+- **S3Resource**: 2 fields - Buckets, encryption, policies, lifecycle management
 - **IAMResource**: 2 fields - Users, groups, roles, policies, access management
-- **S3Resource**: 3 fields - Buckets, encryption, policies, lifecycle management
+- **CloudTrailResource**: 1 fields - Trails, event selectors, insight selectors, tags
+- **CloudWatchResource**: 3 fields - Log groups, metrics, alarms, dashboards
+- **EC2Resource**: 9 fields - Instances, security groups, VPCs, networking
 
 ### GitHub Resources (Connection ID: 2)
 - **GithubResource**: Repository-level security and configuration checks
 
 ---
-*Report generated on 2025-08-11 16:46:42*
+*Report generated on 2025-08-12 02:15:28*
