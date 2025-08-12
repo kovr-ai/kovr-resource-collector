@@ -717,6 +717,27 @@ class Check(TableModel):
             else:
                 return [field_value] if field_value is not None else []
 
+    def result_summary(
+        self,
+        check_results: List['CheckResult']
+    ) -> str:
+        status_count_map = {
+            True: 0,
+            False: 0,
+            None: 0,
+        }
+        for cr in check_results:
+            if cr.check != self:
+                raise ValueError(f'Passed check_result {cr} is not valid for {self}')
+            status_count_map[cr.passed] += 1
+        if len(check_results) == status_count_map[None]:
+            return 'check execution failed'
+        if len(check_results) == status_count_map[True]:
+            return self.output_statements.success
+        if len(check_results) == status_count_map[False]:
+            return self.output_statements.failure
+        return self.output_statements.partial
+
 
 class CheckResult(PydanticBaseModel):
     """Result of a check evaluation."""
