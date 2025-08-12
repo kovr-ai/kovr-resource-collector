@@ -15,6 +15,7 @@ import logging
 from pathlib import Path
 import shutil
 from datetime import datetime
+from con_mon_v2.utils.config import settings
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -121,7 +122,7 @@ class CSVDatabase:
         """Initialize the CSV directory path and ensure it exists."""
         try:
             # Set up CSV directory path
-            self._csv_directory = Path("data/csv")
+            self._csv_directory = Path(settings.CSV_DATA)
             
             # Create directory if it doesn't exist
             self._csv_directory.mkdir(parents=True, exist_ok=True)

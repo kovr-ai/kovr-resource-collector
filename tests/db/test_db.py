@@ -30,11 +30,13 @@ class TestUnifiedDatabaseAbstraction:
         # Clean up test directory
         if os.path.exists(self.test_dir):
             shutil.rmtree(self.test_dir)
-        
+
+        from con_mon_v2.utils.config import settings
         # Reset environment variable
-        if 'DB_USE_POSTGRES' in os.environ:
-            del os.environ['DB_USE_POSTGRES']
-        
+        if settings.CSV_DATA:
+            settings.CSV_DATA = None
+
+
         # Reset CSV database singleton to prevent test isolation issues
         from con_mon_v2.utils.db.csv import CSVDatabase
         CSVDatabase._instance = None
@@ -43,28 +45,28 @@ class TestUnifiedDatabaseAbstraction:
         # Also reset the module-level db variable
         import con_mon_v2.utils.db.csv as csv_module
         csv_module.db = CSVDatabase()
-    
-    def test_get_db_returns_csv_by_default(self):
-        """Test that get_db returns CSV database by default."""
-        print("\n🧪 Testing get_db returns CSV by default...")
-        
-        # Ensure no environment variable is set
-        if 'DB_USE_POSTGRES' in os.environ:
-            del os.environ['DB_USE_POSTGRES']
-        
+
+    @patch('con_mon_v2.utils.db.pgs.settings')
+    def test_get_db_returns_csv_when_configured(self, mock_settings):
+        """Test that get_db returns CSV database when configured."""
+        print("\n🧪 Testing get_db returns CSV when configured...")
+
+        # Set environment variable to use CSV
+        mock_settings.CSV_DATA = 'csv/data/'
+
         db = get_db()
         
         # Verify it's a CSV database
         from con_mon_v2.utils.db.csv import CSVDatabase
-        assert isinstance(db, CSVDatabase), "Should return CSVDatabase by default"
+        assert isinstance(db, CSVDatabase), "Should return CSVDatabase when configured"
         
-        print("✅ get_db returns CSV by default test passed")
+        print("✅ get_db returns CSV when configured test passed")
     
     @patch('con_mon_v2.utils.db.pgs.settings')
     @patch('psycopg2.pool.SimpleConnectionPool')
-    def test_get_db_returns_postgres_when_configured(self, mock_pool, mock_settings):
-        """Test that get_db returns PostgreSQL when configured."""
-        print("\n🧪 Testing get_db returns PostgreSQL when configured...")
+    def test_get_db_returns_postgres_by_default(self, mock_pool, mock_settings):
+        """Test that get_db returns PostgreSQL by default."""
+        print("\n🧪 Testing get_db returns PostgreSQL by default...")
         
         # Reset singleton instances first
         from con_mon_v2.utils.db.pgs import PostgreSQLDatabase
@@ -78,17 +80,18 @@ class TestUnifiedDatabaseAbstraction:
         mock_settings.DB_USER = 'test_user'
         mock_settings.DB_PASSWORD = 'test_pass'
         mock_pool.return_value = Mock()
-        
-        # Set environment variable to use PostgreSQL
-        os.environ['DB_USE_POSTGRES'] = 'true'
-        
+
+        # Ensure no environment variable is set
+        if mock_settings.CSV_DATA:
+            mock_settings.CSV_DATA = None
+
         db = get_db()
         
         # Verify it's a PostgreSQL database
         from con_mon_v2.utils.db.pgs import PostgreSQLDatabase
-        assert isinstance(db, PostgreSQLDatabase), "Should return PostgreSQLDatabase when configured"
+        assert isinstance(db, PostgreSQLDatabase), "Should return PostgreSQLDatabase by default"
         
-        print("✅ get_db returns PostgreSQL when configured test passed")
+        print("✅ get_db returns PostgreSQL by default test passed")
     
     def test_csv_database_list_of_dicts_interface(self):
         """Test CSV database returns list of dictionaries with nested data."""
@@ -200,8 +203,9 @@ class TestUnifiedDatabaseAbstraction:
         mock_pool.return_value = mock_pool_instance
         
         # Set environment to use PostgreSQL
-        os.environ['DB_USE_POSTGRES'] = 'true'
-        
+
+        mock_settings.CSV_DATA = 'data/csv'
+
         # Get PostgreSQL database
         db = get_db()
         
@@ -353,7 +357,7 @@ class TestUnifiedDatabaseAbstraction:
         mock_pool.return_value = mock_pool_instance
         
         # Set environment to use PostgreSQL
-        os.environ['DB_USE_POSTGRES'] = 'true'
+        mock_settings.CSV_DATA = 'data/csv/'
         
         # Get PostgreSQL database
         db = get_db()
@@ -515,11 +519,11 @@ def run_all_tests():
     
     try:
         test_instance.setup_method()
-        test_instance.test_get_db_returns_csv_by_default()
+        test_instance.test_get_db_returns_csv_when_configured()
         test_instance.teardown_method()
         
         test_instance.setup_method()
-        test_instance.test_get_db_returns_postgres_when_configured()
+        test_instance.test_get_db_returns_postgres_by_default()
         test_instance.teardown_method()
         
         test_instance.setup_method()
