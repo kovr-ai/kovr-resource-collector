@@ -1,6 +1,9 @@
 """Service utilities for con_mon_v2."""
-from typing import Type
+from typing import Type, List, Tuple
 from pydantic import BaseModel
+
+from con_mon_v2.compliance.data_loader import ConMonResultLoader, ConMonResultHistoryLoader
+from con_mon_v2.compliance.models import ConMonResult, ConMonResultHistory
 from con_mon_v2.resources import Resource, ResourceCollection
 from con_mon_v2.mappings.github import (
     GithubConnectorService,
@@ -181,3 +184,26 @@ class ResourceCollectionService(object):
                 validation_str = self._validate_field_path(field_path, resource)
                 validation_report[resource.__class__.__name__][field_path] = validation_str
         return validation_report
+
+
+class ConMonResultService(object):
+    def __init__(
+        self,
+        check: Check,
+        check_results: List[CheckResult],
+    ):
+        self.check = check
+        self.check_results = check_results
+
+    def get_con_mon_results(self) -> List[ConMonResult]:
+        # TODO: implement this to work with ConMonResultLoader
+        pass
+
+    def insert_in_db(self) -> Tuple[int, int]:
+        result_insert_count = ConMonResultLoader().insert_rows(
+            self.get_con_mon_results()
+        )
+        history_insert_count = ConMonResultHistoryLoader().insert_rows(
+            self.get_con_mon_results()
+        )
+        return result_insert_count, history_insert_count

@@ -1,7 +1,10 @@
 import os
-from con_mon_v2.compliance.data_loader import ChecksLoader, ConnectionLoader
-from con_mon_v2.compliance.models import Check, CheckResult, Connection
-from con_mon_v2.utils.services import ResourceCollectionService
+import json
+from datetime import datetime
+from typing import List, Dict, Any, Tuple
+from con_mon_v2.compliance.data_loader import ChecksLoader, ConnectionLoader, ConMonResultLoader, ConMonResultHistoryLoader
+from con_mon_v2.compliance.models import Check, CheckResult, Connection, ConMonResult, ConMonResultHistory
+from con_mon_v2.utils.services import ResourceCollectionService, ConMonResultService
 from con_mon_v2.utils import helpers
 # TODO: Port SQL utilities from con_mon to con_mon_v2
 
@@ -56,12 +59,22 @@ def main(
     #     customer_id=customer_id,
     #     connection_id=connection_id,
     # )
+    total_result_count = 0
+    total_history_count = 0
+    for executed_check_result in executed_check_results:
+        con_mon_result_service = ConMonResultService(*executed_check_result)
+        result_count, history_count = con_mon_result_service.insert_in_db()
+        print(f'Add {result_count} records to database and {history_count} history records')
+        total_result_count += result_count
+        total_history_count += history_count
     
     print(f"\n💾 **Database Storage:**")
     print(f"   • TODO: Port SQL utilities from con_mon to store results")
     print(f"   • Customer ID: {customer_id}")
     print(f"   • Connection ID: {connection_id}")
     print(f"   • Checks executed: {len(executed_check_results)}")
+    print(f"   • Results Inserted: {total_result_count}")
+    print(f"   • History Inserted: {total_history_count}")
 
 
 def params_from_connection_id(

@@ -122,6 +122,10 @@ class BaseLoader(ABC):
         print(f"✅ Loaded {len(instances)} {model_class.__name__} records by IDs")
         return instances
 
+    def insert_rows(self, instances: List[TableModel]) -> int:
+        # TODO: implement insert rows
+        pass
+
     def export_to_csv(
         self,
         where_clause: Optional[str] = None,

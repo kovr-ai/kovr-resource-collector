@@ -44,7 +44,7 @@ class ConMonResult(TableModel):
     updated_at: Optional[datetime] = Field(None, description="Last update timestamp")
 
 
-class ConMonResultHistory(TableModel):
+class ConMonResultHistory(ConMonResult):
     """
     Check results history model matching con_mon_results_history database schema exactly.
     
@@ -54,26 +54,3 @@ class ConMonResultHistory(TableModel):
     
     # Table configuration
     table_name: ClassVar[str] = "con_mon_results_history"
-    
-    # Database fields (exact 1:1 mapping) - same as CheckResults but for historical storage
-    id: Optional[int] = Field(None, description="Auto-generated primary key")
-    customer_id: str = Field(..., description="Customer/organization identifier")
-    connection_id: int = Field(..., description="Connection ID")
-    check_id: str = Field(..., description="Check identifier")
-    result: str = Field(..., description="Overall result (PASS/FAIL)")
-    result_message: str = Field(..., description="Result message/description")
-    
-    # Count fields
-    success_count: int = Field(..., description="Number of resources that passed")
-    failure_count: int = Field(..., description="Number of resources that failed")
-    success_percentage: float = Field(..., description="Success percentage (0-100)")
-    
-    # JSONB fields for detailed data
-    success_resources: List[Dict[str, Any]] = Field(default_factory=list, description="Resources that passed (JSONB)")
-    failed_resources: List[Dict[str, Any]] = Field(default_factory=list, description="Resources that failed (JSONB)")
-    exclusions: List[Dict[str, Any]] = Field(default_factory=list, description="Excluded resources (JSONB)")
-    resource_json: Dict[str, Any] = Field(default_factory=dict, description="Full resource collection data (JSONB)")
-    
-    # Audit fields
-    created_at: Optional[datetime] = Field(None, description="Creation timestamp")
-    archived_at: Optional[datetime] = Field(None, description="When this record was moved to history") 

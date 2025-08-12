@@ -80,6 +80,12 @@ class ConMonResultLoader(BaseLoader):
         print(f"✅ Loaded {len(instances)} ConMonResult for check {check_id}")
         return instances
 
+    def insert_rows(self, instances: List[ConMonResult]) -> int:
+        # TODO: implement insert rows
+        # delete by check, connection and customer id
+        # call super to insert_rows as per BaseLoader logic
+        pass
+
 
 class ConMonResultHistoryLoader(BaseLoader):
     """
