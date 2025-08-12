@@ -1,15 +1,15 @@
 """
-Database models package - 1:1 mapping with actual database schema.
-CSV files are treated as source of truth.
+Compliance models package - database models for compliance data.
 """
 
-from .base import BaseModel
+from .base import TableModel
 from .framework import Framework
 from .control import Control
 from .standard import Standard
 from .standard_control_mapping import StandardControlMapping
 from .checks import Check, CheckResult, OutputStatements, FixDetails, CheckMetadata, CheckOperation, ComparisonOperationEnum, ComparisonOperation
 from .connection import Connection, ConnectionType, SyncFrequency, SyncFrequencyType
+from .con_mon_result import ConMonResult, ConMonResultHistory
 from .helpers import (
     FrameworkWithControls, 
     StandardWithControls, 
@@ -20,7 +20,7 @@ from .helpers import (
 
 __all__ = [
     # Base
-    'BaseModel',
+    'TableModel',
     
     # Core Models (1:1 DB mapping)
     'Framework',
@@ -30,6 +30,8 @@ __all__ = [
     'Check',
     'CheckResult',
     'Connection',
+    'ConMonResult',
+    'ConMonResultHistory',
 
     # JSONB Nested Models
     'OutputStatements',

@@ -10,6 +10,7 @@ from .standard_loader import StandardLoader
 from .standard_control_mapping_loader import StandardControlMappingLoader
 from .checks_loader import ChecksLoader
 from .connection_loader import ConnectionLoader
+from .con_mon_result_loader import ConMonResultLoader, ConMonResultHistoryLoader
 
 __all__ = [
     # Base
@@ -22,4 +23,6 @@ __all__ = [
     'StandardControlMappingLoader',
     'ChecksLoader',
     'ConnectionLoader',
+    'ConMonResultLoader',
+    'ConMonResultHistoryLoader',
 ] 
