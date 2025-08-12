@@ -124,7 +124,6 @@ class BaseLoader(ABC):
 
     def export_to_csv(
         self,
-        output_path: Optional[str] = None,
         where_clause: Optional[str] = None,
     ) -> str:
         """
@@ -149,12 +148,11 @@ class BaseLoader(ABC):
         
         return self.db.export_table_to_csv(
             table_name=table_name,
-            output_path=output_path,
             where_clause=where_clause
         )
     
     def import_from_csv(
-        self, csv_path: str,
+        self,
         update_existing: bool = True,
         batch_size: int = 100
     ) -> int:
@@ -177,7 +175,6 @@ class BaseLoader(ABC):
         
         return self.db.import_csv_to_table(
             table_name=table_name,
-            csv_path=csv_path,
             update_existing=update_existing,
             batch_size=batch_size
         )
