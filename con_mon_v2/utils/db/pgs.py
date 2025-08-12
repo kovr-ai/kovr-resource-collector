@@ -339,11 +339,6 @@ class PostgreSQLDatabase:
         Raises:
             Exception: If export fails
         """
-        # Use CSV_DATA path from settings
-        csv_dir = Path(settings.CSV_DATA)
-        csv_dir.mkdir(parents=True, exist_ok=True)
-        output_path = csv_dir / f"{table_name}.csv"
-
         # Build query
         query = f"SELECT * FROM {table_name}"
         if where_clause:
@@ -352,52 +347,25 @@ class PostgreSQLDatabase:
 
         logger.info(f"🔄 Exporting table '{table_name}' to CSV...")
         logger.info(f"   • Query: {query}")
-        logger.info(f"   • Output: {output_path}")
 
         # Execute query
         data = self.execute_query(query)
 
+        # Use CSVDatabase to write the data
+        from .csv import get_db as get_csv_db
+        csv_db = get_csv_db()
+
         if not data:
             logger.warning(f"⚠️ No data found in table '{table_name}'")
-            return str(output_path)
-
-        # Process data for CSV export - automatically detect and handle JSONB fields
-        processed_data = []
-        has_complex_data = False
-
-        for row in data:
-            processed_row = {}
-            for key, value in row.items():
-                if isinstance(value, (dict, list)):
-                    has_complex_data = True
-                    # For complex data, flatten it for CSV compatibility
-                    if isinstance(value, dict):
-                        # Flatten nested dictionaries
-                        flattened = flatten_dict({key: value})
-                        processed_row.update(flattened)
-                    else:
-                        # For lists, serialize to JSON string
-                        processed_row[key] = json.dumps(value, default=datetime_handler)
-                elif isinstance(value, datetime):
-                    processed_row[key] = value.isoformat()
-                else:
-                    processed_row[key] = value
-            processed_data.append(processed_row)
-
-        if has_complex_data:
-            logger.info(f"   • Detected and flattened JSONB/complex fields")
-
-        # Get field names from first row
-        fieldnames = list(processed_data[0].keys()) if processed_data else []
+            csv_db.execute_insert(table_name, [])
+            return str(csv_db._get_table_path(table_name))
 
         # Write to CSV
-        with open(output_path, 'w', newline='', encoding='utf-8') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerows(processed_data)
-
-        logger.info(f"✅ Exported {len(processed_data)} rows from '{table_name}' to {output_path}")
-        return str(output_path)
+        rows_inserted = csv_db.execute_insert(table_name, data)
+        
+        csv_path = csv_db._get_table_path(table_name)
+        logger.info(f"✅ Exported {rows_inserted} rows from '{table_name}' to {csv_path}")
+        return str(csv_path)
 
     def import_csv_to_table(
         self,
@@ -419,59 +387,24 @@ class PostgreSQLDatabase:
         Raises:
             Exception: If import fails
         """
-        # Use CSV_DATA path from settings
-        csv_dir = Path(settings.CSV_DATA)
-        csv_path = csv_dir / f"{table_name}.csv"
-
-        if not csv_path.exists():
-            raise FileNotFoundError(f"CSV file not found: {csv_path}")
-
+        # Use CSVDatabase to read the data
+        from .csv import get_db as get_csv_db
+        csv_db = get_csv_db()
+        
         logger.info(f"🔄 Importing CSV data to table '{table_name}'...")
+        csv_path = csv_db._get_table_path(table_name)
         logger.info(f"   • Source: {csv_path}")
         logger.info(f"   • Update existing: {update_existing}")
 
         # Read CSV data
-        df = pd.read_csv(csv_path)
+        query = f"SELECT * FROM {table_name}"
+        csv_data = csv_db.execute_query(query)
 
-        if df.empty:
-            logger.warning(f"⚠️ CSV file is empty: {csv_path}")
+        if not csv_data:
+            logger.warning(f"⚠️ CSV file is empty or not found: {csv_path}")
             return 0
 
-        # Convert DataFrame to list of dictionaries
-        csv_data = df.to_dict('records')
-
-        # Process data for database import - automatically detect and handle JSONB fields
-        processed_data = []
-        has_flattened_data = False
-        has_json_strings = False
-
-        for row in csv_data:
-            # Handle NaN values
-            processed_row = {k: (None if pd.isna(v) else v) for k, v in row.items()}
-
-            # Auto-detect if we have flattened fields (containing dots)
-            flattened_fields = [k for k in processed_row.keys() if '.' in k]
-            if flattened_fields and not has_flattened_data:
-                has_flattened_data = True
-                logger.info(f"   • Detected flattened JSONB fields: {flattened_fields[:3]}{'...' if len(flattened_fields) > 3 else ''}")
-
-            if flattened_fields:
-                # Reconstruct nested dictionaries from flattened fields
-                processed_row = unflatten_dict(processed_row)
-            else:
-                # Try to parse JSON strings back to objects
-                for key, value in processed_row.items():
-                    if isinstance(value, str) and (value.startswith('{') or value.startswith('[')):
-                        try:
-                            parsed_value = json.loads(value)
-                            processed_row[key] = parsed_value
-                            if not has_json_strings:
-                                has_json_strings = True
-                                logger.info(f"   • Detected JSON strings in field: {key}")
-                        except json.JSONDecodeError:
-                            pass  # Keep as string if not valid JSON
-
-            processed_data.append(processed_row)
+        logger.info(f"   • Read {len(csv_data)} rows from CSV")
 
         # Get table schema to build proper INSERT/UPDATE queries
         schema_query = """
@@ -492,8 +425,8 @@ class PostgreSQLDatabase:
 
         with self.get_connection() as conn:
             with conn.cursor() as cursor:
-                for i in range(0, len(processed_data), batch_size):
-                    batch = processed_data[i:i + batch_size]
+                for i in range(0, len(csv_data), batch_size):
+                    batch = csv_data[i:i + batch_size]
 
                     for row in batch:
                         # Filter row to only include columns that exist in the table

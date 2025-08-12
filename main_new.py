@@ -1,8 +1,9 @@
 import os
-from con_mon.utils import sql, helpers
-from con_mon.checks import get_checks_by_ids
-from con_mon.connectors import get_connector_by_id, get_connector_input_by_id
-from con_mon.utils.db import get_db
+from con_mon_v2.compliance.data_loader import ChecksLoader, ConnectionLoader
+from con_mon_v2.compliance.models import Check, CheckResult, Connection
+from con_mon_v2.utils.services import ResourceCollectionService
+from con_mon_v2.utils import helpers
+# TODO: Port SQL utilities from con_mon to con_mon_v2
 
 
 def main(
@@ -13,48 +14,58 @@ def main(
     check_ids: list[int] | None = None,
     metadata: dict | None = None,
 ):
-    checks_to_run = get_checks_by_ids(connection_id, check_ids)
-    connector_service = get_connector_by_id(connector_type)
-    ConnectorInput = get_connector_input_by_id(connector_service)
+    # Load checks using con_mon_v2 ChecksLoader
+    checks_loader = ChecksLoader()
+    if check_ids:
+        checks = checks_loader.load_by_ids(check_ids)
+    else:
+        checks = checks_loader.load_all()
+    
+    print(f"✅ Loaded {len(checks)} checks from database")
 
-    # Initialize GitHub connector
-    connector_input = ConnectorInput(**credentials)
-    resource_collection = connector_service.fetch_data(connector_input)
-    # from pdb import set_trace;set_trace()
-
+    # Use ResourceCollectionService for connector access
+    service = ResourceCollectionService(connector_type)
+    resource_collection = service.get_resource_collection(credentials)
+    
     print(f"✅ Retrieved {len(resource_collection.resources)} {connector_type} resources")
 
-    # Execute checks and collect results
+    # Execute checks and collect results - using new structure with Check objects
     executed_check_results = []
     
-    for check_id, check_name, check in checks_to_run:
+    for check in checks:
         # Execute the check against all resources
         check_results = check.evaluate(resource_collection.resources)
         if check_results is not None:
-            executed_check_results.append((check_id, check_name, check_results))
+            executed_check_results.append((check, check_results))
 
-    # Generate SQL files from executed check results
-    helpers.print_summary(
-        executed_check_results=executed_check_results,
-    )
+    # Generate summary using con_mon_v2 helpers with Check objects
+    helpers.print_summary(executed_check_results)
 
-    check_dicts = sql.get_check_dicts(
-        executed_check_results,
-        resource_collection=resource_collection
-    )
-    # return
-    sql.insert_check_results(
-        check_dicts,
-        customer_id=customer_id,
-        connection_id=connection_id,
-    )
+    # TODO: Port SQL utilities to handle result storage
+    # For now, we can comment out the SQL operations until they're ported
+    # check_dicts = sql.get_check_dicts(
+    #     executed_check_results,
+    #     resource_collection=resource_collection
+    # )
+    # sql.insert_check_results(
+    #     check_dicts,
+    #     customer_id=customer_id,
+    #     connection_id=connection_id,
+    # )
+    
+    print(f"\n💾 **Database Storage:**")
+    print(f"   • TODO: Port SQL utilities from con_mon to store results")
+    print(f"   • Customer ID: {customer_id}")
+    print(f"   • Connection ID: {connection_id}")
+    print(f"   • Checks executed: {len(executed_check_results)}")
+
 
 def params_from_connection_id(
     connection_id: int,
     check_ids: list[int] | None = None,
 ):
     """
-    Fetch connection parameters from database by connection_id.
+    Fetch connection parameters from database by connection_id using ConnectionLoader.
 
     Args:
         connection_id: ID of the connection record in the database
@@ -66,86 +77,63 @@ def params_from_connection_id(
     Raises:
         ValueError: If connection_id is not found or data is invalid
     """
-    # Get database instance
-    db = get_db()
-
     print(f"🔍 Fetching connection data for ID: {connection_id}")
 
-    # Query to get connection data
-    query_sql = """
-    SELECT 
-        id,
-        customer_id,
-        type,
+    # Use ConnectionLoader to fetch connection data
+    connection_loader = ConnectionLoader()
+    
+    # Load the specific connection by ID
+    connection: Connection = connection_loader.load_by_ids([connection_id])[0]
+
+    # Validate connection is active
+    if connection.sync_status != 'active':
+        print(f"⚠️ Warning: Connection {connection_id} status is '{connection.sync_status}' (not active)")
+
+    # Extract data from Connection object
+    customer_id = connection.customer_id
+    credentials = connection.credentials  # Already a dict from JSONB
+    metadata = connection.metadata or {}  # Default to empty dict if None
+
+    # Map connection type to connector type
+    # Assuming type 1 = github, can be extended for other types
+    type_mapping = {
+        1: 'github',
+        2: 'aws',
+        # Add more mappings as needed
+        # 3: 'azure',
+    }
+
+    connection_type = connection.type
+    if connection_type not in type_mapping:
+        raise ValueError(f"Unsupported connection type: {connection_type}")
+
+    connector_type = type_mapping[connection_type]
+
+    print("✅ Connection data loaded:")
+    print(f"   • Customer ID: {customer_id}")
+    print(f"   • Connector Type: {connector_type}")
+    print(f"   • Status: {connection.sync_status}")
+    print(f"   • Credentials: {list(credentials.keys())}")
+    print(f"   • Metadata: {list(metadata.keys()) if metadata else 'No metadata'}")
+
+    return (
+        connection_id,
+        connector_type,
         credentials,
+        customer_id,
+        check_ids,
         metadata,
-        sync_status
-    FROM connections 
-    WHERE id = %s 
-    AND is_deleted = FALSE;
-    """
-
-    try:
-        results = db.execute_query(query_sql, (connection_id,))
-
-        if not results:
-            raise ValueError(f"Connection ID {connection_id} not found or has been deleted")
-
-        connection = results[0]
-
-        # Validate connection is active
-        if connection['sync_status'] != 'active':
-            print(f"⚠️ Warning: Connection {connection_id} status is '{connection['sync_status']}' (not active)")
-
-        # Extract data from database record
-        customer_id = connection['customer_id']
-        credentials = connection['credentials']  # Already a dict from JSONB
-        metadata = connection['metadata'] or {}  # Default to empty dict if None
-
-        # Map connection type to connector type
-        # Assuming type 1 = github, can be extended for other types
-        type_mapping = {
-            1: 'github',
-            2: 'aws',
-            # Add more mappings as needed
-            # 3: 'azure',
-        }
-
-        connection_type = connection['type']
-        if connection_type not in type_mapping:
-            raise ValueError(f"Unsupported connection type: {connection_type}")
-
-        connector_type = type_mapping[connection_type]
-
-        print(f"✅ Connection data loaded:")
-        print(f"   • Customer ID: {customer_id}")
-        print(f"   • Connector Type: {connector_type}")
-        print(f"   • Status: {connection['sync_status']}")
-        print(f"   • Credentials: {list(credentials.keys())}")
-        print(f"   • Metadata: {list(metadata.keys()) if metadata else 'No metadata'}")
-
-        return (
-            connection_id,
-            connector_type,
-            credentials,
-            customer_id,
-            check_ids,
-            metadata,
-        )
-
-    except Exception as e:
-        print(f"❌ Failed to fetch connection data: {e}")
-        raise
+    )
 
 
 if __name__ == "__main__":
-    # CONNECTOR_TYPE_SAMPLE_CONNECTION_IDS = {
-    #     'aws': 35,
-    #     'github': 26,
-    # }
-    # connection_id = CONNECTOR_TYPE_SAMPLE_CONNECTION_IDS['aws']
-    # connection_id = CONNECTOR_TYPE_SAMPLE_CONNECTION_IDS['github']
-    connection_id = os.environ.get("CONNECTION_ID")
+    CONNECTOR_TYPE_SAMPLE_CONNECTION_IDS = {
+        'aws': 35,
+        'github': 26,
+    }
+    connection_id = CONNECTOR_TYPE_SAMPLE_CONNECTION_IDS['aws']
+    connection_id = CONNECTOR_TYPE_SAMPLE_CONNECTION_IDS['github']
+    # connection_id = os.environ.get("CONNECTION_ID")
     check_ids_str = os.environ.get("CHECK_IDS")
     check_ids = check_ids_str.split(",") if check_ids_str else list()
     main(
