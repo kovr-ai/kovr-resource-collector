@@ -29,10 +29,14 @@ def main(
     
     print(f"✅ Retrieved {len(resource_collection.resources)} {connector_type} resources")
 
-    # Execute checks and collect results - using new structure with Check objects
+    # Execute checks and collect results
     executed_check_results = []
+    filtered_checks = ChecksLoader.filter_by_resource_model(
+        checks,
+        resource_collection.resource_models
+    )
     
-    for check in checks:
+    for check in filtered_checks:
         # Execute the check against all resources
         check_results = check.evaluate(resource_collection.resources)
         if check_results is not None:

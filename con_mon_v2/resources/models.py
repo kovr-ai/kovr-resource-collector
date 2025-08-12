@@ -239,3 +239,7 @@ class ResourceCollection(BaseModel):
             if resource.id == resource_id:
                 return resource
         return None
+
+    @property
+    def resource_models(self):
+        return list(set([resource.__class__ for resource in self.resources]))
