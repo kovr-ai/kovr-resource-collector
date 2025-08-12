@@ -3,7 +3,8 @@ Base data loader class for database operations.
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any, Type
+from typing import List, Dict, Any, Type, Optional
+from pathlib import Path
 from con_mon_v2.utils.db import get_db
 from con_mon_v2.compliance.models.base import TableModel
 
@@ -119,4 +120,64 @@ class BaseLoader(ABC):
             instances.append(instance)
 
         print(f"✅ Loaded {len(instances)} {model_class.__name__} records by IDs")
-        return instances 
+        return instances
+
+    def export_to_csv(
+        self,
+        output_path: Optional[str] = None,
+        where_clause: Optional[str] = None,
+    ) -> str:
+        """
+        Export the loader's table data to CSV format.
+        
+        Args:
+            output_path: Output CSV file path (defaults to data/csv/{table_name}.csv)
+            where_clause: Optional WHERE clause to filter data (e.g., "is_deleted = false")
+            flatten_jsonb: Whether to flatten JSONB fields for CSV compatibility
+            
+        Returns:
+            Path to the created CSV file
+        """
+        table_name = self.get_table_name
+        model_class = self.get_model_class
+        
+        # Set default where clause for tables with soft deletes
+        if where_clause is None and hasattr(self.model, 'is_deleted'):
+            where_clause = "is_deleted = false"
+            
+        print(f"📤 Exporting {model_class.__name__} data to CSV...")
+        
+        return self.db.export_table_to_csv(
+            table_name=table_name,
+            output_path=output_path,
+            where_clause=where_clause
+        )
+    
+    def import_from_csv(
+        self, csv_path: str,
+        update_existing: bool = True,
+        batch_size: int = 100
+    ) -> int:
+        """
+        Import CSV data to the loader's table.
+        
+        Args:
+            csv_path: Path to the CSV file to import
+            update_existing: Whether to update existing records (based on ID)
+            unflatten_jsonb: Whether to reconstruct JSONB fields from flattened CSV
+            batch_size: Number of records to process in each batch
+            
+        Returns:
+            Number of records imported/updated
+        """
+        table_name = self.get_table_name
+        model_class = self.get_model_class
+            
+        print(f"📥 Importing CSV data to {model_class.__name__} table...")
+        
+        return self.db.import_csv_to_table(
+            table_name=table_name,
+            csv_path=csv_path,
+            update_existing=update_existing,
+            batch_size=batch_size
+        )

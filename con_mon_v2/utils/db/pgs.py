@@ -321,8 +321,12 @@ class PostgreSQLDatabase:
             'used': self._connection_pool.maxconn - len(self._connection_pool._pool)
         }
 
-    def export_table_to_csv(self, table_name: str, output_path: Optional[str] = None,
-                            where_clause: Optional[str] = None, flatten_jsonb: bool = True) -> str:
+    def export_table_to_csv(
+        self,
+        table_name: str,
+        output_path: Optional[str] = None,
+        where_clause: Optional[str] = None
+    ) -> str:
         """
         Export a PostgreSQL table to CSV format.
 
@@ -400,9 +404,13 @@ class PostgreSQLDatabase:
             logger.error(f"❌ Failed to export table '{table_name}': {e}")
             raise
 
-    def import_csv_to_table(self, table_name: str, csv_path: str,
-                            update_existing: bool = True, unflatten_jsonb: bool = True,
-                            batch_size: int = 100) -> int:
+    def import_csv_to_table(
+        self,
+        table_name: str,
+        csv_path: str,
+        update_existing: bool = True,
+        batch_size: int = 100
+    ) -> int:
         """
         Import CSV data to a PostgreSQL table.
 
