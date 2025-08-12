@@ -59,12 +59,20 @@ def main(
     #     customer_id=customer_id,
     #     connection_id=connection_id,
     # )
+    
+    # Process and store check results using ConMonResultService
     total_result_count = 0
     total_history_count = 0
     for executed_check_result in executed_check_results:
-        con_mon_result_service = ConMonResultService(*executed_check_result)
+        check, check_results = executed_check_result
+        con_mon_result_service = ConMonResultService(
+            check=check,
+            check_results=check_results,
+            customer_id=customer_id,
+            connection_id=connection_id
+        )
         result_count, history_count = con_mon_result_service.insert_in_db()
-        print(f'Add {result_count} records to database and {history_count} history records')
+        print(f'Added {result_count} records to database and {history_count} history records')
         total_result_count += result_count
         total_history_count += history_count
     

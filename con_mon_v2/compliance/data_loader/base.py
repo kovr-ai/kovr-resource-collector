@@ -7,6 +7,7 @@ from typing import List, Dict, Any, Type, Optional
 from pathlib import Path
 from con_mon_v2.utils.db import get_db
 from con_mon_v2.compliance.models.base import TableModel
+from datetime import datetime
 
 
 class BaseLoader(ABC):
@@ -123,8 +124,53 @@ class BaseLoader(ABC):
         return instances
 
     def insert_rows(self, instances: List[TableModel]) -> int:
-        # TODO: implement insert rows
-        pass
+        """
+        Insert model instances into the database table.
+        
+        Args:
+            instances: List of TableModel instances to insert
+            
+        Returns:
+            Number of records successfully inserted
+        """
+        if not instances:
+            return 0
+            
+        table_name = self.get_table_name
+        model_class = self.get_model_class
+        
+        print(f"💾 Inserting {len(instances)} {model_class.__name__} records into {table_name}...")
+        
+        # Convert model instances to dictionaries
+        records_data = []
+        for instance in instances:
+            record_dict = instance.model_dump()
+            
+            # Handle datetime fields - convert to ISO format strings
+            for field_name, field_value in record_dict.items():
+                if isinstance(field_value, datetime):
+                    record_dict[field_name] = field_value.isoformat()
+                    
+            records_data.append(record_dict)
+        
+        # Use the database's insert functionality
+        try:
+            # If we're using CSV database, use execute_insert
+            if hasattr(self.db, 'execute_insert'):
+                inserted_count = self.db.execute_insert(table_name, records_data)
+            else:
+                # If we're using PostgreSQL database, we'd need to implement SQL INSERT
+                # For now, fallback to CSV approach
+                from con_mon_v2.utils.db.csv import get_db as get_csv_db
+                csv_db = get_csv_db()
+                inserted_count = csv_db.execute_insert(table_name, records_data)
+            
+            print(f"   ✅ Successfully inserted {inserted_count} records")
+            return inserted_count
+            
+        except Exception as e:
+            print(f"   ❌ Insert failed: {e}")
+            raise
 
     def export_to_csv(
         self,

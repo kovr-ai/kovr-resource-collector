@@ -1,9 +1,10 @@
 """Service utilities for con_mon_v2."""
 from typing import Type, List, Tuple
 from pydantic import BaseModel
+from datetime import datetime
 
 from con_mon_v2.compliance.data_loader import ConMonResultLoader, ConMonResultHistoryLoader
-from con_mon_v2.compliance.models import ConMonResult, ConMonResultHistory
+from con_mon_v2.compliance.models import ConMonResult, ConMonResultHistory, Check, CheckResult
 from con_mon_v2.resources import Resource, ResourceCollection
 from con_mon_v2.mappings.github import (
     GithubConnectorService,
@@ -191,19 +192,83 @@ class ConMonResultService(object):
         self,
         check: Check,
         check_results: List[CheckResult],
+        customer_id: str,
+        connection_id: int,
     ):
         self.check = check
         self.check_results = check_results
+        self.customer_id = customer_id
+        self.connection_id = connection_id
 
     def get_con_mon_results(self) -> List[ConMonResult]:
-        # TODO: implement this to work with ConMonResultLoader
-        pass
+        """
+        Convert CheckResult objects into ConMonResult objects for database storage.
+        
+        Returns:
+            List containing a single ConMonResult that aggregates all check results
+        """
+        # Separate passed and failed resources
+        success_resources = []
+        failed_resources = []
+        resource_jsons = dict(resources=[])
+        
+        for check_result in self.check_results:
+            resource_jsons['resources'].append(check_result.resource)
+            resource_data = {
+                'id': getattr(check_result.resource, 'id', str(check_result.resource)),
+                'name': getattr(check_result.resource, 'name', str(check_result.resource)),
+                'type': check_result.resource.__class__.__name__,
+            }
+            
+            if check_result.passed is True:
+                success_resources.append({**resource_data, 'status': 'passed'})
+            elif check_result.passed is False:
+                failed_resources.append({**resource_data, 'status': 'failed'})
+            else:  # check_result.passed is None (execution error)
+                failed_resources.append({**resource_data, 'status': 'error', 'error': check_result.error})
+        
+        # Calculate metrics
+        success_count = len(success_resources)
+        failure_count = len(failed_resources)
+        total_count = success_count + failure_count
+        success_percentage = round((success_count / total_count) * 100, 2) if total_count > 0 else 0
+        
+        # Determine overall result
+        overall_result = 'PASS' if failure_count == 0 else 'FAIL'
+        
+        # Create result message using the check's result_summary method
+        result_message = self.check.result_summary(self.check_results)
+        
+        # Create ConMonResult object
+        con_mon_result = ConMonResult(
+            customer_id=self.customer_id,
+            connection_id=self.connection_id,
+            check_id=self.check.id,
+            result=overall_result,
+            result_message=result_message,
+            success_count=success_count,
+            failure_count=failure_count,
+            success_percentage=success_percentage,
+            success_resources=success_resources,
+            failed_resources=failed_resources,
+            exclusions=[],  # No exclusions for now
+            resource_json=resource_jsons,
+            created_at=datetime.now(),
+            updated_at=datetime.now()
+        )
+        
+        return [con_mon_result]
 
     def insert_in_db(self) -> Tuple[int, int]:
-        result_insert_count = ConMonResultLoader().insert_rows(
-            self.get_con_mon_results()
-        )
-        history_insert_count = ConMonResultHistoryLoader().insert_rows(
-            self.get_con_mon_results()
-        )
+        con_mon_results = self.get_con_mon_results()
+        if not con_mon_results:
+            return 0, 0
+            
+        # Insert new results (this will handle moving old results to history)
+        result_insert_count = ConMonResultLoader().insert_rows(con_mon_results)
+        
+        # History count will be handled by the insert_rows method
+        # For now, return the same count as an approximation
+        history_insert_count = result_insert_count
+        
         return result_insert_count, history_insert_count

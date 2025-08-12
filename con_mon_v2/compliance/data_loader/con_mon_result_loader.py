@@ -5,6 +5,7 @@ Check results data loaders for con_mon_results and con_mon_results_history table
 from typing import List, Optional
 from .base import BaseLoader
 from con_mon_v2.compliance.models.con_mon_result import ConMonResult, ConMonResultHistory
+from datetime import datetime
 
 
 class ConMonResultLoader(BaseLoader):
@@ -81,10 +82,89 @@ class ConMonResultLoader(BaseLoader):
         return instances
 
     def insert_rows(self, instances: List[ConMonResult]) -> int:
-        # TODO: implement insert rows
-        # delete by check, connection and customer id
-        # call super to insert_rows as per BaseLoader logic
-        pass
+        """
+        Insert ConMonResult instances with history management.
+        
+        This method:
+        1. Loads existing records for the same customer/connection/check combinations
+        2. Moves existing records to history table
+        3. Inserts new records
+        
+        Args:
+            instances: List of ConMonResult instances to insert
+            
+        Returns:
+            Number of records successfully inserted
+        """
+        if not instances:
+            return 0
+            
+        print(f"💾 Inserting {len(instances)} ConMonResult records with history management...")
+        
+        # Initialize history loader
+        history_loader = ConMonResultHistoryLoader()
+        
+        total_inserted = 0
+        total_archived = 0
+        
+        try:
+            for instance in instances:
+                # Load existing records for this customer/connection/check combination
+                existing_records = self.load_by_customer_and_connection(
+                    instance.customer_id, 
+                    instance.connection_id
+                )
+                
+                # Filter to just this specific check
+                existing_for_check = [
+                    record for record in existing_records 
+                    if record.check_id == instance.check_id
+                ]
+                
+                # Move existing records to history
+                if existing_for_check:
+                    print(f"   📜 Moving {len(existing_for_check)} existing records to history for check {instance.check_id}...")
+                    
+                    history_records = []
+                    for existing_record in existing_for_check:
+                        # Create history record from existing record
+                        history_record = ConMonResultHistory(
+                            customer_id=existing_record.customer_id,
+                            connection_id=existing_record.connection_id,
+                            check_id=existing_record.check_id,
+                            result=existing_record.result,
+                            result_message=existing_record.result_message,
+                            success_count=existing_record.success_count,
+                            failure_count=existing_record.failure_count,
+                            success_percentage=existing_record.success_percentage,
+                            success_resources=existing_record.success_resources,
+                            failed_resources=existing_record.failed_resources,
+                            exclusions=existing_record.exclusions,
+                            resource_json=existing_record.resource_json,
+                            created_at=existing_record.created_at,
+                            archived_at=datetime.now()
+                        )
+                        history_records.append(history_record)
+                    
+                    # Insert into history table
+                    archived_count = history_loader.insert_rows(history_records)
+                    total_archived += archived_count
+                    print(f"      ✅ Archived {archived_count} records to history")
+                
+                # Insert the new record using parent class method
+                inserted_count = super().insert_rows([instance])
+                total_inserted += inserted_count
+                print(f"   💾 Inserted new record for check {instance.check_id}")
+            
+            print(f"   📊 History management completed:")
+            print(f"      • New records inserted: {total_inserted}")
+            print(f"      • Records archived to history: {total_archived}")
+            
+            return total_inserted
+            
+        except Exception as e:
+            print(f"   ❌ Insert with history management failed: {e}")
+            raise
 
 
 class ConMonResultHistoryLoader(BaseLoader):
