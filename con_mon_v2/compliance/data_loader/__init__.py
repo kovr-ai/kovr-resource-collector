@@ -9,6 +9,7 @@ from .control_loader import ControlLoader
 from .standard_loader import StandardLoader
 from .standard_control_mapping_loader import StandardControlMappingLoader
 from .checks_loader import ChecksLoader
+from .connection_loader import ConnectionLoader
 
 __all__ = [
     # Base
@@ -20,4 +21,5 @@ __all__ = [
     'StandardLoader', 
     'StandardControlMappingLoader',
     'ChecksLoader',
+    'ConnectionLoader',
 ] 

@@ -9,6 +9,7 @@ from .control import Control
 from .standard import Standard
 from .standard_control_mapping import StandardControlMapping
 from .checks import Check, CheckResult, OutputStatements, FixDetails, CheckMetadata, CheckOperation, ComparisonOperationEnum, ComparisonOperation
+from .connection import Connection, ConnectionType, SyncFrequency, SyncFrequencyType
 from .helpers import (
     FrameworkWithControls, 
     StandardWithControls, 
@@ -28,6 +29,7 @@ __all__ = [
     'StandardControlMapping',
     'Check',
     'CheckResult',
+    'Connection',
 
     # JSONB Nested Models
     'OutputStatements',
@@ -36,6 +38,11 @@ __all__ = [
     'CheckOperation',
     'ComparisonOperationEnum',
     'ComparisonOperation',
+    
+    # Connection Related Models
+    'ConnectionType',
+    'SyncFrequency',
+    'SyncFrequencyType',
     
     # Helper Models (Composite Views)
     'FrameworkWithControls',
