@@ -185,4 +185,33 @@ class ResourceCollection(BaseModel):
             "total_count": self.total_count,
             "fetched_at": self.fetched_at.isoformat(),
             "metadata": self.metadata
-        } 
+        }
+
+
+class InfoData(BaseModel):
+    """
+    Base class for provider info data models.
+    InfoData represents summary/metadata information about a provider's resources,
+    typically used for connection metadata updates.
+    """
+    
+    def get_field_value(self, field_path: str) -> Any:
+        """Get a field value using dot notation."""
+        keys = field_path.split('.')
+        value = self
+        
+        for key in keys:
+            if hasattr(value, key):
+                value = getattr(value, key)
+            else:
+                return None
+        return value
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary representation."""
+        return self.model_dump()
+    
+    def add_tag(self, tag: str) -> None:
+        """Add a tag to the info data if it has a tags field."""
+        if hasattr(self, 'tags') and isinstance(self.tags, list) and tag not in self.tags:
+            self.tags.append(tag) 

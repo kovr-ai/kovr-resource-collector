@@ -4,6 +4,8 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 import boto3
 import json
+from con_mon.resources import GoogleInfoData
+from typing import Dict, List, Tuple
 
 SERVICE_ACCOUNT_SECRET = "Connector-GWS-credentials"
 SCOPES = ['https://www.googleapis.com/auth/admin.directory.user.readonly']
@@ -32,9 +34,27 @@ class GoogleProvider(Provider):
         response = secrets_client.get_secret_value(SecretId=SERVICE_ACCOUNT_SECRET)
         return json.loads(response['SecretString'])
 
-    def process(self):
+    def process(self) -> Tuple[GoogleInfoData, Dict[str, List]]:
         results = self.client.users().list(customer='my_customer', maxResults=10, orderBy='email').execute()
         users = results.get('users', [])
-        return {
+        
+        # Create InfoData object
+        info_data = GoogleInfoData(
+            account_id=self.data.get('super_admin_email', 'unknown'),
+            users=[
+                {
+                    'id': user.get('id', ''),
+                    'name': user.get('name', {}).get('fullName', ''),
+                    'email': user.get('primaryEmail', '')
+                }
+                for user in users
+            ],
+            groups=[]  # Could be populated with actual groups data
+        )
+        
+        # For now, return the raw data as second element (this should be a proper ResourceCollection)
+        resource_data = {
             "users": users
         }
+        
+        return info_data, resource_data
