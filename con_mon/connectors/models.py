@@ -13,7 +13,7 @@ class ConnectorType(Enum):
     AWS = "aws"
     AZURE = "azure"
     GITHUB = "github"
-    GOOGLE_CLOUD = "google_cloud"
+    GOOGLE = "google"
     KUBERNETES = "kubernetes"
     DOCKER = "docker"
     CUSTOM = "custom"
