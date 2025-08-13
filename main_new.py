@@ -111,6 +111,7 @@ def params_from_connection_id(
         type_mapping = {
             1: 'github',
             2: 'aws',
+            10: 'google'
             # Add more mappings as needed
             # 3: 'azure',
         }
