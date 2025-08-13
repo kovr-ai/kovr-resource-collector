@@ -5,6 +5,7 @@ from providers.aws.services.iam import IAMService
 from providers.aws.services.s3 import S3Service
 from providers.provider import Provider, provider_class
 from con_mon.resources import (
+    AWSInfoData,
     AWSEC2Resource, 
     AWSIAMResource, 
     AWSS3Resource, 
@@ -12,6 +13,7 @@ from con_mon.resources import (
     AWSCloudWatchResource,
     AWSResourceCollection
 )
+from typing import Tuple
 from constants import Providers
 import boto3
 import json
@@ -128,15 +130,15 @@ class AWSProvider(Provider):
             aws_session_token=aws_session_token,
         )
 
-    def process(self) -> AWSResourceCollection:
+    def process(self) -> Tuple[AWSInfoData, AWSResourceCollection]:
         """Process data collection - uses mock data if available, otherwise real AWS API calls"""
         if self.use_mock_data:
             return self._process_mock_data()
         else:
             return self._process_real_aws_data()
     
-    def _process_mock_data(self) -> AWSResourceCollection:
-        """Load and return mock data from aws_response.json as AWSResourceCollection"""
+    def _process_mock_data(self) -> Tuple[AWSInfoData, AWSResourceCollection]:
+        """Load and return mock data from aws_response.json as (AWSInfoData, AWSResourceCollection) tuple"""
         print("🔄 Using mock AWS data from aws_response.json")
         
         try:
@@ -146,14 +148,27 @@ class AWSProvider(Provider):
             print(f"✅ Loaded mock AWS data with {len(mock_response)} regions")
             
             # Use the shared helper method to create AWSResourceCollection
-            return self._create_resource_collection_from_data(mock_response)
+            resource_collection = self._create_resource_collection_from_data(mock_response)
+            
+            # Create InfoData from the resource collection metadata
+            info_data = AWSInfoData(
+                accounts=[
+                    {
+                        'account_name': f"AWS Account {i+1}",
+                        'account_id': resource_collection.collection_metadata.get('account_id', f'123456789{i:03d}')
+                    }
+                    for i in range(1)  # Single account for now
+                ]
+            )
+            
+            return info_data, resource_collection
             
         except Exception as e:
             print(f"❌ Error loading mock data: {e}")
             raise RuntimeError(f"Failed to load mock data from aws_response.json: {e}")
 
-    def _process_real_aws_data(self) -> AWSResourceCollection:
-        """Original AWS data collection logic using real API calls - returns AWSResourceCollection"""
+    def _process_real_aws_data(self) -> Tuple[AWSInfoData, AWSResourceCollection]:
+        """Original AWS data collection logic using real API calls - returns (AWSInfoData, AWSResourceCollection) tuple"""
         print("🔄 Collecting real AWS data via API calls")
         data = {}
         for region in self.REGIONS:
@@ -175,7 +190,19 @@ class AWSProvider(Provider):
                 data[region][name] = instance.process()
 
         # Convert the raw data to AWSResourceCollection using the same logic as mock data
-        return self._create_resource_collection_from_data(data)
+        resource_collection = self._create_resource_collection_from_data(data)
+        
+        # Create InfoData with actual account information
+        info_data = AWSInfoData(
+            accounts=[
+                {
+                    'account_name': 'Production Account',  # This could be retrieved from AWS API
+                    'account_id': resource_collection.collection_metadata.get('account_id', 'unknown')
+                }
+            ]
+        )
+        
+        return info_data, resource_collection
     
     def _create_resource_collection_from_data(self, aws_data: dict) -> AWSResourceCollection:
         """Helper method to create AWSResourceCollection from raw AWS data"""

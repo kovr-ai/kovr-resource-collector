@@ -2,6 +2,12 @@
 # Defines resource structures for different providers
 
 github:
+  info_data:
+    repositories[]:
+      name: "string"
+      url: "string"
+      default_branch_name: "string"
+
   resources_field_schemas:
     # Nested data type schemas
     RepositoryData:
@@ -254,6 +260,11 @@ github:
         scope: "array"
 
 aws:
+  info_data:
+    accounts[]:
+      account_name: "string"
+      account_id: "string"
+
   resources:
     # AWS EC2 Resource Schema
     EC2Resource:
@@ -555,3 +566,15 @@ aws:
         api_version: "string"
         services: "array"
         regions_scanned: "array"
+
+google:
+  info_data:
+    account_id: "string"
+    users[]:
+      id: "string"
+      name: "string"
+      email: "string"
+    groups[]:
+      id: "string"
+      name: "string"
+      email: "string"
