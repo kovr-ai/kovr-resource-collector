@@ -24,11 +24,11 @@ from datetime import datetime
 @provider_class
 class AWSProvider(Provider):
     def __init__(self, metadata: dict):
-        self.AWS_ACCESS_KEY_ID = metadata.get("AWS_ACCESS_KEY_ID")
-        self.AWS_SECRET_ACCESS_KEY = metadata.get("AWS_SECRET_ACCESS_KEY")
-        self.AWS_SESSION_TOKEN = metadata.get("AWS_SESSION_TOKEN")
-        self.ROLE_ARN = metadata.get("AWS_ROLE_ARN")
-        self.AWS_EXTERNAL_ID = metadata.get("AWS_EXTERNAL_ID")
+        self.AWS_ACCESS_KEY_ID = os.getenv("KOVR_AWS_ACCESS_KEY_ID")
+        self.AWS_SECRET_ACCESS_KEY = os.getenv("KOVR_AWS_SECRET_ACCESS_KEY")
+        self.AWS_SESSION_TOKEN = os.getenv("AWS_SESSION_TOKEN")
+        self.ROLE_ARN = metadata.get("role_arn")
+        self.AWS_EXTERNAL_ID = metadata.get("external_id")
         
         # Check if we should use mock mode (if aws_response.json exists)
         self.use_mock_data = os.path.exists('aws_response.json')
