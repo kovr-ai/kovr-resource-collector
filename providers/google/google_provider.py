@@ -34,9 +34,10 @@ class GoogleProvider(Provider):
         self.client = service
 
     def get_service_account_secret_from_aws(self):
-        # boto3.setup_default_session(region_name='us-west-2')
-        session = boto3.Session(profile_name=settings.AWS_PROFILE)
-        secrets_client = session.client('secretsmanager')
+        boto3.setup_default_session(region_name='us-west-2')
+        # session = boto3.Session(profile_name=settings.AWS_PROFILE)
+        # secrets_client = session.client('secretsmanager')
+        secrets_client = boto3.client('secretsmanager')
         response = secrets_client.get_secret_value(SecretId=SERVICE_ACCOUNT_SECRET)
         return json.loads(response['SecretString'])
 
