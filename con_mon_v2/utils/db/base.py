@@ -148,6 +148,10 @@ class SQLDatabase:
         )
 
     # DML OPERATIONS
+    def execute_select(self, *args, **kwargs) -> Any:
+        """Execute an INSERT operation. Return driver-appropriate result (e.g., inserted id or rows)."""
+        raise NotImplementedError()
+
     def execute_insert(self, *args, **kwargs) -> Any:
         """Execute an INSERT operation. Return driver-appropriate result (e.g., inserted id or rows)."""
         raise NotImplementedError()

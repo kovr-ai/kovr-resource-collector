@@ -88,10 +88,6 @@ class CSVDatabase(_BaseSQLDatabase):
             }
 
         @property
-        def update_params(self) -> list:
-            return []
-
-        @property
         def delete_query(self) -> Dict[str, Any]:
             if not self.where:
                 raise ValueError("Refusing to build DELETE without a WHERE clause")

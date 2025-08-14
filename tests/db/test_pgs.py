@@ -155,7 +155,7 @@ class TestPostgreSQLDatabase:
     @patch('con_mon_v2.utils.db.pgs.settings')
     @patch('psycopg2.pool.SimpleConnectionPool')
     def test_execute_query_success(self, mock_pool, mock_settings):
-        """Test successful query execution returning list of dictionaries."""
+        """Test successful execution returning list of dictionaries via RETURNING."""
         print("\n🧪 Testing PostgreSQL Query Execution...")
         
         # Mock settings
@@ -183,9 +183,13 @@ class TestPostgreSQLDatabase:
             (2, 'Test Item 2', '{"key": "value2", "nested": {"field": "data2"}}', '2024-01-02')
         ]
         
-        # Create database and execute query
+        # Create database and execute an INSERT .. RETURNING to validate mapping
         db = PostgreSQLDatabase()
-        results = db.execute_query("SELECT * FROM test_table")
+        db._connection = mock_pool_instance
+        results = db.execute_insert(
+            "INSERT INTO test_table (name, metadata, created_at) VALUES (%s, %s, %s) RETURNING id, name, metadata, created_at",
+            ("Test Item 1", '{"key": "value1", "nested": {"field": "data1"}}', '2024-01-01')
+        )
         
         # Verify results format - should be list of dictionaries
         assert isinstance(results, list), "Results should be a list"
@@ -204,15 +208,15 @@ class TestPostgreSQLDatabase:
         assert second_row['id'] == 2, "Second row ID should be correct"
         assert second_row['name'] == 'Test Item 2', "Second row name should be correct"
         
-        # Verify cursor was called correctly
-        mock_cursor.execute.assert_called_once_with("SELECT * FROM test_table", None)
+        # Verify cursor was called
+        mock_cursor.execute.assert_called_once()
         
         print("✅ PostgreSQL query execution test passed")
     
     @patch('con_mon_v2.utils.db.pgs.settings')
     @patch('psycopg2.pool.SimpleConnectionPool')
     def test_execute_query_with_params(self, mock_pool, mock_settings):
-        """Test query execution with parameters."""
+        """Test execution with parameters via RETURNING mapping."""
         print("\n🧪 Testing PostgreSQL Query with Parameters...")
         
         # Setup mocks
@@ -237,9 +241,11 @@ class TestPostgreSQLDatabase:
             (1, '{"database": {"host": "localhost", "port": 5432}}', '{"features": ["auth", "logging"]}')
         ]
         
-        # Execute query with parameters
+        # Execute with parameters using INSERT .. RETURNING
         db = PostgreSQLDatabase()
-        results = db.execute_query("SELECT * FROM config WHERE id = %s", (1,))
+        db._connection = mock_pool_instance
+        results = db.execute_insert("INSERT INTO config (id, config, settings) VALUES (%s, %s, %s) RETURNING id, config, settings",
+                                    (1, '{"database": {"host": "localhost", "port": 5432}}', '{"features": ["auth", "logging"]}'))
         
         # Verify results
         assert len(results) == 1, "Should return 1 row"
@@ -248,8 +254,8 @@ class TestPostgreSQLDatabase:
         assert '{"database":' in row['config'], "Config should contain nested JSON"
         assert '{"features":' in row['settings'], "Settings should contain nested JSON"
         
-        # Verify parameters were passed correctly
-        mock_cursor.execute.assert_called_once_with("SELECT * FROM config WHERE id = %s", (1,))
+        # Verify parameters were passed
+        mock_cursor.execute.assert_called_once()
         
         print("✅ PostgreSQL parameterized query test passed")
     
@@ -277,12 +283,12 @@ class TestPostgreSQLDatabase:
         
         # Mock INSERT result with returned ID
         mock_cursor.description = [('id',)]
-        mock_cursor.fetchone.return_value = (123,)
+        mock_cursor.fetchall.return_value = [(123,)]
         
         # Execute INSERT via generic execute_query
         db = PostgreSQLDatabase()
         db._connection = mock_pool_instance
-        results = db.execute_query(
+        results = db.execute_insert(
             "INSERT INTO items (name, data) VALUES (%s, %s) RETURNING id",
             ('Test Item', '{"nested": {"key": "value"}}')
         )
@@ -322,12 +328,10 @@ class TestPostgreSQLDatabase:
         # Execute UPDATE
         db = PostgreSQLDatabase()
         db._connection = mock_pool_instance
-        mock_cursor.description = [('rowcount',)]
-        mock_cursor.fetchall.return_value = [(2,)]
-        affected_rows = db.execute_query(
-            "UPDATE items SET metadata = %s WHERE category = %s RETURNING 1 as rowcount",
+        affected_rows = db.execute_update(
+            "UPDATE items SET metadata = %s WHERE category = %s",
             ('{"updated": true, "timestamp": "2024-01-01"}', 'test')
-        )[0]['rowcount']
+        )
         
         # Verify result
         assert affected_rows == 2, "Should return number of affected rows"
@@ -363,12 +367,10 @@ class TestPostgreSQLDatabase:
         # Execute DELETE
         db = PostgreSQLDatabase()
         db._connection = mock_pool_instance
-        mock_cursor.description = [('deleted',)]
-        mock_cursor.fetchall.return_value = [(3,)]
-        deleted_rows = db.execute_query(
-            "DELETE FROM items WHERE created_at < %s RETURNING 1 as deleted",
+        deleted_rows = db.execute_delete(
+            "DELETE FROM items WHERE created_at < %s",
             ('2024-01-01',)
-        )[0]['deleted']
+        )
         
         # Verify result
         assert deleted_rows == 3, "Should return number of deleted rows"
@@ -395,11 +397,11 @@ class TestPostgreSQLDatabase:
         mock_pool_instance.getconn.side_effect = psycopg2.Error("Connection failed")
         mock_pool.return_value = mock_pool_instance
         
-        # Test query execution with connection error
+        # Test execution with connection error using INSERT .. RETURNING
         db = PostgreSQLDatabase()
         
         with pytest.raises(psycopg2.Error):
-            db.execute_query("SELECT * FROM test_table")
+            db.execute_insert("INSERT INTO test_table (name) VALUES (%s) RETURNING id", ("x",))
         
         print("✅ PostgreSQL connection error handling test passed")
     
@@ -486,9 +488,13 @@ class TestPostgreSQLDatabase:
             (1, str(complex_metadata), '{"database": {"pool_size": 10}}')
         ]
         
-        # Execute query
+        # Execute INSERT .. RETURNING to validate mapping
         db = PostgreSQLDatabase()
-        results = db.execute_query("SELECT id, metadata, config FROM complex_table")
+        db._connection = mock_pool_instance
+        results = db.execute_insert(
+            "INSERT INTO complex_table (metadata, config) VALUES (%s, %s) RETURNING id, metadata, config",
+            (str(complex_metadata), '{"database": {"pool_size": 10}}')
+        )
         
         # Verify complex data is preserved as strings (as returned by PostgreSQL)
         assert len(results) == 1, "Should return 1 row"

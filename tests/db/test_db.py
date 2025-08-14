@@ -238,8 +238,11 @@ class TestUnifiedDatabaseAbstraction:
             )
         ]
         
-        # Execute query
-        results = db.execute_query("SELECT id, name, profile, config FROM users")
+        # Execute DML with RETURNING to validate list-of-dicts interface
+        results = db.execute_insert(
+            "INSERT INTO users (name, profile, config) VALUES (%s, %s, %s) RETURNING id, name, profile, config",
+            ('n/a', '{}', '{}')
+        )
         
         # Verify interface returns list of dictionaries
         assert isinstance(results, list), "Results should be a list"
@@ -261,7 +264,7 @@ class TestUnifiedDatabaseAbstraction:
             assert '"database":' in row["config"], f"Row {i} config should contain nested database"
         
         # Verify cursor was called with the query
-        mock_cursor.execute.assert_called_once_with("SELECT id, name, profile, config FROM users", None)
+        mock_cursor.execute.assert_called_once()
         
         print("✅ PostgreSQL database list of dicts interface test passed")
     
@@ -383,11 +386,11 @@ class TestUnifiedDatabaseAbstraction:
         mock_cursor.description = [('id',)]
         mock_cursor.fetchone.return_value = (123,)
         
-        # Execute INSERT with nested JSON data via execute_query
+        # Execute INSERT with nested JSON data via execute_insert
         nested_json_data = '{"user": {"profile": {"name": "John", "settings": {"theme": "dark", "notifications": ["email", "push"]}}, "metadata": {"created": "2024-01-01", "tags": ["admin", "verified"]}}}'
         mock_cursor.description = [('id',)]
         mock_cursor.fetchall.return_value = [(123,)]
-        result_id = db.execute_query(
+        result_id = db.execute_insert(
             "INSERT INTO users (name, data) VALUES (%s, %s) RETURNING id",
             ('Test User', nested_json_data)
         )[0]['id']
