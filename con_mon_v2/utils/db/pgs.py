@@ -228,14 +228,13 @@ class PostgreSQLDatabase(SQLDatabase):
 
     def get_status(self) -> Dict[str, int]:
         """Return pool statistics in a standardized format."""
-        pool = getattr(self, "_connection", None)
-        if not pool:
+        if not self._connection:
             return {'total': 0, 'available': 0, 'used': 0}
         try:
             return {
-                'total': pool.maxconn,
-                'available': len(pool._pool),
-                'used': pool.maxconn - len(pool._pool)
+                'total': self._connection.maxconn,
+                'available': len(self._connection._pool),
+                'used': self._connection.maxconn - len(self._connection._pool)
             }
         except Exception:
             # Fallback if internals differ
@@ -464,10 +463,6 @@ class PostgreSQLDatabase(SQLDatabase):
                 return [dict(zip(columns, row)) for row in cursor.fetchall()]
 
 
-# Create singleton instance
-db = PostgreSQLDatabase()
-
-
 def get_db() -> PostgreSQLDatabase:
     """
     Get the database singleton instance.
@@ -475,4 +470,4 @@ def get_db() -> PostgreSQLDatabase:
     Returns:
         PostgreSQLDatabase singleton instance
     """
-    return db 
+    return PostgreSQLDatabase()

@@ -60,4 +60,4 @@ def test_imports():
     checks = ChecksLoader().load_all()
     print(f"\nGot {len(checks)} checks... ")
     # In CI/isolated environments there may be no DB/CSV rows; treat as pass
-    assert True
+    assert len(checks)

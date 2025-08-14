@@ -78,7 +78,7 @@ class SQLDatabase:
                 **self._db_config
             )
 
-            logger.info(f"✅ Database connection created for {self._db_config['host']}:{self._db_config['port']}/{self._db_config['database']}")
+            logger.info(f"✅ Database connection created for {self._db_config}")
 
         except self.ConnectionError as e:
             logger.warning(f"⚠️ Database connection creation failed: {e}")
