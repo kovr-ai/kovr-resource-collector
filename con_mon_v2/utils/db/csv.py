@@ -68,7 +68,7 @@ class CSVDatabase(_BaseSQLDatabase):
         def insert_query(self) -> tuple[str, Dict[str, Any] | List[Dict[str, Any]]]:
             return (
                 self.table_name,
-                dict(self.update or {}),
+                self.update or {},
             )
 
         @property
