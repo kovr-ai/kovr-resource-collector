@@ -7,7 +7,6 @@ CRUD operations on CSV files stored in data/csv/ folder.
 import os
 import csv
 import json
-import re
 import pandas as pd
 from typing import Optional, List, Dict, Any, Union
 from contextlib import contextmanager
@@ -21,77 +20,7 @@ from con_mon_v2.utils.config import settings
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
-class SQLParser:
-    """Simple SQL parser for basic SELECT statements."""
-    
-    @staticmethod
-    def parse_select(sql: str) -> Dict[str, Any]:
-        """
-        Parse a basic SELECT SQL statement.
-        
-        Args:
-            sql: SQL query string
-            
-        Returns:
-            Dictionary with parsed components: table_name, columns, conditions, order_by
-        """
-        # Clean up the SQL
-        sql = sql.strip().rstrip(';')
-        
-        # Basic SELECT pattern
-        select_pattern = r'SELECT\s+(.*?)\s+FROM\s+(\w+)(?:\s+WHERE\s+(.*?))?(?:\s+ORDER\s+BY\s+(.*?))?$'
-        match = re.match(select_pattern, sql, re.IGNORECASE | re.DOTALL)
-        
-        if not match:
-            raise ValueError(f"Unable to parse SQL query: {sql}")
-        
-        columns_str, table_name, where_clause, order_by = match.groups()
-        
-        # Parse columns
-        if columns_str.strip() == '*':
-            columns = None
-        else:
-            columns = [col.strip() for col in columns_str.split(',')]
-        
-        # Parse WHERE clause (basic support for simple conditions)
-        conditions = {}
-        if where_clause:
-            # Simple parsing for basic conditions like "id = 123" or "name = 'test'"
-            # This is a simplified parser - could be enhanced for complex queries
-            condition_parts = where_clause.split(' AND ')
-            for part in condition_parts:
-                if ' IN (' in part.upper():
-                    # Handle IN clause like "id IN (1, 2, 3)"
-                    field_match = re.match(r'(\w+)\s+IN\s*\((.*?)\)', part.strip(), re.IGNORECASE)
-                    if field_match:
-                        field, values_str = field_match.groups()
-                        # Parse comma-separated values
-                        values = [v.strip().strip("'\"") for v in values_str.split(',')]
-                        # Convert to integers if possible
-                        try:
-                            values = [int(v) for v in values]
-                        except ValueError:
-                            pass
-                        conditions[field] = values
-                elif '=' in part:
-                    # Handle simple equality like "id = 123"
-                    field, value = part.split('=', 1)
-                    field = field.strip()
-                    value = value.strip().strip("'\"")
-                    # Try to convert to int
-                    try:
-                        value = int(value)
-                    except ValueError:
-                        pass
-                    conditions[field] = value
-        
-        return {
-            'table_name': table_name,
-            'columns': columns,
-            'conditions': conditions,
-            'order_by': order_by.strip() if order_by else None
-        }
+from con_mon_v2.utils.db.base import SQLDatabase as _BaseSQLDatabase  # for interface parity only
 
 
 class CSVDatabase:
@@ -103,6 +32,69 @@ class CSVDatabase:
     
     Now supports both SQL query strings (like PostgreSQL) and structured queries.
     """
+    class SQLParser(_BaseSQLDatabase.SQLParser):
+        """Build structured query objects for CSV backend (no SQL strings).
+
+        Returns dict payloads consumable by `execute_query`, following the
+        same constructor interface as the base parser: table_name, select,
+        update, where. Operations set `op` to one of: select|insert|update|delete.
+        """
+
+        def __init__(
+            self,
+            table_name: str,
+            select: list | None = None,
+            update: dict | None = None,
+            where: dict | None = None,
+        ):
+            self.table_name = table_name
+            self.select = select
+            self.update = update
+            self.where = where
+
+        def _build_where(self) -> Dict[str, Any]:
+            return dict(self.where) if self.where else {}
+
+        @property
+        def insert_query(self) -> Dict[str, Any]:
+            return {
+                'op': 'insert',
+                'table_name': self.table_name,
+                'values': dict(self.update or {}),
+            }
+
+        @property
+        def insert_params(self) -> list:
+            return []
+
+        @property
+        def update_query(self) -> Dict[str, Any]:
+            if not self.update:
+                raise ValueError("Update operation requires a non-empty `update` mapping")
+            return {
+                'op': 'update',
+                'table_name': self.table_name,
+                'values': dict(self.update),
+                'where': self._build_where(),
+            }
+
+        @property
+        def update_params(self) -> list:
+            return []
+
+        @property
+        def delete_query(self) -> Dict[str, Any]:
+            if not self.where:
+                raise ValueError("Refusing to build DELETE without a WHERE clause")
+            return {
+                'op': 'delete',
+                'table_name': self.table_name,
+                'where': self._build_where(),
+            }
+
+        @property
+        def delete_params(self) -> list:
+            return []
     
     _instance: Optional['CSVDatabase'] = None
     _csv_directory: Optional[Path] = None
@@ -318,68 +310,70 @@ class CSVDatabase:
         final_key = keys[-1]
         current[final_key] = value
     
-    def execute_query(self, query_or_table: str, params_or_conditions: Optional[Union[tuple, Dict[str, Any]]] = None, 
-                     columns: Optional[List[str]] = None, **kwargs) -> List[Dict[str, Any]]:
+    def execute_query(self, query: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
-        Execute a query on a CSV table.
-        
-        This method supports multiple interfaces for compatibility:
-        1. PostgreSQL-style: execute_query("SELECT * FROM table WHERE id = 1")
-        2. Structured-style: execute_query("table", {"id": 1}, ["col1", "col2"])
-        3. Keyword-style: execute_query("table", conditions={"id": 1}, columns=["col1", "col2"])
-        
-        Args:
-            query_or_table: Either a SQL query string or table name
-            params_or_conditions: Either query params (tuple) or conditions (dict)
-            columns: List of columns to return (structured mode only)
-            **kwargs: Support for keyword arguments (conditions=, columns=)
-            
-        Returns:
-            List of dictionaries representing query results
+        Execute a structured query object (output of SQLParser) on CSV.
+
+        Expected query shape:
+            {
+                'op': 'select'|'insert'|'update'|'delete',
+                'table_name': str,
+                'select': Optional[List[str]],   # for select
+                'values': Optional[Dict[str, Any]],  # for insert/update
+                'where': Optional[Dict[str, Any]],
+            }
+
+        Returns list of dict rows, mirroring PostgreSQL RETURNING * behavior for
+        insert/update/delete. Delete returns the rows that were removed.
         """
         try:
-            # Handle keyword arguments for backward compatibility
-            if 'conditions' in kwargs:
-                params_or_conditions = kwargs['conditions']
-            if 'columns' in kwargs and columns is None:
-                columns = kwargs['columns']
-                
-            # Detect if this is a SQL query or structured call
-            if self._is_sql_query(query_or_table):
-                # PostgreSQL-compatible mode: parse SQL
-                return self._execute_sql_query(query_or_table, params_or_conditions)
-            else:
-                # Structured mode: use table name and conditions
-                return self._execute_structured_query(query_or_table, params_or_conditions, columns)
-                
+            if not isinstance(query, dict):
+                raise ValueError("CSVDatabase.execute_query expects a structured dict from SQLParser")
+
+            op = query.get('op', 'select')
+            table_name = query.get('table_name')
+            if not table_name:
+                raise ValueError("query.table_name is required")
+
+            where: Optional[Dict[str, Any]] = query.get('where') or None
+            select_cols: Optional[List[str]] = query.get('select') or None
+
+            if op == 'select':
+                return self._execute_structured_query(table_name, conditions=where, columns=select_cols)
+
+            if op == 'insert':
+                values: Dict[str, Any] = query.get('values') or {}
+                # Perform insert
+                self.execute_insert(table_name, values)
+                # Try to return the inserted rows
+                if where:
+                    # If caller provided where, combine with inserted values for precision
+                    combined_where = dict(where)
+                    for k, v in values.items():
+                        combined_where.setdefault(k, v)
+                    return self._execute_structured_query(table_name, conditions=combined_where)
+                if 'id' in values:
+                    return self._execute_structured_query(table_name, conditions={'id': values['id']})
+                # Fallback: return the inserted payload
+                return [values]
+
+            if op == 'update':
+                values: Dict[str, Any] = query.get('values') or {}
+                # Apply update
+                self.execute_update(table_name, data=values, conditions=where)
+                # Return updated rows (post-update state)
+                return self._execute_structured_query(table_name, conditions=where)
+
+            if op == 'delete':
+                # Capture rows before deletion to return them
+                rows_to_delete = self._execute_structured_query(table_name, conditions=where)
+                self.execute_delete(table_name, conditions=where)
+                return rows_to_delete
+
+            raise ValueError(f"Unsupported operation: {op}")
+
         except Exception as e:
             logger.error(f"❌ Query execution failed: {e}")
-            return []
-    
-    def _is_sql_query(self, query_str: str) -> bool:
-        """Check if the string is a SQL query or just a table name."""
-        return query_str.strip().upper().startswith('SELECT')
-    
-    def _execute_sql_query(self, sql: str, params: Optional[tuple] = None) -> List[Dict[str, Any]]:
-        """Execute a SQL query string."""
-        try:
-            # Parse the SQL query
-            parsed = SQLParser.parse_select(sql)
-            table_name = parsed['table_name']
-            columns = parsed['columns']
-            conditions = parsed['conditions']
-            order_by = parsed['order_by']
-            
-            # Handle parameterized queries (basic support)
-            if params and conditions:
-                # This is a simplified parameter substitution
-                # In a real implementation, you'd want more robust parameter handling
-                logger.warning("⚠️ Parameterized queries not fully supported in CSV mode")
-            
-            return self._execute_structured_query(table_name, conditions, columns, order_by)
-            
-        except Exception as e:
-            logger.error(f"❌ SQL query execution failed: {e}")
             return []
     
     def _execute_structured_query(self, table_name: str, conditions: Optional[Dict[str, Any]] = None, 
