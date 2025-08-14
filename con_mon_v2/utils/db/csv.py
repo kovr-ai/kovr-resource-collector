@@ -440,6 +440,34 @@ class CSVDatabase(_BaseSQLDatabase):
         except Exception as e:
             logger.error(f"❌ Query execution failed: {e}")
             return []
+
+    def execute_select(self, query: str, params: Optional[tuple] = None) -> List[Dict[str, Any]]:
+        """Execute a simple SELECT ... FROM <table> [WHERE ...] by parsing minimal pieces.
+
+        For CSV backend, we expect basic patterns used by data loaders. This translates
+        the SQL to a structured call to `_execute_structured_query`.
+        """
+        try:
+            query = (query or '').strip().rstrip(';')
+            # Very simple parse: SELECT <cols> FROM <table> [WHERE ...] [ORDER BY id]
+            import re as _re
+            m = _re.match(r"SELECT\s+(.*?)\s+FROM\s+(\w+)(?:\s+WHERE\s+(.*?))?(?:\s+ORDER\s+BY\s+(.*))?$",
+                          query, _re.IGNORECASE)
+            if not m:
+                return []
+            cols_str, table, where_clause, order_by = m.groups()
+            columns = None if cols_str.strip() == '*' else [c.strip() for c in cols_str.split(',')]
+            conditions: Dict[str, Any] = {}
+            if where_clause:
+                # Support simple equality-only conditions joined by AND
+                for part in where_clause.split(' AND '):
+                    if '=' in part:
+                        k, v = part.split('=', 1)
+                        conditions[k.strip()] = v.strip().strip("'\"")
+            return self._execute_structured_query(table, conditions or None, columns, order_by)
+        except Exception as e:
+            logger.error(f"❌ SELECT execution failed: {e}")
+            return []
     
     def _execute_structured_query(self, table_name: str, conditions: Optional[Dict[str, Any]] = None, 
                                  columns: Optional[List[str]] = None, order_by: Optional[str] = None) -> List[Dict[str, Any]]:

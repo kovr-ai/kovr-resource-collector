@@ -464,6 +464,14 @@ class PostgreSQLDatabase(SQLDatabase):
                 conn.commit()
                 return affected
 
+    def execute_select(self, query: str, params: Optional[tuple] = None) -> List[Dict[str, Any]]:
+        """Execute SELECT and return list of dict rows (no commit)."""
+        with self.get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, params)
+                columns = [desc[0] for desc in cursor.description] if cursor.description else []
+                return [dict(zip(columns, row)) for row in cursor.fetchall()]
+
 
 # Create singleton instance
 db = PostgreSQLDatabase()
