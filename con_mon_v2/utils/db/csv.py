@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 from con_mon_v2.utils.db.base import SQLDatabase as _BaseSQLDatabase  # for interface parity only
 
 
-class CSVDatabase:
+class CSVDatabase(_BaseSQLDatabase):
     """
     Singleton class for CSV file database operations.
     
@@ -95,21 +95,14 @@ class CSVDatabase:
         @property
         def delete_params(self) -> list:
             return []
-    
-    _instance: Optional['CSVDatabase'] = None
-    _csv_directory: Optional[Path] = None
-    _initialized: bool = False
-    
-    def __new__(cls) -> 'CSVDatabase':
-        if cls._instance is None:
-            cls._instance = super(CSVDatabase, cls).__new__(cls)
-        return cls._instance
-    
-    def __init__(self):
-        if not self._initialized:
-            self._initialized = True
-            self._setup_csv_directory()
-    
+
+    # CONFIG PROPERTIES
+    @property
+    def _db_config(self) -> Dict[str, Any]:
+        # Implement this
+        return {
+        }
+
     def _setup_csv_directory(self):
         """Initialize the CSV directory path and ensure it exists."""
         try:

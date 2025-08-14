@@ -7,7 +7,6 @@ and methods for executing SQL queries.
 import logging
 from typing import Optional, List, Dict, Any
 from contextlib import contextmanager
-from con_mon_v2.utils.config import settings
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -64,19 +63,10 @@ class SQLDatabase:
     # CONFIG PROPERTIES
     @property
     def _db_config(self) -> Dict[str, Any]:
-        return {
-            'minconn': 1,
-            'maxconn': 10,
-            'host': settings.DB_HOST,
-            'port': settings.DB_PORT,
-            'database': settings.DB_NAME,
-            'user': settings.DB_USER,
-            'password': settings.DB_PASSWORD,
-        }
+        raise NotImplementedError()
 
     @property
     def _db_class(self) -> Any:
-        # return psycopg2.pool.SimpleConnectionPool
         raise NotImplementedError()
 
     # CONNECTION OPERATIONS

@@ -13,6 +13,7 @@ import psycopg2
 import psycopg2.pool
 import logging
 from con_mon_v2.utils.db.base import SQLDatabase
+from con_mon_v2.utils.config import settings
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -209,6 +210,20 @@ class PostgreSQLDatabase(SQLDatabase):
             _, where_params = self._build_where_clause()
             return where_params
 
+    # CONFIG PROPERTIES
+    @property
+    def _db_config(self) -> Dict[str, Any]:
+        return {
+            'minconn': 1,
+            'maxconn': 10,
+            'host': settings.DB_HOST,
+            'port': settings.DB_PORT,
+            'database': settings.DB_NAME,
+            'user': settings.DB_USER,
+            'password': settings.DB_PASSWORD,
+        }
+
+    # CONFIG PROPERTIES
     @property
     def _db_class(self) -> Any:
         return psycopg2.pool.SimpleConnectionPool
