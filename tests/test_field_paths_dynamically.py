@@ -24,7 +24,7 @@ def generate_field_paths_for_provider(provider: str) -> Dict[str, List[str]]:
         Dictionary mapping resource class names to lists of field paths
     """
     rc_service = ResourceCollectionService(provider)
-    rc = rc_service.get_resource_collection()
+    info, rc = rc_service.get_resource_collection()
 
     if not rc.resources:
         print(f"⚠️ No resources found for provider {provider}")
@@ -97,7 +97,7 @@ def test_field_paths_dynamically():
             
         # Set up resource collection
         rc_service = ResourceCollectionService(provider)
-        rc = rc_service.get_resource_collection()
+        info, rc = rc_service.get_resource_collection()
         check = setup_test_check()
         
         # Test each resource type
@@ -211,7 +211,7 @@ def test_resource_field_paths_method():
         
         try:
             rc_service = ResourceCollectionService(provider)
-            rc = rc_service.get_resource_collection()
+            info, rc = rc_service.get_resource_collection()
             
             for resource in rc.resources:
                 resource_name = resource.__class__.__name__

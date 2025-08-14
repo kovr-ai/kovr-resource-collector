@@ -189,7 +189,7 @@ class TestResourceSchemaGeneration:
         assert rc_service is not None
         
         # Get resource collection to trigger model generation
-        rc = rc_service.get_resource_collection()
+        info, rc = rc_service.get_resource_collection()
         
         # Validate resource collection structure
         assert isinstance(rc, ResourceCollection)
@@ -202,7 +202,7 @@ class TestResourceSchemaGeneration:
     def test_nested_field_structure_creation(self):
         """Test complex nested structures work correctly."""
         rc_service = ResourceCollectionService('github')
-        rc = rc_service.get_resource_collection()
+        info, rc = rc_service.get_resource_collection()
         
         if rc.resources:
             resource = rc.resources[0]
@@ -222,7 +222,7 @@ class TestResourceSchemaGeneration:
     def test_array_field_handling(self):
         """Test array fields generate correct types."""
         rc_service = ResourceCollectionService('github')
-        rc = rc_service.get_resource_collection()
+        info, rc = rc_service.get_resource_collection()
         
         if rc.resources:
             resource = rc.resources[0]
@@ -248,7 +248,7 @@ class TestConnectorResourceFlow:
     def test_connector_creates_valid_resource_collection(self):
         """Test connector output matches ResourceCollection schema."""
         rc_service = ResourceCollectionService('github')
-        rc = rc_service.get_resource_collection()
+        info, rc = rc_service.get_resource_collection()
         
         # Validate ResourceCollection structure
         assert isinstance(rc, ResourceCollection)
@@ -269,7 +269,7 @@ class TestConnectorResourceFlow:
     def test_connector_resource_instances_match_schema(self):
         """Test individual resources match expected schema."""
         rc_service = ResourceCollectionService('github')
-        rc = rc_service.get_resource_collection()
+        info, rc = rc_service.get_resource_collection()
         
         if rc.resources:
             resource = rc.resources[0]
@@ -295,7 +295,7 @@ class TestEndToEndCheckExecution:
     def test_field_path_extraction_from_real_data(self):
         """Test field path extraction from actual resource data."""
         rc_service = ResourceCollectionService('github')
-        rc = rc_service.get_resource_collection()
+        info, rc = rc_service.get_resource_collection()
         
         if rc.resources:
             resource = rc.resources[0]
@@ -317,7 +317,7 @@ class TestEndToEndCheckExecution:
     def test_check_logic_execution_with_real_data(self):
         """Test check logic execution against real resource data."""
         rc_service = ResourceCollectionService('github')
-        rc = rc_service.get_resource_collection()
+        info, rc = rc_service.get_resource_collection()
         
         if rc.resources:
             resource = rc.resources[0]
@@ -412,7 +412,7 @@ if fetched_value and isinstance(fetched_value, str):
         
         # Get resource collection
         rc_service = ResourceCollectionService('github')
-        rc = rc_service.get_resource_collection()
+        info, rc = rc_service.get_resource_collection()
         
         if rc.resources:
             resource = rc.resources[0]
@@ -510,7 +510,7 @@ class TestSchemaConsistency:
         
         # Get actual resource from connector
         rc_service = ResourceCollectionService('github')
-        rc = rc_service.get_resource_collection()
+        info, rc = rc_service.get_resource_collection()
         
         if rc.resources:
             resource = rc.resources[0]
@@ -532,7 +532,7 @@ class TestSchemaConsistency:
         ]
         
         rc_service = ResourceCollectionService('github')
-        rc = rc_service.get_resource_collection()
+        info, rc = rc_service.get_resource_collection()
         
         if rc.resources:
             resource = rc.resources[0]

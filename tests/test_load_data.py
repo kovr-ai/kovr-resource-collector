@@ -15,7 +15,7 @@ def test_load_data():
         try:
             # Create service and load resource collection
             rc_service = ResourceCollectionService(connector_type)
-            rc = rc_service.get_resource_collection()
+            info, rc = rc_service.get_resource_collection()
             
             # Validate that we got resources
             assert rc is not None, f"{connector_type} resource collection should not be None"

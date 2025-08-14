@@ -1041,7 +1041,7 @@ def list_of_field_paths(resource_name) -> List[str]:
 
 
 def test_github_resource_collection():
-    rc = setup_github_resource_service()
+    info, rc = setup_github_resource_service()
     check = setup_test_check()
     for resource in rc.resources:
         resource_name = resource.__class__.__name__
@@ -1050,8 +1050,9 @@ def test_github_resource_collection():
             check_results = check.evaluate(rc.resources)
             assert check.is_invalid(check_results) is False, f'Check Evaluation failed for {resource_name}.{field_path}'
 
+
 def test_aws_resource_collection():
-    rc = setup_aws_resource_service()
+    info, rc = setup_aws_resource_service()
     check = setup_test_check()
     for resource in rc.resources:
         resource_name = resource.__class__.__name__
@@ -1064,6 +1065,7 @@ def test_aws_resource_collection():
             check.metadata.field_path = field_path
             check_results = check.evaluate(rc.resources)
             assert check.is_invalid(check_results) is False, f'Check Evaluation failed for {resource_name}.{field_path}'
+
 
 def test_all_field_paths():
     test_github_resource_collection()
