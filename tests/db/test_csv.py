@@ -193,8 +193,7 @@ class TestCSVDatabase:
         db.create_table("test_users", columns, test_data)
         
         # Test query all rows
-        q = CSVDatabase.SQLParser("test_users").select_query
-        all_results = db.execute_query(q)
+        all_results = db.execute('select', table_name='test_users')
         
         # Verify results format - should be list of dictionaries
         assert isinstance(all_results, list), "Results should be a list"
@@ -260,8 +259,7 @@ class TestCSVDatabase:
         db.create_table("employees", columns, test_data)
         
         # Test query with conditions
-        q1 = CSVDatabase.SQLParser("employees", where={"department": "IT"}).select_query
-        it_employees = db.execute_query(q1)
+        it_employees = db.execute('select', table_name='employees', where={"department": "IT"})
         assert len(it_employees) == 2, "Should return 2 IT employees"
         
         # Verify returned data maintains nested structure
@@ -273,13 +271,11 @@ class TestCSVDatabase:
             assert "skills" in emp["employee"], "Nested skills array should exist"
         
         # Test multiple conditions
-        q2 = CSVDatabase.SQLParser("employees", where={"department": "IT", "status": "active"}).select_query
-        active_it = db.execute_query(q2)
+        active_it = db.execute('select', table_name='employees', where={"department": "IT", "status": "active"})
         assert len(active_it) == 2, "Should return 2 active IT employees"
         
         # Test with specific columns
-        q3 = CSVDatabase.SQLParser("employees", select=["employee"]).select_query
-        names_only = db.execute_query(q3)
+        names_only = db.execute('select', table_name='employees', select=["employee"]) 
         assert len(names_only) == 3, "Should return all 3 rows"
         for row in names_only:
             assert list(row.keys()) == ["employee"], "Should only return employee column"
@@ -329,8 +325,7 @@ class TestCSVDatabase:
         assert rows_inserted == 1, "Should insert 1 row"
         
         # Verify inserted data maintains structure
-        q = CSVDatabase.SQLParser("test_table").select_query
-        results = db.execute_query(q)
+        results = db.execute('select', table_name='test_table')
         assert len(results) == 1, "Should have 1 row"
         
         inserted_row = results[0]
@@ -399,8 +394,7 @@ class TestCSVDatabase:
         assert affected_rows == 1, "Should update 1 row"
         
         # Verify updated data maintains nested structure
-        q = CSVDatabase.SQLParser("configs", where={"id": 1}).select_query
-        results = db.execute_query(q)
+        results = db.execute('select', table_name='configs', where={"id": 1})
         updated_row = results[0]
         
         assert isinstance(updated_row["settings"], dict), "Settings should be nested dict"
@@ -456,8 +450,7 @@ class TestCSVDatabase:
         assert affected_rows == 1, "Should delete 1 inactive user"
         
         # Verify remaining data maintains nested structure
-        q = CSVDatabase.SQLParser("users").select_query
-        remaining = db.execute_query(q)
+        remaining = db.execute('select', table_name='users')
         assert len(remaining) == 2, "Should have 2 users remaining"
         
         for user in remaining:
@@ -575,8 +568,7 @@ class TestCSVDatabase:
         assert len(backup_df) == 1, "Backup should contain 1 row"
         
         # Verify current data has updated nested structure
-        q = CSVDatabase.SQLParser("test_backup", where={"id": 1}).select_query
-        current_data = db.execute_query(q)
+        current_data = db.execute('select', table_name='test_backup', where={"id": 1})
         current_row = current_data[0]
         
         assert isinstance(current_row["config"], dict), "Config should be nested dict"
@@ -592,7 +584,7 @@ class TestCSVDatabase:
         db = self._create_test_db()
         
         # Test operations on non-existent table
-        results = db.execute_query("nonexistent")
+        results = db.execute('select', table_name='nonexistent')
         assert results == [], "Query on non-existent table should return empty list"
         
         affected = db.execute_update("nonexistent", data={"field": {"nested": "value"}})

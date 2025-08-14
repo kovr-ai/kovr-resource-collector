@@ -28,7 +28,7 @@ class ControlCheckMappingLoader:
     def load_all(self) -> List[Dict[str, Any]]:
         """Load all control-check mappings."""
         try:
-            results = self.db.execute_query('control_checks_mapping')
+            results = self.db.execute('select', table_name='control_checks_mapping')
             # Convert control_id to int and filter out invalid ones
             valid_mappings = []
             for mapping in results:

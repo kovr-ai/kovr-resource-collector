@@ -272,7 +272,7 @@ def verify_check_in_csv(check_id: str, control_id: int, db) -> bool:
     """
     try:
         # Verify check in checks.csv
-        checks_results = db.execute_query('checks', conditions={'id': check_id})
+        checks_results = db.execute('select', table_name='checks', where={'id': check_id})
         if not checks_results:
             print(f"      ❌ Check {check_id} not found in checks.csv")
             return False
@@ -290,8 +290,8 @@ def verify_check_in_csv(check_id: str, control_id: int, db) -> bool:
             print(f"         • Tags: {metadata_tags}")
         
         # Verify mapping in control_checks_mapping.csv
-        mapping_results = db.execute_query('control_checks_mapping', 
-                                         conditions={'check_id': check_id, 'control_id': control_id})
+        mapping_results = db.execute('select', table_name='control_checks_mapping',
+                                     where={'check_id': check_id, 'control_id': control_id})
         if not mapping_results:
             print(f"      ❌ Mapping not found in control_checks_mapping.csv for check_id={check_id}, control_id={control_id}")
             return False

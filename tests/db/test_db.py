@@ -157,8 +157,7 @@ class TestUnifiedDatabaseAbstraction:
         
         # Query data
         from con_mon_v2.utils.db.csv import CSVDatabase as _CSV
-        q = _CSV.SQLParser("test_users").select_query
-        results = db.execute_query(q)
+        results = db.execute('select', table_name='test_users')
         
         # Verify interface returns list of dictionaries
         assert isinstance(results, list), "Results should be a list"
@@ -324,8 +323,7 @@ class TestUnifiedDatabaseAbstraction:
         
         # Query back and verify nested structure is preserved
         from con_mon_v2.utils.db.csv import CSVDatabase as _CSV
-        q = _CSV.SQLParser("test_inserts").select_query
-        results = db.execute_query(q)
+        results = db.execute('select', table_name='test_inserts')
         assert len(results) == 1, "Should return 1 row"
         
         row = results[0]
@@ -483,8 +481,7 @@ class TestUnifiedDatabaseAbstraction:
         
         # Query back data
         from con_mon_v2.utils.db.csv import CSVDatabase as _CSV
-        q = _CSV.SQLParser("consistency_test").select_query
-        csv_results = csv_db.execute_query(q)
+        csv_results = csv_db.execute('select', table_name='consistency_test')
         assert len(csv_results) == 1, "CSV should return 1 row"
         csv_row = csv_results[0]
         

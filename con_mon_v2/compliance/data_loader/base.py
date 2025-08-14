@@ -51,11 +51,8 @@ class BaseLoader(ABC):
 
         print(f"🗄️  Loading {model_class.__name__} from database table '{table_name}'...")
 
-        # Build SELECT query
-        query = f"SELECT {', '.join(select_fields)} FROM {table_name} ORDER BY id"
-
-        # Execute query and get raw rows
-        raw_rows = self.db.execute_query(query)
+        # Execute via backend-agnostic dispatcher
+        raw_rows = self.db.execute('select', table_name=table_name, select=select_fields)
 
         # Convert rows to model instances
         instances = []
@@ -103,12 +100,8 @@ class BaseLoader(ABC):
 
         print(f"🗄️  Loading {len(ids)} {model_class.__name__} records by IDs...")
 
-        # Build SELECT query with WHERE clause
-        ids_str = ', '.join(str(id) for id in ids)
-        query = f"SELECT {', '.join(select_fields)} FROM {table_name} WHERE id IN ({ids_str}) ORDER BY id"
-
-        # Execute query and get raw rows
-        raw_rows = self.db.execute_query(query)
+        # Execute via backend-agnostic dispatcher with IN filter
+        raw_rows = self.db.execute('select', table_name=table_name, select=select_fields, where={'id': ids})
 
         # Convert rows to model instances
         instances = []

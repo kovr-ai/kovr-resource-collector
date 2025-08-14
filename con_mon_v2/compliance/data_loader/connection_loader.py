@@ -1,10 +1,11 @@
 """
 Connection data loader for con_mon_v2.
 
-Provides methods to load Connection objects from the database with various
+Provides methods to load Connection objects from the self.db with various
 filtering and querying options.
 """
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict
+from con_mon_v2.resources.models import InfoData
 from con_mon_v2.compliance.data_loader.base import BaseLoader
 from con_mon_v2.compliance.models.connection import Connection, ConnectionType
 
@@ -13,7 +14,7 @@ class ConnectionLoader(BaseLoader):
     """
     Data loader for Connection objects.
     
-    Provides methods to load connections from the database with filtering
+    Provides methods to load connections from the self.db with filtering
     options for customer, connection type, and active status.
     """
     
@@ -41,7 +42,7 @@ class ConnectionLoader(BaseLoader):
             
         query += " ORDER BY id"
         
-        rows = self.db.execute_query(query, tuple(params))
+        rows = self.db.execute_select(query, tuple(params))
         return [Connection(**row) for row in rows]
     
     def load_by_type(self, connection_type: ConnectionType, include_deleted: bool = False) -> List[Connection]:
@@ -64,7 +65,7 @@ class ConnectionLoader(BaseLoader):
             
         query += " ORDER BY id"
         
-        rows = self.db.execute_query(query, tuple(params))
+        rows = self.db.execute_select(query, tuple(params))
         return [Connection(**row) for row in rows]
     
     def load_by_customer_and_type(self, customer_id: str, connection_type: ConnectionType, 
@@ -89,7 +90,7 @@ class ConnectionLoader(BaseLoader):
             
         query += " ORDER BY id"
         
-        rows = self.db.execute_query(query, tuple(params))
+        rows = self.db.execute_select(query, tuple(params))
         return [Connection(**row) for row in rows]
     
     def load_active_connections(self, customer_id: Optional[str] = None) -> List[Connection]:
@@ -111,7 +112,7 @@ class ConnectionLoader(BaseLoader):
             
         query += " ORDER BY id"
         
-        rows = self.db.execute_query(query, tuple(params))
+        rows = self.db.execute_select(query, tuple(params))
         return [Connection(**row) for row in rows]
     
     def load_with_credentials(self, customer_id: Optional[str] = None) -> List[Connection]:
@@ -138,7 +139,7 @@ class ConnectionLoader(BaseLoader):
             
         query += " ORDER BY id"
         
-        rows = self.db.execute_query(query, tuple(params))
+        rows = self.db.execute_select(query, tuple(params))
         return [Connection(**row) for row in rows]
     
     def load_recently_synced(self, hours: int = 24, customer_id: Optional[str] = None) -> List[Connection]:
@@ -166,7 +167,7 @@ class ConnectionLoader(BaseLoader):
             
         query += " ORDER BY synced_at DESC"
         
-        rows = self.db.execute_query(query, tuple(params))
+        rows = self.db.execute_select(query, tuple(params))
         return [Connection(**row) for row in rows]
     
     def get_connection_types_summary(self, customer_id: Optional[str] = None) -> Dict[str, int]:
@@ -192,7 +193,7 @@ class ConnectionLoader(BaseLoader):
             
         query += " GROUP BY type ORDER BY count DESC"
         
-        rows = self.db.execute_query(query, tuple(params))
+        rows = self.db.execute_select(query, tuple(params))
         
         # Convert type IDs to names
         summary = {}
@@ -232,17 +233,21 @@ class ConnectionLoader(BaseLoader):
             
         query += " ORDER BY alias, id"
         
-        rows = self.db.execute_query(query, tuple(params))
+        rows = self.db.execute_select(query, tuple(params))
         return [Connection(**row) for row in rows]
 
-    def update_connection_data(self, info_data: dict):
+    def update_connection_data(
+        self,
+        connection_id: str,
+        info_data: InfoData
+    ):
         """
         Update connection metadata with info_data from provider execution.
 
         This function:
-        1. Loads existing connection metadata from database
+        1. Loads existing connection metadata from self.db
         2. Updates the 'info' key in metadata with the provided info_data
-        3. Saves the updated metadata back to the database
+        3. Saves the updated metadata back to the self.db
 
         Args:
             connection_id: ID of the connection to update
@@ -254,38 +259,20 @@ class ConnectionLoader(BaseLoader):
         - API metadata (collection_time, api_version, etc.)
         """
         # Convert info_data to dict if it's an InfoData object
-        if hasattr(info_data, 'to_dict'):
-            info_dict = info_data.to_dict()
-            print(f"   • Info data type: {type(info_data).__name__} (converted to dict)")
-        elif hasattr(info_data, 'model_dump'):
-            info_dict = info_data.model_dump()
-            print(f"   • Info data type: {type(info_data).__name__} (Pydantic model)")
-        elif isinstance(info_data, dict):
-            info_dict = info_data
-            print(f"   • Info data type: dict")
-        else:
-            info_dict = dict(info_data) if info_data else {}
-            print(f"   • Info data type: {type(info_data).__name__} (converted to dict)")
-
+        info_dict = info_data.model_dump()
         print(f"   • Info data keys: {list(info_dict.keys()) if info_dict else 'No info data'}")
 
         # Step 1: Get current connection metadata
         query_sql = """
         SELECT metadata 
         FROM connections 
-        WHERE id = %s AND is_deleted = FALSE;
+        WHERE id = %s;
         """
 
-        results = database.execute_query(query_sql, (connection_id,))
-
-        if not results:
-            print(f"❌ Connection ID {connection_id} not found or has been deleted")
-            return
+        results = self.db.execute_select(query_sql, (connection_id,))
 
         # Step 2: Update metadata with new info
         current_metadata = results[0]['metadata'] or {}
-        print(
-            f"   • Current metadata keys: {list(current_metadata.keys()) if current_metadata else 'No existing metadata'}")
 
         # Preserve existing metadata and update 'info' key
         updated_metadata = current_metadata.copy()
@@ -298,26 +285,7 @@ class ConnectionLoader(BaseLoader):
         WHERE id = %s AND is_deleted = FALSE;
         """
 
-        affected_rows = database.execute_update(
+        self.db.execute_update(
             update_sql,
-            (safe_json_dumps(updated_metadata), connection_id)
+            (updated_metadata, connection_id)
         )
-
-        if affected_rows > 0:
-            print(f"✅ **Connection metadata updated successfully:**")
-            print(f"   • Rows affected: {affected_rows}")
-            print(f"   • Info data stored under 'info' key")
-            print(f"   • Existing metadata preserved")
-            if info_dict:
-                info_summary = []
-                for key, value in info_dict.items():
-                    if isinstance(value, list):
-                        info_summary.append(f"{key}: {len(value)} items")
-                    elif isinstance(value, dict):
-                        info_summary.append(f"{key}: {len(value)} keys")
-                    else:
-                        info_summary.append(f"{key}: {value}")
-                print(f"   • Info content: {', '.join(info_summary[:5])}{'...' if len(info_summary) > 5 else ''}")
-        else:
-            print(f"⚠️ No rows were updated for connection ID {connection_id}")
-

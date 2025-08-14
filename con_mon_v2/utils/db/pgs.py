@@ -102,11 +102,7 @@ class PostgreSQLDatabase(SQLDatabase):
     class SQLParser(SQLDatabase.SQLParser):
         """Build PostgreSQL SQL statements from structured inputs.
 
-        Notes:
-            - Properties return SQL strings with positional placeholders (%s)
-              appropriate for psycopg2.
-            - Companion parameter lists are exposed via `*_params` properties
-              for use in a subsequent step where execution will pass params.
+        Properties return (sql, params) tuples suitable for execute_* methods.
         """
 
         def _build_where_clause(self) -> tuple[str, list]:
@@ -140,7 +136,18 @@ class PostgreSQLDatabase(SQLDatabase):
             return where_sql, params
 
         @property
-        def insert_query(self) -> str:
+        def select_query(self) -> tuple[str, tuple | None]:
+            columns = '*'
+            if self.select:
+                columns = ", ".join(self.select)
+            base = f"SELECT {columns} FROM {self.table_name}"
+            where_sql, where_params = self._build_where_clause()
+            sql = base + where_sql
+            params = tuple(where_params) if where_params else None
+            return sql, params
+
+        @property
+        def insert_query(self) -> tuple[str, tuple | None]:
             """Build an INSERT statement with placeholders.
 
             Uses `update` as the source of column->value mappings.
@@ -148,26 +155,21 @@ class PostgreSQLDatabase(SQLDatabase):
             """
             # Empty or missing values -> DEFAULT VALUES
             if not self.update:
-                return f"INSERT INTO {self.table_name} DEFAULT VALUES RETURNING *"
+                return (f"INSERT INTO {self.table_name} DEFAULT VALUES RETURNING *", None)
 
             # Ensure deterministic column order
             column_names = list(self.update.keys())
             placeholders = ", ".join(["%s"] * len(column_names))
             columns_sql = ", ".join(column_names)
-            return (
+            sql = (
                 f"INSERT INTO {self.table_name} ({columns_sql}) "
                 f"VALUES ({placeholders}) RETURNING *"
             )
+            params = tuple(self.update[k] for k in self.update.keys())
+            return sql, params
 
         @property
-        def insert_params(self) -> list:
-            """Parameters corresponding to `insert_query` placeholders."""
-            if not self.update:
-                return []
-            return [self.update[k] for k in self.update.keys()]
-
-        @property
-        def update_query(self) -> str:
+        def update_query(self) -> tuple[str, tuple | None]:
             """Build an UPDATE statement with placeholders.
 
             Requires `update` to be non-empty. `where` is optional but
@@ -178,22 +180,15 @@ class PostgreSQLDatabase(SQLDatabase):
                 raise ValueError("Update operation requires a non-empty `update` mapping")
 
             set_clause = ", ".join([f"{col} = %s" for col in self.update.keys()])
-            where_sql, _ = self._build_where_clause()
-            return f"UPDATE {self.table_name} SET {set_clause}{where_sql} RETURNING *"
+            where_sql, where_params = self._build_where_clause()
+            sql = f"UPDATE {self.table_name} SET {set_clause}{where_sql} RETURNING *"
+            params = tuple(self.update[k] for k in self.update.keys())
+            if where_params:
+                params = params + tuple(where_params)
+            return sql, params
 
         @property
-        def update_params(self) -> list:
-            """Parameters corresponding to `update_query` placeholders.
-
-            Order: SET values first, then WHERE params (if any).
-            """
-            if not self.update:
-                return []
-            _, where_params = self._build_where_clause()
-            return [self.update[k] for k in self.update.keys()] + where_params
-
-        @property
-        def delete_query(self) -> str:
+        def delete_query(self) -> tuple[str, tuple | None]:
             """Build a DELETE statement with placeholders.
 
             For safety, requires a non-empty `where` clause; otherwise raises.
@@ -201,14 +196,10 @@ class PostgreSQLDatabase(SQLDatabase):
             """
             if not self.where:
                 raise ValueError("Refusing to build DELETE without a WHERE clause")
-            where_sql, _ = self._build_where_clause()
-            return f"DELETE FROM {self.table_name}{where_sql} RETURNING *"
-
-        @property
-        def delete_params(self) -> list:
-            """Parameters corresponding to `delete_query` placeholders."""
-            _, where_params = self._build_where_clause()
-            return where_params
+            where_sql, where_params = self._build_where_clause()
+            sql = f"DELETE FROM {self.table_name}{where_sql} RETURNING *"
+            params = tuple(where_params) if where_params else None
+            return sql, params
 
     # CONFIG PROPERTIES
     @property
@@ -305,7 +296,7 @@ class PostgreSQLDatabase(SQLDatabase):
         logger.info(f"   • Query: {query}")
 
         # Execute query
-        data = self.execute_query(query)
+        data = self.execute_select(query)
 
         # Use CSVDatabase to write the data
         from .csv import get_db as get_csv_db
@@ -354,7 +345,7 @@ class PostgreSQLDatabase(SQLDatabase):
 
         # Read CSV data
         query = f"SELECT * FROM {table_name}"
-        csv_data = csv_db.execute_query(query)
+        csv_data = csv_db.execute_select(query)
 
         if not csv_data:
             logger.warning(f"⚠️ CSV file is empty or not found: {csv_path}")
@@ -369,7 +360,7 @@ class PostgreSQLDatabase(SQLDatabase):
             WHERE table_name = %s 
             ORDER BY ordinal_position
         """
-        schema = self.execute_query(schema_query, (table_name,))
+        schema = self.execute_select(schema_query, (table_name,))
 
         if not schema:
             raise Exception(f"Table '{table_name}' not found or no access")

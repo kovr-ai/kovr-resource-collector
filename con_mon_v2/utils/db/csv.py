@@ -56,46 +56,43 @@ class CSVDatabase(_BaseSQLDatabase):
             return dict(self.where) if self.where else {}
 
         @property
-        def select_query(self) -> Dict[str, Any]:
-            return {
-                'op': 'select',
-                'table_name': self.table_name,
-                'select': list(self.select) if self.select else None,
-                'where': self._build_where(),
-            }
+        def select_query(self) -> tuple[str, Dict[str, Any] | None, List[str] | None, str | None]:
+            return (
+                self.table_name,
+                self._build_where() or None,
+                list(self.select) if self.select else None,
+                None,
+            )
 
         @property
-        def insert_query(self) -> Dict[str, Any]:
-            return {
-                'op': 'insert',
-                'table_name': self.table_name,
-                'values': dict(self.update or {}),
-            }
+        def insert_query(self) -> tuple[str, Dict[str, Any] | List[Dict[str, Any]]]:
+            return (
+                self.table_name,
+                dict(self.update or {}),
+            )
 
         @property
         def insert_params(self) -> list:
             return []
 
         @property
-        def update_query(self) -> Dict[str, Any]:
+        def update_query(self) -> tuple[str, Dict[str, Any], Dict[str, Any] | None]:
             if not self.update:
                 raise ValueError("Update operation requires a non-empty `update` mapping")
-            return {
-                'op': 'update',
-                'table_name': self.table_name,
-                'values': dict(self.update),
-                'where': self._build_where(),
-            }
+            return (
+                self.table_name,
+                dict(self.update),
+                self._build_where() or None,
+            )
 
         @property
-        def delete_query(self) -> Dict[str, Any]:
+        def delete_query(self) -> tuple[str, Dict[str, Any] | None]:
             if not self.where:
                 raise ValueError("Refusing to build DELETE without a WHERE clause")
-            return {
-                'op': 'delete',
-                'table_name': self.table_name,
-                'where': self._build_where(),
-            }
+            return (
+                self.table_name,
+                self._build_where() or None,
+            )
 
         @property
         def delete_params(self) -> list:
@@ -441,33 +438,15 @@ class CSVDatabase(_BaseSQLDatabase):
             logger.error(f"❌ Query execution failed: {e}")
             return []
 
-    def execute_select(self, query: str, params: Optional[tuple] = None) -> List[Dict[str, Any]]:
-        """Execute a simple SELECT ... FROM <table> [WHERE ...] by parsing minimal pieces.
-
-        For CSV backend, we expect basic patterns used by data loaders. This translates
-        the SQL to a structured call to `_execute_structured_query`.
-        """
-        try:
-            query = (query or '').strip().rstrip(';')
-            # Very simple parse: SELECT <cols> FROM <table> [WHERE ...] [ORDER BY id]
-            import re as _re
-            m = _re.match(r"SELECT\s+(.*?)\s+FROM\s+(\w+)(?:\s+WHERE\s+(.*?))?(?:\s+ORDER\s+BY\s+(.*))?$",
-                          query, _re.IGNORECASE)
-            if not m:
-                return []
-            cols_str, table, where_clause, order_by = m.groups()
-            columns = None if cols_str.strip() == '*' else [c.strip() for c in cols_str.split(',')]
-            conditions: Dict[str, Any] = {}
-            if where_clause:
-                # Support simple equality-only conditions joined by AND
-                for part in where_clause.split(' AND '):
-                    if '=' in part:
-                        k, v = part.split('=', 1)
-                        conditions[k.strip()] = v.strip().strip("'\"")
-            return self._execute_structured_query(table, conditions or None, columns, order_by)
-        except Exception as e:
-            logger.error(f"❌ SELECT execution failed: {e}")
-            return []
+    def execute_select(
+        self,
+        table_name: str,
+        conditions: Optional[Dict[str, Any]] = None,
+        columns: Optional[List[str]] = None,
+        order_by: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """Execute a structured SELECT for CSV backend."""
+        return self._execute_structured_query(table_name, conditions, columns, order_by)
     
     def _execute_structured_query(self, table_name: str, conditions: Optional[Dict[str, Any]] = None, 
                                  columns: Optional[List[str]] = None, order_by: Optional[str] = None) -> List[Dict[str, Any]]:
