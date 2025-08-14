@@ -193,7 +193,8 @@ class TestCSVDatabase:
         db.create_table("test_users", columns, test_data)
         
         # Test query all rows
-        all_results = db.execute_query("test_users")
+        q = CSVDatabase.SQLParser("test_users").select_query
+        all_results = db.execute_query(q)
         
         # Verify results format - should be list of dictionaries
         assert isinstance(all_results, list), "Results should be a list"
@@ -259,7 +260,8 @@ class TestCSVDatabase:
         db.create_table("employees", columns, test_data)
         
         # Test query with conditions
-        it_employees = db.execute_query("employees", conditions={"department": "IT"})
+        q1 = CSVDatabase.SQLParser("employees", where={"department": "IT"}).select_query
+        it_employees = db.execute_query(q1)
         assert len(it_employees) == 2, "Should return 2 IT employees"
         
         # Verify returned data maintains nested structure
@@ -271,11 +273,13 @@ class TestCSVDatabase:
             assert "skills" in emp["employee"], "Nested skills array should exist"
         
         # Test multiple conditions
-        active_it = db.execute_query("employees", conditions={"department": "IT", "status": "active"})
+        q2 = CSVDatabase.SQLParser("employees", where={"department": "IT", "status": "active"}).select_query
+        active_it = db.execute_query(q2)
         assert len(active_it) == 2, "Should return 2 active IT employees"
         
         # Test with specific columns
-        names_only = db.execute_query("employees", columns=["employee"])
+        q3 = CSVDatabase.SQLParser("employees", select=["employee"]).select_query
+        names_only = db.execute_query(q3)
         assert len(names_only) == 3, "Should return all 3 rows"
         for row in names_only:
             assert list(row.keys()) == ["employee"], "Should only return employee column"
@@ -325,7 +329,8 @@ class TestCSVDatabase:
         assert rows_inserted == 1, "Should insert 1 row"
         
         # Verify inserted data maintains structure
-        results = db.execute_query("test_table")
+        q = CSVDatabase.SQLParser("test_table").select_query
+        results = db.execute_query(q)
         assert len(results) == 1, "Should have 1 row"
         
         inserted_row = results[0]
@@ -394,7 +399,8 @@ class TestCSVDatabase:
         assert affected_rows == 1, "Should update 1 row"
         
         # Verify updated data maintains nested structure
-        results = db.execute_query("configs", conditions={"id": 1})
+        q = CSVDatabase.SQLParser("configs", where={"id": 1}).select_query
+        results = db.execute_query(q)
         updated_row = results[0]
         
         assert isinstance(updated_row["settings"], dict), "Settings should be nested dict"
@@ -450,7 +456,8 @@ class TestCSVDatabase:
         assert affected_rows == 1, "Should delete 1 inactive user"
         
         # Verify remaining data maintains nested structure
-        remaining = db.execute_query("users")
+        q = CSVDatabase.SQLParser("users").select_query
+        remaining = db.execute_query(q)
         assert len(remaining) == 2, "Should have 2 users remaining"
         
         for user in remaining:
@@ -568,7 +575,8 @@ class TestCSVDatabase:
         assert len(backup_df) == 1, "Backup should contain 1 row"
         
         # Verify current data has updated nested structure
-        current_data = db.execute_query("test_backup", conditions={"id": 1})
+        q = CSVDatabase.SQLParser("test_backup", where={"id": 1}).select_query
+        current_data = db.execute_query(q)
         current_row = current_data[0]
         
         assert isinstance(current_row["config"], dict), "Config should be nested dict"

@@ -112,7 +112,7 @@ class TestPostgreSQLDatabase:
         
         # Verify initialization
         assert db._initialized == True, "Database should be marked as initialized"
-        assert db._connection_pool is mock_pool_instance, "Connection pool should be set"
+        assert db._connection is mock_pool_instance, "Connection pool should be set"
         
         # Verify connection pool was created with correct parameters
         mock_pool.assert_called_once_with(
@@ -148,7 +148,7 @@ class TestPostgreSQLDatabase:
         
         # Verify graceful failure
         assert db._initialized == True, "Database should still be marked as initialized"
-        assert db._connection_pool is None, "Connection pool should be None on failure"
+        assert db._connection is None, "Connection pool should be None on failure"
         
         print("✅ PostgreSQL initialization failure test passed")
     

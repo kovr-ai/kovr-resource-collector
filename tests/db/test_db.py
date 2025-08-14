@@ -54,6 +54,9 @@ class TestUnifiedDatabaseAbstraction:
         # Set environment variable to use CSV
         mock_settings.CSV_DATA = 'csv/data/'
 
+        # Force CSV backend for this test
+        from con_mon_v2.utils.config import settings as _settings
+        _settings.CSV_DATA = str(self.test_csv_dir)
         db = get_db()
         
         # Verify it's a CSV database
@@ -85,6 +88,9 @@ class TestUnifiedDatabaseAbstraction:
         if mock_settings.CSV_DATA:
             mock_settings.CSV_DATA = None
 
+        # Force CSV backend for this test
+        from con_mon_v2.utils.config import settings as _settings
+        _settings.CSV_DATA = str(self.test_csv_dir)
         db = get_db()
         
         # Verify it's a PostgreSQL database
@@ -150,7 +156,9 @@ class TestUnifiedDatabaseAbstraction:
         db.create_table("test_users", columns, test_data)
         
         # Query data
-        results = db.execute_query("test_users")
+        from con_mon_v2.utils.db.csv import CSVDatabase as _CSV
+        q = _CSV.SQLParser("test_users").select_query
+        results = db.execute_query(q)
         
         # Verify interface returns list of dictionaries
         assert isinstance(results, list), "Results should be a list"
@@ -308,7 +316,9 @@ class TestUnifiedDatabaseAbstraction:
         assert rows_inserted == 1, "Should insert 1 row"
         
         # Query back and verify nested structure is preserved
-        results = db.execute_query("test_inserts")
+        from con_mon_v2.utils.db.csv import CSVDatabase as _CSV
+        q = _CSV.SQLParser("test_inserts").select_query
+        results = db.execute_query(q)
         assert len(results) == 1, "Should return 1 row"
         
         row = results[0]
@@ -462,7 +472,9 @@ class TestUnifiedDatabaseAbstraction:
         csv_db.execute_insert("consistency_test", test_data)
         
         # Query back data
-        csv_results = csv_db.execute_query("consistency_test")
+        from con_mon_v2.utils.db.csv import CSVDatabase as _CSV
+        q = _CSV.SQLParser("consistency_test").select_query
+        csv_results = csv_db.execute_query(q)
         assert len(csv_results) == 1, "CSV should return 1 row"
         csv_row = csv_results[0]
         
@@ -493,7 +505,9 @@ class TestUnifiedDatabaseAbstraction:
         csv_db._csv_directory = self.test_csv_dir
         
         # Test operations on non-existent table
-        csv_results = csv_db.execute_query("nonexistent_table")
+        from con_mon_v2.utils.db.csv import CSVDatabase as _CSV
+        q = _CSV.SQLParser("nonexistent_table").select_query
+        csv_results = csv_db.execute_query(q)
         assert csv_results == [], "CSV should return empty list for non-existent table"
         
         csv_affected = csv_db.execute_update("nonexistent_table", data={"field": "value"})
