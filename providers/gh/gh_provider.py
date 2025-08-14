@@ -145,9 +145,9 @@ class GitHubProvider(Provider):
             info_data = GithubInfoData(
                 repositories=[
                     {
-                        'name': repo.name,
-                        'url': repo.repository_data.basic_info.html_url if hasattr(repo, 'repository_data') and hasattr(repo.repository_data, 'basic_info') else f"https://github.com/{repo.name}",
-                        'default_branch_name': repo.repository_data.metadata.default_branch if hasattr(repo, 'repository_data') and hasattr(repo.repository_data, 'metadata') else 'main'
+                        'name': repo.id,
+                        'url': repo.repository_data.basic_info.html_url,
+                        'default_branch_name': repo.repository_data.metadata.default_branch,
                     }
                     for repo in github_resources
                 ]

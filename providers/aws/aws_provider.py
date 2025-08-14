@@ -169,7 +169,7 @@ class AWSProvider(Provider):
                 accounts=[
                     {
                         'account_name': f"AWS Account {i + 1}",
-                        'account_id': resource_collection.collection_metadata.get('account_id', f'123456789{i:03d}')
+                        'account_id': f"AWS Account ID: {i + 1}"
                     }
                     for i in range(1)  # Single account for now
                 ]
@@ -210,9 +210,10 @@ class AWSProvider(Provider):
         info_data = AwsInfoData(
             accounts=[
                 {
-                    'account_name': 'Production Account',  # This could be retrieved from AWS API
-                    'account_id': resource_collection.collection_metadata.get('account_id', 'unknown')
+                    'account_name': f"AWS Account {i + 1}",
+                    'account_id': f"AWS Account ID: {i + 1}"
                 }
+                for i in range(1)  # Single account for now
             ]
         )
 
