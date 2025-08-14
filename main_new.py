@@ -1,12 +1,8 @@
 import os
-import json
-from datetime import datetime
-from typing import List, Dict, Any, Tuple
-from con_mon_v2.compliance.data_loader import ChecksLoader, ConnectionLoader, ConMonResultLoader, ConMonResultHistoryLoader
-from con_mon_v2.compliance.models import Check, CheckResult, Connection, ConMonResult, ConMonResultHistory
+from con_mon_v2.compliance.data_loader import ChecksLoader, ConnectionLoader
+from con_mon_v2.compliance.models import Connection
 from con_mon_v2.utils.services import ResourceCollectionService, ConMonResultService
 from con_mon_v2.utils import helpers
-# TODO: Port SQL utilities from con_mon to con_mon_v2
 
 
 def main(
@@ -32,6 +28,10 @@ def main(
     
     print(f"✅ Retrieved {len(resource_collection.resources)} {connector_type} resources")
 
+    connection_loader = ConnectionLoader()
+    connection_loader.update_connection_data(
+        connection_id, info_data
+    )
     # Execute checks and collect results
     executed_check_results = []
     filtered_checks = ChecksLoader.filter_by_resource_model(
@@ -48,18 +48,6 @@ def main(
     # Generate summary using con_mon_v2 helpers with Check objects
     helpers.print_summary(executed_check_results)
 
-    # TODO: Port SQL utilities to handle result storage
-    # For now, we can comment out the SQL operations until they're ported
-    # check_dicts = sql.get_check_dicts(
-    #     executed_check_results,
-    #     resource_collection=resource_collection
-    # )
-    # sql.insert_check_results(
-    #     check_dicts,
-    #     customer_id=customer_id,
-    #     connection_id=connection_id,
-    # )
-    
     # Process and store check results using ConMonResultService
     total_result_count = 0
     total_history_count = 0
@@ -119,31 +107,15 @@ def params_from_connection_id(
     credentials = connection.credentials  # Already a dict from JSONB
     metadata = connection.metadata or {}  # Default to empty dict if None
 
-    # Map connection type to connector type
-    # Assuming type 1 = github, can be extended for other types
-    type_mapping = {
-        1: 'github',
-        2: 'aws',
-        # Add more mappings as needed
-        # 3: 'azure',
-    }
-
-    connection_type = connection.type
-    if connection_type not in type_mapping:
-        raise ValueError(f"Unsupported connection type: {connection_type}")
-
-    connector_type = type_mapping[connection_type]
-
     print("✅ Connection data loaded:")
     print(f"   • Customer ID: {customer_id}")
-    print(f"   • Connector Type: {connector_type}")
     print(f"   • Status: {connection.sync_status}")
     print(f"   • Credentials: {list(credentials.keys())}")
     print(f"   • Metadata: {list(metadata.keys()) if metadata else 'No metadata'}")
 
     return (
         connection_id,
-        connector_type,
+        connection.connector_type_str,
         credentials,
         customer_id,
         check_ids,
@@ -152,13 +124,7 @@ def params_from_connection_id(
 
 
 if __name__ == "__main__":
-    CONNECTOR_TYPE_SAMPLE_CONNECTION_IDS = {
-        'aws': 35,
-        'github': 26,
-    }
-    connection_id = CONNECTOR_TYPE_SAMPLE_CONNECTION_IDS['aws']
-    connection_id = CONNECTOR_TYPE_SAMPLE_CONNECTION_IDS['github']
-    # connection_id = os.environ.get("CONNECTION_ID")
+    connection_id = os.environ.get("CONNECTION_ID")
     check_ids_str = os.environ.get("CHECK_IDS")
     check_ids = check_ids_str.split(",") if check_ids_str else list()
     main(

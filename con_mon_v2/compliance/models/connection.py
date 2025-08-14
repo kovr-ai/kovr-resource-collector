@@ -23,7 +23,7 @@ class ConnectionType(Enum):
     TERRAFORM = 7
     MICROSOFT_365 = 8
     SLACK = 9
-    GOOGLE_WORKSPACE = 10
+    GOOGLE = 10
     SPLUNK = 11
     CISCO = 12
     DATABASE = 13
@@ -125,7 +125,12 @@ class Connection(TableModel):
     def connection_type(self) -> ConnectionType:
         """Get the ConnectionType enum from the type field."""
         return ConnectionType(self.type)
-    
+
+    @property
+    def connector_type_str(self) -> str:
+        """Get the ConnectionType enum from the type field."""
+        return self.connection_type.name.lower()
+
     @property
     def type_name(self) -> str:
         """Get human-readable connection type name."""
@@ -139,7 +144,7 @@ class Connection(TableModel):
             ConnectionType.TERRAFORM: "Terraform",
             ConnectionType.MICROSOFT_365: "Microsoft 365",
             ConnectionType.SLACK: "Slack",
-            ConnectionType.GOOGLE_WORKSPACE: "Google Workspace",
+            ConnectionType.GOOGLE: "Google",
             ConnectionType.SPLUNK: "Splunk",
             ConnectionType.CISCO: "Cisco",
             ConnectionType.DATABASE: "Database",
