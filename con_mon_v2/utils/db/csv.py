@@ -56,6 +56,15 @@ class CSVDatabase(_BaseSQLDatabase):
             return dict(self.where) if self.where else {}
 
         @property
+        def select_query(self) -> Dict[str, Any]:
+            return {
+                'op': 'select',
+                'table_name': self.table_name,
+                'select': list(self.select) if self.select else None,
+                'where': self._build_where(),
+            }
+
+        @property
         def insert_query(self) -> Dict[str, Any]:
             return {
                 'op': 'insert',
@@ -72,11 +81,11 @@ class CSVDatabase(_BaseSQLDatabase):
             if not self.update:
                 raise ValueError("Update operation requires a non-empty `update` mapping")
             return {
-                'op': 'update',
-                'table_name': self.table_name,
-                'values': dict(self.update),
-                'where': self._build_where(),
-            }
+                    'op': 'update',
+                    'table_name': self.table_name,
+                    'values': dict(self.update),
+                    'where': self._build_where(),
+                }
 
         @property
         def update_params(self) -> list:
@@ -99,10 +108,77 @@ class CSVDatabase(_BaseSQLDatabase):
     # CONFIG PROPERTIES
     @property
     def _db_config(self) -> Dict[str, Any]:
-        # Implement this
+        # Mirror base contract; CSV uses directory path instead of network params
         return {
+            'csv_data': settings.CSV_DATA,
+            'minconn': 1,
+            'maxconn': 1,
         }
 
+    @property
+    def _db_class(self) -> Any:  # type: ignore[name-defined]
+        # Provide a minimal pool that satisfies getconn/putconn/closeall used by base
+        class SimpleCSVConnection:
+            def cursor(self):
+                class _NoopCursor:
+                    description = []
+                    def __enter__(self):
+                        return self
+                    def __exit__(self, exc_type, exc, tb):
+                        return False
+                    def execute(self, *args, **kwargs):
+                        return None
+                    def fetchone(self):
+                        return None
+                    def fetchall(self):
+                        return []
+                return _NoopCursor()
+
+            def commit(self):
+                return None
+
+            def rollback(self):
+                return None
+
+        class SimpleCSVConnectionPool:
+            def __init__(self, csv_data: Optional[str] = None, minconn: int = 1, maxconn: int = 1, **kwargs):
+                self.csv_data = csv_data
+                self.minconn = minconn
+                self.maxconn = maxconn
+                self._pool = [SimpleCSVConnection()]
+                self._closed = False
+
+            def getconn(self):
+                return self._pool[0]
+
+            def putconn(self, conn):
+                return None
+
+            def closeall(self):
+                self._closed = True
+
+        return SimpleCSVConnectionPool
+
+    def close_connection(self):
+        """Close the CSV pseudo-connection pool."""
+        if getattr(self, "_connection", None):
+            self._connection.closeall()
+            logger.info("✅ CSV connection pool closed")
+
+    def get_status(self) -> Dict[str, int]:
+        """Return pseudo-pool statistics."""
+        pool = getattr(self, "_connection", None)
+        if not pool:
+            return {'total': 0, 'available': 0, 'used': 0}
+        try:
+            return {
+                'total': 1,
+                'available': 1,
+                'used': 0,
+            }
+        except Exception:
+            return {'total': 0, 'available': 0, 'used': 0}
+    
     def _setup_csv_directory(self):
         """Initialize the CSV directory path and ensure it exists."""
         try:
@@ -364,7 +440,7 @@ class CSVDatabase(_BaseSQLDatabase):
                 return rows_to_delete
 
             raise ValueError(f"Unsupported operation: {op}")
-
+            
         except Exception as e:
             logger.error(f"❌ Query execution failed: {e}")
             return []
