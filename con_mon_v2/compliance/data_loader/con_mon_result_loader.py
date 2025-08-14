@@ -142,7 +142,7 @@ class ConMonResultLoader(BaseLoader):
                             exclusions=existing_record.exclusions,
                             resource_json=existing_record.resource_json,
                             created_at=existing_record.created_at,
-                            archived_at=datetime.now()
+                            updated_at=datetime.now()
                         )
                         history_records.append(history_record)
                     
