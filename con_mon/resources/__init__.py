@@ -69,18 +69,29 @@ def load_resources_from_yaml(yaml_file_path: str = None):
         for model_name, model_class in dynamic_models.items():
             globals()[model_name] = model_class
         
+        # Also add to __all__ for proper importing
+        global __all__
+        if '__all__' not in globals():
+            __all__ = ['Resource', 'ResourceCollection', 'InfoData']
+        
+        # Add all dynamic model names to __all__
+        __all__.extend(dynamic_models.keys())
+        
         print(f"✅ Loaded {total_resource_definitions} resource definitions and created {len(dynamic_models)} Pydantic models from {yaml_file_path}")
         if provider_info:
             print(f"   Provider breakdown: {', '.join(provider_info)}")
         
-        # List the created models by provider
+        # List the created models by provider (including InfoData models)
         github_models = [name for name in dynamic_models.keys() if 'Github' in name or name in ['RepositoryData', 'ActionsData', 'CollaborationData', 'SecurityData', 'OrganizationData', 'AdvancedFeaturesData']]
         aws_models = [name for name in dynamic_models.keys() if name.startswith('AWS')]
+        info_models = [name for name in dynamic_models.keys() if name.endswith('InfoData')]
         
         if github_models:
             print(f"   GitHub models: {', '.join(sorted(github_models))}")
         if aws_models:
             print(f"   AWS models: {', '.join(sorted(aws_models))}")
+        if info_models:
+            print(f"   InfoData models: {', '.join(sorted(info_models))}")
         
     except FileNotFoundError:
         print(f"❌ Resources YAML file not found: {yaml_file_path}")

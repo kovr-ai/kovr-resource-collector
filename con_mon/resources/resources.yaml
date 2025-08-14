@@ -2,6 +2,12 @@
 # Defines resource structures for different providers
 
 github:
+  info_data:
+    repositories[]:
+      name: "string"
+      url: "string"
+      default_branch_name: "string"
+
   resources_field_schemas:
     # Nested data type schemas
     RepositoryData:
@@ -254,6 +260,11 @@ github:
         scope: "array"
 
 aws:
+  info_data:
+    accounts[]:
+      account_name: "string"
+      account_id: "string"
+
   resources:
     # AWS EC2 Resource Schema
     EC2Resource:
@@ -555,3 +566,139 @@ aws:
         api_version: "string"
         services: "array"
         regions_scanned: "array"
+
+google:
+  info_data:
+    account_id: "string"
+    users[]:
+      id: "string"
+      name: "string"
+      email: "string"
+    groups[]:
+      id: "string"
+      name: "string"
+      email: "string"
+
+  resources_field_schemas:
+    UserData:
+      name: "user_data"
+      description: "Google Workspace user information from Directory API"
+      fields:
+        basic_info:
+          kind: "string"
+          id: "string"
+          etag: "string"
+          primaryEmail: "string"
+          customerId: "string"
+          lastLoginTime: "string"
+          creationTime: "string"
+          agreedToTerms: "boolean"
+          suspended: "boolean"
+          archived: "boolean"
+          changePasswordAtNextLogin: "boolean"
+          ipWhitelisted: "boolean"
+          isMailboxSetup: "boolean"
+          includeInGlobalAddressList: "boolean"
+        name:
+          givenName: "string"
+          familyName: "string"
+          fullName: "string"
+        admin_info:
+          isAdmin: "boolean"
+          isDelegatedAdmin: "boolean"
+        security_info:
+          isEnrolledIn2Sv: "boolean"
+          isEnforcedIn2Sv: "boolean"
+        organizational_info:
+          orgUnitPath: "string"
+        contact_info:
+          emails:
+            type: "array"
+            structure:
+              address: "string"
+              type: "string"
+              primary: "boolean"
+              customType: "string"
+          phones:
+            type: "array"
+            structure:
+              value: "string"
+              type: "string"
+          recoveryEmail: "string"
+          recoveryPhone: "string"
+        profile_info:
+          languages:
+            type: "array"
+            structure:
+              languageCode: "string"
+              preference: "string"
+          thumbnailPhotoUrl: "string"
+          thumbnailPhotoEtag: "string"
+        aliases:
+          nonEditableAliases: "array"
+
+    GroupData:
+      name: "group_data"
+      description: "Google Workspace group information from Directory API"
+      fields:
+        basic_info:
+          kind: "string"
+          id: "string"
+          etag: "string"
+          email: "string"
+          name: "string"
+          description: "string"
+          adminCreated: "boolean"
+        membership_info:
+          directMembersCount: "string"
+        aliases:
+          nonEditableAliases: "array"
+
+  resources:
+    # Google Workspace User Resource
+    UserResource:
+      name: "google_user"
+      description: "Google Workspace user resource with Directory API data"
+      provider: "google"
+      service: "directory"
+
+      fields:
+        user_id: "string"
+        user_data: "UserData"
+
+    # Google Workspace Group Resource  
+    GroupResource:
+      name: "google_group"
+      description: "Google Workspace group resource with Directory API data"
+      provider: "google"
+      service: "directory"
+
+      fields:
+        group_id: "string"
+        group_data: "GroupData"
+
+  ResourceCollection:
+    name: "google_collection"
+    description: "Collection of Google Workspace resources from Directory API"
+    provider: "google"
+    collection_type: "GoogleResource"
+
+    fields:
+      resources:
+        - "google.resources.UserResource"
+        - "google.resources.GroupResource"
+      source_connector: "string"
+      total_count: "integer"
+      fetched_at: "string"
+      collection_metadata:
+        total_users: "integer"
+        total_groups: "integer"
+        admin_users_count: "integer"
+        suspended_users_count: "integer"
+        two_factor_enrolled_users: "integer"
+        two_factor_enforced_users: "integer"
+        collection_errors: "array"
+      google_api_metadata:
+        collection_time: "string"
+        api_version: "string"
+        customer_id: "string"
