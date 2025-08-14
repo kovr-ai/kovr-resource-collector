@@ -149,14 +149,7 @@ class BaseLoader(ABC):
         # Use the database's insert functionality
         try:
             # If we're using CSV database, use execute_insert
-            if hasattr(self.db, 'execute_insert'):
-                inserted_count = self.db.execute_insert(table_name, records_data)
-            else:
-                # If we're using PostgreSQL database, we'd need to implement SQL INSERT
-                # For now, fallback to CSV approach
-                from con_mon_v2.utils.db.csv import get_db as get_csv_db
-                csv_db = get_csv_db()
-                inserted_count = csv_db.execute_insert(table_name, records_data)
+            inserted_count = self.db.execute('insert', table_name=table_name, update=records_data)
             
             print(f"   ✅ Successfully inserted {inserted_count} records")
             return inserted_count

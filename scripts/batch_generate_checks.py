@@ -431,7 +431,7 @@ def save_check_to_database(check: Check, control_id: int) -> bool:
         }
         
         # Insert check
-        db.execute_insert('checks', check_data)
+        db.execute('insert', table_name='checks', update=check_data)
         
         # Create control-check mapping
         mapping_data = {
@@ -442,7 +442,7 @@ def save_check_to_database(check: Check, control_id: int) -> bool:
             'is_deleted': False
         }
         
-        db.execute_insert('control_checks_mapping', mapping_data)
+        db.execute('insert', table_name='control_checks_mapping', update=mapping_data)
         return True
         
     except Exception as e:

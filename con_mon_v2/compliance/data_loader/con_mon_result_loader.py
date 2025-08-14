@@ -39,7 +39,7 @@ class ConMonResultLoader(BaseLoader):
         ORDER BY created_at DESC
         """
         
-        raw_rows = self.db.execute_select(query, (customer_id, connection_id))
+        raw_rows = self.db.execute('select', table_name='con_mon_results', where={'customer_id': customer_id, 'connection_id': connection_id})
         
         instances = []
         for raw_row in raw_rows:
@@ -70,7 +70,7 @@ class ConMonResultLoader(BaseLoader):
         ORDER BY created_at DESC
         """
         
-        raw_rows = self.db.execute_select(query, (check_id,))
+        raw_rows = self.db.execute('select', table_name='con_mon_results', where={'check_id': check_id})
         
         instances = []
         for raw_row in raw_rows:
@@ -203,7 +203,7 @@ class ConMonResultHistoryLoader(BaseLoader):
         if limit:
             query += f" LIMIT {limit}"
         
-        raw_rows = self.db.execute_select(query, (customer_id, connection_id))
+        raw_rows = self.db.execute('select', table_name='con_mon_results_history', where={'customer_id': customer_id, 'connection_id': connection_id})
         
         instances = []
         for raw_row in raw_rows:
@@ -239,7 +239,7 @@ class ConMonResultHistoryLoader(BaseLoader):
         if limit:
             query += f" LIMIT {limit}"
         
-        raw_rows = self.db.execute_select(query, (check_id,))
+        raw_rows = self.db.execute('select', table_name='con_mon_results_history', where={'check_id': check_id})
         
         instances = []
         for raw_row in raw_rows:

@@ -33,16 +33,10 @@ class ConnectionLoader(BaseLoader):
         Returns:
             List of Connection objects for the customer
         """
-        query = f"SELECT * FROM {self.get_table_name} WHERE customer_id = %s"
-        params = [customer_id]
-        
+        where = {'customer_id': customer_id}
         if not include_deleted:
-            query += " AND is_deleted = %s"
-            params.append(False)
-            
-        query += " ORDER BY id"
-        
-        rows = self.db.execute_select(query, tuple(params))
+            where['is_deleted'] = False
+        rows = self.db.execute('select', table_name=self.get_table_name, where=where)
         return [Connection(**row) for row in rows]
     
     def load_by_type(self, connection_type: ConnectionType, include_deleted: bool = False) -> List[Connection]:
@@ -56,16 +50,10 @@ class ConnectionLoader(BaseLoader):
         Returns:
             List of Connection objects of the specified type
         """
-        query = f"SELECT * FROM {self.get_table_name} WHERE type = %s"
-        params = [connection_type.value]
-        
+        where = {'type': connection_type.value}
         if not include_deleted:
-            query += " AND is_deleted = %s"
-            params.append(False)
-            
-        query += " ORDER BY id"
-        
-        rows = self.db.execute_select(query, tuple(params))
+            where['is_deleted'] = False
+        rows = self.db.execute('select', table_name=self.get_table_name, where=where)
         return [Connection(**row) for row in rows]
     
     def load_by_customer_and_type(self, customer_id: str, connection_type: ConnectionType, 
@@ -81,16 +69,10 @@ class ConnectionLoader(BaseLoader):
         Returns:
             List of Connection objects matching the criteria
         """
-        query = f"SELECT * FROM {self.get_table_name} WHERE customer_id = %s AND type = %s"
-        params = [customer_id, connection_type.value]
-        
+        where = {'customer_id': customer_id, 'type': connection_type.value}
         if not include_deleted:
-            query += " AND is_deleted = %s"
-            params.append(False)
-            
-        query += " ORDER BY id"
-        
-        rows = self.db.execute_select(query, tuple(params))
+            where['is_deleted'] = False
+        rows = self.db.execute('select', table_name=self.get_table_name, where=where)
         return [Connection(**row) for row in rows]
     
     def load_active_connections(self, customer_id: Optional[str] = None) -> List[Connection]:
@@ -103,16 +85,10 @@ class ConnectionLoader(BaseLoader):
         Returns:
             List of active Connection objects
         """
-        query = f"SELECT * FROM {self.get_table_name} WHERE is_deleted = %s"
-        params = [False]
-        
+        where = {'is_deleted': False}
         if customer_id:
-            query += " AND customer_id = %s"
-            params.append(customer_id)
-            
-        query += " ORDER BY id"
-        
-        rows = self.db.execute_select(query, tuple(params))
+            where['customer_id'] = customer_id
+        rows = self.db.execute('select', table_name=self.get_table_name, where=where)
         return [Connection(**row) for row in rows]
     
     def load_with_credentials(self, customer_id: Optional[str] = None) -> List[Connection]:
@@ -125,21 +101,12 @@ class ConnectionLoader(BaseLoader):
         Returns:
             List of Connection objects with credentials
         """
-        query = f"""
-            SELECT * FROM {self.get_table_name} 
-            WHERE is_deleted = %s 
-            AND credentials IS NOT NULL 
-            AND credentials != '{{}}'
-        """
-        params = [False]
-        
+        where = {'is_deleted': False}
         if customer_id:
-            query += " AND customer_id = %s"
-            params.append(customer_id)
-            
-        query += " ORDER BY id"
-        
-        rows = self.db.execute_select(query, tuple(params))
+            where['customer_id'] = customer_id
+        rows = self.db.execute('select', table_name=self.get_table_name, where=where)
+        # Filter for credentials presence in memory for backend-agnostic behavior
+        rows = [r for r in rows if r.get('credentials') not in (None, {}, '')]
         return [Connection(**row) for row in rows]
     
     def load_recently_synced(self, hours: int = 24, customer_id: Optional[str] = None) -> List[Connection]:
@@ -153,21 +120,21 @@ class ConnectionLoader(BaseLoader):
         Returns:
             List of Connection objects synced within the specified time
         """
-        query = f"""
-            SELECT * FROM {self.get_table_name} 
-            WHERE is_deleted = %s 
-            AND synced_at IS NOT NULL 
-            AND synced_at > NOW() - INTERVAL '%s hours'
-        """
-        params = [False, hours]
-        
+        where = {'is_deleted': False}
         if customer_id:
-            query += " AND customer_id = %s"
-            params.append(customer_id)
-            
-        query += " ORDER BY synced_at DESC"
-        
-        rows = self.db.execute_select(query, tuple(params))
+            where['customer_id'] = customer_id
+        rows = self.db.execute('select', table_name=self.get_table_name, where=where)
+        # Filter by synced_at in memory
+        from datetime import datetime, timedelta
+        cutoff = datetime.now() - timedelta(hours=hours)
+        def parse_dt(val):
+            if not val:
+                return None
+            try:
+                return datetime.fromisoformat(str(val).replace('Z', '+00:00'))
+            except Exception:
+                return None
+        rows = [r for r in rows if parse_dt(r.get('synced_at')) and parse_dt(r.get('synced_at')) > cutoff]
         return [Connection(**row) for row in rows]
     
     def get_connection_types_summary(self, customer_id: Optional[str] = None) -> Dict[str, int]:
@@ -180,20 +147,10 @@ class ConnectionLoader(BaseLoader):
         Returns:
             Dictionary mapping connection type names to counts
         """
-        query = f"""
-            SELECT type, COUNT(*) as count 
-            FROM {self.get_table_name} 
-            WHERE is_deleted = %s
-        """
-        params = [False]
-        
+        where = {'is_deleted': False}
         if customer_id:
-            query += " AND customer_id = %s"
-            params.append(customer_id)
-            
-        query += " GROUP BY type ORDER BY count DESC"
-        
-        rows = self.db.execute_select(query, tuple(params))
+            where['customer_id'] = customer_id
+        rows = self.db.execute('select', table_name=self.get_table_name, where=where)
         
         # Convert type IDs to names
         summary = {}
@@ -219,21 +176,13 @@ class ConnectionLoader(BaseLoader):
         Returns:
             List of Connection objects matching the search term
         """
-        query = f"""
-            SELECT * FROM {self.get_table_name} 
-            WHERE is_deleted = %s 
-            AND (alias ILIKE %s OR customer_id ILIKE %s)
-        """
-        search_pattern = f"%{search_term}%"
-        params = [False, search_pattern, search_pattern]
-        
+        where = {'is_deleted': False}
         if customer_id:
-            query += " AND customer_id = %s"
-            params.append(customer_id)
-            
-        query += " ORDER BY alias, id"
-        
-        rows = self.db.execute_select(query, tuple(params))
+            where['customer_id'] = customer_id
+        rows = self.db.execute('select', table_name=self.get_table_name, where=where)
+        # Apply search filtering in memory (alias or customer_id contains term)
+        term_lower = search_term.lower()
+        rows = [r for r in rows if term_lower in str(r.get('alias', '')).lower() or term_lower in str(r.get('customer_id', '')).lower()]
         return [Connection(**row) for row in rows]
 
     def update_connection_data(
@@ -269,7 +218,7 @@ class ConnectionLoader(BaseLoader):
         WHERE id = %s;
         """
 
-        results = self.db.execute_select(query_sql, (connection_id,))
+        results = self.db.execute('select', table_name='connections', select=['metadata'], where={'id': connection_id})
 
         # Step 2: Update metadata with new info
         current_metadata = results[0]['metadata'] or {}
@@ -279,13 +228,5 @@ class ConnectionLoader(BaseLoader):
         updated_metadata['info'] = info_dict
 
         # Step 3: Update the connection record
-        update_sql = """
-        UPDATE connections 
-        SET metadata = %s, updated_at = CURRENT_TIMESTAMP
-        WHERE id = %s AND is_deleted = FALSE;
-        """
-
-        self.db.execute_update(
-            update_sql,
-            (updated_metadata, connection_id)
-        )
+        from datetime import datetime as _dt
+        self.db.execute('update', table_name='connections', update={'metadata': updated_metadata, 'updated_at': _dt.now().isoformat()}, where={'id': connection_id, 'is_deleted': False})

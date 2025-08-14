@@ -325,7 +325,7 @@ def insert_check_and_mapping_to_csv(check: Check, control_id: int, db) -> bool:
         
         # Insert into checks.csv
         print(f"      📝 Inserting check into CSV: {check.id}")
-        db.execute_insert('checks', check_data)
+        db.execute('insert', table_name='checks', update=check_data)
         
         # Create control-check mapping
         current_time = datetime.now().isoformat()
@@ -339,7 +339,7 @@ def insert_check_and_mapping_to_csv(check: Check, control_id: int, db) -> bool:
         
         # Insert into control_checks_mapping.csv
         print(f"      🔗 Creating control mapping: control_id={control_id}, check_id={check.id}")
-        db.execute_insert('control_checks_mapping', mapping_data)
+        db.execute('insert', table_name='control_checks_mapping', update=mapping_data)
         
         # Verify the insertion was successful
         print(f"      🔍 Verifying insertion in CSV files...")

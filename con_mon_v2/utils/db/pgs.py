@@ -296,7 +296,7 @@ class PostgreSQLDatabase(SQLDatabase):
         logger.info(f"   • Query: {query}")
 
         # Execute query
-        data = self.execute_select(query)
+        data = self.execute('select', table_name=table_name)
 
         # Use CSVDatabase to write the data
         from .csv import get_db as get_csv_db
@@ -304,11 +304,11 @@ class PostgreSQLDatabase(SQLDatabase):
 
         if not data:
             logger.warning(f"⚠️ No data found in table '{table_name}'")
-            csv_db.execute_insert(table_name, [])
+            csv_db.execute('insert', table_name=table_name, update={})
             return str(csv_db._get_table_path(table_name))
 
         # Write to CSV
-        rows_inserted = csv_db.execute_insert(table_name, data)
+        rows_inserted = csv_db.execute('insert', table_name=table_name, update=data)
         
         csv_path = csv_db._get_table_path(table_name)
         logger.info(f"✅ Exported {rows_inserted} rows from '{table_name}' to {csv_path}")
@@ -345,7 +345,7 @@ class PostgreSQLDatabase(SQLDatabase):
 
         # Read CSV data
         query = f"SELECT * FROM {table_name}"
-        csv_data = csv_db.execute_select(query)
+        csv_data = csv_db.execute('select', table_name=table_name)
 
         if not csv_data:
             logger.warning(f"⚠️ CSV file is empty or not found: {csv_path}")
