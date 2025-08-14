@@ -187,46 +187,48 @@ class ConnectionLoader(BaseLoader):
 
     def update_connection_data(
         self,
-        connection_id: str,
+        connection_id: int,
         info_data: InfoData
-    ):
+    ) -> int:
         """
-        Update connection metadata with info_data from provider execution.
+        Update the 'info' key inside the connection's metadata in a database-agnostic way.
 
-        This function:
-        1. Loads existing connection metadata from self.db
-        2. Updates the 'info' key in metadata with the provided info_data
-        3. Saves the updated metadata back to the self.db
+        Uses only the generic db.execute interface so it works with both CSV and PostgreSQL backends.
 
         Args:
-            connection_id: ID of the connection to update
-            info_data: Dictionary or InfoData object containing provider execution metadata
+            connection_id: Connection ID to update
+            info_data: InfoData payload to set under metadata['info']
 
-        The info_data typically contains:
-        - Collection statistics (total_resources_collected, etc.)
-        - Provider-specific metadata (authenticated_user, rate_limits, etc.)
-        - API metadata (collection_time, api_version, etc.)
+        Returns:
+            Number of records updated (int)
         """
-        # Convert info_data to dict if it's an InfoData object
-        info_dict = info_data.model_dump()
-        print(f"   • Info data keys: {list(info_dict.keys()) if info_dict else 'No info data'}")
+        # Normalize info payload
+        info_dict = info_data.model_dump() if hasattr(info_data, 'model_dump') else dict(info_data or {})
 
-        # Step 1: Get current connection metadata
-        query_sql = """
-        SELECT metadata 
-        FROM connections 
-        WHERE id = %s;
-        """
+        # Load current metadata using the model's table name
+        rows = self.db.execute(
+            'select',
+            table_name=self.get_table_name,
+            select=['metadata'],
+            where={'id': connection_id, 'is_deleted': False},
+        )
 
-        results = self.db.execute('select', table_name='connections', select=['metadata'], where={'id': connection_id})
+        current_metadata = {}
+        if rows:
+            existing = rows[0].get('metadata')
+            if isinstance(existing, dict):
+                current_metadata = existing
 
-        # Step 2: Update metadata with new info
-        current_metadata = results[0]['metadata'] or {}
-
-        # Preserve existing metadata and update 'info' key
-        updated_metadata = current_metadata.copy()
+        updated_metadata = dict(current_metadata)
         updated_metadata['info'] = info_dict
 
-        # Step 3: Update the connection record
         from datetime import datetime as _dt
-        self.db.execute('update', table_name='connections', update={'metadata': updated_metadata, 'updated_at': _dt.now().isoformat()}, where={'id': connection_id, 'is_deleted': False})
+        affected = self.db.execute(
+            'update',
+            table_name=self.get_table_name,
+            update={'metadata': updated_metadata, 'updated_at': _dt.now().isoformat()},
+            where={'id': connection_id, 'is_deleted': False},
+        )
+
+        # Both backends return an int for update via db.execute
+        return int(affected or 0)

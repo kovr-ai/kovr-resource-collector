@@ -68,7 +68,7 @@ class CSVDatabase(_BaseSQLDatabase):
         def insert_query(self) -> tuple[str, Dict[str, Any] | List[Dict[str, Any]]]:
             return (
                 self.table_name,
-                self.update or {},
+                dict(self.update or {}),
             )
 
         @property
@@ -103,7 +103,7 @@ class CSVDatabase(_BaseSQLDatabase):
     def _db_config(self) -> Dict[str, Any]:
         # Mirror base contract; CSV uses directory path instead of network params
         return {
-            'csv_data': Path(settings.CSV_DATA),
+            'csv_data': settings.CSV_DATA,
             'minconn': 1,
             'maxconn': 1,
         }
@@ -135,7 +135,7 @@ class CSVDatabase(_BaseSQLDatabase):
 
         class SimpleCSVConnectionPool:
             def __init__(self, csv_data: Optional[str] = None, minconn: int = 1, maxconn: int = 1, **kwargs):
-                self.directory = csv_data
+                self.csv_data = csv_data
                 self.minconn = minconn
                 self.maxconn = maxconn
                 self._pool = [SimpleCSVConnection()]
@@ -158,6 +158,34 @@ class CSVDatabase(_BaseSQLDatabase):
             self._connection.closeall()
             logger.info("✅ CSV connection pool closed")
 
+    # CONNECTION OPERATIONS
+    def _setup_connection(self):
+        """Initialize the CSV pseudo-connection and directory.
+
+        Mirrors the base interface so callers can rely on the same lifecycle
+        hooks as the PostgreSQL implementation. Ensures the CSV data directory
+        is prepared up-front so subsequent operations (e.g., select/insert)
+        succeed without requiring an explicit initializer.
+        """
+        try:
+            # Create a simple, in-process "pool" compatible with the base API
+            self._connection = self._db_class(**self._db_config)
+
+            # Prepare the CSV directory eagerly (idempotent) using pool-provided path
+            csv_dir = Path(getattr(self._connection, 'csv_data', settings.CSV_DATA) or settings.CSV_DATA)
+            csv_dir.mkdir(parents=True, exist_ok=True)
+
+            logger.info(f"✅ CSV database ready at {csv_dir}")
+
+        except self.ConnectionError as e:  # type: ignore[attr-defined]
+            logger.warning(f"⚠️ Database connection creation failed: {e}")
+            logger.info("💡 CSV operations will be unavailable until directory is accessible")
+            self._connection = None
+        except Exception as e:
+            logger.warning(f"⚠️ Unexpected error creating connection: {e}")
+            logger.info("💡 CSV operations will be unavailable until directory is accessible")
+            self._connection = None
+
     def get_status(self) -> Dict[str, int]:
         """Return pseudo-pool statistics."""
         pool = getattr(self, "_connection", None)
@@ -172,9 +200,18 @@ class CSVDatabase(_BaseSQLDatabase):
         except Exception:
             return {'total': 0, 'available': 0, 'used': 0}
 
+    @property
+    def _csv_directory(self) -> Optional[Path]:
+        """Resolve CSV directory from the active connection pool."""
+        pool = getattr(self, "_connection", None)
+        csv_data = getattr(pool, 'csv_data', None) if pool else None
+        return Path(csv_data) if csv_data else None
+
     def _get_table_path(self, table_name: str) -> Path:
         """Get the file path for a given table name."""
-        return self._connection.directory / f"{table_name}.csv"
+        if not self._csv_directory:
+            raise Exception("CSV directory not initialized")
+        return self._csv_directory / f"{table_name}.csv"
     
     def _table_exists(self, table_name: str) -> bool:
         """Check if a table (CSV file) exists."""
@@ -214,7 +251,7 @@ class CSVDatabase(_BaseSQLDatabase):
         try:
             base_name = table_name.replace('.csv', '')
             backup_pattern = f"{base_name}.bak_*"
-            backup_files = list(self._connection.directory.glob(backup_pattern))
+            backup_files = list(self._csv_directory.glob(backup_pattern))
             
             if len(backup_files) > keep_count:
                 # Sort by modification time, keep newest
@@ -420,6 +457,16 @@ class CSVDatabase(_BaseSQLDatabase):
             logger.error(f"❌ Query execution failed: {e}")
             return []
 
+    def execute_select(
+        self,
+        table_name: str,
+        conditions: Optional[Dict[str, Any]] = None,
+        columns: Optional[List[str]] = None,
+        order_by: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """Execute a structured SELECT for CSV backend."""
+        return self._execute_structured_query(table_name, conditions, columns, order_by)
+    
     def _execute_structured_query(self, table_name: str, conditions: Optional[Dict[str, Any]] = None, 
                                  columns: Optional[List[str]] = None, order_by: Optional[str] = None) -> List[Dict[str, Any]]:
         """Execute a structured query (original CSV database interface)."""
@@ -480,6 +527,10 @@ class CSVDatabase(_BaseSQLDatabase):
             
             logger.info(f"✅ Query executed on {table_name}, returned {len(results)} rows")
             return results
+            
+        except Exception as e:
+            logger.error(f"❌ Structured query execution failed on {table_name}: {e}")
+            return []
         finally:
             # Clean up table context
             if hasattr(self, '_current_table'):
@@ -519,75 +570,65 @@ class CSVDatabase(_BaseSQLDatabase):
                     expanded.append(col)
         
         return expanded
-
-    def execute_select(
-            self,
-            table_name: str,
-            conditions: Optional[Dict[str, Any]] = None,
-            columns: Optional[List[str]] = None,
-            order_by: Optional[str] = None,
-    ) -> List[Dict[str, Any]]:
-        """Execute a structured SELECT for CSV backend."""
-        return self._execute_structured_query(table_name, conditions, columns, order_by)
-
+    
     def execute_insert(self, table_name: str, data: Union[Dict[str, Any], List[Dict[str, Any]]]) -> int:
         """
         Execute an INSERT-like operation on a CSV table.
-
+        
         Args:
             table_name: Name of the CSV file (table)
             data: Dictionary or list of dictionaries to insert
-
+            
         Returns:
             Number of rows inserted
         """
         try:
             table_path = self._get_table_path(table_name)
-
+            
             # Ensure data is a list
             if isinstance(data, dict):
                 data = [data]
-
+            
             if not data:
                 return 0
-
+            
             # Serialize nested data for CSV storage
             serialized_data = self._serialize_nested_data(data)
-
+            
             with self._backup_table(table_name):
                 if table_path.exists():
                     # Read existing data
                     existing_df = pd.read_csv(table_path)
-
+                    
                     # Create new dataframe from insert data
                     new_df = pd.DataFrame(serialized_data)
-
+                    
                     # Ensure columns match (add missing columns with NaN)
                     for col in existing_df.columns:
                         if col not in new_df.columns:
                             new_df[col] = None
-
+                    
                     for col in new_df.columns:
                         if col not in existing_df.columns:
                             existing_df[col] = None
-
+                    
                     # Append new data
                     result_df = pd.concat([existing_df, new_df], ignore_index=True)
                 else:
                     # Create new table
                     result_df = pd.DataFrame(serialized_data)
-
+                
                 # Write back to CSV
                 result_df.to_csv(table_path, index=False)
-
+                
                 rows_inserted = len(data)
                 logger.info(f"✅ INSERT executed on {table_name}, inserted {rows_inserted} rows")
                 return rows_inserted
-
+                
         except Exception as e:
             logger.error(f"❌ INSERT execution failed on {table_name}: {e}")
             raise
-
+    
     def execute_update(self, table_name: str, data: Dict[str, Any], 
                       conditions: Optional[Dict[str, Any]] = None) -> int:
         """
@@ -696,6 +737,192 @@ class CSVDatabase(_BaseSQLDatabase):
         except Exception as e:
             logger.error(f"❌ DELETE execution failed on {table_name}: {e}")
             raise
+    
+    def create_table(self, table_name: str, columns: List[str], data: Optional[List[Dict[str, Any]]] = None) -> bool:
+        """
+        Create a new CSV table with specified columns.
+        
+        Args:
+            table_name: Name of the CSV file (table)
+            columns: List of column names
+            data: Optional initial data
+            
+        Returns:
+            True if table was created successfully
+        """
+        try:
+            table_path = self._get_table_path(table_name)
+            
+            if table_path.exists():
+                logger.warning(f"⚠️ Table {table_name} already exists")
+                return False
+            
+            # Create empty dataframe with specified columns
+            df = pd.DataFrame(columns=columns)
+            
+            # Add initial data if provided
+            if data:
+                # Serialize nested data for CSV storage
+                serialized_data = self._serialize_nested_data(data)
+                df = pd.DataFrame(serialized_data, columns=columns)
+            
+            # Write to CSV
+            df.to_csv(table_path, index=False)
+            
+            logger.info(f"✅ Table {table_name} created successfully")
+            return True
+            
+        except Exception as e:
+            logger.error(f"❌ Table creation failed for {table_name}: {e}")
+            raise
+    
+    def drop_table(self, table_name: str) -> bool:
+        """
+        Drop (delete) a CSV table.
+        
+        Args:
+            table_name: Name of the CSV file (table)
+            
+        Returns:
+            True if table was dropped successfully
+        """
+        try:
+            table_path = self._get_table_path(table_name)
+            
+            if not table_path.exists():
+                logger.warning(f"⚠️ Table {table_name} does not exist")
+                return False
+            
+            # Create final backup before deletion
+            backup_path = table_path.with_suffix(f'.deleted_{datetime.now().strftime("%Y%m%d_%H%M%S")}')
+            shutil.copy2(table_path, backup_path)
+            
+            # Delete the table
+            table_path.unlink()
+            
+            logger.info(f"✅ Table {table_name} dropped successfully (backup: {backup_path.name})")
+            return True
+            
+        except Exception as e:
+            logger.error(f"❌ Table drop failed for {table_name}: {e}")
+            raise
+    
+    def list_tables(self) -> List[str]:
+        """
+        List all available tables (CSV files).
+        
+        Returns:
+            List of table names
+        """
+        try:
+            if not self._csv_directory:
+                return []
+            
+            csv_files = list(self._csv_directory.glob("*.csv"))
+            # Filter out backup files
+            tables = [f.stem for f in csv_files if not any(x in f.name for x in ['.bak', '.deleted'])]
+            
+            logger.info(f"✅ Found {len(tables)} tables")
+            return sorted(tables)
+            
+        except Exception as e:
+            logger.error(f"❌ Failed to list tables: {e}")
+            return []
+    
+    def get_table_info(self, table_name: str) -> Dict[str, Any]:
+        """
+        Get information about a table (column names, row count, etc.).
+        
+        Args:
+            table_name: Name of the CSV file (table)
+            
+        Returns:
+            Dictionary with table information
+        """
+        try:
+            table_path = self._get_table_path(table_name)
+            
+            if not table_path.exists():
+                return {'exists': False}
+            
+            # Read CSV file
+            df = pd.read_csv(table_path)
+            
+            info = {
+                'exists': True,
+                'path': str(table_path),
+                'row_count': len(df),
+                'column_count': len(df.columns),
+                'columns': list(df.columns),
+                'size_bytes': table_path.stat().st_size,
+                'modified_time': datetime.fromtimestamp(table_path.stat().st_mtime).isoformat()
+            }
+            
+            logger.info(f"✅ Table info retrieved for {table_name}")
+            return info
+            
+        except Exception as e:
+            logger.error(f"❌ Failed to get table info for {table_name}: {e}")
+            raise
+    
+    def test_connection(self) -> bool:
+        """
+        Test the CSV database connection (directory access).
+        
+        Returns:
+            True if connection is successful, False otherwise
+        """
+        try:
+            if not self._csv_directory:
+                return False
+            
+            # Test by creating and removing a temporary file
+            test_file = self._csv_directory / ".test_connection"
+            test_file.touch()
+            test_file.unlink()
+            
+            logger.info("✅ CSV database connection test successful")
+            return True
+            
+        except Exception as e:
+            logger.error(f"❌ CSV database connection test failed: {e}")
+            return False
+    
+    def get_directory_status(self) -> Dict[str, Any]:
+        """
+        Get CSV directory status and statistics.
+        
+        Returns:
+            Dictionary with directory statistics
+        """
+        try:
+            if not self._csv_directory:
+                return {'accessible': False}
+            
+            tables = self.list_tables()
+            csv_files = list(self._csv_directory.glob("*.csv"))
+            backup_files = list(self._csv_directory.glob("*.bak*"))
+            
+            total_size = sum(f.stat().st_size for f in csv_files)
+            
+            return {
+                'accessible': True,
+                'directory': str(self._csv_directory.absolute()),
+                'table_count': len(tables),
+                'total_files': len(csv_files),
+                'backup_files': len(backup_files),
+                'total_size_bytes': total_size,
+                'total_size_mb': round(total_size / (1024 * 1024), 2),
+                'tables': tables
+            }
+            
+        except Exception as e:
+            logger.error(f"❌ Failed to get directory status: {e}")
+            return {'accessible': False, 'error': str(e)}
+
+
+# Create singleton instance
+db = CSVDatabase()
 
 
 def get_db() -> CSVDatabase:
@@ -705,4 +932,4 @@ def get_db() -> CSVDatabase:
     Returns:
         CSVDatabase singleton instance
     """
-    return CSVDatabase()
+    return db
