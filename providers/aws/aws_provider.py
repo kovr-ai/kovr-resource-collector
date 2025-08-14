@@ -10,8 +10,10 @@ from con_mon_v2.mappings.aws import (
     S3Resource,
     CloudTrailResource,
     CloudWatchResource,
+    AwsInfoData,
     AwsResourceCollection
 )
+from typing import Tuple
 from constants import Providers
 import boto3
 import json
@@ -36,22 +38,21 @@ def _dict_to_list_with_id(data: dict[str, dict]) -> list[dict]:
 @provider_class
 class AWSProvider(Provider):
     def __init__(self, metadata: dict):
-        self.AWS_ACCESS_KEY_ID = metadata.get("AWS_ACCESS_KEY_ID")
-        self.AWS_SECRET_ACCESS_KEY = metadata.get("AWS_SECRET_ACCESS_KEY")
-        self.AWS_SESSION_TOKEN = metadata.get("AWS_SESSION_TOKEN")
-        self.ROLE_ARN = metadata.get("AWS_ROLE_ARN")
-        self.AWS_EXTERNAL_ID = metadata.get("AWS_EXTERNAL_ID")
-        
+        self.AWS_ACCESS_KEY_ID = os.getenv("KOVR_AWS_ACCESS_KEY_ID")
+        self.AWS_SECRET_ACCESS_KEY = os.getenv("KOVR_AWS_SECRET_ACCESS_KEY")
+        self.AWS_SESSION_TOKEN = os.getenv("AWS_SESSION_TOKEN")
+        self.ROLE_ARN = metadata.get("role_arn")
+        self.AWS_EXTERNAL_ID = metadata.get("external_id")
+
         # Check if we should use mock mode (if tests/mocks/aws/response.json exists)
         self.use_mock_data = os.path.exists('tests/mocks/aws/response.json')
-        
+
         if not self.use_mock_data and (
             not self.AWS_ACCESS_KEY_ID
             or not self.AWS_SECRET_ACCESS_KEY
-            or not self.AWS_SESSION_TOKEN
         ):
             raise ValueError(
-                "AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_SESSION_TOKEN are required"
+                "AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY are required"
             )
 
         super().__init__(Providers.AWS.value, metadata)
@@ -83,7 +84,7 @@ class AWSProvider(Provider):
             self.client = None  # No real client needed for mock data
             self.REGIONS = self.metadata.get("REGIONS", ["us-west-2"])  # Default regions for mock
             return
-            
+
         # Original AWS connection logic for real API calls
         session_kwargs = {"region_name": "us-east-1"}
         if self.AWS_ACCESS_KEY_ID and self.AWS_SECRET_ACCESS_KEY:
@@ -143,33 +144,45 @@ class AWSProvider(Provider):
             aws_session_token=aws_session_token,
         )
 
-    def process(self) -> AwsResourceCollection:
+    def process(self) -> Tuple[AwsInfoData, AwsResourceCollection]:
         """Process data collection - uses mock data if available, otherwise real AWS API calls"""
         if self.use_mock_data:
             return self._process_mock_data()
         else:
             return self._process_real_aws_data()
-    
-    def _process_mock_data(self) -> AwsResourceCollection:
-        """Load and return mock data from tests/mocks/aws/response.json as AwsResourceCollection"""
-        print("🔄 Using mock AWS data from tests/mocks/aws/response.json")
-        
+
+    def _process_mock_data(self) -> Tuple[AwsInfoData, AwsResourceCollection]:
+        """Load and return mock data from tests/mocks/aws/response.json as Tuple[AwsInfoData, AwsResourceCollection]"""
+        print("🔄 Using mock AWS data from aws_response.json")
+
         try:
             with open('tests/mocks/aws/response.json', 'r') as mock_response_file:
                 mock_response = json.load(mock_response_file)
-                
+
             print(f"✅ Loaded mock AWS data with {len(mock_response)} regions")
-            
+
             # Use the shared helper method to create AwsResourceCollection
-            return self._create_resource_collection_from_data(mock_response)
-            
+            resource_collection = self._create_resource_collection_from_data(mock_response)
+
+            # Create InfoData from the resource collection metadata
+            info_data = AwsInfoData(
+                accounts=[
+                    {
+                        'account_name': f"AWS Account {i + 1}",
+                        'account_id': resource_collection.collection_metadata.get('account_id', f'123456789{i:03d}')
+                    }
+                    for i in range(1)  # Single account for now
+                ]
+            )
+
+            return info_data, resource_collection
+
         except Exception as e:
-            raise e
             print(f"❌ Error loading mock data: {e}")
             raise RuntimeError(f"Failed to load mock data from tests/mocks/aws/response.json: {e}")
 
-    def _process_real_aws_data(self) -> AwsResourceCollection:
-        """Original AWS data collection logic using real API calls - returns AwsResourceCollection"""
+    def _process_real_aws_data(self) -> Tuple[AwsInfoData, AwsResourceCollection]:
+        """Original AWS data collection logic using real API calls - returns Tuple[AwsInfoData, AwsResourceCollection]"""
         print("🔄 Collecting real AWS data via API calls")
         data = {}
         for region in self.REGIONS:
@@ -191,8 +204,20 @@ class AWSProvider(Provider):
                 data[region][name] = instance.process()
 
         # Convert the raw data to AwsResourceCollection using the same logic as mock data
-        return self._create_resource_collection_from_data(data)
-    
+        resource_collection = self._create_resource_collection_from_data(data)
+
+        # Create InfoData with actual account information
+        info_data = AwsInfoData(
+            accounts=[
+                {
+                    'account_name': 'Production Account',  # This could be retrieved from AWS API
+                    'account_id': resource_collection.collection_metadata.get('account_id', 'unknown')
+                }
+            ]
+        )
+
+        return info_data, resource_collection
+
     def _normalize_policy_statement(self, statement):
         """
         Normalize policy statement by:
@@ -214,7 +239,7 @@ class AWSProvider(Provider):
         """
         if not isinstance(policy_data, dict):
             return policy_data
-            
+
         if 'default_version' in policy_data and isinstance(policy_data['default_version'], dict):
             doc = policy_data['default_version'].get('Document', {})
             if 'Statement' in doc:
@@ -229,14 +254,14 @@ class AWSProvider(Provider):
     def _create_resource_collection_from_data(self, aws_data: dict) -> AwsResourceCollection:
         """Helper method to create AwsResourceCollection from raw AWS data"""
         aws_resources = []
-        
+
         # Process each region's data
         for region_name, region_data in aws_data.items():
             try:
                 # Create EC2 resource if EC2 data exists
                 if 'ec2' in region_data:
                     ec2_data = region_data['ec2']
-                    
+
                     ec2_resource_data = {
                         'region': region_name,
                         'instances': _dict_to_list_with_id(ec2_data.get('instances', {})),
@@ -256,16 +281,15 @@ class AWSProvider(Provider):
                         'id': f"aws-ec2-{region_name}",
                         'source_connector': 'aws'
                     }
-                    # from pdb import set_trace;set_trace()
                     ec2_resource = EC2Resource(**ec2_resource_data)
                     aws_resources.append(ec2_resource)
-                
+
                 # Create IAM resource if IAM data exists
                 if 'iam' in region_data:
                     iam_resource_data = {
                         'users': _dict_to_list_with_id(region_data['iam'].get('users', {})),
                         'policies': [
-                            self._normalize_policy_document(policy) 
+                            self._normalize_policy_document(policy)
                             for policy in _dict_to_list_with_id(region_data['iam'].get('policies', {}))
                         ],
                         # Keep array fields as is
@@ -283,7 +307,7 @@ class AWSProvider(Provider):
                     }
                     iam_resource = IAMResource(**iam_resource_data)
                     aws_resources.append(iam_resource)
-                
+
                 # Create S3 resource if S3 data exists
                 if 's3' in region_data:
                     s3_resource_data = {
@@ -304,7 +328,7 @@ class AWSProvider(Provider):
                     }
                     s3_resource = S3Resource(**s3_resource_data)
                     aws_resources.append(s3_resource)
-                
+
                 # Create CloudTrail resource if CloudTrail data exists
                 if 'cloudtrail' in region_data:
                     cloudtrail_resource_data = {
@@ -321,7 +345,7 @@ class AWSProvider(Provider):
                     }
                     cloudtrail_resource = CloudTrailResource(**cloudtrail_resource_data)
                     aws_resources.append(cloudtrail_resource)
-                
+
                 # Create CloudWatch resource if CloudWatch data exists
                 if 'cloudwatch' in region_data:
                     cloudwatch_resource_data = {
@@ -336,12 +360,11 @@ class AWSProvider(Provider):
                     }
                     cloudwatch_resource = CloudWatchResource(**cloudwatch_resource_data)
                     aws_resources.append(cloudwatch_resource)
-                    
+
             except Exception as e:
-                raise e
                 print(f"Error converting AWS data for region {region_name}: {e}")
                 continue
-        
+
         # Create and return AwsResourceCollection
         return AwsResourceCollection(
             resources=aws_resources,

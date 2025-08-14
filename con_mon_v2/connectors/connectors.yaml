@@ -26,3 +26,15 @@ aws:
   input:
     role_arn: "string"
     external_id: "string"
+
+google:
+  connector:
+    name: "google"
+    description: "Collect Google workspace"
+    connector_type: "google"
+    provider_service: "providers.google.google_provider"
+    method: "process"
+
+  # Input specification for this connector
+  input:
+    super_admin_email: "string"

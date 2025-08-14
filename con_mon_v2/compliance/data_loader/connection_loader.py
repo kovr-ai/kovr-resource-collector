@@ -233,4 +233,91 @@ class ConnectionLoader(BaseLoader):
         query += " ORDER BY alias, id"
         
         rows = self.db.execute_query(query, tuple(params))
-        return [Connection(**row) for row in rows] 
+        return [Connection(**row) for row in rows]
+
+    def update_connection_data(self, info_data: dict):
+        """
+        Update connection metadata with info_data from provider execution.
+
+        This function:
+        1. Loads existing connection metadata from database
+        2. Updates the 'info' key in metadata with the provided info_data
+        3. Saves the updated metadata back to the database
+
+        Args:
+            connection_id: ID of the connection to update
+            info_data: Dictionary or InfoData object containing provider execution metadata
+
+        The info_data typically contains:
+        - Collection statistics (total_resources_collected, etc.)
+        - Provider-specific metadata (authenticated_user, rate_limits, etc.)
+        - API metadata (collection_time, api_version, etc.)
+        """
+        # Convert info_data to dict if it's an InfoData object
+        if hasattr(info_data, 'to_dict'):
+            info_dict = info_data.to_dict()
+            print(f"   • Info data type: {type(info_data).__name__} (converted to dict)")
+        elif hasattr(info_data, 'model_dump'):
+            info_dict = info_data.model_dump()
+            print(f"   • Info data type: {type(info_data).__name__} (Pydantic model)")
+        elif isinstance(info_data, dict):
+            info_dict = info_data
+            print(f"   • Info data type: dict")
+        else:
+            info_dict = dict(info_data) if info_data else {}
+            print(f"   • Info data type: {type(info_data).__name__} (converted to dict)")
+
+        print(f"   • Info data keys: {list(info_dict.keys()) if info_dict else 'No info data'}")
+
+        # Step 1: Get current connection metadata
+        query_sql = """
+        SELECT metadata 
+        FROM connections 
+        WHERE id = %s AND is_deleted = FALSE;
+        """
+
+        results = database.execute_query(query_sql, (connection_id,))
+
+        if not results:
+            print(f"❌ Connection ID {connection_id} not found or has been deleted")
+            return
+
+        # Step 2: Update metadata with new info
+        current_metadata = results[0]['metadata'] or {}
+        print(
+            f"   • Current metadata keys: {list(current_metadata.keys()) if current_metadata else 'No existing metadata'}")
+
+        # Preserve existing metadata and update 'info' key
+        updated_metadata = current_metadata.copy()
+        updated_metadata['info'] = info_dict
+
+        # Step 3: Update the connection record
+        update_sql = """
+        UPDATE connections 
+        SET metadata = %s, updated_at = CURRENT_TIMESTAMP
+        WHERE id = %s AND is_deleted = FALSE;
+        """
+
+        affected_rows = database.execute_update(
+            update_sql,
+            (safe_json_dumps(updated_metadata), connection_id)
+        )
+
+        if affected_rows > 0:
+            print(f"✅ **Connection metadata updated successfully:**")
+            print(f"   • Rows affected: {affected_rows}")
+            print(f"   • Info data stored under 'info' key")
+            print(f"   • Existing metadata preserved")
+            if info_dict:
+                info_summary = []
+                for key, value in info_dict.items():
+                    if isinstance(value, list):
+                        info_summary.append(f"{key}: {len(value)} items")
+                    elif isinstance(value, dict):
+                        info_summary.append(f"{key}: {len(value)} keys")
+                    else:
+                        info_summary.append(f"{key}: {value}")
+                print(f"   • Info content: {', '.join(info_summary[:5])}{'...' if len(info_summary) > 5 else ''}")
+        else:
+            print(f"⚠️ No rows were updated for connection ID {connection_id}")
+

@@ -8,8 +8,8 @@ from .models.report_models import GitHubReport
 from dotenv import load_dotenv
 from pathlib import Path
 import json
-from typing import Dict, Any
-from con_mon_v2.mappings.github import GithubResource, GithubResourceCollection
+from typing import Dict, Any, Tuple
+from con_mon_v2.mappings.github import GithubInfoData, GithubResource, GithubResourceCollection
 
 # Load environment variables from .env file
 load_dotenv()
@@ -76,7 +76,7 @@ class GitHubProvider(Provider):
             print(f"Unexpected error during GitHub connection: {e}")
             raise
 
-    def process(self) -> GithubResourceCollection:
+    def process(self) -> Tuple[GithubInfoData, GithubResourceCollection]:
         """Process data collection and return GitHubReport model"""
         with open(
             'tests/mocks/github/response.json',
@@ -117,7 +117,7 @@ class GitHubProvider(Provider):
                     continue
             
             # Create and return GithubResourceCollection
-            return GithubResourceCollection(
+            resource_collection = GithubResourceCollection(
                 resources=github_resources,
                 source_connector='github',
                 total_count=len(github_resources),
@@ -140,7 +140,23 @@ class GitHubProvider(Provider):
                     'scope': ['repo', 'read:org', 'actions:read', 'security_events:read']  # Extended scopes
                 }
             )
+            
+            # Create InfoData from the resource collection metadata
+            info_data = GithubInfoData(
+                repositories=[
+                    {
+                        'name': repo.name,
+                        'url': repo.repository_data.basic_info.html_url if hasattr(repo, 'repository_data') and hasattr(repo.repository_data, 'basic_info') else f"https://github.com/{repo.name}",
+                        'default_branch_name': repo.repository_data.metadata.default_branch if hasattr(repo, 'repository_data') and hasattr(repo.repository_data, 'metadata') else 'main'
+                    }
+                    for repo in github_resources
+                ]
+            )
+            
+            return info_data, resource_collection
 
+        # Note: The code below is for real GitHub API calls (not currently used)
+        # This would need similar updates to return (InfoData, ResourceCollection) tuple
         report = GitHubReport(
             authenticated_user=self.user.login if hasattr(self, 'user') else None
         )
