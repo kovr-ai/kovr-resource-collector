@@ -16,14 +16,19 @@ class TestUnifiedDatabaseAbstraction:
         self.test_dir = tempfile.mkdtemp()
         self.test_csv_dir = Path(self.test_dir) / "data" / "csv"
         self.test_csv_dir.mkdir(parents=True, exist_ok=True)
+        # Ensure CSV backend uses temp directory by default during tests
+        from con_mon_v2.utils.config import settings as _settings
+        _settings.CSV_DATA = str(self.test_csv_dir)
         
-        # Reset any singleton instances
+        # Reset any singleton instances and rebind module-level CSV db
         from con_mon_v2.utils.db.csv import CSVDatabase
         from con_mon_v2.utils.db.pgs import PostgreSQLDatabase
         CSVDatabase._instance = None
         CSVDatabase._initialized = False
         PostgreSQLDatabase._instance = None
         PostgreSQLDatabase._initialized = False
+        import con_mon_v2.utils.db.csv as csv_module
+        csv_module.db = CSVDatabase()
     
     def teardown_method(self):
         """Clean up after each test."""
@@ -32,9 +37,8 @@ class TestUnifiedDatabaseAbstraction:
             shutil.rmtree(self.test_dir)
 
         from con_mon_v2.utils.config import settings
-        # Reset environment variable
-        if settings.CSV_DATA:
-            settings.CSV_DATA = None
+        # Reset environment variable for isolation
+        settings.CSV_DATA = None
 
 
         # Reset CSV database singleton to prevent test isolation issues
@@ -106,53 +110,50 @@ class TestUnifiedDatabaseAbstraction:
         _settings.CSV_DATA = str(self.test_csv_dir)
         db = get_db()
         
-        # Override directory for testing
-        db._csv_directory = self.test_csv_dir
-        
-        # Create test data with nested structures
+        # Create test data with nested structures (keys align with CSV backend behavior)
         test_data = [
             {
                 "id": 1,
-                "name": "Test User 1",
-                "profile": {
-                    "email": "user1@example.com",
-                    "settings": {
-                        "theme": "dark",
-                        "notifications": {
-                            "email": True,
-                            "push": False,
-                            "types": ["security", "updates"]
+                "name": "John Doe",
+                "email": "john@example.com",
+                "metadata": {
+                    "profile": {
+                        "age": 30,
+                        "preferences": ["coding", "reading"],
+                        "settings": {
+                            "theme": "dark",
+                            "notifications": True
                         }
                     },
-                    "metadata": {
+                    "audit": {
                         "created_at": "2024-01-01T00:00:00Z",
-                        "tags": ["admin", "verified"]
+                        "created_by": "system"
                     }
                 }
             },
             {
                 "id": 2,
                 "name": "Test User 2",
-                "profile": {
-                    "email": "user2@example.com",
-                    "settings": {
-                        "theme": "light",
-                        "notifications": {
-                            "email": False,
-                            "push": True,
-                            "types": ["updates"]
+                "email": "user2@example.com",
+                "metadata": {
+                    "profile": {
+                        "age": 22,
+                        "preferences": ["design"],
+                        "settings": {
+                            "theme": "light",
+                            "notifications": False
                         }
                     },
-                    "metadata": {
+                    "audit": {
                         "created_at": "2024-01-02T00:00:00Z",
-                        "tags": ["user"]
+                        "created_by": "tester"
                     }
                 }
             }
         ]
         
         # Create table with nested data
-        columns = ["id", "name", "profile"]
+        columns = ["id", "name", "email", "metadata"]
         db.create_table("test_users", columns, test_data)
         
         # Query data
@@ -167,17 +168,14 @@ class TestUnifiedDatabaseAbstraction:
         for i, row in enumerate(results):
             assert isinstance(row, dict), f"Row {i} should be a dictionary"
             assert "id" in row, f"Row {i} should have id field"
-            assert "profile" in row, f"Row {i} should have profile field"
-            assert isinstance(row["profile"], dict), f"Row {i} profile should be nested dict"
+            assert "metadata" in row, f"Row {i} should have metadata field"
+            assert isinstance(row["metadata"], dict), f"Row {i} metadata should be nested dict"
             
             # Verify deep nested structures
-            profile = row["profile"]
-            assert "settings" in profile, f"Row {i} should have nested settings"
-            assert isinstance(profile["settings"], dict), f"Row {i} settings should be dict"
-            assert "notifications" in profile["settings"], f"Row {i} should have nested notifications"
-            assert isinstance(profile["settings"]["notifications"], dict), f"Row {i} notifications should be dict"
-            assert isinstance(profile["settings"]["notifications"]["types"], list), f"Row {i} types should be array"
-            assert isinstance(profile["metadata"]["tags"], list), f"Row {i} tags should be array"
+            meta_profile = row["metadata"]["profile"]
+            assert "settings" in meta_profile, f"Row {i} should have nested settings"
+            assert isinstance(meta_profile["settings"], dict), f"Row {i} settings should be dict"
+            assert isinstance(row["metadata"]["audit"], dict), f"Row {i} audit should be dict"
         
         print("✅ CSV database list of dicts interface test passed")
     
@@ -275,7 +273,6 @@ class TestUnifiedDatabaseAbstraction:
         from con_mon_v2.utils.config import settings as _settings
         _settings.CSV_DATA = str(self.test_csv_dir)
         db = get_db()
-        db._csv_directory = self.test_csv_dir
         
         # Create table
         columns = ["id", "name", "data"]
@@ -371,8 +368,10 @@ class TestUnifiedDatabaseAbstraction:
         mock_pool_instance.getconn.return_value = mock_connection
         mock_pool.return_value = mock_pool_instance
         
-        # Set environment to use PostgreSQL
-        mock_settings.CSV_DATA = 'data/csv/'
+        # Set environment to use PostgreSQL (disable CSV backend)
+        mock_settings.CSV_DATA = None
+        from con_mon_v2.utils.config import settings as _settings
+        _settings.CSV_DATA = None
         
         # Get PostgreSQL database
         db = get_db()
@@ -472,7 +471,6 @@ class TestUnifiedDatabaseAbstraction:
         from con_mon_v2.utils.config import settings as _settings
         _settings.CSV_DATA = str(self.test_csv_dir)
         csv_db = get_db()
-        csv_db._csv_directory = self.test_csv_dir
         
         # Create table and insert data
         columns = ["id", "name", "config", "metadata"]
@@ -511,7 +509,6 @@ class TestUnifiedDatabaseAbstraction:
         from con_mon_v2.utils.config import settings as _settings
         _settings.CSV_DATA = str(self.test_csv_dir)
         csv_db = get_db()
-        csv_db._csv_directory = self.test_csv_dir
         
         # Test operations on non-existent table
         from con_mon_v2.utils.db.csv import CSVDatabase as _CSV

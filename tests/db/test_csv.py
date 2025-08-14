@@ -24,6 +24,9 @@ class TestCSVDatabase:
         self.test_dir = tempfile.mkdtemp()
         self.test_csv_dir = Path(self.test_dir) / "data" / "csv"
         self.test_csv_dir.mkdir(parents=True, exist_ok=True)
+        # Point CSV backend to the temp directory for this test
+        from con_mon_v2.utils.config import settings as _settings
+        _settings.CSV_DATA = str(self.test_csv_dir)
     
     def teardown_method(self):
         """Clean up after each test."""
@@ -37,9 +40,7 @@ class TestCSVDatabase:
     
     def _create_test_db(self) -> CSVDatabase:
         """Create a test CSV database instance with custom directory."""
-        db = CSVDatabase()
-        db._csv_directory = self.test_csv_dir
-        return db
+        return CSVDatabase()
     
     def test_singleton_pattern(self):
         """Test that CSVDatabase follows singleton pattern."""
@@ -105,8 +106,8 @@ class TestCSVDatabase:
         
         # Verify initialization
         assert db._initialized == True, "Database should be marked as initialized"
-        assert db._csv_directory is not None, "CSV directory should be set"
-        assert db._csv_directory.exists(), "CSV directory should exist"
+        assert getattr(db, "_connection", None) is not None, "Connection should be initialized"
+        assert db._connection.directory.exists(), "CSV directory should exist"
         
         # Test connection
         connection_status = db.test_connection()
@@ -560,7 +561,7 @@ class TestCSVDatabase:
                          conditions={"id": 1})
         
         # Verify backup was created
-        backup_files = list(db._csv_directory.glob("test_backup.bak_*"))
+        backup_files = list(db._connection.directory.glob("test_backup.bak_*"))
         assert len(backup_files) > 0, "Backup file should be created"
         
         # Verify backup contains original nested data
