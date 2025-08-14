@@ -14,6 +14,31 @@ logger = logging.getLogger(__name__)
 
 
 class SQLDatabase:
+    class SQLParser(object):
+        def __init__(
+            self,
+            table_name: str,
+            select: list | None = None,
+            update: dict | None = None,
+            where: dict | None = None,
+        ):
+            self.table_name = table_name
+            self.select = select
+            self.update = update
+            self.where = where
+
+        @property
+        def insert_query(self):
+            raise NotImplementedError()
+
+        @property
+        def update_query(self):
+            raise NotImplementedError()
+
+        @property
+        def delete_query(self):
+            raise NotImplementedError()
+
     class ConnectionError(Exception):
         pass
     """
@@ -126,92 +151,9 @@ class SQLDatabase:
                 self._connection.putconn(connection)
 
     # DB OPERATIONS
-    def execute_query(self, query: str, params: Optional[tuple] = None) -> List[Dict[str, Any]]:
-        """
-        Execute a SELECT query and return results as list of dictionaries.
+    def execute(self, method: str, *args, **kwargs) -> List[Dict[str, Any]]:
+        sql_parser = self.SQLParser(*args, **kwargs)
+        return self.execute_query(getattr(sql_parser, f'{method}_query'))
 
-        Args:
-            query: SQL query string
-            params: Query parameters (optional)
-
-        Returns:
-            List of dictionaries representing query results
-        """
-        with self.get_connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, params)
-
-                # Get column names
-                columns = [desc[0] for desc in cursor.description] if cursor.description else []
-
-                # Fetch results and convert to dictionaries
-                results = []
-                for row in cursor.fetchall():
-                    results.append(dict(zip(columns, row)))
-
-                logger.info(f"✅ Query executed successfully, returned {len(results)} rows")
-                return results
-
-    def execute_insert(self, query: str, params: Optional[tuple] = None) -> Optional[int]:
-        """
-        Execute an INSERT query and return the inserted row ID.
-
-        Args:
-            query: SQL INSERT query string
-            params: Query parameters (optional)
-
-        Returns:
-            Inserted row ID if available, None otherwise
-        """
-        with self.get_connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, params)
-
-                # Try to get the inserted row ID
-                row_id = None
-                if cursor.description:
-                    row = cursor.fetchone()
-                    if row:
-                        row_id = row[0]
-
-                conn.commit()
-                logger.info(f"✅ INSERT executed successfully, row ID: {row_id}")
-                return row_id
-
-    def execute_update(self, query: str, params: Optional[tuple] = None) -> int:
-        """
-        Execute an UPDATE query and return the number of affected rows.
-
-        Args:
-            query: SQL UPDATE query string
-            params: Query parameters (optional)
-
-        Returns:
-            Number of affected rows
-        """
-        with self.get_connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, params)
-                affected_rows = cursor.rowcount
-                conn.commit()
-                logger.info(f"✅ UPDATE executed successfully, affected {affected_rows} rows")
-                return affected_rows
-
-    def execute_delete(self, query: str, params: Optional[tuple] = None) -> int:
-        """
-        Execute a DELETE query and return the number of affected rows.
-
-        Args:
-            query: SQL DELETE query string
-            params: Query parameters (optional)
-
-        Returns:
-            Number of affected rows
-        """
-        with self.get_connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, params)
-                affected_rows = cursor.rowcount
-                conn.commit()
-                logger.info(f"✅ DELETE executed successfully, affected {affected_rows} rows")
-                return affected_rows
+    def execute_query(self, *args, **kwargs) -> Any:
+        raise NotImplementedError()

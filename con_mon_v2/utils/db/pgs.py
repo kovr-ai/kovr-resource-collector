@@ -1,20 +1,18 @@
 """
 Database singleton for PostgreSQL operations in con_mon.
 
-Provides a singleton pattern for database connections with connection pooling
-and methods for executing SQL queries.
+Implements a PostgreSQL-backed database by extending the shared
+`SQLDatabase` base so all CRUD operations and pooling behavior are
+standardized across backends. Keeps backward-compatible helpers and
+API surface (e.g., `_connection_pool`, `close_pool`, `get_pool_status`).
 """
-import csv
 import json
-import pandas as pd
-from pathlib import Path
 from datetime import datetime
-from typing import Optional, List, Dict, Any, Union
+from typing import Optional, Dict, Any, List
 import psycopg2
 import psycopg2.pool
-from contextlib import contextmanager
 import logging
-from con_mon_v2.utils.config import settings
+from con_mon_v2.utils.db.base import SQLDatabase
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -76,7 +74,7 @@ def unflatten_dict(flat_dict: Dict[str, Any], sep: str = '.') -> Dict[str, Any]:
                 if k not in current:
                     current[k] = {}
                 current = current[k]
-            
+
             # Handle the final value
             final_key = keys[-1]
             if isinstance(value, str):
@@ -92,197 +90,162 @@ def unflatten_dict(flat_dict: Dict[str, Any], sep: str = '.') -> Dict[str, Any]:
                         current[final_key] = value
             else:
                 current[final_key] = value
-    
+
     return result
 
 
-class PostgreSQLDatabase:
+class PostgreSQLDatabase(SQLDatabase):
     """
-    Singleton class for PostgreSQL database operations.
-    
-    Manages connection pooling and provides methods for executing SQL queries.
+    PostgreSQL implementation of the shared SQL database interface.
     """
-    
-    _instance: Optional['PostgreSQLDatabase'] = None
-    _connection_pool: Optional[psycopg2.pool.SimpleConnectionPool] = None
-    _initialized: bool = False
-    
-    def __new__(cls) -> 'PostgreSQLDatabase':
-        if cls._instance is None:
-            cls._instance = super(PostgreSQLDatabase, cls).__new__(cls)
-        return cls._instance
-    
-    def __init__(self):
-        if not self._initialized:
-            self._initialized = True
-            self._setup_connection_pool()
-    
-    def _setup_connection_pool(self):
-        """Initialize the connection pool with database configuration."""
-        try:
-            # Database configuration from environment variables
-            db_config = {
-                'host': settings.DB_HOST,
-                'port': settings.DB_PORT,
-                'database': settings.DB_NAME,
-                'user': settings.DB_USER,
-                'password': settings.DB_PASSWORD,
-            }
-            
-            # Create connection pool
-            self._connection_pool = psycopg2.pool.SimpleConnectionPool(
-                minconn=1,
-                maxconn=10,
-                **db_config
+    class SQLParser(SQLDatabase.SQLParser):
+        """Build PostgreSQL SQL statements from structured inputs.
+
+        Notes:
+            - Properties return SQL strings with positional placeholders (%s)
+              appropriate for psycopg2.
+            - Companion parameter lists are exposed via `*_params` properties
+              for use in a subsequent step where execution will pass params.
+        """
+
+        def _build_where_clause(self) -> tuple[str, list]:
+            """Construct a WHERE clause and its parameters.
+
+            Returns:
+                A tuple of (where_sql, params). If no filters provided, returns ('', []).
+            """
+            if not self.where:
+                return "", []
+
+            clauses: list[str] = []
+            params: list = []
+
+            for column_name, value in self.where.items():
+                if value is None:
+                    clauses.append(f"{column_name} IS NULL")
+                elif isinstance(value, (list, tuple)):
+                    if len(value) == 0:
+                        # Empty IN set should never match; use a false predicate
+                        clauses.append("1 = 0")
+                    else:
+                        placeholders = ", ".join(["%s"] * len(value))
+                        clauses.append(f"{column_name} IN ({placeholders})")
+                        params.extend(list(value))
+                else:
+                    clauses.append(f"{column_name} = %s")
+                    params.append(value)
+
+            where_sql = " WHERE " + " AND ".join(clauses) if clauses else ""
+            return where_sql, params
+
+        @property
+        def insert_query(self) -> str:
+            """Build an INSERT statement with placeholders.
+
+            Uses `update` as the source of column->value mappings.
+            Returns the SQL string (RETURNING * for convenience).
+            """
+            # Empty or missing values -> DEFAULT VALUES
+            if not self.update:
+                return f"INSERT INTO {self.table_name} DEFAULT VALUES RETURNING *"
+
+            # Ensure deterministic column order
+            column_names = list(self.update.keys())
+            placeholders = ", ".join(["%s"] * len(column_names))
+            columns_sql = ", ".join(column_names)
+            return (
+                f"INSERT INTO {self.table_name} ({columns_sql}) "
+                f"VALUES ({placeholders}) RETURNING *"
             )
-            
-            logger.info(f"✅ Database connection pool created for {db_config['host']}:{db_config['port']}/{db_config['database']}")
-            
-        except psycopg2.Error as e:
-            logger.warning(f"⚠️ Database connection pool creation failed: {e}")
-            logger.info("💡 Database operations will be unavailable until connection is established")
-            self._connection_pool = None
-        except Exception as e:
-            logger.warning(f"⚠️ Unexpected error creating connection pool: {e}")
-            logger.info("💡 Database operations will be unavailable until connection is established")
-            self._connection_pool = None
-    
-    @contextmanager
-    def get_connection(self):
-        """
-        Context manager for getting a database connection from the pool.
-        
-        Yields:
-            psycopg2.connection: Database connection
-            
-        Example:
-            with db.get_connection() as conn:
-                cursor = conn.cursor()
-                cursor.execute("SELECT * FROM table")
-        """
-        if not self._connection_pool:
-            raise Exception("Database connection pool not initialized")
-        
-        connection = None
+
+        @property
+        def insert_params(self) -> list:
+            """Parameters corresponding to `insert_query` placeholders."""
+            if not self.update:
+                return []
+            return [self.update[k] for k in self.update.keys()]
+
+        @property
+        def update_query(self) -> str:
+            """Build an UPDATE statement with placeholders.
+
+            Requires `update` to be non-empty. `where` is optional but
+            recommended; if omitted, the statement updates all rows.
+            Returns the SQL string (RETURNING * for convenience).
+            """
+            if not self.update:
+                raise ValueError("Update operation requires a non-empty `update` mapping")
+
+            set_clause = ", ".join([f"{col} = %s" for col in self.update.keys()])
+            where_sql, _ = self._build_where_clause()
+            return f"UPDATE {self.table_name} SET {set_clause}{where_sql} RETURNING *"
+
+        @property
+        def update_params(self) -> list:
+            """Parameters corresponding to `update_query` placeholders.
+
+            Order: SET values first, then WHERE params (if any).
+            """
+            if not self.update:
+                return []
+            _, where_params = self._build_where_clause()
+            return [self.update[k] for k in self.update.keys()] + where_params
+
+        @property
+        def delete_query(self) -> str:
+            """Build a DELETE statement with placeholders.
+
+            For safety, requires a non-empty `where` clause; otherwise raises.
+            Returns the SQL string (RETURNING * for convenience).
+            """
+            if not self.where:
+                raise ValueError("Refusing to build DELETE without a WHERE clause")
+            where_sql, _ = self._build_where_clause()
+            return f"DELETE FROM {self.table_name}{where_sql} RETURNING *"
+
+        @property
+        def delete_params(self) -> list:
+            """Parameters corresponding to `delete_query` placeholders."""
+            _, where_params = self._build_where_clause()
+            return where_params
+
+    @property
+    def _db_class(self) -> Any:
+        return psycopg2.pool.SimpleConnectionPool
+
+    def close_connection(self):
+        """Close all connections in the pool."""
+        if getattr(self, "_connection", None):
+            # psycopg2 SimpleConnectionPool supports closeall
+            self._connection.closeall()
+            logger.info("✅ Database connection pool closed")
+
+    def get_status(self) -> Dict[str, int]:
+        """Return pool statistics in a standardized format."""
+        pool = getattr(self, "_connection", None)
+        if not pool:
+            return {'total': 0, 'available': 0, 'used': 0}
         try:
-            connection = self._connection_pool.getconn()
-            yield connection
-        except psycopg2.Error as e:
-            if connection:
-                connection.rollback()
-            logger.error(f"❌ Database operation failed: {e}")
-            raise
-        finally:
-            if connection:
-                self._connection_pool.putconn(connection)
-    
-    def execute_query(self, query: str, params: Optional[tuple] = None) -> List[Dict[str, Any]]:
-        """
-        Execute a SELECT query and return results as list of dictionaries.
-        
-        Args:
-            query: SQL query string
-            params: Query parameters (optional)
-            
-        Returns:
-            List of dictionaries representing query results
-        """
-        with self.get_connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, params)
-                
-                # Get column names
-                columns = [desc[0] for desc in cursor.description] if cursor.description else []
-                
-                # Fetch results and convert to dictionaries
-                results = []
-                for row in cursor.fetchall():
-                    results.append(dict(zip(columns, row)))
-                
-                logger.info(f"✅ Query executed successfully, returned {len(results)} rows")
-                return results
-    
-    def execute_insert(self, query: str, params: Optional[tuple] = None) -> Optional[int]:
-        """
-        Execute an INSERT query and return the inserted row ID.
-        
-        Args:
-            query: SQL INSERT query string
-            params: Query parameters (optional)
-            
-        Returns:
-            Inserted row ID if available, None otherwise
-        """
-        with self.get_connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, params)
-                
-                # Try to get the inserted row ID
-                row_id = None
-                if cursor.description:
-                    row = cursor.fetchone()
-                    if row:
-                        row_id = row[0]
-                
-                conn.commit()
-                logger.info(f"✅ INSERT executed successfully, row ID: {row_id}")
-                return row_id
-    
-    def execute_update(self, query: str, params: Optional[tuple] = None) -> int:
-        """
-        Execute an UPDATE query and return the number of affected rows.
-        
-        Args:
-            query: SQL UPDATE query string
-            params: Query parameters (optional)
-            
-        Returns:
-            Number of affected rows
-        """
-        with self.get_connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, params)
-                affected_rows = cursor.rowcount
-                conn.commit()
-                logger.info(f"✅ UPDATE executed successfully, affected {affected_rows} rows")
-                return affected_rows
-    
-    def execute_delete(self, query: str, params: Optional[tuple] = None) -> int:
-        """
-        Execute a DELETE query and return the number of affected rows.
-        
-        Args:
-            query: SQL DELETE query string
-            params: Query parameters (optional)
-            
-        Returns:
-            Number of affected rows
-        """
-        with self.get_connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, params)
-                affected_rows = cursor.rowcount
-                conn.commit()
-                logger.info(f"✅ DELETE executed successfully, affected {affected_rows} rows")
-                return affected_rows
-    
-    def execute_script(self, script: str) -> None:
-        """
-        Execute a SQL script (multiple statements).
-        
-        Args:
-            script: SQL script string with multiple statements
-        """
-        with self.get_connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(script)
-                conn.commit()
-                logger.info("✅ SQL script executed successfully")
-    
+            return {
+                'total': pool.maxconn,
+                'available': len(pool._pool),
+                'used': pool.maxconn - len(pool._pool)
+            }
+        except Exception:
+            # Fallback if internals differ
+            return {'total': 0, 'available': 0, 'used': 0}
+
+    # Backward-compatible helpers
+    def close_pool(self):
+        self.close_connection()
+
+    def get_pool_status(self) -> Dict[str, int]:
+        return self.get_status()
+
     def test_connection(self) -> bool:
         """
         Test the database connection.
-        
+
         Returns:
             True if connection is successful, False otherwise
         """
@@ -298,28 +261,6 @@ class PostgreSQLDatabase:
         except Exception as e:
             logger.error(f"❌ Database connection test failed: {e}")
             return False
-    
-    def close_pool(self):
-        """Close all connections in the pool."""
-        if self._connection_pool:
-            self._connection_pool.closeall()
-            logger.info("✅ Database connection pool closed")
-    
-    def get_pool_status(self) -> Dict[str, int]:
-        """
-        Get connection pool status.
-        
-        Returns:
-            Dictionary with pool statistics
-        """
-        if not self._connection_pool:
-            return {'total': 0, 'available': 0, 'used': 0}
-        
-        return {
-            'total': self._connection_pool.maxconn,
-            'available': len(self._connection_pool._pool),
-            'used': self._connection_pool.maxconn - len(self._connection_pool._pool)
-        }
 
     def export_table_to_csv(
         self,
@@ -477,6 +418,36 @@ class PostgreSQLDatabase:
 
         logger.info(f"✅ Imported {total_processed} records to '{table_name}'")
         return total_processed
+
+    def execute_query(
+        self,
+        query: str,
+        params: Optional[tuple] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Execute a SELECT query and return results as list of dictionaries.
+
+        Args:
+            query: SQL query string
+            params: Query parameters (optional)
+
+        Returns:
+            List of dictionaries representing query results
+        """
+        with self.get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, params)
+
+                # Get column names
+                columns = [desc[0] for desc in cursor.description] if cursor.description else []
+
+                # Fetch results and convert to dictionaries
+                results = []
+                for row in cursor.fetchall():
+                    results.append(dict(zip(columns, row)))
+
+                logger.info(f"✅ Query executed successfully, returned {len(results)} rows")
+                return results
 
 
 # Create singleton instance
