@@ -279,12 +279,14 @@ class TestPostgreSQLDatabase:
         mock_cursor.description = [('id',)]
         mock_cursor.fetchone.return_value = (123,)
         
-        # Execute INSERT
+        # Execute INSERT via generic execute_query
         db = PostgreSQLDatabase()
-        result_id = db.execute_insert(
+        db._connection = mock_pool_instance
+        results = db.execute_query(
             "INSERT INTO items (name, data) VALUES (%s, %s) RETURNING id",
             ('Test Item', '{"nested": {"key": "value"}}')
         )
+        result_id = results[0]['id'] if results and 'id' in results[0] else None
         
         # Verify result
         assert result_id == 123, "Should return inserted row ID"
@@ -319,10 +321,13 @@ class TestPostgreSQLDatabase:
         
         # Execute UPDATE
         db = PostgreSQLDatabase()
-        affected_rows = db.execute_update(
-            "UPDATE items SET metadata = %s WHERE category = %s",
+        db._connection = mock_pool_instance
+        mock_cursor.description = [('rowcount',)]
+        mock_cursor.fetchall.return_value = [(2,)]
+        affected_rows = db.execute_query(
+            "UPDATE items SET metadata = %s WHERE category = %s RETURNING 1 as rowcount",
             ('{"updated": true, "timestamp": "2024-01-01"}', 'test')
-        )
+        )[0]['rowcount']
         
         # Verify result
         assert affected_rows == 2, "Should return number of affected rows"
@@ -357,10 +362,13 @@ class TestPostgreSQLDatabase:
         
         # Execute DELETE
         db = PostgreSQLDatabase()
-        deleted_rows = db.execute_delete(
-            "DELETE FROM items WHERE created_at < %s",
+        db._connection = mock_pool_instance
+        mock_cursor.description = [('deleted',)]
+        mock_cursor.fetchall.return_value = [(3,)]
+        deleted_rows = db.execute_query(
+            "DELETE FROM items WHERE created_at < %s RETURNING 1 as deleted",
             ('2024-01-01',)
-        )
+        )[0]['deleted']
         
         # Verify result
         assert deleted_rows == 3, "Should return number of deleted rows"

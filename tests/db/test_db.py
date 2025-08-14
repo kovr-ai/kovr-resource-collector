@@ -84,13 +84,11 @@ class TestUnifiedDatabaseAbstraction:
         mock_settings.DB_PASSWORD = 'test_pass'
         mock_pool.return_value = Mock()
 
-        # Ensure no environment variable is set
+        # Ensure CSV backend is NOT selected by default
         if mock_settings.CSV_DATA:
             mock_settings.CSV_DATA = None
-
-        # Force CSV backend for this test
         from con_mon_v2.utils.config import settings as _settings
-        _settings.CSV_DATA = str(self.test_csv_dir)
+        _settings.CSV_DATA = None
         db = get_db()
         
         # Verify it's a PostgreSQL database
@@ -103,7 +101,9 @@ class TestUnifiedDatabaseAbstraction:
         """Test CSV database returns list of dictionaries with nested data."""
         print("\n🧪 Testing CSV Database List of Dicts Interface...")
         
-        # Get CSV database
+        # Force CSV backend for this test
+        from con_mon_v2.utils.config import settings as _settings
+        _settings.CSV_DATA = str(self.test_csv_dir)
         db = get_db()
         
         # Override directory for testing
@@ -210,15 +210,16 @@ class TestUnifiedDatabaseAbstraction:
         mock_pool_instance.getconn.return_value = mock_connection
         mock_pool.return_value = mock_pool_instance
         
-        # Set environment to use PostgreSQL
-
-        mock_settings.CSV_DATA = 'data/csv'
+        # Ensure Postgres backend (CSV disabled)
+        mock_settings.CSV_DATA = None
+        from con_mon_v2.utils.config import settings as _settings
+        _settings.CSV_DATA = None
 
         # Get PostgreSQL database
         db = get_db()
         
         # Ensure the connection pool is properly set
-        db._connection_pool = mock_pool_instance
+        db._connection = mock_pool_instance
         
         # Mock complex nested query results (as JSON strings from PostgreSQL)
         mock_cursor.description = [('id',), ('name',), ('profile',), ('config',)]
@@ -268,6 +269,9 @@ class TestUnifiedDatabaseAbstraction:
         """Test CSV database INSERT with nested dictionary data."""
         print("\n🧪 Testing CSV INSERT with Nested Dictionaries...")
         
+        # Force CSV backend for this test
+        from con_mon_v2.utils.config import settings as _settings
+        _settings.CSV_DATA = str(self.test_csv_dir)
         db = get_db()
         db._csv_directory = self.test_csv_dir
         
@@ -373,19 +377,20 @@ class TestUnifiedDatabaseAbstraction:
         db = get_db()
         
         # Ensure the connection pool is properly set
-        db._connection_pool = mock_pool_instance
+        db._connection = mock_pool_instance
         
         # Mock INSERT result
         mock_cursor.description = [('id',)]
         mock_cursor.fetchone.return_value = (123,)
         
-        # Execute INSERT with nested JSON data
+        # Execute INSERT with nested JSON data via execute_query
         nested_json_data = '{"user": {"profile": {"name": "John", "settings": {"theme": "dark", "notifications": ["email", "push"]}}, "metadata": {"created": "2024-01-01", "tags": ["admin", "verified"]}}}'
-        
-        result_id = db.execute_insert(
+        mock_cursor.description = [('id',)]
+        mock_cursor.fetchall.return_value = [(123,)]
+        result_id = db.execute_query(
             "INSERT INTO users (name, data) VALUES (%s, %s) RETURNING id",
             ('Test User', nested_json_data)
-        )
+        )[0]['id']
         
         # Verify INSERT behavior
         assert result_id == 123, "Should return inserted row ID"
@@ -463,6 +468,8 @@ class TestUnifiedDatabaseAbstraction:
         
         # Test CSV database
         print("  Testing CSV database consistency...")
+        from con_mon_v2.utils.config import settings as _settings
+        _settings.CSV_DATA = str(self.test_csv_dir)
         csv_db = get_db()
         csv_db._csv_directory = self.test_csv_dir
         
@@ -501,6 +508,8 @@ class TestUnifiedDatabaseAbstraction:
         print("\n🧪 Testing Error Handling Consistency...")
         
         # Test CSV database error handling
+        from con_mon_v2.utils.config import settings as _settings
+        _settings.CSV_DATA = str(self.test_csv_dir)
         csv_db = get_db()
         csv_db._csv_directory = self.test_csv_dir
         
