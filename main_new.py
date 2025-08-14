@@ -28,7 +28,7 @@ def main(
 
     # Use ResourceCollectionService for connector access
     service = ResourceCollectionService(connector_type)
-    resource_collection = service.get_resource_collection(credentials)
+    info_data, resource_collection = service.get_resource_collection(credentials)
     
     print(f"✅ Retrieved {len(resource_collection.resources)} {connector_type} resources")
 
