@@ -12,7 +12,7 @@ class InfoData(BaseModel):
     """
     Represents a single info data item that will be stored in connection.
     """
-    source_connector: str
+    pass
 
 
 class Resource(BaseModel):
