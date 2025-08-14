@@ -135,7 +135,7 @@ class CSVDatabase(_BaseSQLDatabase):
 
         class SimpleCSVConnectionPool:
             def __init__(self, csv_data: Optional[str] = None, minconn: int = 1, maxconn: int = 1, **kwargs):
-                self.csv_data = csv_data
+                self.directory = Path(csv_data)
                 self.minconn = minconn
                 self.maxconn = maxconn
                 self._pool = [SimpleCSVConnection()]
@@ -200,18 +200,11 @@ class CSVDatabase(_BaseSQLDatabase):
         except Exception:
             return {'total': 0, 'available': 0, 'used': 0}
 
-    @property
-    def _csv_directory(self) -> Optional[Path]:
-        """Resolve CSV directory from the active connection pool."""
-        pool = getattr(self, "_connection", None)
-        csv_data = getattr(pool, 'csv_data', None) if pool else None
-        return Path(csv_data) if csv_data else None
-
     def _get_table_path(self, table_name: str) -> Path:
         """Get the file path for a given table name."""
-        if not self._csv_directory:
+        if not self._connection.directory:
             raise Exception("CSV directory not initialized")
-        return self._csv_directory / f"{table_name}.csv"
+        return self._connection.directory / f"{table_name}.csv"
     
     def _table_exists(self, table_name: str) -> bool:
         """Check if a table (CSV file) exists."""
@@ -251,7 +244,7 @@ class CSVDatabase(_BaseSQLDatabase):
         try:
             base_name = table_name.replace('.csv', '')
             backup_pattern = f"{base_name}.bak_*"
-            backup_files = list(self._csv_directory.glob(backup_pattern))
+            backup_files = list(self._connection.directory.glob(backup_pattern))
             
             if len(backup_files) > keep_count:
                 # Sort by modification time, keep newest
@@ -815,10 +808,10 @@ class CSVDatabase(_BaseSQLDatabase):
             List of table names
         """
         try:
-            if not self._csv_directory:
+            if not self._connection.directory:
                 return []
             
-            csv_files = list(self._csv_directory.glob("*.csv"))
+            csv_files = list(self._connection.directory.glob("*.csv"))
             # Filter out backup files
             tables = [f.stem for f in csv_files if not any(x in f.name for x in ['.bak', '.deleted'])]
             
@@ -873,11 +866,11 @@ class CSVDatabase(_BaseSQLDatabase):
             True if connection is successful, False otherwise
         """
         try:
-            if not self._csv_directory:
+            if not self._connection.directory:
                 return False
             
             # Test by creating and removing a temporary file
-            test_file = self._csv_directory / ".test_connection"
+            test_file = self._connection.directory / ".test_connection"
             test_file.touch()
             test_file.unlink()
             
@@ -896,18 +889,18 @@ class CSVDatabase(_BaseSQLDatabase):
             Dictionary with directory statistics
         """
         try:
-            if not self._csv_directory:
+            if not self._connection.directory:
                 return {'accessible': False}
             
             tables = self.list_tables()
-            csv_files = list(self._csv_directory.glob("*.csv"))
-            backup_files = list(self._csv_directory.glob("*.bak*"))
+            csv_files = list(self._connection.directory.glob("*.csv"))
+            backup_files = list(self._connection.directory.glob("*.bak*"))
             
             total_size = sum(f.stat().st_size for f in csv_files)
             
             return {
                 'accessible': True,
-                'directory': str(self._csv_directory.absolute()),
+                'directory': str(self._connection.directory.absolute()),
                 'table_count': len(tables),
                 'total_files': len(csv_files),
                 'backup_files': len(backup_files),
