@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 from typing import Any, Callable, Dict, List, Optional, Type, Union
 from con_mon_v2.connectors import ConnectorService, ConnectorInput, ConnectorType
 from pathlib import Path
-from con_mon_v2.resources.models import Resource, ResourceCollection
+from con_mon_v2.resources.models import InfoData, Resource, ResourceCollection
 
 
 class ConnectorYamlMapping(BaseModel):
@@ -185,20 +185,16 @@ class ConnectorYamlMapping(BaseModel):
 
         result = {}
         for provider_name, provider_data in yaml_data.items():
-            try:
-                connector_data = provider_data.get('connector', {})
-                connector_class = cls._create_connector_service_class(connector_data)
-                input_class = cls._create_connector_input_class(
-                    {k: v for k, v in provider_data.get('input', {}).items() if k != 'name'},  # Exclude name from fields
-                    provider_data.get('input', {}).get('name', connector_data.get('name', provider_name))  # Use input name or fallback
-                )
-                result[provider_name] = cls(
-                    connector=connector_class,
-                    input=input_class
-                )
-            except Exception as e:
-                raise ValueError(f"Error processing connector '{provider_name}': {str(e)}")
-
+            connector_data = provider_data.get('connector', {})
+            connector_class = cls._create_connector_service_class(connector_data)
+            input_class = cls._create_connector_input_class(
+                {k: v for k, v in provider_data.get('input', {}).items() if k != 'name'},  # Exclude name from fields
+                provider_data.get('input', {}).get('name', connector_data.get('name', provider_name))  # Use input name or fallback
+            )
+            result[provider_name] = cls(
+                connector=connector_class,
+                input=input_class
+            )
         return result
 
 
@@ -331,6 +327,7 @@ class YamlModelMapping(BaseModel):
 
 class ResourceYamlMapping(BaseModel):
     connector_type: str
+    info_data: YamlModelMapping
     resources: List[YamlModelMapping]
     resources_collection: YamlModelMapping
 
@@ -382,6 +379,26 @@ class ResourceYamlMapping(BaseModel):
         return model_mapping
 
     @classmethod
+    def _process_info_data(
+            cls,
+            connector_type: str,
+            info_data_def: dict[str, Any]
+    ) -> YamlModelMapping:
+        """Process resource collection definition."""
+        info_data_name = f"{connector_type.title()}InfoData"
+
+        # Create collection model inheriting from ResourceCollection
+        fields_dict = {info_data_name: info_data_def}
+        model_mapping = YamlModelMapping.load_yaml(fields_dict)
+        model_mapping.pydantic_model = YamlModelMapping.create_yaml_model(
+            name=info_data_name,
+            annotations=model_mapping.pydantic_model.__annotations__,
+            fields={k: v for k, v in model_mapping.pydantic_model.__dict__.items() if not k.startswith('_')},
+            base_class=InfoData
+        )
+        return model_mapping
+
+    @classmethod
     def load_yaml(
             cls,
             path_or_dict: str | dict
@@ -396,9 +413,12 @@ class ResourceYamlMapping(BaseModel):
                 resource_mapping = cls._process_resource(resource_name, resource_def)
                 resources.append(resource_mapping)
             collection_data = provider_data.get('resource_collection', {})
+            info_data_data = provider_data.get('info_data', {})
             collection_mapping = cls._process_collection(provider_name, collection_data)
+            info_data_mapping = cls._process_info_data(provider_name, info_data_data)
             result[provider_name] = cls(
                 connector_type=provider_name,
+                info_data=info_data_mapping,
                 resources=resources,
                 resources_collection=collection_mapping
             )

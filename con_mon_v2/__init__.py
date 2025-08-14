@@ -42,8 +42,11 @@ def _load_mappings():
 
             # Add collection model class
             collection_model = mapping.resources_collection.pydantic_model
+            info_data_model = mapping.info_data.pydantic_model
             setattr(provider_module, collection_model.__name__, collection_model)
+            setattr(provider_module, info_data_model.__name__, info_data_model)
 
+    # from pdb import set_trace;set_trace()
     # Load connector mappings after resources are loaded
     connectors_yaml = Path(__file__).parent / 'connectors' / 'connectors.yaml'
     if connectors_yaml.exists():

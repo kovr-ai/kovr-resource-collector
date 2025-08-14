@@ -8,6 +8,13 @@ from pydantic.fields import FieldInfo
 from datetime import datetime
 
 
+class InfoData(BaseModel):
+    """
+    Represents a single info data item that will be stored in connection.
+    """
+    source_connector: str
+
+
 class Resource(BaseModel):
     """
     Represents a single resource item that checks will evaluate.
