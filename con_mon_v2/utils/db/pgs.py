@@ -434,35 +434,35 @@ class PostgreSQLDatabase(SQLDatabase):
         logger.info(f"✅ Imported {total_processed} records to '{table_name}'")
         return total_processed
 
-    def execute_query(
-        self,
-        query: str,
-        params: Optional[tuple] = None
-    ) -> List[Dict[str, Any]]:
-        """
-        Execute a SELECT query and return results as list of dictionaries.
-
-        Args:
-            query: SQL query string
-            params: Query parameters (optional)
-
-        Returns:
-            List of dictionaries representing query results
-        """
+    # DML helpers (explicit)
+    def execute_insert(self, query: str, params: Optional[tuple] = None) -> List[Dict[str, Any]]:
+        """Execute INSERT and return rows from RETURNING if present; commit transaction."""
         with self.get_connection() as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query, params)
-
-                # Get column names
+                conn.commit()
                 columns = [desc[0] for desc in cursor.description] if cursor.description else []
+                if columns:
+                    return [dict(zip(columns, row)) for row in cursor.fetchall()]
+                return []
 
-                # Fetch results and convert to dictionaries
-                results = []
-                for row in cursor.fetchall():
-                    results.append(dict(zip(columns, row)))
+    def execute_update(self, query: str, params: Optional[tuple] = None) -> int:
+        """Execute UPDATE and return affected row count; commit transaction."""
+        with self.get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, params)
+                affected = cursor.rowcount
+                conn.commit()
+                return affected
 
-                logger.info(f"✅ Query executed successfully, returned {len(results)} rows")
-                return results
+    def execute_delete(self, query: str, params: Optional[tuple] = None) -> int:
+        """Execute DELETE and return affected row count; commit transaction."""
+        with self.get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, params)
+                affected = cursor.rowcount
+                conn.commit()
+                return affected
 
 
 # Create singleton instance

@@ -142,8 +142,20 @@ class SQLDatabase:
 
     # DB OPERATIONS
     def execute(self, method: str, *args, **kwargs) -> List[Dict[str, Any]]:
-        sql_parser = self.SQLParser(*args, **kwargs)
-        return self.execute_query(getattr(sql_parser, f'{method}_query'))
+        execute_function = getattr(self, f'execute_{method}')
+        return execute_function(
+            *getattr(self.SQLParser(*args, **kwargs), f'{method}_query')
+        )
 
-    def execute_query(self, *args, **kwargs) -> Any:
+    # DML OPERATIONS
+    def execute_insert(self, *args, **kwargs) -> Any:
+        """Execute an INSERT operation. Return driver-appropriate result (e.g., inserted id or rows)."""
+        raise NotImplementedError()
+
+    def execute_update(self, *args, **kwargs) -> int:
+        """Execute an UPDATE operation. Return affected row count."""
+        raise NotImplementedError()
+
+    def execute_delete(self, *args, **kwargs) -> int:
+        """Execute a DELETE operation. Return affected row count."""
         raise NotImplementedError()

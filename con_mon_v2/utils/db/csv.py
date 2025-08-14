@@ -81,11 +81,11 @@ class CSVDatabase(_BaseSQLDatabase):
             if not self.update:
                 raise ValueError("Update operation requires a non-empty `update` mapping")
             return {
-                    'op': 'update',
-                    'table_name': self.table_name,
-                    'values': dict(self.update),
-                    'where': self._build_where(),
-                }
+                'op': 'update',
+                'table_name': self.table_name,
+                'values': dict(self.update),
+                'where': self._build_where(),
+            }
 
         @property
         def update_params(self) -> list:
