@@ -16,7 +16,7 @@ from datetime import datetime
 from abc import ABC, abstractmethod
 from functools import lru_cache
 
-from con_mon_v2.compliance.models import (
+from con_mon.compliance.models import (
     Check, 
     CheckMetadata, 
     CheckOperation, 
@@ -25,8 +25,8 @@ from con_mon_v2.compliance.models import (
     ComparisonOperationEnum,
     CheckResult
 )
-from con_mon_v2.connectors.models import ConnectorType
-from con_mon_v2.resources import Resource
+from con_mon.connectors.models import ConnectorType
+from con_mon.resources import Resource
 from .client import get_llm_client, LLMRequest, LLMResponse
 
 
@@ -303,7 +303,7 @@ class ProviderConfig:
         """Dynamically import and return the Resource class for a given resource name."""
         try:
             # Construct the full module path
-            module_path = f"con_mon_v2.mappings.{self.provider_name}"
+            module_path = f"con_mon.mappings.{self.provider_name}"
             # Import the module and get the class
             module = __import__(module_path, fromlist=[resource_name])
             resource_class = getattr(module, resource_name)
@@ -433,7 +433,7 @@ class CheckPrompt(ABC):
             'provider_name': self.provider_config.provider_name,
             'connector_type': self.connector_type.value,
             'resource_model_name': self.resource_model_name,
-            'resource_type_full_path': f"con_mon_v2.mappings.{self.provider_config.provider_name}.{self.resource_model_name}",
+            'resource_type_full_path': f"con_mon.mappings.{self.provider_config.provider_name}.{self.resource_model_name}",
             
             # Classification (use defaults, can be overridden via parameters)
             'suggested_severity': self.suggested_severity,

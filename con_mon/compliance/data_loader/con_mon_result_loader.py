@@ -4,7 +4,7 @@ Check results data loaders for con_mon_results and con_mon_results_history table
 
 from typing import List, Optional
 from .base import BaseLoader
-from con_mon_v2.compliance.models.con_mon_result import ConMonResult, ConMonResultHistory
+from con_mon.compliance.models.con_mon_result import ConMonResult, ConMonResultHistory
 from datetime import datetime
 
 

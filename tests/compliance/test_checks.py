@@ -1,8 +1,8 @@
 """Test checks CSV loading functionality."""
 
 from datetime import datetime
-from con_mon_v2.compliance.models import Check, CheckMetadata, OutputStatements, FixDetails, CheckOperation, ComparisonOperationEnum, ComparisonOperation
-from con_mon_v2.resources import Resource
+from con_mon.compliance.models import Check, CheckMetadata, OutputStatements, FixDetails, CheckOperation, ComparisonOperationEnum, ComparisonOperation
+from con_mon.resources import Resource
 
 # Mock Resource for testing
 class MockResource(Resource):

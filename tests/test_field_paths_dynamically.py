@@ -2,9 +2,9 @@
 from typing import List, Dict, Any, Type, get_origin, get_args
 import inspect
 
-from con_mon_v2.utils.services import ResourceCollectionService
-from con_mon_v2.resources import ResourceCollection, Resource
-from con_mon_v2.compliance.models import (
+from con_mon.utils.services import ResourceCollectionService
+from con_mon.resources import ResourceCollection, Resource
+from con_mon.compliance.models import (
     Check, CheckMetadata, OutputStatements, FixDetails,
     CheckOperation, ComparisonOperationEnum, CheckResult
 )
@@ -50,7 +50,7 @@ def setup_test_check() -> Check:
     metadata = CheckMetadata(
         operation=CheckOperation(name=ComparisonOperationEnum.CUSTOM, logic="result = True"),
         field_path="test.path",
-        resource_type="con_mon_v2.mappings.github.GithubResource",
+        resource_type="con_mon.mappings.github.GithubResource",
         tags=["test"],
         category="test",
         severity="medium",
@@ -112,9 +112,9 @@ def test_field_paths_dynamically():
             
             # Update check to match current resource
             if provider == 'github':
-                check.metadata.resource_type = f"con_mon_v2.mappings.github.{resource_name}"
+                check.metadata.resource_type = f"con_mon.mappings.github.{resource_name}"
             elif provider == 'aws':
-                check.metadata.resource_type = f"con_mon_v2.mappings.aws.{resource_name}"
+                check.metadata.resource_type = f"con_mon.mappings.aws.{resource_name}"
             
             # Test each field path
             failed_paths = []

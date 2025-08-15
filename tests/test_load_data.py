@@ -1,5 +1,5 @@
 """Tests for loading and validating resource data from all connectors."""
-from con_mon_v2.utils.services import ResourceCollectionService
+from con_mon.utils.services import ResourceCollectionService
 
 
 def test_load_data():

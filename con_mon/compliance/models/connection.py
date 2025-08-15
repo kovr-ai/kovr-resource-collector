@@ -1,5 +1,5 @@
 """
-Connection model for con_mon_v2.
+Connection model for con_mon.
 
 Represents external service connections (GitHub, AWS, Google Workspace, etc.)
 that are used to collect resources for compliance checking.

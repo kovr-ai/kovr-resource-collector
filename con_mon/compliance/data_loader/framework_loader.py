@@ -3,7 +3,7 @@ Framework data loader - loads Framework records from database.
 """
 
 from .base import BaseLoader
-from con_mon_v2.compliance.models import Framework
+from con_mon.compliance.models import Framework
 
 
 class FrameworkLoader(BaseLoader):

@@ -5,7 +5,7 @@ This data_loader package provides individual loaders for each model type, focusi
 ## 📁 File Structure
 
 ```
-con_mon_v2/compliance/data_loader/
+con_mon/compliance/data_loader/
 ├── __init__.py                           # Package exports
 ├── README.md                             # This documentation
 ├── base.py                               # BaseLoader with common DB functionality
@@ -39,7 +39,7 @@ con_mon_v2/compliance/data_loader/
 ### Basic Usage
 
 ```python
-from con_mon_v2.compliance.data_loader import FrameworkLoader, ControlLoader
+from con_mon.compliance.data_loader import FrameworkLoader, ControlLoader
 
 # Load all frameworks
 framework_loader = FrameworkLoader()
@@ -55,7 +55,7 @@ print(f"Loaded {len(frameworks)} frameworks and {len(controls)} controls")
 ### Load by IDs
 
 ```python
-from con_mon_v2.compliance.data_loader import StandardLoader
+from con_mon.compliance.data_loader import StandardLoader
 
 # Load specific standards by ID
 standard_loader = StandardLoader()
@@ -67,7 +67,7 @@ print(f"Loaded {len(standards)} specific standards")
 ### JSONB Field Handling (Checks)
 
 ```python
-from con_mon_v2.compliance.data_loader import ChecksLoader
+from con_mon.compliance.data_loader import ChecksLoader
 
 # Load checks with JSONB fields
 checks_loader = ChecksLoader()

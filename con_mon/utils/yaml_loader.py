@@ -8,9 +8,9 @@ from enum import Enum
 from datetime import datetime
 from pydantic import BaseModel, Field
 from typing import Any, Callable, Dict, List, Optional, Type, Union
-from con_mon_v2.connectors import ConnectorService, ConnectorInput, ConnectorType
+from con_mon.connectors import ConnectorService, ConnectorInput, ConnectorType
 from pathlib import Path
-from con_mon_v2.resources.models import InfoData, Resource, ResourceCollection
+from con_mon.resources.models import InfoData, Resource, ResourceCollection
 
 
 class ConnectorYamlMapping(BaseModel):

@@ -7,7 +7,7 @@ from typing import Dict, Any, List
 import psycopg2
 
 # Import the PostgreSQL database class directly
-from con_mon_v2.utils.db.pgs import PostgreSQLDatabase, get_db as get_pgs_db
+from con_mon.utils.db.pgs import PostgreSQLDatabase, get_db as get_pgs_db
 
 
 class TestPostgreSQLDatabase:
@@ -25,7 +25,7 @@ class TestPostgreSQLDatabase:
         PostgreSQLDatabase._instance = None
         PostgreSQLDatabase._initialized = False
     
-    @patch('con_mon_v2.utils.db.pgs.settings')
+    @patch('con_mon.utils.db.pgs.settings')
     @patch('psycopg2.pool.SimpleConnectionPool')
     def test_singleton_pattern(self, mock_pool, mock_settings):
         """Test that PostgreSQLDatabase follows singleton pattern."""
@@ -43,8 +43,8 @@ class TestPostgreSQLDatabase:
         db2 = PostgreSQLDatabase()
         
         # Update module-level instance to match current singleton for testing
-        import con_mon_v2.utils.db.pgs
-        con_mon_v2.utils.db.pgs.db = db1
+        import con_mon.utils.db.pgs
+        con_mon.utils.db.pgs.db = db1
         db3 = get_pgs_db()
         
         # Verify they are all the same instance
@@ -65,15 +65,15 @@ class TestPostgreSQLDatabase:
         PostgreSQLDatabase._initialized = False
         
         # Also reset the module-level instance for complete testing
-        import con_mon_v2.utils.db.pgs
-        original_module_db = con_mon_v2.utils.db.pgs.db
+        import con_mon.utils.db.pgs
+        original_module_db = con_mon.utils.db.pgs.db
         
         # Create new instances after reset
         db4 = PostgreSQLDatabase()
         db5 = PostgreSQLDatabase()
         
         # Update module-level instance to the new singleton for testing
-        con_mon_v2.utils.db.pgs.db = db4
+        con_mon.utils.db.pgs.db = db4
         db6 = get_pgs_db()
         
         # Verify new instances are also singletons
@@ -85,12 +85,12 @@ class TestPostgreSQLDatabase:
         assert db4 is not original_instance, "New instance should be different from original after reset"
         
         # Restore original module-level instance
-        con_mon_v2.utils.db.pgs.db = original_module_db
+        con_mon.utils.db.pgs.db = original_module_db
         
         print("✅ Manual singleton recreation test passed")
         print("✅ PostgreSQL singleton pattern test completed successfully")
     
-    @patch('con_mon_v2.utils.db.pgs.settings')
+    @patch('con_mon.utils.db.pgs.settings')
     @patch('psycopg2.pool.SimpleConnectionPool')
     def test_initialization_success(self, mock_pool, mock_settings):
         """Test successful database initialization."""
@@ -127,7 +127,7 @@ class TestPostgreSQLDatabase:
         
         print("✅ PostgreSQL initialization test passed")
     
-    @patch('con_mon_v2.utils.db.pgs.settings')
+    @patch('con_mon.utils.db.pgs.settings')
     @patch('psycopg2.pool.SimpleConnectionPool')
     def test_initialization_failure(self, mock_pool, mock_settings):
         """Test database initialization failure handling."""
@@ -152,7 +152,7 @@ class TestPostgreSQLDatabase:
         
         print("✅ PostgreSQL initialization failure test passed")
     
-    @patch('con_mon_v2.utils.db.pgs.settings')
+    @patch('con_mon.utils.db.pgs.settings')
     @patch('psycopg2.pool.SimpleConnectionPool')
     def test_execute_query_success(self, mock_pool, mock_settings):
         """Test successful execution returning list of dictionaries via RETURNING."""
@@ -213,7 +213,7 @@ class TestPostgreSQLDatabase:
         
         print("✅ PostgreSQL query execution test passed")
     
-    @patch('con_mon_v2.utils.db.pgs.settings')
+    @patch('con_mon.utils.db.pgs.settings')
     @patch('psycopg2.pool.SimpleConnectionPool')
     def test_execute_query_with_params(self, mock_pool, mock_settings):
         """Test execution with parameters via RETURNING mapping."""
@@ -259,7 +259,7 @@ class TestPostgreSQLDatabase:
         
         print("✅ PostgreSQL parameterized query test passed")
     
-    @patch('con_mon_v2.utils.db.pgs.settings')
+    @patch('con_mon.utils.db.pgs.settings')
     @patch('psycopg2.pool.SimpleConnectionPool')
     def test_execute_insert(self, mock_pool, mock_settings):
         """Test INSERT operation."""
@@ -302,7 +302,7 @@ class TestPostgreSQLDatabase:
         
         print("✅ PostgreSQL INSERT test passed")
     
-    @patch('con_mon_v2.utils.db.pgs.settings')
+    @patch('con_mon.utils.db.pgs.settings')
     @patch('psycopg2.pool.SimpleConnectionPool')
     def test_execute_update(self, mock_pool, mock_settings):
         """Test UPDATE operation."""
@@ -341,7 +341,7 @@ class TestPostgreSQLDatabase:
         
         print("✅ PostgreSQL UPDATE test passed")
     
-    @patch('con_mon_v2.utils.db.pgs.settings')
+    @patch('con_mon.utils.db.pgs.settings')
     @patch('psycopg2.pool.SimpleConnectionPool')
     def test_execute_delete(self, mock_pool, mock_settings):
         """Test DELETE operation."""
@@ -380,7 +380,7 @@ class TestPostgreSQLDatabase:
         
         print("✅ PostgreSQL DELETE test passed")
     
-    @patch('con_mon_v2.utils.db.pgs.settings')
+    @patch('con_mon.utils.db.pgs.settings')
     @patch('psycopg2.pool.SimpleConnectionPool')
     def test_connection_error_handling(self, mock_pool, mock_settings):
         """Test database connection error handling."""
@@ -405,7 +405,7 @@ class TestPostgreSQLDatabase:
         
         print("✅ PostgreSQL connection error handling test passed")
     
-    @patch('con_mon_v2.utils.db.pgs.settings')
+    @patch('con_mon.utils.db.pgs.settings')
     @patch('psycopg2.pool.SimpleConnectionPool')
     def test_test_connection(self, mock_pool, mock_settings):
         """Test connection testing functionality."""
@@ -438,7 +438,7 @@ class TestPostgreSQLDatabase:
         
         print("✅ PostgreSQL connection test passed")
     
-    @patch('con_mon_v2.utils.db.pgs.settings')
+    @patch('con_mon.utils.db.pgs.settings')
     @patch('psycopg2.pool.SimpleConnectionPool')
     def test_complex_nested_data_handling(self, mock_pool, mock_settings):
         """Test handling of complex nested data structures."""

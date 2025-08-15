@@ -5,8 +5,8 @@ Handles JSONB fields properly.
 
 from typing import List, Type
 from .base import BaseLoader
-from con_mon_v2.compliance.models import Check
-from con_mon_v2.resources import Resource
+from con_mon.compliance.models import Check
+from con_mon.resources import Resource
 
 
 class ChecksLoader(BaseLoader):

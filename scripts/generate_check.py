@@ -4,12 +4,12 @@ Script to generate compliance checks from controls using LLM.
 """
 
 from typing import List
-from con_mon_v2.compliance.models import Check, CheckResult
-from con_mon_v2.utils.llm.generate import (
+from con_mon.compliance.models import Check, CheckResult
+from con_mon.utils.llm.generate import (
     generate_checks_for_all_providers,
     evaluate_check_against_rc,
 )
-from con_mon_v2.compliance import ControlLoader
+from con_mon.compliance import ControlLoader
 
 
 def generate_for_control_with_self_improvement(

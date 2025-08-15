@@ -27,9 +27,9 @@ import sys
 from typing import List, Dict, Type
 from pathlib import Path
 
-from con_mon_v2.utils.db.pgs import get_db as get_pgs_db
-from con_mon_v2.compliance.data_loader.base import BaseLoader
-from con_mon_v2.compliance.data_loader import (
+from con_mon.utils.db.pgs import get_db as get_pgs_db
+from con_mon.compliance.data_loader.base import BaseLoader
+from con_mon.compliance.data_loader import (
     ChecksLoader,
     ConnectionLoader,
     FrameworkLoader,

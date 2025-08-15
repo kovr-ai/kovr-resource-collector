@@ -14,14 +14,14 @@ from datetime import datetime
 from typing import Any, Dict, List
 import pytest
 
-from con_mon_v2.compliance.models import (
+from con_mon.compliance.models import (
     Check, CheckMetadata, CheckOperation, OutputStatements, 
     FixDetails, ComparisonOperationEnum, ComparisonOperation
 )
-from con_mon_v2.compliance.data_loader import ChecksLoader
-from con_mon_v2.connectors.models import ConnectorType
-from con_mon_v2.resources.models import Resource, ResourceCollection
-from con_mon_v2.utils.services import ResourceCollectionService
+from con_mon.compliance.data_loader import ChecksLoader
+from con_mon.connectors.models import ConnectorType
+from con_mon.resources.models import Resource, ResourceCollection
+from con_mon.utils.services import ResourceCollectionService
 
 
 class TestCheckCreationFlow:
@@ -56,7 +56,7 @@ class TestCheckCreationFlow:
                 'automation_available': False
             }),
             'metadata': json.dumps({
-                'resource_type': 'con_mon_v2.mappings.github.GithubResource',
+                'resource_type': 'con_mon.mappings.github.GithubResource',
                 'field_path': 'organization_data.members',
                 'operation': {
                     'name': 'custom',
@@ -83,7 +83,7 @@ class TestCheckCreationFlow:
         assert len(check.fix_details.instructions) == 2
         
         # Validate metadata structure
-        assert check.metadata.resource_type == 'con_mon_v2.mappings.github.GithubResource'
+        assert check.metadata.resource_type == 'con_mon.mappings.github.GithubResource'
         assert check.metadata.field_path == 'organization_data.members'
         assert check.metadata.operation.name == ComparisonOperationEnum.CUSTOM
         assert 'len([m for m in fetched_value' in check.metadata.operation.logic
@@ -96,7 +96,7 @@ class TestCheckCreationFlow:
         """Test JSONB fields parse correctly from JSON strings."""
         # Test complex nested JSONB structure
         complex_metadata = {
-            'resource_type': 'con_mon_v2.mappings.aws.IAMResource',
+            'resource_type': 'con_mon.mappings.aws.IAMResource',
             'field_path': 'users.access_keys',
             'operation': {
                 'name': 'custom',
@@ -390,7 +390,7 @@ if fetched_value and isinstance(fetched_value, list):
                 'automation_available': False
             }),
             'metadata': json.dumps({
-                'resource_type': 'con_mon_v2.mappings.github.GithubResource',
+                'resource_type': 'con_mon.mappings.github.GithubResource',
                 'field_path': 'repository_data.basic_info.name',
                 'operation': {
                     'name': 'custom',
@@ -497,7 +497,7 @@ class TestSchemaConsistency:
             'output_statements': json.dumps({'success': 'OK', 'failure': 'FAIL', 'partial': 'PARTIAL'}),
             'fix_details': json.dumps({'description': 'Fix', 'instructions': ['Step 1'], 'estimated_time': '1 hour', 'automation_available': False}),
             'metadata': json.dumps({
-                'resource_type': 'con_mon_v2.mappings.github.GithubResource',
+                'resource_type': 'con_mon.mappings.github.GithubResource',
                 'field_path': 'repository_data.basic_info.name',
                 'operation': {'name': 'custom', 'logic': 'result = True'},
                 'expected_value': None,

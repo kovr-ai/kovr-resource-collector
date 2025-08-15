@@ -3,7 +3,7 @@ Control data loader - loads Control records from database.
 """
 
 from .base import BaseLoader
-from con_mon_v2.compliance.models import Control
+from con_mon.compliance.models import Control
 
 
 class ControlLoader(BaseLoader):

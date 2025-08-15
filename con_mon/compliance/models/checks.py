@@ -8,7 +8,7 @@ from datetime import datetime
 from pydantic import Field, BaseModel as PydanticBaseModel
 
 from .base import TableModel
-from con_mon_v2.resources import Resource
+from con_mon.resources import Resource
 
 
 class ComparisonOperationEnum(Enum):
@@ -180,7 +180,7 @@ class CheckMetadata(PydanticBaseModel):
         "severity": "medium",
         "operation": {"name": "custom", "logic": "..."},
         "field_path": "repository_data.basic_info.description",
-        "resource_type": "con_mon_v2.mappings.github.GithubResource",
+        "resource_type": "con_mon.mappings.github.GithubResource",
         "expected_value": null
     }
     """
@@ -264,7 +264,7 @@ class Check(TableModel):
         if not self.metadata.resource_type:
             raise ValueError("Resource type not specified in metadata")
         
-        # Handle string resource type paths like "con_mon_v2.mappings.github.GithubResource"
+        # Handle string resource type paths like "con_mon.mappings.github.GithubResource"
         resource_type_str = self.metadata.resource_type
         
         try:

@@ -16,11 +16,11 @@ import yaml
 from unittest.mock import patch, Mock
 import pytest
 
-from con_mon_v2.utils.llm import CheckPrompt, generate_check
-from con_mon_v2.connectors import ConnectorType
-from con_mon_v2.compliance.models import ComparisonOperationEnum
-from con_mon_v2.utils.llm.client import LLMResponse
-from con_mon_v2.resources import Resource
+from con_mon.utils.llm import CheckPrompt, generate_check
+from con_mon.connectors import ConnectorType
+from con_mon.compliance.models import ComparisonOperationEnum
+from con_mon.utils.llm.client import LLMResponse
+from con_mon.resources import Resource
 
 
 # Mock Resources for testing enhanced field extraction
@@ -190,7 +190,7 @@ class TestCheckPromptWithMocks:
         assert check_dict['metadata']['field_path'] == "any(repository_data.branches.*.protection_details.enabled)"
         
         # Create Check object (simulating from_row)
-        from con_mon_v2.compliance.models import Check
+        from con_mon.compliance.models import Check
         from datetime import datetime
         import json
         
@@ -239,7 +239,7 @@ class TestCheckPromptWithMocks:
         assert check_dict['metadata']['field_path'] == "count(instances.*.security_groups.*.inbound_rules.*)"
         
         # Create Check object
-        from con_mon_v2.compliance.models import Check
+        from con_mon.compliance.models import Check
         from datetime import datetime
         import json
         
@@ -290,7 +290,7 @@ class TestCheckPromptWithMocks:
     def test_enhanced_field_extraction_functions(self):
         """Test various enhanced field extraction functions"""
         # Create a test check for function testing
-        from con_mon_v2.compliance.models import Check, CheckMetadata, OutputStatements, FixDetails, CheckOperation, ComparisonOperationEnum
+        from con_mon.compliance.models import Check, CheckMetadata, OutputStatements, FixDetails, CheckOperation, ComparisonOperationEnum
         from datetime import datetime
         
         metadata = CheckMetadata(
@@ -391,7 +391,7 @@ class TestCheckPromptWithMocks:
         
         print("✅ Mock YAML schema compliance test passed")
     
-    @patch('con_mon_v2.utils.llm.prompt.get_llm_client')
+    @patch('con_mon.utils.llm.prompt.get_llm_client')
     def test_end_to_end_prompt_to_check_flow(self, mock_get_llm_client):
         """Test complete flow from prompt generation to check validation"""
         
@@ -486,7 +486,7 @@ class TestCheckPromptWithMocks:
         
         print("✅ End-to-end prompt to check flow test passed")
 
-    @patch('con_mon_v2.utils.llm.prompt.get_llm_client')
+    @patch('con_mon.utils.llm.prompt.get_llm_client')
     def test_enhanced_end_to_end_flow(self, mock_get_llm_client):
         """Test end-to-end flow with enhanced field extraction mocks"""
         
@@ -563,7 +563,7 @@ class TestCheckPromptWithMocks:
         
         print("✅ Provider-specific field paths test passed")
     
-    @patch('con_mon_v2.utils.llm.prompt.get_llm_client')
+    @patch('con_mon.utils.llm.prompt.get_llm_client')
     def test_template_variable_generation(self, mock_get_llm_client):
         """Test that template variables are generated correctly"""
         
@@ -609,7 +609,7 @@ class TestCheckPromptWithMocks:
         assert vars['provider_name'] == 'github'
         assert vars['connector_type'] == 'github'
         assert vars['resource_model_name'] == 'GithubResource'
-        assert vars['resource_type_full_path'] == 'con_mon_v2.mappings.github.GithubResource'
+        assert vars['resource_type_full_path'] == 'con_mon.mappings.github.GithubResource'
         
         # Test custom severity/category
         assert vars['suggested_severity'] == 'high'

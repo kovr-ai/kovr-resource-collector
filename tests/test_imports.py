@@ -1,6 +1,6 @@
 """Test that all dynamic imports work correctly."""
 
-from con_mon_v2.compliance.data_loader import ChecksLoader
+from con_mon.compliance.data_loader import ChecksLoader
 
 def test_imports():
     """Try importing all possible paths from our dynamic mapping system."""
@@ -10,25 +10,25 @@ def test_imports():
     # List of all expected imports
     imports_to_test = [
         # Base mappings
-        "from con_mon_v2 import mappings",
+        "from con_mon import mappings",
 
         # GitHub imports
-        "from con_mon_v2.mappings.github import GithubConnectorService",
-        "from con_mon_v2.mappings.github import GithubConnectorInput",
-        "from con_mon_v2.mappings.github import github_connector_service",
-        "from con_mon_v2.mappings.github import GithubResource",
-        "from con_mon_v2.mappings.github import GithubResourceCollection",
+        "from con_mon.mappings.github import GithubConnectorService",
+        "from con_mon.mappings.github import GithubConnectorInput",
+        "from con_mon.mappings.github import github_connector_service",
+        "from con_mon.mappings.github import GithubResource",
+        "from con_mon.mappings.github import GithubResourceCollection",
 
         # AWS imports
-        "from con_mon_v2.mappings.aws import AwsConnectorService",
-        "from con_mon_v2.mappings.aws import AwsConnectorInput",
-        "from con_mon_v2.mappings.aws import aws_connector_service",
-        "from con_mon_v2.mappings.aws import EC2Resource",
-        "from con_mon_v2.mappings.aws import S3Resource",
-        "from con_mon_v2.mappings.aws import IAMResource",
-        "from con_mon_v2.mappings.aws import CloudTrailResource",
-        "from con_mon_v2.mappings.aws import CloudWatchResource",
-        "from con_mon_v2.mappings.aws import AwsResourceCollection"
+        "from con_mon.mappings.aws import AwsConnectorService",
+        "from con_mon.mappings.aws import AwsConnectorInput",
+        "from con_mon.mappings.aws import aws_connector_service",
+        "from con_mon.mappings.aws import EC2Resource",
+        "from con_mon.mappings.aws import S3Resource",
+        "from con_mon.mappings.aws import IAMResource",
+        "from con_mon.mappings.aws import CloudTrailResource",
+        "from con_mon.mappings.aws import CloudWatchResource",
+        "from con_mon.mappings.aws import AwsResourceCollection"
     ]
 
     print("\nTesting imports...")

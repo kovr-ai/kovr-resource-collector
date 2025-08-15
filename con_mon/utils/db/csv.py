@@ -14,13 +14,13 @@ import logging
 from pathlib import Path
 import shutil
 from datetime import datetime
-from con_mon_v2.utils.config import settings
+from con_mon.utils.config import settings
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-from con_mon_v2.utils.db.base import SQLDatabase as _BaseSQLDatabase  # for interface parity only
+from con_mon.utils.db.base import SQLDatabase as _BaseSQLDatabase  # for interface parity only
 
 
 class CSVDatabase(_BaseSQLDatabase):

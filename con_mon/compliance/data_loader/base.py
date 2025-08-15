@@ -5,8 +5,8 @@ Base data loader class for database operations.
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Type, Optional
 from pathlib import Path
-from con_mon_v2.utils.db import get_db
-from con_mon_v2.compliance.models.base import TableModel
+from con_mon.utils.db import get_db
+from con_mon.compliance.models.base import TableModel
 from datetime import datetime
 
 

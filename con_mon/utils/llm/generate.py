@@ -1,15 +1,15 @@
 from typing import List, Dict
-from con_mon_v2.utils.services import ResourceCollectionService
-from con_mon_v2.connectors import ConnectorType
-from con_mon_v2.utils.yaml_loader import ResourceYamlMapping
+from con_mon.utils.services import ResourceCollectionService
+from con_mon.connectors import ConnectorType
+from con_mon.utils.yaml_loader import ResourceYamlMapping
 from pathlib import Path
 from .prompt import CheckPrompt, CheckPromptWithResults
-from con_mon_v2.compliance.models import Check, CheckResult
+from con_mon.compliance.models import Check, CheckResult
 
 
 def get_provider_resources_mapping() -> Dict[ConnectorType, List[str]]:
     """
-    Dynamically get provider to resource models mapping from con_mon_v2.mappings.
+    Dynamically get provider to resource models mapping from con_mon.mappings.
     
     Returns:
         Dictionary mapping ConnectorType to list of resource model names
@@ -180,7 +180,7 @@ def generate_checks_for_all_providers(
     Generate checks for all available providers and their resource models.
     
     This function now dynamically loads provider-to-resource mappings from 
-    con_mon_v2.mappings (resources.yaml) instead of using hardcoded values.
+    con_mon.mappings (resources.yaml) instead of using hardcoded values.
     Uses Optional check_results to provide additional details in prompt to LLM for better results.
 
     Args:
@@ -196,7 +196,7 @@ def generate_checks_for_all_providers(
     """
     checks = []
 
-    # Get provider to resource model mapping dynamically from con_mon_v2.mappings
+    # Get provider to resource model mapping dynamically from con_mon.mappings
     # This replaces the previously hardcoded provider_resources dictionary
     provider_resources = get_provider_resources_mapping()
 

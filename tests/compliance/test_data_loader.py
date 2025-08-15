@@ -1,5 +1,5 @@
-from con_mon_v2.compliance.data_loader import ChecksLoader
-from con_mon_v2.compliance.models import Check
+from con_mon.compliance.data_loader import ChecksLoader
+from con_mon.compliance.models import Check
 
 def test_load_checks():
     """Test loading checks from CSV file."""

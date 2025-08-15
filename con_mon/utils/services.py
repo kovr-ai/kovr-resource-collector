@@ -1,12 +1,12 @@
-"""Service utilities for con_mon_v2."""
+"""Service utilities for con_mon."""
 from typing import Type, List, Tuple
 from pydantic import BaseModel
 from datetime import datetime
 
-from con_mon_v2.compliance.data_loader import ConMonResultLoader, ConMonResultHistoryLoader
-from con_mon_v2.compliance.models import ConMonResult, ConMonResultHistory, Check, CheckResult
-from con_mon_v2.resources import Resource, ResourceCollection
-from con_mon_v2.mappings.github import (
+from con_mon.compliance.data_loader import ConMonResultLoader, ConMonResultHistoryLoader
+from con_mon.compliance.models import ConMonResult, ConMonResultHistory, Check, CheckResult
+from con_mon.resources import Resource, ResourceCollection
+from con_mon.mappings.github import (
     GithubConnectorService,
     GithubConnectorInput,
     GithubResourceCollection,
@@ -15,7 +15,7 @@ from con_mon_v2.mappings.github import (
     # Github Resources
     GithubResource,
 )
-from con_mon_v2.mappings.aws import (
+from con_mon.mappings.aws import (
     AwsConnectorService,
     AwsConnectorInput,
     AwsResourceCollection,

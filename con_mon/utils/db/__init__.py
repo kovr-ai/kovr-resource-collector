@@ -1,10 +1,10 @@
 """
-Database module for con_mon_v2.
+Database module for con_mon.
 
 Provides both PostgreSQL and CSV database implementations with singleton patterns.
 """
 
-from con_mon_v2.utils.config import settings
+from con_mon.utils.config import settings
 from .pgs import PostgreSQLDatabase, get_db as get_pgs_db
 from .csv import CSVDatabase, get_db as get_csv_db
 

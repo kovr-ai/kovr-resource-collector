@@ -1,13 +1,13 @@
 """
-Connection data loader for con_mon_v2.
+Connection data loader for con_mon.
 
 Provides methods to load Connection objects from the self.db with various
 filtering and querying options.
 """
 from typing import List, Optional, Dict
-from con_mon_v2.resources.models import InfoData
-from con_mon_v2.compliance.data_loader.base import BaseLoader
-from con_mon_v2.compliance.models.connection import Connection, ConnectionType
+from con_mon.resources.models import InfoData
+from con_mon.compliance.data_loader.base import BaseLoader
+from con_mon.compliance.models.connection import Connection, ConnectionType
 
 
 class ConnectionLoader(BaseLoader):

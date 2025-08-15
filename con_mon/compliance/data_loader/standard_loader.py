@@ -3,7 +3,7 @@ Standard data loader - loads Standard records from database.
 """
 
 from .base import BaseLoader
-from con_mon_v2.compliance.models import Standard
+from con_mon.compliance.models import Standard
 
 
 class StandardLoader(BaseLoader):

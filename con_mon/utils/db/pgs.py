@@ -12,8 +12,8 @@ from typing import Optional, Dict, Any, List
 import psycopg2
 import psycopg2.pool
 import logging
-from con_mon_v2.utils.db.base import SQLDatabase
-from con_mon_v2.utils.config import settings
+from con_mon.utils.db.base import SQLDatabase
+from con_mon.utils.config import settings
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)

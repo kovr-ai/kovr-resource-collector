@@ -3,7 +3,7 @@ StandardControlMapping data loader - loads mapping records from database.
 """
 
 from .base import BaseLoader
-from con_mon_v2.compliance.models import StandardControlMapping
+from con_mon.compliance.models import StandardControlMapping
 
 
 class StandardControlMappingLoader(BaseLoader):
