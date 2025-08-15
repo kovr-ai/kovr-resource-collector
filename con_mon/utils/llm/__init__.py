@@ -1,33 +1,21 @@
 """
-LLM Sub-module
+LLM utilities for con_mon.
 
-This module provides a clean interface for Large Language Model operations
-with separation of concerns between the LLM client and prompt handling.
-
-Components:
-- client: Singleton LLM client for Bedrock operations
-- prompts: Prompt templates and post-processing classes
+Provides prompt templates, LLM client interfaces, and response processing.
 """
 
-from .client import LLMClient, get_llm_client
-from .prompts import (
-    ControlAnalysisPrompt,
-    GeneralPrompt,
-    ChecksYamlPrompt,
-    PromptResult,
-    analyze_control,
-    generate_text,
-    generate_checks_yaml
-)
+from .client import get_llm_client, LLMClient, LLMRequest, LLMResponse
+from .prompt import CheckPrompt
+from .generate import generate_check, generate_checks_for_all_providers
 
 __all__ = [
-    'LLMClient',
+    # Client
     'get_llm_client',
-    'ControlAnalysisPrompt',
-    'GeneralPrompt',
-    'ChecksYamlPrompt',
-    'PromptResult',
-    'analyze_control',
-    'generate_text',
-    'generate_checks_yaml'
+    'LLMClient', 
+    'LLMRequest',
+    'LLMResponse',
+    # Prompts
+    'CheckPrompt',
+    'generate_check',
+    'generate_checks_for_all_providers'
 ] 

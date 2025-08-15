@@ -4,7 +4,7 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 import boto3
 import json
-from con_mon.resources import GoogleInfoData, GoogleUserResource, GoogleGroupResource, GoogleResourceCollection
+from con_mon.mappings.google import GoogleInfoData, UserResource, GroupResource, GoogleResourceCollection
 from typing import Dict, List, Tuple
 from con_mon.utils.config import settings
 from datetime import datetime
@@ -53,7 +53,7 @@ class GoogleProvider(Provider):
         # Create GoogleUserResource objects
         user_resources = []
         for user in users:
-            user_resource = GoogleUserResource(
+            user_resource = UserResource(
                 id=f"google-user-{user.get('id', '')}",
                 source_connector='google',
                 user_id=user.get('id', ''),
@@ -107,7 +107,7 @@ class GoogleProvider(Provider):
         # Create GoogleGroupResource objects
         group_resources = []
         for group in groups:
-            group_resource = GoogleGroupResource(
+            group_resource = GroupResource(
                 id=f"google-group-{group.get('id', '')}",
                 source_connector='google',
                 group_id=group.get('id', ''),

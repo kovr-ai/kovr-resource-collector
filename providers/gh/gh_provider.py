@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 import json
 from typing import Dict, Any, Tuple
-from con_mon.resources import GithubInfoData, GithubResource, GithubResourceCollection
+from con_mon.mappings.github import GithubInfoData, GithubResource, GithubResourceCollection
 
 # Load environment variables from .env file
 load_dotenv()
@@ -79,7 +79,7 @@ class GitHubProvider(Provider):
     def process(self) -> Tuple[GithubInfoData, GithubResourceCollection]:
         """Process data collection and return GitHubReport model"""
         with open(
-            'github_response.json',
+            'tests/mocks/github/response.json',
             'r'
         ) as mock_response_file:
             mock_response = json.load(mock_response_file)
@@ -145,9 +145,9 @@ class GitHubProvider(Provider):
             info_data = GithubInfoData(
                 repositories=[
                     {
-                        'name': repo.name,
-                        'url': repo.repository_data.basic_info.html_url if hasattr(repo, 'repository_data') and hasattr(repo.repository_data, 'basic_info') else f"https://github.com/{repo.name}",
-                        'default_branch_name': repo.repository_data.metadata.default_branch if hasattr(repo, 'repository_data') and hasattr(repo.repository_data, 'metadata') else 'main'
+                        'name': repo.id,
+                        'url': repo.repository_data.basic_info.html_url,
+                        'default_branch_name': repo.repository_data.metadata.default_branch,
                     }
                     for repo in github_resources
                 ]
