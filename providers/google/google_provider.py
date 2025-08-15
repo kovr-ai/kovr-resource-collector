@@ -4,7 +4,7 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 import boto3
 import json
-from con_mon_v2.mappings.google import GoogleInfoData, UserResource, GroupResource, GoogleResourceCollection
+from con_mon.mappings.google import GoogleInfoData, UserResource, GroupResource, GoogleResourceCollection
 from typing import Dict, List, Tuple
 from con_mon.utils.config import settings
 from datetime import datetime

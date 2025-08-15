@@ -4,7 +4,7 @@ from providers.aws.services.ec2 import EC2Service
 from providers.aws.services.iam import IAMService
 from providers.aws.services.s3 import S3Service
 from providers.provider import Provider, provider_class
-from con_mon_v2.mappings.aws import (
+from con_mon.mappings.aws import (
     EC2Resource,
     IAMResource,
     S3Resource,

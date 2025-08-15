@@ -14,9 +14,9 @@ from datetime import datetime
 from typing import Dict, List, Any, Tuple
 
 # Import data loaders
-from con_mon_v2.compliance.data_loader import FrameworkLoader, ControlLoader, ChecksLoader
-from con_mon_v2.compliance.models import Check, Framework, Control
-from con_mon_v2.utils.db import get_db
+from con_mon.compliance.data_loader import FrameworkLoader, ControlLoader, ChecksLoader
+from con_mon.compliance.models import Check, Framework, Control
+from con_mon.utils.db import get_db
 
 
 class ControlCheckMappingLoader:
@@ -104,7 +104,7 @@ def get_resource_types_from_checks_objects(checks: List[Check]) -> Dict[str, Dic
         field_path = check.metadata.field_path if check.metadata and check.metadata.field_path else ''
         
         if resource_type:
-            # Extract just the class name (e.g., 'GithubResource' from 'con_mon_v2.mappings.github.GithubResource')
+            # Extract just the class name (e.g., 'GithubResource' from 'con_mon.mappings.github.GithubResource')
             class_name = resource_type.split('.')[-1] if '.' in resource_type else resource_type
             
             # Determine provider from resource type

@@ -17,10 +17,10 @@ from typing import Dict, Any, List, Optional
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from con_mon_v2.utils.llm.generate import get_provider_resources_mapping
-from con_mon_v2.connectors.models import ConnectorType
-from con_mon_v2.compliance.models import Check
-from con_mon_v2.utils.db import get_db
+from con_mon.utils.llm.generate import get_provider_resources_mapping
+from con_mon.connectors.models import ConnectorType
+from con_mon.compliance.models import Check
+from con_mon.utils.db import get_db
 import yaml
 
 def parse_yaml_from_output_file(output_file_path: Path) -> dict:
@@ -195,7 +195,7 @@ def create_control_name_mapping():
     Returns:
         Dict mapping control_name -> [list of control IDs that match]
     """
-    from con_mon_v2.compliance.data_loader import ControlLoader
+    from con_mon.compliance.data_loader import ControlLoader
     
     # Load all controls
     control_loader = ControlLoader()

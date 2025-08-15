@@ -8,7 +8,7 @@ from datetime import datetime
 import pandas as pd
 
 # Import the CSV database class directly
-from con_mon_v2.utils.db.csv import CSVDatabase, get_db as get_csv_db
+from con_mon.utils.db.csv import CSVDatabase, get_db as get_csv_db
 
 
 class TestCSVDatabase:
@@ -25,7 +25,7 @@ class TestCSVDatabase:
         self.test_csv_dir = Path(self.test_dir) / "data" / "csv"
         self.test_csv_dir.mkdir(parents=True, exist_ok=True)
         # Point CSV backend to the temp directory for this test
-        from con_mon_v2.utils.config import settings as _settings
+        from con_mon.utils.config import settings as _settings
         _settings.CSV_DATA = str(self.test_csv_dir)
     
     def teardown_method(self):
@@ -51,8 +51,8 @@ class TestCSVDatabase:
         db2 = CSVDatabase()
         
         # Update module-level instance to match current singleton for testing
-        import con_mon_v2.utils.db.csv
-        con_mon_v2.utils.db.csv.db = db1
+        import con_mon.utils.db.csv
+        con_mon.utils.db.csv.db = db1
         db3 = get_csv_db()
         
         # Verify they are all the same instance
@@ -73,15 +73,15 @@ class TestCSVDatabase:
         CSVDatabase._initialized = False
         
         # Also reset the module-level instance for complete testing
-        import con_mon_v2.utils.db.csv
-        original_module_db = con_mon_v2.utils.db.csv.db
+        import con_mon.utils.db.csv
+        original_module_db = con_mon.utils.db.csv.db
         
         # Create new instances after reset
         db4 = CSVDatabase()
         db5 = CSVDatabase()
         
         # Update module-level instance to the new singleton for testing
-        con_mon_v2.utils.db.csv.db = db4
+        con_mon.utils.db.csv.db = db4
         db6 = get_csv_db()
         
         # Verify new instances are also singletons
@@ -93,7 +93,7 @@ class TestCSVDatabase:
         assert db4 is not original_instance, "New instance should be different from original after reset"
         
         # Restore original module-level instance
-        con_mon_v2.utils.db.csv.db = original_module_db
+        con_mon.utils.db.csv.db = original_module_db
         
         print("✅ Manual singleton recreation test passed")
         print("✅ CSV singleton pattern test completed successfully")

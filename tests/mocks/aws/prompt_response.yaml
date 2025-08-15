@@ -18,7 +18,7 @@ checks:
   updated_by: "system"
   is_deleted: false
   metadata:
-    resource_type: "con_mon_v2.mappings.aws.EC2Resource"
+    resource_type: "con_mon.mappings.aws.EC2Resource"
     field_path: "security_groups"
     operation:
       name: "custom"

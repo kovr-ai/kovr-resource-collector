@@ -1,1 +1,1 @@
-"""Tests package for con_mon_v2.""" 
+"""Tests package for con_mon."""

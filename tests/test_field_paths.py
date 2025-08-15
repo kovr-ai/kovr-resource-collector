@@ -1,9 +1,9 @@
 """Tests for verifying YAML schema to JSON data mapping."""
 from typing import List
 
-from con_mon_v2.utils.services import ResourceCollectionService
-from con_mon_v2.resources import ResourceCollection
-from con_mon_v2.compliance.models import (
+from con_mon.utils.services import ResourceCollectionService
+from con_mon.resources import ResourceCollection
+from con_mon.compliance.models import (
     Check, CheckMetadata, OutputStatements, FixDetails,
     CheckOperation, ComparisonOperationEnum, CheckResult
 )
@@ -25,7 +25,7 @@ def setup_test_check() -> Check:
     metadata = CheckMetadata(
         operation=CheckOperation(name=ComparisonOperationEnum.CUSTOM, logic="result = True"),
         field_path="test.path",
-        resource_type="con_mon_v2.mappings.github.GithubResource",
+        resource_type="con_mon.mappings.github.GithubResource",
         tags=["test"],
         category="test",
         severity="medium",
@@ -1057,8 +1057,8 @@ def test_aws_resource_collection():
     for resource in rc.resources:
         resource_name = resource.__class__.__name__
         # Update the resource type to match the current resource being tested
-        # AWS resources are in con_mon_v2.mappings.aws module
-        resource_type_path = f"con_mon_v2.mappings.aws.{resource_name}"
+        # AWS resources are in con_mon.mappings.aws module
+        resource_type_path = f"con_mon.mappings.aws.{resource_name}"
         check.metadata.resource_type = resource_type_path
         
         for field_path in list_of_field_paths(resource_name):

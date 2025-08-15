@@ -2,7 +2,7 @@
 # Defines connector services for different providers
 
 github:
-  connectors:
+  connector:
     name: "github"
     description: "Collect complete GitHub data (repositories, actions, security, collaboration, etc.)"
     connector_type: "github"
@@ -11,11 +11,11 @@ github:
 
   # Input specification for this connector
   input:
-    # {"personal_access_token": "ghp+asdas asd as das "}
+    name: "github"
     personal_access_token: "string"
 
 aws:
-  connectors:
+  connector:
     name: "aws"
     description: "Collect AWS cloud resources (EC2, IAM, S3, CloudTrail, CloudWatch)"
     connector_type: "aws"
@@ -24,12 +24,11 @@ aws:
 
   # Input specification for this connector
   input:
-    # {"role_arn": "dsfdsfd", "external_id": "9e3f1418-c5e5-4a08-9b96-58bb74ca0129"}
     role_arn: "string"
     external_id: "string"
 
 google:
-  connectors:
+  connector:
     name: "google"
     description: "Collect Google workspace"
     connector_type: "google"

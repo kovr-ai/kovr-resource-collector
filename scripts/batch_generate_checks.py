@@ -39,16 +39,16 @@ from rich.layout import Layout
 from rich.live import Live
 from rich import box
 
-# con_mon_v2 imports
-from con_mon_v2.compliance import ControlLoader
-from con_mon_v2.compliance.models import Check, Control
-from con_mon_v2.utils.llm.generate import (
+# con_mon imports
+from con_mon.compliance import ControlLoader
+from con_mon.compliance.models import Check, Control
+from con_mon.utils.llm.generate import (
     generate_check,
     evaluate_check_against_rc,
     get_provider_resources_mapping
 )
-from con_mon_v2.connectors.models import ConnectorType
-from con_mon_v2.utils.db import get_db
+from con_mon.connectors.models import ConnectorType
+from con_mon.utils.db import get_db
 
 console = Console()
 
@@ -887,8 +887,8 @@ def _calculate_time_stats_from_status(status_tracker: StatusTracker, limit: int 
         
         # Smart calculation of remaining work (existing logic)
         try:
-            from con_mon_v2.utils.llm.generate import get_provider_resources_mapping
-            from con_mon_v2.compliance import ControlLoader
+            from con_mon.utils.llm.generate import get_provider_resources_mapping
+            from con_mon.compliance import ControlLoader
             
             provider_resources = get_provider_resources_mapping()
             tasks_per_control = sum(len(resources) for resources in provider_resources.values())

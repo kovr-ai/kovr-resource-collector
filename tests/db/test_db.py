@@ -4,7 +4,7 @@ import tempfile
 import shutil
 from pathlib import Path
 from unittest.mock import Mock, patch
-from con_mon_v2.utils.db import get_db
+from con_mon.utils.db import get_db
 
 
 class TestUnifiedDatabaseAbstraction:
@@ -17,17 +17,17 @@ class TestUnifiedDatabaseAbstraction:
         self.test_csv_dir = Path(self.test_dir) / "data" / "csv"
         self.test_csv_dir.mkdir(parents=True, exist_ok=True)
         # Ensure CSV backend uses temp directory by default during tests
-        from con_mon_v2.utils.config import settings as _settings
+        from con_mon.utils.config import settings as _settings
         _settings.CSV_DATA = str(self.test_csv_dir)
         
         # Reset any singleton instances and rebind module-level CSV db
-        from con_mon_v2.utils.db.csv import CSVDatabase
-        from con_mon_v2.utils.db.pgs import PostgreSQLDatabase
+        from con_mon.utils.db.csv import CSVDatabase
+        from con_mon.utils.db.pgs import PostgreSQLDatabase
         CSVDatabase._instance = None
         CSVDatabase._initialized = False
         PostgreSQLDatabase._instance = None
         PostgreSQLDatabase._initialized = False
-        import con_mon_v2.utils.db.csv as csv_module
+        import con_mon.utils.db.csv as csv_module
         csv_module.db = CSVDatabase()
     
     def teardown_method(self):
@@ -36,21 +36,21 @@ class TestUnifiedDatabaseAbstraction:
         if os.path.exists(self.test_dir):
             shutil.rmtree(self.test_dir)
 
-        from con_mon_v2.utils.config import settings
+        from con_mon.utils.config import settings
         # Reset environment variable for isolation
         settings.CSV_DATA = None
 
 
         # Reset CSV database singleton to prevent test isolation issues
-        from con_mon_v2.utils.db.csv import CSVDatabase
+        from con_mon.utils.db.csv import CSVDatabase
         CSVDatabase._instance = None
         CSVDatabase._initialized = False
         
         # Also reset the module-level db variable
-        import con_mon_v2.utils.db.csv as csv_module
+        import con_mon.utils.db.csv as csv_module
         csv_module.db = CSVDatabase()
 
-    @patch('con_mon_v2.utils.db.pgs.settings')
+    @patch('con_mon.utils.db.pgs.settings')
     def test_get_db_returns_csv_when_configured(self, mock_settings):
         """Test that get_db returns CSV database when configured."""
         print("\n🧪 Testing get_db returns CSV when configured...")
@@ -59,24 +59,24 @@ class TestUnifiedDatabaseAbstraction:
         mock_settings.CSV_DATA = 'csv/data/'
 
         # Force CSV backend for this test
-        from con_mon_v2.utils.config import settings as _settings
+        from con_mon.utils.config import settings as _settings
         _settings.CSV_DATA = str(self.test_csv_dir)
         db = get_db()
         
         # Verify it's a CSV database
-        from con_mon_v2.utils.db.csv import CSVDatabase
+        from con_mon.utils.db.csv import CSVDatabase
         assert isinstance(db, CSVDatabase), "Should return CSVDatabase when configured"
         
         print("✅ get_db returns CSV when configured test passed")
     
-    @patch('con_mon_v2.utils.db.pgs.settings')
+    @patch('con_mon.utils.db.pgs.settings')
     @patch('psycopg2.pool.SimpleConnectionPool')
     def test_get_db_returns_postgres_by_default(self, mock_pool, mock_settings):
         """Test that get_db returns PostgreSQL by default."""
         print("\n🧪 Testing get_db returns PostgreSQL by default...")
         
         # Reset singleton instances first
-        from con_mon_v2.utils.db.pgs import PostgreSQLDatabase
+        from con_mon.utils.db.pgs import PostgreSQLDatabase
         PostgreSQLDatabase._instance = None
         PostgreSQLDatabase._initialized = False
         
@@ -91,12 +91,12 @@ class TestUnifiedDatabaseAbstraction:
         # Ensure CSV backend is NOT selected by default
         if mock_settings.CSV_DATA:
             mock_settings.CSV_DATA = None
-        from con_mon_v2.utils.config import settings as _settings
+        from con_mon.utils.config import settings as _settings
         _settings.CSV_DATA = None
         db = get_db()
         
         # Verify it's a PostgreSQL database
-        from con_mon_v2.utils.db.pgs import PostgreSQLDatabase
+        from con_mon.utils.db.pgs import PostgreSQLDatabase
         assert isinstance(db, PostgreSQLDatabase), "Should return PostgreSQLDatabase by default"
         
         print("✅ get_db returns PostgreSQL by default test passed")
@@ -106,7 +106,7 @@ class TestUnifiedDatabaseAbstraction:
         print("\n🧪 Testing CSV Database List of Dicts Interface...")
         
         # Force CSV backend for this test
-        from con_mon_v2.utils.config import settings as _settings
+        from con_mon.utils.config import settings as _settings
         _settings.CSV_DATA = str(self.test_csv_dir)
         db = get_db()
         
@@ -157,7 +157,7 @@ class TestUnifiedDatabaseAbstraction:
         db.create_table("test_users", columns, test_data)
         
         # Query data
-        from con_mon_v2.utils.db.csv import CSVDatabase as _CSV
+        from con_mon.utils.db.csv import CSVDatabase as _CSV
         results = db.execute('select', table_name='test_users')
         
         # Verify interface returns list of dictionaries
@@ -179,14 +179,14 @@ class TestUnifiedDatabaseAbstraction:
         
         print("✅ CSV database list of dicts interface test passed")
     
-    @patch('con_mon_v2.utils.db.pgs.settings')
+    @patch('con_mon.utils.db.pgs.settings')
     @patch('psycopg2.pool.SimpleConnectionPool')
     def test_postgresql_database_list_of_dicts_interface(self, mock_pool, mock_settings):
         """Test PostgreSQL database returns list of dictionaries with nested data."""
         print("\n🧪 Testing PostgreSQL Database List of Dicts Interface...")
         
         # Reset singleton instances first
-        from con_mon_v2.utils.db.pgs import PostgreSQLDatabase
+        from con_mon.utils.db.pgs import PostgreSQLDatabase
         PostgreSQLDatabase._instance = None
         PostgreSQLDatabase._initialized = False
         
@@ -209,7 +209,7 @@ class TestUnifiedDatabaseAbstraction:
         
         # Ensure Postgres backend (CSV disabled)
         mock_settings.CSV_DATA = None
-        from con_mon_v2.utils.config import settings as _settings
+        from con_mon.utils.config import settings as _settings
         _settings.CSV_DATA = None
 
         # Get PostgreSQL database
@@ -270,7 +270,7 @@ class TestUnifiedDatabaseAbstraction:
         print("\n🧪 Testing CSV INSERT with Nested Dictionaries...")
         
         # Force CSV backend for this test
-        from con_mon_v2.utils.config import settings as _settings
+        from con_mon.utils.config import settings as _settings
         _settings.CSV_DATA = str(self.test_csv_dir)
         db = get_db()
         
@@ -319,7 +319,7 @@ class TestUnifiedDatabaseAbstraction:
         assert rows_inserted == 1, "Should insert 1 row"
         
         # Query back and verify nested structure is preserved
-        from con_mon_v2.utils.db.csv import CSVDatabase as _CSV
+        from con_mon.utils.db.csv import CSVDatabase as _CSV
         results = db.execute('select', table_name='test_inserts')
         assert len(results) == 1, "Should return 1 row"
         
@@ -340,14 +340,14 @@ class TestUnifiedDatabaseAbstraction:
         
         print("✅ CSV INSERT with nested dictionaries test passed")
     
-    @patch('con_mon_v2.utils.db.pgs.settings')
+    @patch('con_mon.utils.db.pgs.settings')
     @patch('psycopg2.pool.SimpleConnectionPool')
     def test_postgresql_insert_with_nested_dictionaries(self, mock_pool, mock_settings):
         """Test PostgreSQL database INSERT with nested dictionary data."""
         print("\n🧪 Testing PostgreSQL INSERT with Nested Dictionaries...")
         
         # Reset singleton instances first
-        from con_mon_v2.utils.db.pgs import PostgreSQLDatabase
+        from con_mon.utils.db.pgs import PostgreSQLDatabase
         PostgreSQLDatabase._instance = None
         PostgreSQLDatabase._initialized = False
         
@@ -370,7 +370,7 @@ class TestUnifiedDatabaseAbstraction:
         
         # Set environment to use PostgreSQL (disable CSV backend)
         mock_settings.CSV_DATA = None
-        from con_mon_v2.utils.config import settings as _settings
+        from con_mon.utils.config import settings as _settings
         _settings.CSV_DATA = None
         
         # Get PostgreSQL database
@@ -468,7 +468,7 @@ class TestUnifiedDatabaseAbstraction:
         
         # Test CSV database
         print("  Testing CSV database consistency...")
-        from con_mon_v2.utils.config import settings as _settings
+        from con_mon.utils.config import settings as _settings
         _settings.CSV_DATA = str(self.test_csv_dir)
         csv_db = get_db()
         
@@ -478,7 +478,7 @@ class TestUnifiedDatabaseAbstraction:
         csv_db.execute_insert("consistency_test", test_data)
         
         # Query back data
-        from con_mon_v2.utils.db.csv import CSVDatabase as _CSV
+        from con_mon.utils.db.csv import CSVDatabase as _CSV
         csv_results = csv_db.execute('select', table_name='consistency_test')
         assert len(csv_results) == 1, "CSV should return 1 row"
         csv_row = csv_results[0]
@@ -506,12 +506,12 @@ class TestUnifiedDatabaseAbstraction:
         print("\n🧪 Testing Error Handling Consistency...")
         
         # Test CSV database error handling
-        from con_mon_v2.utils.config import settings as _settings
+        from con_mon.utils.config import settings as _settings
         _settings.CSV_DATA = str(self.test_csv_dir)
         csv_db = get_db()
         
         # Test operations on non-existent table
-        from con_mon_v2.utils.db.csv import CSVDatabase as _CSV
+        from con_mon.utils.db.csv import CSVDatabase as _CSV
         q = _CSV.SQLParser("nonexistent_table").select_query
         csv_results = csv_db.execute_query(q)
         assert csv_results == [], "CSV should return empty list for non-existent table"
