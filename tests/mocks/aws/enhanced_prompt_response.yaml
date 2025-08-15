@@ -1,0 +1,53 @@
+checks:
+- id: "aws_enhanced_security_groups"
+  name: "AWS Enhanced Security Group SSH Control"
+  description: "Verify SSH access control using enhanced field extraction with wildcards"
+  category: "network-security"
+  output_statements:
+    success: "SSH access is properly restricted - no security groups allow SSH from 0.0.0.0/0"
+    failure: "SSH access is open to the internet - found security groups allowing SSH from 0.0.0.0/0"
+    partial: "Most security groups are secure but some may need SSH access review"
+  fix_details:
+    description: "Restrict SSH access in security groups to specific IP ranges"
+    instructions:
+    - "Navigate to EC2 Console > Security Groups"
+    - "Review all security groups with SSH (port 22) rules"
+    - "Remove or modify rules allowing SSH from 0.0.0.0/0"
+    - "Replace with specific IP ranges (e.g., office networks)"
+    - "Consider using AWS Systems Manager Session Manager instead"
+    estimated_time: "30 minutes"
+    automation_available: true
+  created_by: "system"
+  updated_by: "system"
+  is_deleted: false
+  metadata:
+    resource_type: "con_mon_v2.mappings.aws.EC2Resource"
+    field_path: "count(instances.*.security_groups.*.inbound_rules.*)"
+    operation:
+      name: "custom"
+      logic: |
+        result = True  # Default to secure
+        
+        # Check for insecure SSH rules using enhanced field extraction
+        try:
+            # Look through all instances and their security groups for SSH rules
+            insecure_ssh_rules = []
+            
+            for instance in resource.instances:
+                for sg in instance.get('security_groups', []):
+                    for rule in sg.get('inbound_rules', []):
+                        # Check for SSH (port 22) from anywhere (0.0.0.0/0)
+                        if (rule.get('port') == 22 and 
+                            rule.get('protocol', '').lower() == 'tcp' and
+                            '0.0.0.0/0' in str(rule.get('source', ''))):
+                            insecure_ssh_rules.append(rule)
+            
+            # Result is True (secure) if NO insecure SSH rules found
+            result = len(insecure_ssh_rules) == 0
+            
+        except Exception:
+            result = False  # If we can't evaluate, assume insecure
+    expected_value: true
+    tags: ['compliance', 'nist', 'sc', 'aws', 'enhanced']
+    severity: "critical"
+    category: "network-security" 

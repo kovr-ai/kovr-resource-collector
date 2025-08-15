@@ -1,0 +1,53 @@
+checks:
+- id: "github_enhanced_branch_protection"
+  name: "GitHub Enhanced Branch Protection Check"
+  description: "Verify branch protection using enhanced field extraction with wildcards and functions"
+  category: "access-control"
+  output_statements:
+    success: "All critical branches have adequate protection with sufficient reviewers"
+    failure: "One or more critical branches lack proper protection or reviewer requirements"
+    partial: "Some branches have protection but may need reviewer requirement adjustments"
+  fix_details:
+    description: "Configure branch protection rules with adequate reviewer requirements"
+    instructions:
+    - "Navigate to repository Settings > Branches"
+    - "Add branch protection rules for main/master branches"
+    - "Enable 'Require pull request reviews before merging'"
+    - "Set minimum required reviewers to 2 or more"
+    - "Enable 'Dismiss stale PR approvals when new commits are pushed'"
+    estimated_time: "1-2 hours"
+    automation_available: true
+  created_by: "system"
+  updated_by: "system"
+  is_deleted: false
+  metadata:
+    resource_type: "con_mon_v2.mappings.github.GithubResource"
+    field_path: "any(repository_data.branches.*.protection_details.enabled)"
+    operation:
+      name: "custom"
+      logic: |
+        result = False
+        
+        # Use enhanced field extraction to check branch protection
+        if fetched_value == True:
+            # Check if protected branches have adequate reviewers using min() function
+            try:
+                # Get minimum reviewers across all protected branches
+                protected_branches = [b for b in resource.repository_data.get('branches', []) 
+                                    if b.get('protection_details', {}).get('enabled')]
+                
+                if protected_branches:
+                    reviewer_counts = [b.get('protection_details', {}).get('required_reviewers', 0) 
+                                     for b in protected_branches]
+                    min_reviewers = min(reviewer_counts) if reviewer_counts else 0
+                    result = min_reviewers >= 2
+                else:
+                    result = False
+            except Exception:
+                result = False
+        else:
+            result = False
+    expected_value: true
+    tags: ['compliance', 'nist', 'ac', 'github', 'enhanced']
+    severity: "high"
+    category: "access-control" 
