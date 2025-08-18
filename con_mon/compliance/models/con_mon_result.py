@@ -21,7 +21,7 @@ class ConMonResult(TableModel):
     table_name: ClassVar[str] = "con_mon_results"
     
     # Database fields (exact 1:1 mapping)
-    id: Optional[int] = Field(None, description="Auto-generated primary key")
+    # id: Optional[int] = Field(None, description="Auto-generated primary key")
     customer_id: str = Field(..., description="Customer/organization identifier")
     connection_id: int = Field(..., description="Connection ID")
     check_id: str = Field(..., description="Check identifier")

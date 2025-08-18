@@ -12,6 +12,7 @@ from typing import Optional, Dict, Any, List
 import psycopg2
 import psycopg2.pool
 import logging
+from psycopg2.extras import execute_values
 from con_mon.utils.db.base import SQLDatabase
 from con_mon.utils.config import settings
 
@@ -105,6 +106,16 @@ class PostgreSQLDatabase(SQLDatabase):
         Properties return (sql, params) tuples suitable for execute_* methods.
         """
 
+        def _serialize_value_for_postgres(self, value):
+            """Serialize Python values for PostgreSQL compatibility.
+            
+            Converts dict/list to JSON strings for JSONB fields.
+            """
+            if isinstance(value, (dict, list)):
+                # Convert Python dict/list to JSON string for PostgreSQL JSONB
+                return json.dumps(value, default=datetime_handler)
+            return value
+
         def _build_where_clause(self) -> tuple[str, list]:
             """Construct a WHERE clause and its parameters.
 
@@ -158,14 +169,33 @@ class PostgreSQLDatabase(SQLDatabase):
                 return (f"INSERT INTO {self.table_name} DEFAULT VALUES RETURNING *", None)
 
             # Ensure deterministic column order
-            column_names = list(self.update.keys())
-            placeholders = ", ".join(["%s"] * len(column_names))
+            if isinstance(self.update, dict):
+                column_names = list(self.update.keys())
+                placeholders = ", ".join(["%s"] * len(column_names))
+                placeholders = f"({placeholders})"
+                params = tuple(
+                    self._serialize_value_for_postgres(v)
+                    for k, v in self.update.items()
+                )
+            elif isinstance(self.update, list):
+                column_names = list(self.update[0].keys())
+                placeholders = "%s"
+                params = [
+                    tuple(
+                        self._serialize_value_for_postgres(v)
+                        for k, v in row.items()
+                    )
+                    for row in self.update
+                ]
+            else:
+                raise TypeError("update must be a dict or list")
             columns_sql = ", ".join(column_names)
             sql = (
                 f"INSERT INTO {self.table_name} ({columns_sql}) "
-                f"VALUES ({placeholders}) RETURNING *"
+                f"VALUES {placeholders} RETURNING *"
             )
-            params = tuple(self.update[k] for k in self.update.keys())
+            
+            # Serialize values for PostgreSQL compatibility
             return sql, params
 
         @property
@@ -182,7 +212,9 @@ class PostgreSQLDatabase(SQLDatabase):
             set_clause = ", ".join([f"{col} = %s" for col in self.update.keys()])
             where_sql, where_params = self._build_where_clause()
             sql = f"UPDATE {self.table_name} SET {set_clause}{where_sql} RETURNING *"
-            params = tuple(self.update[k] for k in self.update.keys())
+            
+            # Serialize values for PostgreSQL compatibility
+            params = tuple(self._serialize_value_for_postgres(self.update[k]) for k in self.update.keys())
             if where_params:
                 params = params + tuple(where_params)
             return sql, params
@@ -425,16 +457,21 @@ class PostgreSQLDatabase(SQLDatabase):
         return total_processed
 
     # DML helpers (explicit)
-    def execute_insert(self, query: str, params: Optional[tuple] = None) -> List[Dict[str, Any]]:
+    def execute_insert(self, query: str, params: Optional[tuple] = None) -> int:
         """Execute INSERT and return rows from RETURNING if present; commit transaction."""
         with self.get_connection() as conn:
             with conn.cursor() as cursor:
-                cursor.execute(query, params)
+                if type(params) is tuple:
+                    cursor.execute(query, params)
+                elif type(params) is list:
+                    execute_values(cursor, query, params)
+                else:
+                    raise Exception("Unsupported type '{type(params)}' for parameter 'params'")
                 conn.commit()
                 columns = [desc[0] for desc in cursor.description] if cursor.description else []
                 if columns:
-                    return [dict(zip(columns, row)) for row in cursor.fetchall()]
-                return []
+                    return len([dict(zip(columns, row)) for row in cursor.fetchall()])
+                return 0
 
     def execute_update(self, query: str, params: Optional[tuple] = None) -> int:
         """Execute UPDATE and return affected row count; commit transaction."""
