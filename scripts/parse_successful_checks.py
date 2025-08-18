@@ -25,80 +25,73 @@ import yaml
 
 def parse_yaml_from_output_file(output_file_path: Path) -> dict:
     """Parse YAML content from output file"""
-    try:
-        with open(output_file_path, 'r', encoding='utf-8') as f:
-            content = f.read()
-            
-        # Find YAML content - look for line starting with "checks:"
-        lines = content.split('\n')
-        yaml_start = None
-        yaml_end = None
-        
+    with open(output_file_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+
+    # Find YAML content - look for line starting with "checks:"
+    lines = content.split('\n')
+    yaml_start = None
+    yaml_end = None
+
+    for i, line in enumerate(lines):
+        if line.strip().startswith('checks:'):
+            yaml_start = i
+            break
+
+    if yaml_start is None:
+        # Try alternative patterns
         for i, line in enumerate(lines):
-            if line.strip().startswith('checks:'):
+            if 'checks:' in line and not line.strip().startswith('#'):
                 yaml_start = i
                 break
-        
-        if yaml_start is None:
-            # Try alternative patterns
-            for i, line in enumerate(lines):
-                if 'checks:' in line and not line.strip().startswith('#'):
-                    yaml_start = i
-                    break
-        
-        if yaml_start is None:
-            print(f"⚠️ Could not find 'checks:' line in {output_file_path}")
-            # Debug: show first 10 lines
-            print("   First 10 lines:")
-            for i, line in enumerate(lines[:10]):
-                print(f"   {i+1}: {line}")
-            return None
-            
-        # Find the end (next line with ===, or end of file)
-        for i in range(yaml_start + 1, len(lines)):
-            if '=' * 10 in lines[i] or lines[i].strip().startswith('---'):
-                yaml_end = i
-                break
-                
-        # Extract YAML content
-        if yaml_end:
-            yaml_lines = lines[yaml_start:yaml_end]
-        else:
-            yaml_lines = lines[yaml_start:]
-            
-        # Clean up YAML lines - remove empty lines at the end
-        while yaml_lines and not yaml_lines[-1].strip():
-            yaml_lines.pop()
-            
-        yaml_content = '\n'.join(yaml_lines)
-        
-        print(f"      📝 Extracted YAML content ({len(yaml_lines)} lines)")
-        print(f"         Preview: {yaml_content[:100]}...")
-        
-        # Parse YAML - this should be in the format "checks:\n- id: ..."
-        try:
-            parsed_yaml = yaml.safe_load(yaml_content)
-        except yaml.YAMLError as ye:
-            print(f"      ❌ YAML parsing error: {ye}")
-            print(f"         YAML content:\n{yaml_content}")
-            return None
-        
-        # Extract the first check from the checks array
-        if parsed_yaml and 'checks' in parsed_yaml and parsed_yaml['checks']:
-            check_data = parsed_yaml['checks'][0]  # Return the first (and usually only) check
-            print(f"      ✅ Successfully parsed check: {check_data.get('id', 'unknown_id')}")
-            return check_data
-        else:
-            print(f"⚠️ No checks found in YAML structure for {output_file_path}")
-            print(f"   Parsed YAML keys: {list(parsed_yaml.keys()) if parsed_yaml else 'None'}")
-            if parsed_yaml and 'checks' in parsed_yaml:
-                print(f"   Checks array length: {len(parsed_yaml['checks'])}")
-            return None
-        
-    except Exception as e:
-        print(f"❌ Error parsing {output_file_path}: {e}")
-        import traceback
-        print(f"   Traceback: {traceback.format_exc()}")
+
+    if yaml_start is None:
+        print(f"⚠️ Could not find 'checks:' line in {output_file_path}")
+        # Debug: show first 10 lines
+        print("   First 10 lines:")
+        for i, line in enumerate(lines[:10]):
+            print(f"   {i+1}: {line}")
+        return None
+
+    # Find the end (next line with ===, or end of file)
+    for i in range(yaml_start + 1, len(lines)):
+        if '=' * 10 in lines[i] or lines[i].strip().startswith('---'):
+            yaml_end = i
+            break
+
+    # Extract YAML content
+    if yaml_end:
+        yaml_lines = lines[yaml_start:yaml_end]
+    else:
+        yaml_lines = lines[yaml_start:]
+
+    # Clean up YAML lines - remove empty lines at the end
+    while yaml_lines and not yaml_lines[-1].strip():
+        yaml_lines.pop()
+
+    yaml_content = '\n'.join(yaml_lines)
+
+    print(f"      📝 Extracted YAML content ({len(yaml_lines)} lines)")
+    print(f"         Preview: {yaml_content[:100]}...")
+
+    # Parse YAML - this should be in the format "checks:\n- id: ..."
+    try:
+        parsed_yaml = yaml.safe_load(yaml_content)
+    except yaml.YAMLError as ye:
+        print(f"      ❌ YAML parsing error: {ye}")
+        print(f"         YAML content:\n{yaml_content}")
+        return None
+
+    # Extract the first check from the checks array
+    if parsed_yaml and 'checks' in parsed_yaml and parsed_yaml['checks']:
+        check_data = parsed_yaml['checks'][0]  # Return the first (and usually only) check
+        print(f"      ✅ Successfully parsed check: {check_data.get('id', 'unknown_id')}")
+        return check_data
+    else:
+        print(f"⚠️ No checks found in YAML structure for {output_file_path}")
+        print(f"   Parsed YAML keys: {list(parsed_yaml.keys()) if parsed_yaml else 'None'}")
+        if parsed_yaml and 'checks' in parsed_yaml:
+            print(f"   Checks array length: {len(parsed_yaml['checks'])}")
         return None
 
 def serialize_for_csv(obj):
@@ -184,7 +177,7 @@ def transform_check_for_csv(check: Check) -> Dict[str, Any]:
         "metadata.operation.logic": metadata.get('operation', {}).get('logic', ''),
         "metadata.field_path": metadata.get('field_path', ''),
         "metadata.connection_id": metadata.get('connection_id', 1),
-        "metadata.resource_type": metadata.get('resource_type', ''),
+        "metadata.resource_type": metadata.get('resource_type', '').replace('con_mon.mappings.', ''),
         "metadata.expected_value": json.dumps(metadata.get('expected_value')) if metadata.get('expected_value') is not None else None,
     }
 
@@ -241,21 +234,16 @@ def extract_control_ids_from_path(output_file_path: Path, control_mapping: dict)
     Returns:
         List of control IDs that match the directory name
     """
-    try:
-        # Get control name from path (parent of parent of parent of file)
-        control_name = output_file_path.parent.parent.parent.name
-        
-        # Look up control IDs for this control name
-        if control_name in control_mapping:
-            control_ids = control_mapping[control_name]
-            print(f"      🎯 Mapped '{control_name}' to {len(control_ids)} control(s): {control_ids}")
-            return control_ids
-        else:
-            print(f"      ⚠️ No mapping found for control name: '{control_name}'")
-            return []
-            
-    except Exception as e:
-        print(f"      ❌ Error extracting control name from path: {e}")
+    # Get control name from path (parent of parent of parent of file)
+    control_name = output_file_path.parent.parent.parent.name
+
+    # Look up control IDs for this control name
+    if control_name in control_mapping:
+        control_ids = control_mapping[control_name]
+        print(f"      🎯 Mapped '{control_name}' to {len(control_ids)} control(s): {control_ids}")
+        return control_ids
+    else:
+        print(f"      ⚠️ No mapping found for control name: '{control_name}'")
         return []
 
 def verify_check_in_csv(check_id: str, control_id: int, db) -> bool:
@@ -270,42 +258,37 @@ def verify_check_in_csv(check_id: str, control_id: int, db) -> bool:
     Returns:
         True if both check and mapping are found and valid, False otherwise
     """
-    try:
-        # Verify check in checks.csv
-        checks_results = db.execute('select', table_name='checks', where={'id': check_id})
-        if not checks_results:
-            print(f"      ❌ Check {check_id} not found in checks.csv")
-            return False
-        
-        check_record = checks_results[0]
-        print(f"      ✅ Check verified in CSV: {check_record.get('name', 'Unknown')}")
-        print(f"         • ID: {check_record.get('id')}")
-        print(f"         • Description: {check_record.get('description', '')[:80]}...")
-        print(f"         • Category: {check_record.get('category')}")
-        print(f"         • Created by: {check_record.get('created_by')}")
-        
-        # Verify nested JSONB fields were properly stored and can be parsed
-        metadata_tags = check_record.get('metadata.tags')
-        if metadata_tags:
-            print(f"         • Tags: {metadata_tags}")
-        
-        # Verify mapping in control_checks_mapping.csv
-        mapping_results = db.execute('select', table_name='control_checks_mapping',
-                                     where={'check_id': check_id, 'control_id': control_id})
-        if not mapping_results:
-            print(f"      ❌ Mapping not found in control_checks_mapping.csv for check_id={check_id}, control_id={control_id}")
-            return False
-        
-        mapping_record = mapping_results[0]
-        print(f"      ✅ Mapping verified in CSV: control_id={mapping_record.get('control_id')}, check_id={mapping_record.get('check_id')}")
-        print(f"         • Created at: {mapping_record.get('created_at')}")
-        print(f"         • Is deleted: {mapping_record.get('is_deleted')}")
-        
-        return True
-        
-    except Exception as e:
-        print(f"      ❌ Error verifying check {check_id} in CSV: {e}")
+    # Verify check in checks.csv
+    checks_results = db.execute('select', table_name='checks', where={'id': check_id})
+    if not checks_results:
+        print(f"      ❌ Check {check_id} not found in checks.csv")
         return False
+
+    check_record = checks_results[0]
+    print(f"      ✅ Check verified in CSV: {check_record.get('name', 'Unknown')}")
+    print(f"         • ID: {check_record.get('id')}")
+    print(f"         • Description: {check_record.get('description', '')[:80]}...")
+    print(f"         • Category: {check_record.get('category')}")
+    print(f"         • Created by: {check_record.get('created_by')}")
+
+    # Verify nested JSONB fields were properly stored and can be parsed
+    metadata_tags = check_record.get('metadata.tags')
+    if metadata_tags:
+        print(f"         • Tags: {metadata_tags}")
+
+    # Verify mapping in control_checks_mapping.csv
+    mapping_results = db.execute('select', table_name='control_checks_mapping',
+                                 where={'check_id': check_id, 'control_id': control_id})
+    if not mapping_results:
+        print(f"      ❌ Mapping not found in control_checks_mapping.csv for check_id={check_id}, control_id={control_id}")
+        return False
+
+    mapping_record = mapping_results[0]
+    print(f"      ✅ Mapping verified in CSV: control_id={mapping_record.get('control_id')}, check_id={mapping_record.get('check_id')}")
+    print(f"         • Created at: {mapping_record.get('created_at')}")
+    print(f"         • Is deleted: {mapping_record.get('is_deleted')}")
+
+    return True
 
 def insert_check_and_mapping_to_csv(check: Check, control_id: int, db) -> bool:
     """
@@ -319,70 +302,37 @@ def insert_check_and_mapping_to_csv(check: Check, control_id: int, db) -> bool:
     Returns:
         True if successful, False otherwise
     """
-    try:
-        # Transform check for CSV storage
-        check_data = transform_check_for_csv(check)
-        
-        # Insert into checks.csv
-        print(f"      📝 Inserting check into CSV: {check.id}")
-        db.execute('insert', table_name='checks', update=check_data)
-        
-        # Create control-check mapping
-        current_time = datetime.now().isoformat()
-        mapping_data = {
-            'control_id': control_id,
-            'check_id': str(check.id),
-            'created_at': current_time,
-            'updated_at': current_time,
-            'is_deleted': False
-        }
-        
-        # Insert into control_checks_mapping.csv
-        print(f"      🔗 Creating control mapping: control_id={control_id}, check_id={check.id}")
-        db.execute('insert', table_name='control_checks_mapping', update=mapping_data)
-        
-        # Verify the insertion was successful
-        print(f"      🔍 Verifying insertion in CSV files...")
-        verification_success = verify_check_in_csv(str(check.id), control_id, db)
-        
-        if verification_success:
-            print(f"      ✅ CSV verification successful")
-        else:
-            print(f"      ❌ CSV verification failed")
-            
-        return verification_success
-        
-    except Exception as e:
-        print(f"      ❌ Failed to insert check {check.id} to CSV: {e}")
-        return False
+    # Transform check for CSV storage
+    check_data = transform_check_for_csv(check)
 
-def create_csv_tables_if_needed(db):
-    """Create CSV tables if they don't exist"""
-    try:
-        # Check if checks.csv exists, if not create with headers
-        if not db._table_exists('checks'):
-            print("📋 Creating checks.csv table...")
-            checks_columns = [
-                'id', 'name', 'description',
-                'output_statements.failure', 'output_statements.partial', 'output_statements.success',
-                'fix_details.description', 'fix_details.instructions', 'fix_details.estimated_time', 'fix_details.automation_available',
-                'created_by', 'category', 
-                'metadata.tags', 'metadata.category', 'metadata.severity', 
-                'metadata.operation.name', 'metadata.operation.logic', 'metadata.field_path', 
-                'metadata.connection_id', 'metadata.resource_type', 'metadata.expected_value',
-                'updated_by', 'created_at', 'updated_at', 'is_deleted'
-            ]
-            db.create_table('checks', checks_columns)
-        
-        # Check if control_checks_mapping.csv exists, if not create with headers
-        if not db._table_exists('control_checks_mapping'):
-            print("📋 Creating control_checks_mapping.csv table...")
-            mapping_columns = ['control_id', 'check_id', 'created_at', 'updated_at', 'is_deleted']
-            db.create_table('control_checks_mapping', mapping_columns)
-            
-    except Exception as e:
-        print(f"❌ Error creating CSV tables: {e}")
-        raise
+    # Insert into checks.csv
+    print(f"      📝 Inserting check into CSV: {check.id}")
+    db.execute('insert', table_name='checks', update=check_data)
+
+    # Create control-check mapping
+    current_time = datetime.now().isoformat()
+    mapping_data = {
+        'control_id': control_id,
+        'check_id': str(check.id),
+        'created_at': current_time,
+        'updated_at': current_time,
+        'is_deleted': False
+    }
+
+    # Insert into control_checks_mapping.csv
+    print(f"      🔗 Creating control mapping: control_id={control_id}, check_id={check.id}")
+    db.execute('insert', table_name='control_checks_mapping', update=mapping_data)
+
+    # Verify the insertion was successful
+    print(f"      🔍 Verifying insertion in CSV files...")
+    verification_success = verify_check_in_csv(str(check.id), control_id, db)
+
+    if verification_success:
+        print(f"      ✅ CSV verification successful")
+    else:
+        print(f"      ❌ CSV verification failed")
+
+    return verification_success
 
 def main():
     """Main function to walk through prompts and parse successful checks"""
@@ -411,10 +361,6 @@ def main():
     
     # Get CSV database instance
     db = get_db()
-    print(f"📁 CSV Database directory: {db._csv_directory}")
-    
-    # Create CSV tables if needed
-    create_csv_tables_if_needed(db)
     
     # Get provider resources mapping (reuse existing logic)
     provider_resources = get_provider_resources_mapping()
@@ -489,11 +435,7 @@ def main():
             provider_name = provider_dir.name
             
             # Convert provider name to ConnectorType
-            try:
-                connector_type = ConnectorType(provider_name.lower())
-            except ValueError:
-                print(f"  ⚠️  Unknown provider: {provider_name}")
-                continue
+            ConnectorType(provider_name.lower())
             
             print(f"  🔗 Provider: {provider_name}")
             
@@ -523,40 +465,36 @@ def main():
                         # Add missing datetime fields that from_row expects
                         yaml_data['created_at'] = datetime.now()
                         yaml_data['updated_at'] = datetime.now()
-                        
-                        try:
-                            check = Check.from_row(yaml_data)
-                            
-                            if check:
-                                stats['successful_checks'] += 1
-                                print(f"      ✅ Successfully created Check: {check.name}")
-                                print(f"         ID: {check.id}")
-                                print(f"         Description: {check.description[:100]}...")
-                                
-                                # Extract control ID from path
-                                control_ids = extract_control_ids_from_path(output_file, control_mapping)
-                                
-                                # Insert into CSV database
-                                if control_ids: # Only insert if control_ids were found
-                                    for control_id in control_ids:
-                                        if insert_check_and_mapping_to_csv(check, control_id, db):
-                                            stats['csv_insertion_success'] += 1
-                                            stats['csv_verification_success'] += 1
-                                            control_checks_added += 1
-                                            print(f"      💾 Successfully inserted and verified in CSV database for control_id={control_id}")
-                                        else:
-                                            stats['csv_insertion_errors'] += 1
-                                            stats['csv_verification_errors'] += 1
-                                else:
-                                    stats['csv_insertion_errors'] += 1
-                                    stats['csv_verification_errors'] += 1
-                                    print(f"      ❌ No control ID found for {output_file.name}, skipping insertion.")
+
+                        check = Check.from_row(yaml_data)
+
+                        if check:
+                            stats['successful_checks'] += 1
+                            print(f"      ✅ Successfully created Check: {check.name}")
+                            print(f"         ID: {check.id}")
+                            print(f"         Description: {check.description[:100]}...")
+
+                            # Extract control ID from path
+                            control_ids = extract_control_ids_from_path(output_file, control_mapping)
+
+                            # Insert into CSV database
+                            if control_ids: # Only insert if control_ids were found
+                                for control_id in control_ids:
+                                    if insert_check_and_mapping_to_csv(check, control_id, db):
+                                        stats['csv_insertion_success'] += 1
+                                        stats['csv_verification_success'] += 1
+                                        control_checks_added += 1
+                                        print(f"      💾 Successfully inserted and verified in CSV database for control_id={control_id}")
+                                    else:
+                                        stats['csv_insertion_errors'] += 1
+                                        stats['csv_verification_errors'] += 1
                             else:
-                                stats['check_creation_errors'] += 1
-                                print(f"      ❌ Failed to create Check object")
-                        except Exception as e:
+                                stats['csv_insertion_errors'] += 1
+                                stats['csv_verification_errors'] += 1
+                                print(f"      ❌ No control ID found for {output_file.name}, skipping insertion.")
+                        else:
                             stats['check_creation_errors'] += 1
-                            print(f"      ❌ Error creating Check object: {e}")
+                            print(f"      ❌ Failed to create Check object")
                     else:
                         stats['parse_errors'] += 1
                         print(f"      ❌ Failed to parse YAML")

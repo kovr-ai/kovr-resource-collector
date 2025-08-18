@@ -275,7 +275,7 @@ class Check(TableModel):
             
             # Import the module dynamically
             import importlib
-            module = importlib.import_module(module_path)
+            module = importlib.import_module(f'con_mon.mappings.{module_path}')
             
             # Get the class from the module
             resource_class = getattr(module, class_name)
