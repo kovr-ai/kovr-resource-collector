@@ -8,3 +8,4 @@ aws_response.json
 export_dd*
 populate_*
 *_BKP
+*.bak*
