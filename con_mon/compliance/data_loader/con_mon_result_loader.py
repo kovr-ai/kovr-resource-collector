@@ -29,17 +29,7 @@ class ConMonResultLoader(BaseLoader):
         Returns:
             List of ConMonResult for the customer and connection
         """
-        table_name = self.get_table_name
-        select_fields = self.get_select_fields
-        
-        query = f"""
-        SELECT {', '.join(select_fields)} 
-        FROM {table_name} 
-        WHERE customer_id = %s AND connection_id = %s 
-        ORDER BY created_at DESC
-        """
-        
-        raw_rows = self.db.execute('select', table_name='con_mon_results', where={'customer_id': customer_id, 'connection_id': connection_id})
+        raw_rows = self.db.execute('select', table_name=self.get_table_name, where={'customer_id': customer_id, 'connection_id': connection_id})
         
         instances = []
         for raw_row in raw_rows:
@@ -60,17 +50,7 @@ class ConMonResultLoader(BaseLoader):
         Returns:
             List of ConMonResult for the check
         """
-        table_name = self.get_table_name
-        select_fields = self.get_select_fields
-        
-        query = f"""
-        SELECT {', '.join(select_fields)} 
-        FROM {table_name} 
-        WHERE check_id = %s 
-        ORDER BY created_at DESC
-        """
-        
-        raw_rows = self.db.execute('select', table_name='con_mon_results', where={'check_id': check_id})
+        raw_rows = self.db.execute('select', table_name=self.get_table_name, where={'check_id': check_id})
         
         instances = []
         for raw_row in raw_rows:
