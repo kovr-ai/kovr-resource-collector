@@ -1,8 +1,8 @@
 import os
-from con_mon_v2.compliance.data_loader import ChecksLoader, ConnectionLoader
-from con_mon_v2.compliance.models import Connection
-from con_mon_v2.utils.services import ResourceCollectionService, ConMonResultService
-from con_mon_v2.utils import helpers
+from con_mon.compliance.data_loader import ChecksLoader, ConnectionLoader
+from con_mon.compliance.models import Connection
+from con_mon.utils.services import ResourceCollectionService, ConMonResultService
+from con_mon.utils import helpers
 
 
 def main(
@@ -13,7 +13,7 @@ def main(
     check_ids: list[int] | None = None,
     metadata: dict | None = None,
 ):
-    # Load checks using con_mon_v2 ChecksLoader
+    # Load checks using con_mon ChecksLoader
     checks_loader = ChecksLoader()
     if check_ids:
         checks = checks_loader.load_by_ids(check_ids)
@@ -45,7 +45,7 @@ def main(
         if check_results is not None:
             executed_check_results.append((check, check_results))
 
-    # Generate summary using con_mon_v2 helpers with Check objects
+    # Generate summary using con_mon helpers with Check objects
     helpers.print_summary(executed_check_results)
 
     # Process and store check results using ConMonResultService
