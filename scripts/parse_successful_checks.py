@@ -128,57 +128,49 @@ def serialize_nested_object(obj_dict):
         return result
     return obj_dict
 
-def transform_check_for_csv(check: Check) -> Dict[str, Any]:
+def transform_check_for_database(check: Check) -> Dict[str, Any]:
     """
-    Transform Check object to match CSV schema with flattened nested fields.
+    Transform Check object for database storage (both PostgreSQL and CSV).
+    Uses the same approach as batch_generate_checks.py for database-agnostic operations.
     
     Args:
         check: Check object to transform
         
     Returns:
-        Dictionary with CSV-compatible flattened fields
+        Dictionary with properly serialized JSONB fields
     """
     current_time = datetime.now().isoformat()
     
-    # Serialize nested objects properly with enum handling
-    output_statements = serialize_for_csv(check.output_statements)
-    fix_details = serialize_for_csv(check.fix_details)
-    metadata = serialize_for_csv(check.metadata)
+    # Convert Check object to database format with proper JSON serialization
+    def serialize_for_json(obj):
+        """Custom serializer for complex objects"""
+        if hasattr(obj, 'value'):  # Handle Enum types like ComparisonOperationEnum
+            return obj.value
+        elif hasattr(obj, 'model_dump'):  # Handle Pydantic models
+            return obj.model_dump()
+        elif hasattr(obj, '__dict__'):  # Handle other objects
+            return obj.__dict__
+        else:
+            return str(obj)
+    
+    # Convert complex fields to JSON with custom serializer (same as batch_generate_checks.py)
+    output_statements_json = json.dumps(check.output_statements.model_dump(), default=serialize_for_json)
+    fix_details_json = json.dumps(check.fix_details.model_dump(), default=serialize_for_json)
+    metadata_json = json.dumps(check.metadata.model_dump(), default=serialize_for_json)
     
     return {
-        "id": str(check.id),  # Ensure ID is string for CSV
-        "name": check.name,
-        "description": check.description,
-        
-        # Flattened output_statements fields
-        "output_statements.failure": output_statements.get('failure', ''),
-        "output_statements.partial": output_statements.get('partial', ''),
-        "output_statements.success": output_statements.get('success', ''),
-        
-        # Flattened fix_details fields
-        "fix_details.description": fix_details.get('description', ''),
-        "fix_details.instructions": json.dumps(fix_details.get('instructions', [])),
-        "fix_details.estimated_time": fix_details.get('estimated_time', ''),
-        "fix_details.automation_available": fix_details.get('automation_available', False),
-        
-        # Regular fields
-        "created_by": check.created_by,
-        "category": check.category,
-        "updated_by": check.updated_by,
-        "created_at": check.created_at.isoformat() if hasattr(check.created_at, 'isoformat') else current_time,
-        "updated_at": check.updated_at.isoformat() if hasattr(check.updated_at, 'isoformat') else current_time,
-        "is_deleted": check.is_deleted,
-        
-        # Flattened metadata fields - now properly serialized
-        "metadata.tags": json.dumps(metadata.get('tags', [])),
-        "metadata.category": metadata.get('category', ''),
-        "metadata.severity": metadata.get('severity', ''),
-        "metadata.operation.name": metadata.get('operation', {}).get('name', ''),  # Should now be proper enum value
-        "metadata.operation.logic": metadata.get('operation', {}).get('logic', ''),
-        "metadata.field_path": metadata.get('field_path', ''),
-        "metadata.connection_id": metadata.get('connection_id', 1),
-        "metadata.resource_type": metadata.get('resource_type', '').replace('con_mon.mappings.', ''),
-        "metadata.expected_value": json.dumps(metadata.get('expected_value')) if metadata.get('expected_value') is not None else None,
+        'id': check.id,
+        'name': check.name,
+        'description': check.description,
+        'output_statements': output_statements_json,  # JSON string for both PostgreSQL JSONB and CSV
+        'fix_details': fix_details_json,              # JSON string for both PostgreSQL JSONB and CSV
+        'metadata': metadata_json,                    # JSON string for both PostgreSQL JSONB and CSV
+        'created_by': check.created_by,
+        'category': check.category,
+        'updated_by': check.updated_by,
+        'created_at': check.created_at.isoformat() if hasattr(check.created_at, 'isoformat') else current_time,
+        'updated_at': check.updated_at.isoformat() if hasattr(check.updated_at, 'isoformat') else current_time,
+        'is_deleted': check.is_deleted
     }
 
 def create_control_name_mapping():
@@ -290,23 +282,23 @@ def verify_check_in_csv(check_id: str, control_id: int, db) -> bool:
 
     return True
 
-def insert_check_and_mapping_to_csv(check: Check, control_id: int, db) -> bool:
+def insert_check_and_mapping_to_database(check: Check, control_id: int, db) -> bool:
     """
-    Insert check into checks.csv and create mapping in control_checks_mapping.csv
+    Insert check into database and create mapping (works with both PostgreSQL and CSV)
     
     Args:
         check: Check object to insert
         control_id: Control ID for the mapping
-        db: CSV database instance
+        db: Database instance (PostgreSQL or CSV)
         
     Returns:
         True if successful, False otherwise
     """
-    # Transform check for CSV storage
-    check_data = transform_check_for_csv(check)
+    # Transform check for database storage (works with both PostgreSQL and CSV)
+    check_data = transform_check_for_database(check)
 
-    # Insert into checks.csv
-    print(f"      📝 Inserting check into CSV: {check.id}")
+    # Insert into database
+    print(f"      📝 Inserting check into database: {check.id}")
     db.execute('insert', table_name='checks', update=check_data)
 
     # Create control-check mapping
@@ -319,18 +311,18 @@ def insert_check_and_mapping_to_csv(check: Check, control_id: int, db) -> bool:
         'is_deleted': False
     }
 
-    # Insert into control_checks_mapping.csv
+    # Insert into control_checks_mapping
     print(f"      🔗 Creating control mapping: control_id={control_id}, check_id={check.id}")
     db.execute('insert', table_name='control_checks_mapping', update=mapping_data)
 
     # Verify the insertion was successful
-    print(f"      🔍 Verifying insertion in CSV files...")
+    print(f"      🔍 Verifying insertion in database...")
     verification_success = verify_check_in_csv(str(check.id), control_id, db)
 
     if verification_success:
-        print(f"      ✅ CSV verification successful")
+        print(f"      ✅ Database verification successful")
     else:
-        print(f"      ❌ CSV verification failed")
+        print(f"      ❌ Database verification failed")
 
     return verification_success
 
@@ -345,7 +337,7 @@ def main():
     args = parser.parse_args()
     
     print("🚀 Parsing Successful Checks from generate_checks/prompts")
-    print("💾 Inserting into CSV Database (checks.csv & control_checks_mapping.csv)")
+    print("💾 Inserting into Database (checks & control_checks_mapping tables)")
     if args.filter:
         print(f"🔍 Filtering controls with pattern: '{args.filter}'")
     if args.limit:
@@ -477,14 +469,14 @@ def main():
                             # Extract control ID from path
                             control_ids = extract_control_ids_from_path(output_file, control_mapping)
 
-                            # Insert into CSV database
+                            # Insert into database
                             if control_ids: # Only insert if control_ids were found
                                 for control_id in control_ids:
-                                    if insert_check_and_mapping_to_csv(check, control_id, db):
+                                    if insert_check_and_mapping_to_database(check, control_id, db):
                                         stats['csv_insertion_success'] += 1
                                         stats['csv_verification_success'] += 1
                                         control_checks_added += 1
-                                        print(f"      💾 Successfully inserted and verified in CSV database for control_id={control_id}")
+                                        print(f"      💾 Successfully inserted and verified in database for control_id={control_id}")
                                     else:
                                         stats['csv_insertion_errors'] += 1
                                         stats['csv_verification_errors'] += 1
@@ -512,7 +504,7 @@ def main():
     
     # Print final statistics
     print("\n" + "=" * 80)
-    print("📊 PARSING & CSV INSERTION SUMMARY")
+    print("📊 PARSING & DATABASE INSERTION SUMMARY")
     print("=" * 80)
     print(f"Total controls found: {stats['total_controls']}")
     if args.filter:
@@ -521,25 +513,26 @@ def main():
     print(f"Total output files found: {stats['total_output_files']}")
     print(f"Successfully parsed YAML: {stats['successfully_parsed']}")
     print(f"Successfully created checks: {stats['successful_checks']}")
-    print(f"Successfully inserted to CSV: {stats['csv_insertion_success']}")
+    print(f"Successfully inserted to database: {stats['csv_insertion_success']}")
     print(f"Parse errors: {stats['parse_errors']}")
     print(f"Check creation errors: {stats['check_creation_errors']}")
-    print(f"CSV insertion errors: {stats['csv_insertion_errors']}")
-    print(f"CSV verification success: {stats['csv_verification_success']}")
-    print(f"CSV verification errors: {stats['csv_verification_errors']}")
+    print(f"Database insertion errors: {stats['csv_insertion_errors']}")
+    print(f"Database verification success: {stats['csv_verification_success']}")
+    print(f"Database verification errors: {stats['csv_verification_errors']}")
     
     if stats['total_output_files'] > 0:
         parse_success_rate = (stats['successfully_parsed'] / stats['total_output_files']) * 100
         check_success_rate = (stats['successful_checks'] / stats['total_output_files']) * 100
-        csv_success_rate = (stats['csv_insertion_success'] / stats['total_output_files']) * 100
-        csv_verification_rate = (stats['csv_verification_success'] / stats['total_output_files']) * 100
+        db_success_rate = (stats['csv_insertion_success'] / stats['total_output_files']) * 100
+        db_verification_rate = (stats['csv_verification_success'] / stats['total_output_files']) * 100
         print(f"Parse success rate: {parse_success_rate:.1f}%")
         print(f"Check creation success rate: {check_success_rate:.1f}%")
-        print(f"CSV insertion success rate: {csv_success_rate:.1f}%")
-        print(f"CSV verification success rate: {csv_verification_rate:.1f}%")
+        print(f"Database insertion success rate: {db_success_rate:.1f}%")
+        print(f"Database verification success rate: {db_verification_rate:.1f}%")
     
-    print(f"\n📁 CSV files location: {db._csv_directory}")
-    print("✅ Parsing and CSV insertion complete!")
+    if hasattr(db, '_csv_directory'):
+        print(f"\n📁 CSV files location: {db._csv_directory}")
+    print("✅ Parsing and database insertion complete!")
 
 if __name__ == "__main__":
     main() 
