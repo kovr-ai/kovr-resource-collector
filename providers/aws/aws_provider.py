@@ -38,14 +38,13 @@ def _dict_to_list_with_id(data: dict[str, dict]) -> list[dict]:
 @provider_class
 class AWSProvider(Provider):
     def __init__(self, metadata: dict):
+        self._mock_response_filepath = 'tests/mocks/aws/response.json'
+        self.use_mock_data = os.path.exists(self._mock_response_filepath)
         self.AWS_ACCESS_KEY_ID = os.getenv("KOVR_AWS_ACCESS_KEY_ID")
         self.AWS_SECRET_ACCESS_KEY = os.getenv("KOVR_AWS_SECRET_ACCESS_KEY")
         self.AWS_SESSION_TOKEN = os.getenv("AWS_SESSION_TOKEN")
         self.ROLE_ARN = metadata.get("role_arn")
         self.AWS_EXTERNAL_ID = metadata.get("external_id")
-
-        # Check if we should use mock mode (if tests/mocks/aws/response.json exists)
-        self.use_mock_data = os.path.exists('tests/mocks/aws/response.json')
 
         if not self.use_mock_data and (
             not self.AWS_ACCESS_KEY_ID
@@ -143,12 +142,20 @@ class AWSProvider(Provider):
             aws_session_token=aws_session_token,
         )
 
+    def _save_mock_data(self, data: dict) -> None:
+        print("🔄 Saving mock AWS data")
+        with open(
+                self._mock_response_filepath,
+                'w'
+        ) as mock_response_file:
+            mock_response_file.write(json.dumps(data, indent=4))
+
     def _fetch_data(self) -> dict:
         data: dict = dict()
         if self.use_mock_data:
             print("🔄 Collecting mock AWS data via test mocks")
             with open(
-                    'tests/mocks/aws/response.json',
+                    self._mock_response_filepath,
                     'r'
             ) as mock_response_file:
                 data = json.load(mock_response_file)

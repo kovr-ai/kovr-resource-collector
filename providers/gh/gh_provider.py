@@ -21,6 +21,7 @@ from con_mon.mappings.github import (
 class GitHubProvider(Provider):
     def __init__(self, metadata: dict):
         self._mock_response_filepath = 'tests/mocks/github/response.json'
+        self.use_mock_data = os.path.exists(self._mock_response_filepath)
         self.access_token = metadata["personal_access_token"]
         self.user = None
 
@@ -67,7 +68,7 @@ class GitHubProvider(Provider):
             raise
 
     def _save_mock_data(self, data: dict) -> None:
-        print("🔄 Collecting mock AWS data via test mocks")
+        print("🔄 Saving mock Github data")
         with open(
                 self._mock_response_filepath,
                 'w'
@@ -76,39 +77,48 @@ class GitHubProvider(Provider):
 
     def _fetch_data(self) -> dict:
         """Process data collection and return GitHubReport model"""
-        try:
-            repos = list(self.user.get_repos())
-            print(f"Found {len(repos)} repositories")
-        except Exception as e:
-            print(f"Error getting repositories: {e}")
-            repos = []
+        if self.use_mock_data:
+            print("🔄 Collecting mock Github data via test mocks")
+            with open(
+                    self._mock_response_filepath,
+                    'r'
+            ) as mock_response_file:
+                data = json.load(mock_response_file)
+        else:
+            print("🔄 Collecting real Github data via API calls")
+            try:
+                repos = list(self.user.get_repos())
+                print(f"Found {len(repos)} repositories")
+            except Exception as e:
+                print(f"Error getting repositories: {e}")
+                repos = []
 
-        data: dict = dict()
-        # Process each repository
-        for repo in repos:
-            repo_id = repo.full_name
-            print(f"Processing repository: {repo_id}")
-            repo_dict: dict = dict(
-                id=repo_id,
-                description=repo.description
-            )
-            # Process each service for this repository
-            for service in self.services:
-                try:
-                    print(f"Collecting data for service: {service['name']}")
-                    instance = service["class"](self.client, repo)
-                    service_data = instance.process()
-                    repo_dict.update({
-                        service['key']: json.loads(service_data.model_dump_json())
-                    })
-                except Exception as e:
-                    repo_dict.update({
-                        service['key']: dict()
-                    })
-                    print(f"Error processing {service['name']} for {repo_id}: {e}")
-                    continue
+            data: dict = dict()
+            # Process each repository
+            for repo in repos:
+                repo_id = repo.full_name
+                print(f"Processing repository: {repo_id}")
+                repo_dict: dict = dict(
+                    id=repo_id,
+                    description=repo.description
+                )
+                # Process each service for this repository
+                for service in self.services:
+                    try:
+                        print(f"Collecting data for service: {service['name']}")
+                        instance = service["class"](self.client, repo)
+                        service_data = instance.process()
+                        repo_dict.update({
+                            service['key']: json.loads(service_data.model_dump_json())
+                        })
+                    except Exception as e:
+                        repo_dict.update({
+                            service['key']: dict()
+                        })
+                        print(f"Error processing {service['name']} for {repo_id}: {e}")
+                        continue
 
-            data.update({repo_id: repo_dict})
+                data.update({repo_id: repo_dict})
 
         return data
 
