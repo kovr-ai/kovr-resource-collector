@@ -102,7 +102,6 @@ class AWSProvider(Provider):
                 session_kwargs["aws_session_token"] = self.AWS_SESSION_TOKEN
 
         main_session = boto3.Session(**session_kwargs)
-        client_session = None
         kovr_arn = "arn:aws:iam::296062557786:role/KovrAuditRole"
         kovr_session = self.assume_role(kovr_arn, main_session)
         client_session = self.assume_role(
@@ -144,78 +143,41 @@ class AWSProvider(Provider):
             aws_session_token=aws_session_token,
         )
 
+    def _fetch_data(self) -> dict:
+        data: dict = dict()
+        if self.use_mock_data:
+            print("🔄 Collecting mock AWS data via test mocks")
+            with open(
+                    'tests/mocks/aws/response.json',
+                    'r'
+            ) as mock_response_file:
+                data = json.load(mock_response_file)
+        else:
+            print("🔄 Collecting real AWS data via API calls")
+            for region in self.REGIONS:
+                print("Fetching data for region: ", region)
+                session = boto3.Session(
+                    aws_access_key_id=self.AWS_ACCESS_KEY_ID,
+                    aws_secret_access_key=self.AWS_SECRET_ACCESS_KEY,
+                    aws_session_token=self.AWS_SESSION_TOKEN,
+                    region_name=region,
+                )
+                for index, service in enumerate(self.services):
+                    print(
+                        f"Fetching data for service: {service['name']} ({index + 1}/{len(self.services)})"
+                    )
+                    name = service["name"]
+                    instance = service["class"](session)
+                    if region not in data:
+                        data[region] = {}
+                    data[region][name] = instance.process()
+        return data
+
     def process(self) -> Tuple[AwsInfoData, AwsResourceCollection]:
         """Process data collection - uses mock data if available, otherwise real AWS API calls"""
-        if self.use_mock_data:
-            return self._process_mock_data()
-        else:
-            return self._process_real_aws_data()
-
-    def _process_mock_data(self) -> Tuple[AwsInfoData, AwsResourceCollection]:
-        """Load and return mock data from tests/mocks/aws/response.json as Tuple[AwsInfoData, AwsResourceCollection]"""
-        print("🔄 Using mock AWS data from aws_response.json")
-
-        try:
-            with open('tests/mocks/aws/response.json', 'r') as mock_response_file:
-                mock_response = json.load(mock_response_file)
-
-            print(f"✅ Loaded mock AWS data with {len(mock_response)} regions")
-
-            # Use the shared helper method to create AwsResourceCollection
-            resource_collection = self._create_resource_collection_from_data(mock_response)
-
-            # Create InfoData from the resource collection metadata
-            info_data = AwsInfoData(
-                accounts=[
-                    {
-                        'account_name': f"AWS Account {i + 1}",
-                        'account_id': f"AWS Account ID: {i + 1}"
-                    }
-                    for i in range(1)  # Single account for now
-                ]
-            )
-
-            return info_data, resource_collection
-
-        except Exception as e:
-            print(f"❌ Error loading mock data: {e}")
-            raise RuntimeError(f"Failed to load mock data from tests/mocks/aws/response.json: {e}")
-
-    def _process_real_aws_data(self) -> Tuple[AwsInfoData, AwsResourceCollection]:
-        """Original AWS data collection logic using real API calls - returns Tuple[AwsInfoData, AwsResourceCollection]"""
-        print("🔄 Collecting real AWS data via API calls")
-        data = {}
-        for region in self.REGIONS:
-            print("Fetching data for region: ", region)
-            session = boto3.Session(
-                aws_access_key_id=self.AWS_ACCESS_KEY_ID,
-                aws_secret_access_key=self.AWS_SECRET_ACCESS_KEY,
-                aws_session_token=self.AWS_SESSION_TOKEN,
-                region_name=region,
-            )
-            for index, service in enumerate(self.services):
-                print(
-                    f"Fetching data for service: {service['name']} ({index + 1}/{len(self.services)})"
-                )
-                name = service["name"]
-                instance = service["class"](session)
-                if region not in data:
-                    data[region] = {}
-                data[region][name] = instance.process()
-
-        # Convert the raw data to AwsResourceCollection using the same logic as mock data
+        data: dict = self._fetch_data()
         resource_collection = self._create_resource_collection_from_data(data)
-
-        # Create InfoData with actual account information
-        info_data = AwsInfoData(
-            accounts=[
-                {
-                    'account_name': f"AWS Account {i + 1}",
-                    'account_id': f"AWS Account ID: {i + 1}"
-                }
-                for i in range(1)  # Single account for now
-            ]
-        )
+        info_data = self._create_info_data_from_data(data)
 
         return info_data, resource_collection
 
@@ -382,4 +344,15 @@ class AWSProvider(Provider):
                 'total_cloudtrail_trails': sum(len(region_data.get('cloudtrail', {}).get('trails', [])) for region_data in aws_data.values()),
                 'total_cloudwatch_log_groups': sum(len(region_data.get('cloudwatch', {}).get('log_groups', [])) for region_data in aws_data.values())
             }
+        )
+
+    def _create_info_data_from_data(self, aws_data: dict) -> AwsInfoData:
+        return AwsInfoData(
+            accounts=[
+                {
+                    'account_name': f"AWS Account {i + 1}",
+                    'account_id': f"AWS Account ID: {i + 1}"
+                }
+                for i in range(1)
+            ]
         )
