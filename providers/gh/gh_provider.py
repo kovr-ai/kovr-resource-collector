@@ -170,6 +170,10 @@ class GitHubProvider(Provider):
             resource_collection: GithubResourceCollection
     ) -> GithubInfoData:
         info_data = GithubInfoData(
+            raw_json={
+                resource.id: json.loads(resource.model_dump_json())
+                for resource in resource_collection.resources
+            },
             repositories=[
                 {
                     'name': resource.id,

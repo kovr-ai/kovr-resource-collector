@@ -12,7 +12,7 @@ class InfoData(BaseModel):
     """
     Represents a single info data item that will be stored in connection.
     """
-    pass
+    raw_json: dict
 
 
 class Resource(BaseModel):

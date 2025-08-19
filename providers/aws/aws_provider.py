@@ -184,7 +184,7 @@ class AWSProvider(Provider):
         """Process data collection - uses mock data if available, otherwise real AWS API calls"""
         data: dict = self._fetch_data()
         resource_collection = self._create_resource_collection_from_data(data)
-        info_data = self._create_info_data_from_data(data)
+        info_data = self._create_info_data_from_resource_collection(resource_collection)
 
         return info_data, resource_collection
 
@@ -353,8 +353,16 @@ class AWSProvider(Provider):
             }
         )
 
-    def _create_info_data_from_data(self, aws_data: dict) -> AwsInfoData:
+
+    def _create_info_data_from_resource_collection(
+            self,
+            resource_collection: AwsResourceCollection
+    ) -> AwsInfoData:
         return AwsInfoData(
+            raw_json={
+                resource.id: json.loads(resource.model_dump_json())
+                for resource in resource_collection.resources
+            },
             accounts=[
                 {
                     'account_name': f"AWS Account {i + 1}",
