@@ -49,7 +49,7 @@ class Settings(BaseModel):
     DB_PASSWORD: str
 
     # CSV Configuration
-    CSV_DATA: str
+    CSV_DATA: str = ""
     LOG_LEVEL: str = "DEBUG"
     
     # AWS Configuration
