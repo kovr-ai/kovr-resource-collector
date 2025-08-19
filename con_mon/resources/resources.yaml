@@ -43,7 +43,9 @@ github:
           has_downloads: "boolean"
           has_discussions: "boolean"
           is_template: "boolean"
-          license: "string"
+          license:
+            name: "string"
+            key: "string"
           visibility: "string"
           allow_forking: "boolean"
           web_commit_signoff_required: "boolean"
