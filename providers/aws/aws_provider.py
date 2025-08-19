@@ -19,6 +19,7 @@ import boto3
 import json
 import os
 from datetime import datetime
+from con_mon.utils.config import settings
 
 
 def _dict_to_list_with_id(data: dict[str, dict]) -> list[dict]:
@@ -39,7 +40,7 @@ def _dict_to_list_with_id(data: dict[str, dict]) -> list[dict]:
 class AWSProvider(Provider):
     def __init__(self, metadata: dict):
         self._mock_response_filepath = 'tests/mocks/aws/response.json'
-        self.use_mock_data = os.path.exists(self._mock_response_filepath)
+        self.use_mock_data = settings.USE_MOCKS and os.path.exists(self._mock_response_filepath)
         self.AWS_ACCESS_KEY_ID = os.getenv("KOVR_AWS_ACCESS_KEY_ID")
         self.AWS_SECRET_ACCESS_KEY = os.getenv("KOVR_AWS_SECRET_ACCESS_KEY")
         self.AWS_SESSION_TOKEN = os.getenv("AWS_SESSION_TOKEN")

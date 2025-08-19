@@ -15,13 +15,14 @@ from con_mon.mappings.github import (
     GithubResource,
     GithubResourceCollection
 )
+from con_mon.utils.config import settings
 
 
 @provider_class
 class GitHubProvider(Provider):
     def __init__(self, metadata: dict):
         self._mock_response_filepath = 'tests/mocks/github/response.json'
-        self.use_mock_data = os.path.exists(self._mock_response_filepath)
+        self.use_mock_data = settings.USE_MOCKS and os.path.exists(self._mock_response_filepath)
         self.access_token = metadata["personal_access_token"]
         self.user = None
 
