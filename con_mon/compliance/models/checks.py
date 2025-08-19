@@ -34,8 +34,11 @@ class ComparisonOperation(PydanticBaseModel):
     class Config:
         arbitrary_types_allowed = True
 
-    def __call__(self, fetched_value: Any, config_value: Any):
-        return self.function(fetched_value, config_value)
+    def __call__(self, fetched_value: Any, config_value: Any) -> bool | None:
+        response = self.function(fetched_value, config_value)
+        if response not in [True, False, None]:
+            return None
+        return response
 
     @classmethod
     def get_function(
