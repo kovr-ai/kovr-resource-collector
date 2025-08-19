@@ -191,24 +191,11 @@ class TestPostgreSQLDatabase:
             ("Test Item 1", '{"key": "value1", "nested": {"field": "data1"}}', '2024-01-01')
         )
         
-        # Verify results format - should be list of dictionaries
-        assert isinstance(results, list), "Results should be a list"
-        assert len(results) == 2, "Should return 2 rows"
+        # Verify results format - should be row count (int) in new interface
+        assert isinstance(results, int), "Results should be an int (row count)"
+        assert results == 2, "Should return 2 as the number of affected rows"
         
-        # Verify first row structure
-        first_row = results[0]
-        assert isinstance(first_row, dict), "Each row should be a dictionary"
-        assert first_row['id'] == 1, "ID should be correctly mapped"
-        assert first_row['name'] == 'Test Item 1', "Name should be correctly mapped"
-        assert first_row['metadata'] == '{"key": "value1", "nested": {"field": "data1"}}', "Nested data should be preserved"
-        assert first_row['created_at'] == '2024-01-01', "Date should be correctly mapped"
-        
-        # Verify second row
-        second_row = results[1]
-        assert second_row['id'] == 2, "Second row ID should be correct"
-        assert second_row['name'] == 'Test Item 2', "Second row name should be correct"
-        
-        # Verify cursor was called
+        # Verify cursor was called once for the insert
         mock_cursor.execute.assert_called_once()
         
         print("✅ PostgreSQL query execution test passed")
@@ -247,12 +234,9 @@ class TestPostgreSQLDatabase:
         results = db.execute_insert("INSERT INTO config (id, config, settings) VALUES (%s, %s, %s) RETURNING id, config, settings",
                                     (1, '{"database": {"host": "localhost", "port": 5432}}', '{"features": ["auth", "logging"]}'))
         
-        # Verify results
-        assert len(results) == 1, "Should return 1 row"
-        row = results[0]
-        assert row['id'] == 1, "ID should match parameter"
-        assert '{"database":' in row['config'], "Config should contain nested JSON"
-        assert '{"features":' in row['settings'], "Settings should contain nested JSON"
+        # Verify results - should be row count in new interface
+        assert isinstance(results, int), "Results should be row count (int)"
+        assert results == 1, "Should return 1 as the number of affected rows"
         
         # Verify parameters were passed
         mock_cursor.execute.assert_called_once()
@@ -292,10 +276,9 @@ class TestPostgreSQLDatabase:
             "INSERT INTO items (name, data) VALUES (%s, %s) RETURNING id",
             ('Test Item', '{"nested": {"key": "value"}}')
         )
-        result_id = results[0]['id'] if results and 'id' in results[0] else None
-        
-        # Verify result
-        assert result_id == 123, "Should return inserted row ID"
+        # Verify insert returns row count
+        assert isinstance(results, int), "Insert should return row count (int)"
+        assert results == 1, "Should return 1 as the number of affected rows"
         
         # Verify commit was called
         mock_connection.commit.assert_called_once()
@@ -496,14 +479,9 @@ class TestPostgreSQLDatabase:
             (str(complex_metadata), '{"database": {"pool_size": 10}}')
         )
         
-        # Verify complex data is preserved as strings (as returned by PostgreSQL)
-        assert len(results) == 1, "Should return 1 row"
-        row = results[0]
-        assert isinstance(row, dict), "Row should be a dictionary"
-        assert row['id'] == 1, "ID should be correct"
-        assert 'user' in row['metadata'], "Complex metadata should be preserved"
-        assert 'profile' in row['metadata'], "Nested structure should be preserved"
-        assert 'database' in row['config'], "Config structure should be preserved"
+        # Verify insert returns row count in new interface
+        assert isinstance(results, int), "Results should be row count (int)"
+        assert results == 1, "Should return 1 as the number of affected rows"
         
         print("✅ PostgreSQL complex nested data handling test passed")
 
