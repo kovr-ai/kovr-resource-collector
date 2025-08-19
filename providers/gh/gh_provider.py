@@ -127,8 +127,12 @@ class GitHubProvider(Provider):
         try:
             auth = Auth.Token(self.access_token)
             self.client = Github(auth=auth)
-            self.user = self.client.get_user()
-            print(f"Connected to GitHub as: {self.user.login}")
+            if self.use_mock_data:
+                self.user = None
+                print(f"Connected to GitHub as: mock user")
+            else:
+                self.user = self.client.get_user()
+                print(f"Connected to GitHub as: {self.user.login}")
         except GithubException as e:
             print(f"GitHub connection error: {e}")
             raise
