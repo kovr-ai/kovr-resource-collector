@@ -1,5 +1,7 @@
 """Tests for verifying YAML schema to JSON data mapping."""
 from typing import List
+import json
+from unittest.mock import patch
 
 from con_mon.utils.services import ResourceCollectionService
 from con_mon.resources import ResourceCollection
@@ -10,12 +12,24 @@ from con_mon.compliance.models import (
 from datetime import datetime
 
 
-def setup_github_resource_service() -> ResourceCollection:
+@patch('providers.gh.gh_provider.GitHubProvider.process')
+def setup_github_resource_service(mock_github_process) -> ResourceCollection:
+    # Load mock data from tests/mocks/github/response.json
+    with open('tests/mocks/github/response.json', 'r') as f:
+        mock_data = json.load(f)
+    mock_github_process.return_value = mock_data
+    
     rc_service = ResourceCollectionService('github')
     return rc_service.get_resource_collection()
 
 
-def setup_aws_resource_service() -> ResourceCollection:
+@patch('providers.aws.aws_provider.AWSProvider.process')
+def setup_aws_resource_service(mock_aws_process) -> ResourceCollection:
+    # Load mock data from tests/mocks/aws/response.json
+    with open('tests/mocks/aws/response.json', 'r') as f:
+        mock_data = json.load(f)
+    mock_aws_process.return_value = mock_data
+    
     rc_service = ResourceCollectionService('aws')
     return rc_service.get_resource_collection()
 
@@ -1040,7 +1054,13 @@ def list_of_field_paths(resource_name) -> List[str]:
     return field_paths[resource_name]
 
 
-def test_github_resource_collection():
+@patch('providers.gh.gh_provider.GitHubProvider.process')
+def test_github_resource_collection(mock_github_process):
+    # Load mock data from tests/mocks/github/response.json
+    with open('tests/mocks/github/response.json', 'r') as f:
+        mock_data = json.load(f)
+    mock_github_process.return_value = mock_data
+    
     info, rc = setup_github_resource_service()
     check = setup_test_check()
     for resource in rc.resources:
@@ -1051,7 +1071,13 @@ def test_github_resource_collection():
             assert check.is_invalid(check_results) is False, f'Check Evaluation failed for {resource_name}.{field_path}'
 
 
-def test_aws_resource_collection():
+@patch('providers.aws.aws_provider.AWSProvider.process')
+def test_aws_resource_collection(mock_aws_process):
+    # Load mock data from tests/mocks/aws/response.json
+    with open('tests/mocks/aws/response.json', 'r') as f:
+        mock_data = json.load(f)
+    mock_aws_process.return_value = mock_data
+    
     info, rc = setup_aws_resource_service()
     check = setup_test_check()
     for resource in rc.resources:
@@ -1067,6 +1093,17 @@ def test_aws_resource_collection():
             assert check.is_invalid(check_results) is False, f'Check Evaluation failed for {resource_name}.{field_path}'
 
 
-def test_all_field_paths():
-    test_github_resource_collection()
-    test_aws_resource_collection()
+@patch('providers.aws.aws_provider.AWSProvider.process')
+@patch('providers.gh.gh_provider.GitHubProvider.process')
+def test_all_field_paths(mock_github_process, mock_aws_process):
+    # Load mock data for both providers
+    with open('tests/mocks/github/response.json', 'r') as f:
+        github_mock_data = json.load(f)
+    with open('tests/mocks/aws/response.json', 'r') as f:
+        aws_mock_data = json.load(f)
+    
+    mock_github_process.return_value = github_mock_data
+    mock_aws_process.return_value = aws_mock_data
+    
+    test_github_resource_collection(mock_github_process)
+    test_aws_resource_collection(mock_aws_process)
