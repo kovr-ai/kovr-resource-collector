@@ -1,6 +1,8 @@
 """Dynamic field path generation and testing."""
 from typing import List, Dict, Any, Type, get_origin, get_args
 import inspect
+import json
+from unittest.mock import patch
 
 from con_mon.utils.services import ResourceCollectionService
 from con_mon.resources import ResourceCollection, Resource
@@ -81,8 +83,19 @@ def setup_test_check() -> Check:
     return check.model_copy()
 
 
-def test_field_paths_dynamically():
+@patch('providers.aws.aws_provider.AWSProvider.process')
+@patch('providers.gh.gh_provider.GitHubProvider.process')
+def test_field_paths_dynamically(mock_github_process, mock_aws_process):
     """Test field paths by dynamically generating them from resource models."""
+    # Load mock data for both providers
+    with open('tests/mocks/github/response.json', 'r') as f:
+        github_mock_data = json.load(f)
+    with open('tests/mocks/aws/response.json', 'r') as f:
+        aws_mock_data = json.load(f)
+    
+    mock_github_process.return_value = github_mock_data
+    mock_aws_process.return_value = aws_mock_data
+    
     providers = ['github', 'aws']
     
     for provider in providers:
@@ -150,8 +163,14 @@ def test_field_paths_dynamically():
             assert success_rate >= 50.0, f"Success rate {success_rate:.1f}% is below 50% for {resource_name}"
 
 
-def test_generate_field_paths_github():
+@patch('providers.gh.gh_provider.GitHubProvider.process')
+def test_generate_field_paths_github(mock_github_process):
     """Test field path generation for GitHub provider."""
+    # Load mock data from tests/mocks/github/response.json
+    with open('tests/mocks/github/response.json', 'r') as f:
+        mock_data = json.load(f)
+    mock_github_process.return_value = mock_data
+    
     field_paths_dict = generate_field_paths_for_provider('github')
     
     assert field_paths_dict, "Should generate field paths for GitHub"
@@ -175,8 +194,14 @@ def test_generate_field_paths_github():
         assert has_simple_paths, f"Should have simple paths for {resource_name}"
 
 
-def test_generate_field_paths_aws():
+@patch('providers.aws.aws_provider.AWSProvider.process')
+def test_generate_field_paths_aws(mock_aws_process):
     """Test field path generation for AWS provider."""
+    # Load mock data from tests/mocks/aws/response.json
+    with open('tests/mocks/aws/response.json', 'r') as f:
+        mock_data = json.load(f)
+    mock_aws_process.return_value = mock_data
+    
     field_paths_dict = generate_field_paths_for_provider('aws')
     
     assert field_paths_dict, "Should generate field paths for AWS"
@@ -200,8 +225,19 @@ def test_generate_field_paths_aws():
         assert has_simple_paths, f"Should have simple paths for {resource_name}"
 
 
-def test_resource_field_paths_method():
+@patch('providers.aws.aws_provider.AWSProvider.process')
+@patch('providers.gh.gh_provider.GitHubProvider.process')
+def test_resource_field_paths_method(mock_github_process, mock_aws_process):
     """Test the Resource.field_paths() method directly."""
+    # Load mock data for both providers
+    with open('tests/mocks/github/response.json', 'r') as f:
+        github_mock_data = json.load(f)
+    with open('tests/mocks/aws/response.json', 'r') as f:
+        aws_mock_data = json.load(f)
+    
+    mock_github_process.return_value = github_mock_data
+    mock_aws_process.return_value = aws_mock_data
+    
     print("\n🔬 Testing Resource.field_paths() method directly...")
     
     providers = ['github', 'aws']

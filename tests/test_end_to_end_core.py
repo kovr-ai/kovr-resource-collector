@@ -13,6 +13,7 @@ import yaml
 from datetime import datetime
 from typing import Any, Dict, List
 import pytest
+from unittest.mock import patch
 
 from con_mon.compliance.models import (
     Check, CheckMetadata, CheckOperation, OutputStatements, 
@@ -179,8 +180,14 @@ if fetched_value and isinstance(fetched_value, list):
 class TestResourceSchemaGeneration:
     """Test resource schema generation from YAML to Pydantic models."""
     
-    def test_resource_schema_loading(self):
+    @patch('providers.gh.gh_provider.GitHubProvider.process')
+    def test_resource_schema_loading(self, mock_github_process):
         """Test resources.yaml loads and generates correct structure."""
+        # Load mock data from tests/mocks/github/response.json
+        with open('tests/mocks/github/response.json', 'r') as f:
+            mock_data = json.load(f)
+        mock_github_process.return_value = mock_data
+        
         rc_service = ResourceCollectionService('github')
         
         # Test that provider config loads - check the correct attribute
@@ -199,8 +206,14 @@ class TestResourceSchemaGeneration:
         
         print("✅ Resource schema loading test passed")
     
-    def test_nested_field_structure_creation(self):
+    @patch('providers.gh.gh_provider.GitHubProvider.process')
+    def test_nested_field_structure_creation(self, mock_github_process):
         """Test complex nested structures work correctly."""
+        # Load mock data from tests/mocks/github/response.json
+        with open('tests/mocks/github/response.json', 'r') as f:
+            mock_data = json.load(f)
+        mock_github_process.return_value = mock_data
+        
         rc_service = ResourceCollectionService('github')
         info, rc = rc_service.get_resource_collection()
         
@@ -219,8 +232,14 @@ class TestResourceSchemaGeneration:
                     
             print("✅ Nested field structure test passed")
     
-    def test_array_field_handling(self):
+    @patch('providers.gh.gh_provider.GitHubProvider.process')
+    def test_array_field_handling(self, mock_github_process):
         """Test array fields generate correct types."""
+        # Load mock data from tests/mocks/github/response.json
+        with open('tests/mocks/github/response.json', 'r') as f:
+            mock_data = json.load(f)
+        mock_github_process.return_value = mock_data
+        
         rc_service = ResourceCollectionService('github')
         info, rc = rc_service.get_resource_collection()
         
@@ -245,8 +264,14 @@ class TestResourceSchemaGeneration:
 class TestConnectorResourceFlow:
     """Test connector execution and resource collection creation."""
     
-    def test_connector_creates_valid_resource_collection(self):
+    @patch('providers.gh.gh_provider.GitHubProvider.process')
+    def test_connector_creates_valid_resource_collection(self, mock_github_process):
         """Test connector output matches ResourceCollection schema."""
+        # Load mock data from tests/mocks/github/response.json
+        with open('tests/mocks/github/response.json', 'r') as f:
+            mock_data = json.load(f)
+        mock_github_process.return_value = mock_data
+        
         rc_service = ResourceCollectionService('github')
         info, rc = rc_service.get_resource_collection()
         
@@ -266,8 +291,14 @@ class TestConnectorResourceFlow:
         
         print("✅ Connector resource collection validation test passed")
     
-    def test_connector_resource_instances_match_schema(self):
+    @patch('providers.gh.gh_provider.GitHubProvider.process')
+    def test_connector_resource_instances_match_schema(self, mock_github_process):
         """Test individual resources match expected schema."""
+        # Load mock data from tests/mocks/github/response.json
+        with open('tests/mocks/github/response.json', 'r') as f:
+            mock_data = json.load(f)
+        mock_github_process.return_value = mock_data
+        
         rc_service = ResourceCollectionService('github')
         info, rc = rc_service.get_resource_collection()
         
@@ -292,8 +323,14 @@ class TestConnectorResourceFlow:
 class TestEndToEndCheckExecution:
     """Test complete check execution flow."""
     
-    def test_field_path_extraction_from_real_data(self):
+    @patch('providers.gh.gh_provider.GitHubProvider.process')
+    def test_field_path_extraction_from_real_data(self, mock_github_process):
         """Test field path extraction from actual resource data."""
+        # Load mock data from tests/mocks/github/response.json
+        with open('tests/mocks/github/response.json', 'r') as f:
+            mock_data = json.load(f)
+        mock_github_process.return_value = mock_data
+        
         rc_service = ResourceCollectionService('github')
         info, rc = rc_service.get_resource_collection()
         
@@ -314,8 +351,14 @@ class TestEndToEndCheckExecution:
                 except Exception as e:
                     print(f"⚠️ Field path '{field_path}' extraction failed: {e}")
     
-    def test_check_logic_execution_with_real_data(self):
+    @patch('providers.gh.gh_provider.GitHubProvider.process')
+    def test_check_logic_execution_with_real_data(self, mock_github_process):
         """Test check logic execution against real resource data."""
+        # Load mock data from tests/mocks/github/response.json
+        with open('tests/mocks/github/response.json', 'r') as f:
+            mock_data = json.load(f)
+        mock_github_process.return_value = mock_data
+        
         rc_service = ResourceCollectionService('github')
         info, rc = rc_service.get_resource_collection()
         
@@ -365,8 +408,13 @@ if fetched_value and isinstance(fetched_value, list):
             except Exception as e:
                 print(f"⚠️ Complex check logic execution failed (expected if no org data): {e}")
     
-    def test_complete_check_evaluation_flow(self):
+    @patch('providers.gh.gh_provider.GitHubProvider.process')
+    def test_complete_check_evaluation_flow(self, mock_github_process):
         """Test complete flow: Check → Resource → Field extraction → Logic execution."""
+        # Load mock data from tests/mocks/github/response.json
+        with open('tests/mocks/github/response.json', 'r') as f:
+            mock_data = json.load(f)
+        mock_github_process.return_value = mock_data
         # Create a realistic check
         check_data = {
             'id': 'test_complete_flow',
@@ -481,8 +529,13 @@ if fetched_value and isinstance(fetched_value, str):
 class TestSchemaConsistency:
     """Test consistency across components."""
     
-    def test_check_resource_type_matches_connector_output(self):
+    @patch('providers.gh.gh_provider.GitHubProvider.process')
+    def test_check_resource_type_matches_connector_output(self, mock_github_process):
         """Test check.metadata.resource_type matches what connector produces."""
+        # Load mock data from tests/mocks/github/response.json
+        with open('tests/mocks/github/response.json', 'r') as f:
+            mock_data = json.load(f)
+        mock_github_process.return_value = mock_data
         # Create check with GitHub resource type
         check_data = {
             'id': 'consistency_test',
@@ -522,8 +575,14 @@ class TestSchemaConsistency:
             assert expected_class_name == actual_class_name, f"Resource type mismatch: expected {expected_class_name}, got {actual_class_name}"
             print("✅ Resource type consistency test passed")
     
-    def test_field_path_exists_in_resource_schema(self):
+    @patch('providers.gh.gh_provider.GitHubProvider.process')
+    def test_field_path_exists_in_resource_schema(self, mock_github_process):
         """Test that field paths in checks actually exist in resource schemas."""
+        # Load mock data from tests/mocks/github/response.json
+        with open('tests/mocks/github/response.json', 'r') as f:
+            mock_data = json.load(f)
+        mock_github_process.return_value = mock_data
+        
         common_field_paths = [
             'repository_data.basic_info.name',
             'repository_data.basic_info.private',

@@ -48,10 +48,14 @@ class Settings(BaseModel):
     DB_USER: str
     DB_PASSWORD: str
 
+    LOG_LEVEL: str = "DEBUG"
+
     # CSV Configuration
     CSV_DATA: str = ""
-    LOG_LEVEL: str = "DEBUG"
-    
+
+    # MOCK Configuration
+    USE_MOCKS: bool = False
+
     # AWS Configuration
     AWS_REGION: str = "us-east-1"
     AWS_PROFILE: str = "dev-kovr"

@@ -1,9 +1,23 @@
 """Tests for loading and validating resource data from all connectors."""
+import json
+from unittest.mock import patch
+
 from con_mon.utils.services import ResourceCollectionService
 
 
-def test_load_data():
+@patch('providers.aws.aws_provider.AWSProvider.process')
+@patch('providers.gh.gh_provider.GitHubProvider.process')
+def test_load_data(mock_github_process, mock_aws_process):
     """Test loading and validating resource data for all connector types."""
+    # Load mock data for both providers
+    with open('tests/mocks/github/response.json', 'r') as f:
+        github_mock_data = json.load(f)
+    with open('tests/mocks/aws/response.json', 'r') as f:
+        aws_mock_data = json.load(f)
+    
+    mock_github_process.return_value = github_mock_data
+    mock_aws_process.return_value = aws_mock_data
+    
     print("\n🧪 Testing Resource Data Loading and Field Path Validation...")
     
     # Test connectors
