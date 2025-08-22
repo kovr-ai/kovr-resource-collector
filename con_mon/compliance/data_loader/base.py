@@ -158,6 +158,102 @@ class BaseLoader(ABC):
             print(f"   ❌ Insert failed: {e}")
             raise
 
+    def update_row(self, fields: List[str], instance: TableModel) -> TableModel:
+        """
+        Update a row in the database table based on the specified fields.
+
+        Args:
+            fields: List of fields on which to select row to update
+            instance: TableModel instance to replace the selected row
+
+        Returns:
+            Replaced TableModel instance
+        """
+        table_name = self.get_table_name
+        model_class = self.get_model_class
+        
+        # Convert model instance to dictionary
+        update_data = instance.model_dump()
+        
+        # Handle datetime fields - convert to ISO format strings
+        for field_name, field_value in update_data.items():
+            if isinstance(field_value, datetime):
+                update_data[field_name] = field_value.isoformat()
+        
+        # Build where condition from the specified fields
+        where_condition = {}
+        for field in fields:
+            if hasattr(instance, field):
+                where_condition[field] = getattr(instance, field)
+            else:
+                raise ValueError(f"Field '{field}' not found in model instance")
+        
+        print(f"🔄 Updating {model_class.__name__} record in {table_name} where {where_condition}...")
+        
+        try:
+            # Execute update via backend-agnostic dispatcher
+            updated_count = self.db.execute('update', table_name=table_name, update=update_data, where=where_condition)
+            
+            if updated_count > 0:
+                print(f"   ✅ Successfully updated {updated_count} record(s)")
+            else:
+                print(f"   ⚠️  No records were updated - check if matching record exists")
+            
+            return instance
+            
+        except Exception as e:
+            print(f"   ❌ Update failed: {e}")
+            raise
+
+    def upsert_row(self, fields: List[str], instance: TableModel) -> TableModel:
+        """
+        Insert or update a row in the database table based on the specified fields.
+        First checks if a record exists with the given field values, then either
+        updates the existing record or inserts a new one.
+
+        Args:
+            fields: List of fields on which to check for existing row
+            instance: TableModel instance to upsert
+
+        Returns:
+            Upserted TableModel instance
+        """
+        table_name = self.get_table_name
+        model_class = self.get_model_class
+        select_fields = self.get_select_fields
+        
+        # Build where condition from the specified fields
+        where_condition = {}
+        for field in fields:
+            if hasattr(instance, field):
+                where_condition[field] = getattr(instance, field)
+            else:
+                raise ValueError(f"Field '{field}' not found in model instance")
+        
+        print(f"🔄 Upserting {model_class.__name__} record in {table_name} where {where_condition}...")
+        
+        try:
+            # First, check if a record exists
+            existing_rows = self.db.execute('select', table_name=table_name, select=select_fields, where=where_condition)
+            
+            if existing_rows:
+                # Record exists, update it
+                print(f"   📝 Record exists, updating...")
+                return self.update_row(fields, instance)
+            else:
+                # Record doesn't exist, insert it
+                print(f"   ➕ Record doesn't exist, inserting...")
+                inserted_count = self.insert_rows([instance])
+                if inserted_count > 0:
+                    print(f"   ✅ Successfully upserted record")
+                    return instance
+                else:
+                    raise Exception("Insert operation returned 0 records inserted")
+            
+        except Exception as e:
+            print(f"   ❌ Upsert failed: {e}")
+            raise
+
     def export_to_csv(
         self,
         where_clause: Optional[str] = None,

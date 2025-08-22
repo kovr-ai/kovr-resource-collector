@@ -50,7 +50,6 @@ def main(
 
     # Process and store check results using ConMonResultService
     total_result_count = 0
-    total_history_count = 0
     for executed_check_result in executed_check_results:
         check, check_results = executed_check_result
         con_mon_result_service = ConMonResultService(
@@ -59,10 +58,9 @@ def main(
             customer_id=customer_id,
             connection_id=connection_id
         )
-        result_count, history_count = con_mon_result_service.insert_in_db()
-        print(f'Added {result_count} records to database and {history_count} history records')
+        result_count = con_mon_result_service.insert_in_db()
+        print(f'Added {result_count} records to database for Check ID: {check.id}')
         total_result_count += result_count
-        total_history_count += history_count
     
     print(f"\n💾 **Database Storage:**")
     print(f"   • TODO: Port SQL utilities from con_mon to store results")
@@ -70,7 +68,6 @@ def main(
     print(f"   • Connection ID: {connection_id}")
     print(f"   • Checks executed: {len(executed_check_results)}")
     print(f"   • Results Inserted: {total_result_count}")
-    print(f"   • History Inserted: {total_history_count}")
 
 
 def params_from_connection_id(

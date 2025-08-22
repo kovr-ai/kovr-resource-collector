@@ -61,7 +61,7 @@ class ConMonResultLoader(BaseLoader):
         print(f"✅ Loaded {len(instances)} ConMonResult for check {check_id}")
         return instances
 
-    def insert_rows(self, instances: List[ConMonResult]) -> int:
+    def insert_results(self, instances: List[ConMonResult]) -> int:
         """
         Insert ConMonResult instances with history management.
         
@@ -83,68 +83,15 @@ class ConMonResultLoader(BaseLoader):
         
         # Initialize history loader
         history_loader = ConMonResultHistoryLoader()
-        
-        total_inserted = 0
-        total_archived = 0
-        
-        try:
-            for instance in instances:
-                # Load existing records for this customer/connection/check combination
-                existing_records = self.load_by_customer_and_connection(
-                    instance.customer_id, 
-                    instance.connection_id
-                )
-                
-                # Filter to just this specific check
-                existing_for_check = [
-                    record for record in existing_records 
-                    if record.check_id == instance.check_id
-                ]
-                
-                # Move existing records to history
-                if existing_for_check:
-                    print(f"   📜 Moving {len(existing_for_check)} existing records to history for check {instance.check_id}...")
-                    
-                    history_records = []
-                    for existing_record in existing_for_check:
-                        # Create history record from existing record
-                        history_record = ConMonResultHistory(
-                            customer_id=existing_record.customer_id,
-                            connection_id=existing_record.connection_id,
-                            check_id=existing_record.check_id,
-                            result=existing_record.result,
-                            result_message=existing_record.result_message,
-                            success_count=existing_record.success_count,
-                            failure_count=existing_record.failure_count,
-                            success_percentage=existing_record.success_percentage,
-                            success_resources=existing_record.success_resources,
-                            failed_resources=existing_record.failed_resources,
-                            exclusions=existing_record.exclusions,
-                            resource_json=existing_record.resource_json,
-                            created_at=existing_record.created_at,
-                            updated_at=datetime.now()
-                        )
-                        history_records.append(history_record)
-                    
-                    # Insert into history table
-                    archived_count = history_loader.insert_rows(history_records)
-                    total_archived += archived_count
-                    print(f"      ✅ Archived {archived_count} records to history")
-                
-                # Insert the new record using parent class method
-                inserted_count = super().insert_rows([instance])
-                total_inserted += inserted_count
-                print(f"   💾 Inserted new record for check {instance.check_id}")
-            
-            print(f"   📊 History management completed:")
-            print(f"      • New records inserted: {total_inserted}")
-            print(f"      • Records archived to history: {total_archived}")
-            
-            return total_inserted
-            
-        except Exception as e:
-            print(f"   ❌ Insert with history management failed: {e}")
-            raise
+        total_inserted = history_loader.insert_history(instances)
+
+        for instance in instances:
+            self.upsert_row(
+                ['customer_id', 'connection_id', 'check_id'],
+                instance
+            )
+
+        return total_inserted
 
 
 class ConMonResultHistoryLoader(BaseLoader):
@@ -157,8 +104,7 @@ class ConMonResultHistoryLoader(BaseLoader):
         """Initialize the ConMonResultHistoryLoader with the ConMonResultHistory model."""
         super().__init__(ConMonResultHistory)
 
-    def load_by_customer_and_connection(self, customer_id: str, connection_id: int, 
-                                       limit: Optional[int] = None) -> List[ConMonResultHistory]:
+    def load_by_customer_and_connection(self, customer_id: str, connection_id: int) -> List[ConMonResultHistory]:
         """
         Load historical check results for a specific customer and connection.
         
@@ -170,19 +116,6 @@ class ConMonResultHistoryLoader(BaseLoader):
         Returns:
             List of ConMonResultHistory for the customer and connection
         """
-        table_name = self.get_table_name
-        select_fields = self.get_select_fields
-        
-        query = f"""
-        SELECT {', '.join(select_fields)} 
-        FROM {table_name} 
-        WHERE customer_id = %s AND connection_id = %s 
-        ORDER BY archived_at DESC
-        """
-        
-        if limit:
-            query += f" LIMIT {limit}"
-        
         raw_rows = self.db.execute('select', table_name='con_mon_results_history', where={'customer_id': customer_id, 'connection_id': connection_id})
         
         instances = []
@@ -228,4 +161,27 @@ class ConMonResultHistoryLoader(BaseLoader):
             instances.append(instance)
         
         print(f"✅ Loaded {len(instances)} ConMonResultHistory for check {check_id}")
-        return instances 
+        return instances
+
+    def insert_history(self, instances: List[ConMonResult]) -> int:
+        history_records = list()
+        for instance in instances:
+            history_record = ConMonResultHistory(
+                customer_id=instance.customer_id,
+                connection_id=instance.connection_id,
+                check_id=instance.check_id,
+                result=instance.result,
+                result_message=instance.result_message,
+                success_count=instance.success_count,
+                failure_count=instance.failure_count,
+                success_percentage=instance.success_percentage,
+                success_resources=instance.success_resources,
+                failed_resources=instance.failed_resources,
+                exclusions=instance.exclusions,
+                resource_json=instance.resource_json,
+                created_at=instance.created_at,
+                updated_at=datetime.now()
+            )
+            history_records.append(history_record)
+
+        return self.insert_rows(history_records)
