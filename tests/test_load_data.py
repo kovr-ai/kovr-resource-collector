@@ -1,22 +1,29 @@
 """Tests for loading and validating resource data from all connectors."""
 import json
+import os
 from unittest.mock import patch
 
 from con_mon.utils.services import ResourceCollectionService
 
 
-@patch('providers.aws.aws_provider.AWSProvider.process')
-@patch('providers.gh.gh_provider.GitHubProvider.process')
-def test_load_data(mock_github_process, mock_aws_process):
+@patch.dict(os.environ, {'KOVR_AWS_ACCESS_KEY_ID': 'fake_key', 'KOVR_AWS_SECRET_ACCESS_KEY': 'fake_secret'})
+@patch('providers.aws.aws_provider.AWSProvider.connect')
+@patch('providers.aws.aws_provider.AWSProvider._fetch_data')
+@patch('providers.gh.gh_provider.GitHubProvider.connect')
+@patch('providers.gh.gh_provider.GitHubProvider._fetch_data')
+def test_load_data(mock_github_fetch_data, mock_github_connect, mock_aws_fetch_data, mock_aws_connect):
     """Test loading and validating resource data for all connector types."""
-    # Load mock data for both providers
+    # Mock GitHub
+    mock_github_connect.return_value = None
     with open('tests/mocks/github/response.json', 'r') as f:
         github_mock_data = json.load(f)
+    mock_github_fetch_data.return_value = github_mock_data
+    
+    # Mock AWS
+    mock_aws_connect.return_value = None
     with open('tests/mocks/aws/response.json', 'r') as f:
         aws_mock_data = json.load(f)
-    
-    mock_github_process.return_value = github_mock_data
-    mock_aws_process.return_value = aws_mock_data
+    mock_aws_fetch_data.return_value = aws_mock_data
     
     print("\n🧪 Testing Resource Data Loading and Field Path Validation...")
     

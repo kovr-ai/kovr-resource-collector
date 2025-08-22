@@ -13,6 +13,7 @@ import yaml
 from datetime import datetime
 from typing import Any, Dict, List
 import pytest
+import os
 from unittest.mock import patch
 
 from con_mon.compliance.models import (
@@ -180,13 +181,17 @@ if fetched_value and isinstance(fetched_value, list):
 class TestResourceSchemaGeneration:
     """Test resource schema generation from YAML to Pydantic models."""
     
-    @patch('providers.gh.gh_provider.GitHubProvider.process')
-    def test_resource_schema_loading(self, mock_github_process):
+    @patch('providers.gh.gh_provider.GitHubProvider.connect')
+    @patch('providers.gh.gh_provider.GitHubProvider._fetch_data')
+    def test_resource_schema_loading(self, mock_fetch_data, mock_connect):
         """Test resources.yaml loads and generates correct structure."""
-        # Load mock data from tests/mocks/github/response.json
+        # Mock the connect method to avoid real API calls
+        mock_connect.return_value = None
+        
+        # Load and return mock data from the JSON file
         with open('tests/mocks/github/response.json', 'r') as f:
             mock_data = json.load(f)
-        mock_github_process.return_value = mock_data
+        mock_fetch_data.return_value = mock_data
         
         rc_service = ResourceCollectionService('github')
         
@@ -206,13 +211,14 @@ class TestResourceSchemaGeneration:
         
         print("✅ Resource schema loading test passed")
     
-    @patch('providers.gh.gh_provider.GitHubProvider.process')
-    def test_nested_field_structure_creation(self, mock_github_process):
+    @patch('providers.gh.gh_provider.GitHubProvider.connect')
+    @patch('providers.gh.gh_provider.GitHubProvider._fetch_data')
+    def test_nested_field_structure_creation(self, mock_fetch_data, mock_connect):
         """Test complex nested structures work correctly."""
-        # Load mock data from tests/mocks/github/response.json
+        mock_connect.return_value = None
         with open('tests/mocks/github/response.json', 'r') as f:
             mock_data = json.load(f)
-        mock_github_process.return_value = mock_data
+        mock_fetch_data.return_value = mock_data
         
         rc_service = ResourceCollectionService('github')
         info, rc = rc_service.get_resource_collection()
@@ -232,13 +238,14 @@ class TestResourceSchemaGeneration:
                     
             print("✅ Nested field structure test passed")
     
-    @patch('providers.gh.gh_provider.GitHubProvider.process')
-    def test_array_field_handling(self, mock_github_process):
+    @patch('providers.gh.gh_provider.GitHubProvider.connect')
+    @patch('providers.gh.gh_provider.GitHubProvider._fetch_data')
+    def test_array_field_handling(self, mock_fetch_data, mock_connect):
         """Test array fields generate correct types."""
-        # Load mock data from tests/mocks/github/response.json
+        mock_connect.return_value = None
         with open('tests/mocks/github/response.json', 'r') as f:
             mock_data = json.load(f)
-        mock_github_process.return_value = mock_data
+        mock_fetch_data.return_value = mock_data
         
         rc_service = ResourceCollectionService('github')
         info, rc = rc_service.get_resource_collection()
@@ -261,16 +268,18 @@ class TestResourceSchemaGeneration:
             print("✅ Array field handling test passed")
 
 
+
 class TestConnectorResourceFlow:
     """Test connector execution and resource collection creation."""
     
-    @patch('providers.gh.gh_provider.GitHubProvider.process')
-    def test_connector_creates_valid_resource_collection(self, mock_github_process):
+    @patch('providers.gh.gh_provider.GitHubProvider.connect')
+    @patch('providers.gh.gh_provider.GitHubProvider._fetch_data')
+    def test_connector_creates_valid_resource_collection(self, mock_fetch_data, mock_connect):
         """Test connector output matches ResourceCollection schema."""
-        # Load mock data from tests/mocks/github/response.json
+        mock_connect.return_value = None
         with open('tests/mocks/github/response.json', 'r') as f:
             mock_data = json.load(f)
-        mock_github_process.return_value = mock_data
+        mock_fetch_data.return_value = mock_data
         
         rc_service = ResourceCollectionService('github')
         info, rc = rc_service.get_resource_collection()
@@ -291,13 +300,14 @@ class TestConnectorResourceFlow:
         
         print("✅ Connector resource collection validation test passed")
     
-    @patch('providers.gh.gh_provider.GitHubProvider.process')
-    def test_connector_resource_instances_match_schema(self, mock_github_process):
+    @patch('providers.gh.gh_provider.GitHubProvider.connect')
+    @patch('providers.gh.gh_provider.GitHubProvider._fetch_data')
+    def test_connector_resource_instances_match_schema(self, mock_fetch_data, mock_connect):
         """Test individual resources match expected schema."""
-        # Load mock data from tests/mocks/github/response.json
+        mock_connect.return_value = None
         with open('tests/mocks/github/response.json', 'r') as f:
             mock_data = json.load(f)
-        mock_github_process.return_value = mock_data
+        mock_fetch_data.return_value = mock_data
         
         rc_service = ResourceCollectionService('github')
         info, rc = rc_service.get_resource_collection()
@@ -320,16 +330,18 @@ class TestConnectorResourceFlow:
             print("✅ Resource instance schema validation test passed")
 
 
+
 class TestEndToEndCheckExecution:
     """Test complete check execution flow."""
     
-    @patch('providers.gh.gh_provider.GitHubProvider.process')
-    def test_field_path_extraction_from_real_data(self, mock_github_process):
+    @patch('providers.gh.gh_provider.GitHubProvider.connect')
+    @patch('providers.gh.gh_provider.GitHubProvider._fetch_data')
+    def test_field_path_extraction_from_real_data(self, mock_fetch_data, mock_connect):
         """Test field path extraction from actual resource data."""
-        # Load mock data from tests/mocks/github/response.json
+        mock_connect.return_value = None
         with open('tests/mocks/github/response.json', 'r') as f:
             mock_data = json.load(f)
-        mock_github_process.return_value = mock_data
+        mock_fetch_data.return_value = mock_data
         
         rc_service = ResourceCollectionService('github')
         info, rc = rc_service.get_resource_collection()
@@ -351,13 +363,14 @@ class TestEndToEndCheckExecution:
                 except Exception as e:
                     print(f"⚠️ Field path '{field_path}' extraction failed: {e}")
     
-    @patch('providers.gh.gh_provider.GitHubProvider.process')
-    def test_check_logic_execution_with_real_data(self, mock_github_process):
+    @patch('providers.gh.gh_provider.GitHubProvider.connect')
+    @patch('providers.gh.gh_provider.GitHubProvider._fetch_data')
+    def test_check_logic_execution_with_real_data(self, mock_fetch_data, mock_connect):
         """Test check logic execution against real resource data."""
-        # Load mock data from tests/mocks/github/response.json
+        mock_connect.return_value = None
         with open('tests/mocks/github/response.json', 'r') as f:
             mock_data = json.load(f)
-        mock_github_process.return_value = mock_data
+        mock_fetch_data.return_value = mock_data
         
         rc_service = ResourceCollectionService('github')
         info, rc = rc_service.get_resource_collection()
@@ -408,13 +421,14 @@ if fetched_value and isinstance(fetched_value, list):
             except Exception as e:
                 print(f"⚠️ Complex check logic execution failed (expected if no org data): {e}")
     
-    @patch('providers.gh.gh_provider.GitHubProvider.process')
-    def test_complete_check_evaluation_flow(self, mock_github_process):
+    @patch('providers.gh.gh_provider.GitHubProvider.connect')
+    @patch('providers.gh.gh_provider.GitHubProvider._fetch_data')
+    def test_complete_check_evaluation_flow(self, mock_fetch_data, mock_connect):
         """Test complete flow: Check → Resource → Field extraction → Logic execution."""
-        # Load mock data from tests/mocks/github/response.json
+        mock_connect.return_value = None
         with open('tests/mocks/github/response.json', 'r') as f:
             mock_data = json.load(f)
-        mock_github_process.return_value = mock_data
+        mock_fetch_data.return_value = mock_data
         # Create a realistic check
         check_data = {
             'id': 'test_complete_flow',
@@ -526,16 +540,18 @@ if fetched_value and isinstance(fetched_value, str):
             return False
 
 
+
 class TestSchemaConsistency:
     """Test consistency across components."""
     
-    @patch('providers.gh.gh_provider.GitHubProvider.process')
-    def test_check_resource_type_matches_connector_output(self, mock_github_process):
+    @patch('providers.gh.gh_provider.GitHubProvider.connect')
+    @patch('providers.gh.gh_provider.GitHubProvider._fetch_data')
+    def test_check_resource_type_matches_connector_output(self, mock_fetch_data, mock_connect):
         """Test check.metadata.resource_type matches what connector produces."""
-        # Load mock data from tests/mocks/github/response.json
+        mock_connect.return_value = None
         with open('tests/mocks/github/response.json', 'r') as f:
             mock_data = json.load(f)
-        mock_github_process.return_value = mock_data
+        mock_fetch_data.return_value = mock_data
         # Create check with GitHub resource type
         check_data = {
             'id': 'consistency_test',
@@ -575,13 +591,14 @@ class TestSchemaConsistency:
             assert expected_class_name == actual_class_name, f"Resource type mismatch: expected {expected_class_name}, got {actual_class_name}"
             print("✅ Resource type consistency test passed")
     
-    @patch('providers.gh.gh_provider.GitHubProvider.process')
-    def test_field_path_exists_in_resource_schema(self, mock_github_process):
+    @patch('providers.gh.gh_provider.GitHubProvider.connect')
+    @patch('providers.gh.gh_provider.GitHubProvider._fetch_data')
+    def test_field_path_exists_in_resource_schema(self, mock_fetch_data, mock_connect):
         """Test that field paths in checks actually exist in resource schemas."""
-        # Load mock data from tests/mocks/github/response.json
+        mock_connect.return_value = None
         with open('tests/mocks/github/response.json', 'r') as f:
             mock_data = json.load(f)
-        mock_github_process.return_value = mock_data
+        mock_fetch_data.return_value = mock_data
         
         common_field_paths = [
             'repository_data.basic_info.name',

@@ -34,9 +34,9 @@ class ConMonResult(TableModel):
     success_percentage: float = Field(..., description="Success percentage (0-100)")
     
     # JSONB fields for detailed data
-    success_resources: List[Dict[str, Any]] = Field(default_factory=list, description="Resources that passed (JSONB)")
-    failed_resources: List[Dict[str, Any]] = Field(default_factory=list, description="Resources that failed (JSONB)")
-    exclusions: List[Dict[str, Any]] = Field(default_factory=list, description="Excluded resources (JSONB)")
+    success_resources: List[str] = Field(default_factory=list, description="Resource IDs that passed (JSONB)")
+    failed_resources: List[str] = Field(default_factory=list, description="Resource IDs that failed (JSONB)")
+    exclusions: List[str] = Field(default_factory=list, description="Resource IDs that are excluded (JSONB)")
     resource_json: Dict[str, Any] = Field(default_factory=dict, description="Full resource collection data (JSONB)")
     
     # Audit fields

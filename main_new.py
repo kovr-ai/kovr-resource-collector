@@ -13,6 +13,12 @@ def main(
     check_ids: list[int] | None = None,
     metadata: dict | None = None,
 ):
+    # Use ResourceCollectionService for connector access
+    service = ResourceCollectionService(connector_type)
+    info_data, resource_collection = service.get_resource_collection(credentials)
+
+    print(f"✅ Retrieved {len(resource_collection.resources)} {connector_type} resources")
+
     # Load checks using con_mon ChecksLoader
     checks_loader = ChecksLoader()
     if check_ids:
@@ -21,12 +27,6 @@ def main(
         checks = checks_loader.load_all()
     
     print(f"✅ Loaded {len(checks)} checks from database")
-
-    # Use ResourceCollectionService for connector access
-    service = ResourceCollectionService(connector_type)
-    info_data, resource_collection = service.get_resource_collection(credentials)
-    
-    print(f"✅ Retrieved {len(resource_collection.resources)} {connector_type} resources")
 
     connection_loader = ConnectionLoader()
     connection_loader.update_connection_data(

@@ -2,6 +2,7 @@
 from typing import List, Dict, Any, Type, get_origin, get_args
 import inspect
 import json
+import os
 from unittest.mock import patch
 
 from con_mon.utils.services import ResourceCollectionService
@@ -83,18 +84,24 @@ def setup_test_check() -> Check:
     return check.model_copy()
 
 
-@patch('providers.aws.aws_provider.AWSProvider.process')
-@patch('providers.gh.gh_provider.GitHubProvider.process')
-def test_field_paths_dynamically(mock_github_process, mock_aws_process):
+@patch.dict(os.environ, {'KOVR_AWS_ACCESS_KEY_ID': 'fake_key', 'KOVR_AWS_SECRET_ACCESS_KEY': 'fake_secret'})
+@patch('providers.aws.aws_provider.AWSProvider.connect')
+@patch('providers.aws.aws_provider.AWSProvider._fetch_data')
+@patch('providers.gh.gh_provider.GitHubProvider.connect')
+@patch('providers.gh.gh_provider.GitHubProvider._fetch_data')
+def test_field_paths_dynamically(mock_github_fetch_data, mock_github_connect, mock_aws_fetch_data, mock_aws_connect):
     """Test field paths by dynamically generating them from resource models."""
-    # Load mock data for both providers
+    # Mock GitHub
+    mock_github_connect.return_value = None
     with open('tests/mocks/github/response.json', 'r') as f:
         github_mock_data = json.load(f)
+    mock_github_fetch_data.return_value = github_mock_data
+    
+    # Mock AWS
+    mock_aws_connect.return_value = None
     with open('tests/mocks/aws/response.json', 'r') as f:
         aws_mock_data = json.load(f)
-    
-    mock_github_process.return_value = github_mock_data
-    mock_aws_process.return_value = aws_mock_data
+    mock_aws_fetch_data.return_value = aws_mock_data
     
     providers = ['github', 'aws']
     
@@ -163,13 +170,14 @@ def test_field_paths_dynamically(mock_github_process, mock_aws_process):
             assert success_rate >= 50.0, f"Success rate {success_rate:.1f}% is below 50% for {resource_name}"
 
 
-@patch('providers.gh.gh_provider.GitHubProvider.process')
-def test_generate_field_paths_github(mock_github_process):
+@patch('providers.gh.gh_provider.GitHubProvider.connect')
+@patch('providers.gh.gh_provider.GitHubProvider._fetch_data')
+def test_generate_field_paths_github(mock_fetch_data, mock_connect):
     """Test field path generation for GitHub provider."""
-    # Load mock data from tests/mocks/github/response.json
+    mock_connect.return_value = None
     with open('tests/mocks/github/response.json', 'r') as f:
         mock_data = json.load(f)
-    mock_github_process.return_value = mock_data
+    mock_fetch_data.return_value = mock_data
     
     field_paths_dict = generate_field_paths_for_provider('github')
     
@@ -194,13 +202,15 @@ def test_generate_field_paths_github(mock_github_process):
         assert has_simple_paths, f"Should have simple paths for {resource_name}"
 
 
-@patch('providers.aws.aws_provider.AWSProvider.process')
-def test_generate_field_paths_aws(mock_aws_process):
+@patch.dict(os.environ, {'KOVR_AWS_ACCESS_KEY_ID': 'fake_key', 'KOVR_AWS_SECRET_ACCESS_KEY': 'fake_secret'})
+@patch('providers.aws.aws_provider.AWSProvider.connect')
+@patch('providers.aws.aws_provider.AWSProvider._fetch_data')
+def test_generate_field_paths_aws(mock_fetch_data, mock_connect):
     """Test field path generation for AWS provider."""
-    # Load mock data from tests/mocks/aws/response.json
+    mock_connect.return_value = None
     with open('tests/mocks/aws/response.json', 'r') as f:
         mock_data = json.load(f)
-    mock_aws_process.return_value = mock_data
+    mock_fetch_data.return_value = mock_data
     
     field_paths_dict = generate_field_paths_for_provider('aws')
     
@@ -225,18 +235,24 @@ def test_generate_field_paths_aws(mock_aws_process):
         assert has_simple_paths, f"Should have simple paths for {resource_name}"
 
 
-@patch('providers.aws.aws_provider.AWSProvider.process')
-@patch('providers.gh.gh_provider.GitHubProvider.process')
-def test_resource_field_paths_method(mock_github_process, mock_aws_process):
+@patch.dict(os.environ, {'KOVR_AWS_ACCESS_KEY_ID': 'fake_key', 'KOVR_AWS_SECRET_ACCESS_KEY': 'fake_secret'})
+@patch('providers.aws.aws_provider.AWSProvider.connect')
+@patch('providers.aws.aws_provider.AWSProvider._fetch_data')
+@patch('providers.gh.gh_provider.GitHubProvider.connect')
+@patch('providers.gh.gh_provider.GitHubProvider._fetch_data')
+def test_resource_field_paths_method(mock_github_fetch_data, mock_github_connect, mock_aws_fetch_data, mock_aws_connect):
     """Test the Resource.field_paths() method directly."""
-    # Load mock data for both providers
+    # Mock GitHub
+    mock_github_connect.return_value = None
     with open('tests/mocks/github/response.json', 'r') as f:
         github_mock_data = json.load(f)
+    mock_github_fetch_data.return_value = github_mock_data
+    
+    # Mock AWS
+    mock_aws_connect.return_value = None
     with open('tests/mocks/aws/response.json', 'r') as f:
         aws_mock_data = json.load(f)
-    
-    mock_github_process.return_value = github_mock_data
-    mock_aws_process.return_value = aws_mock_data
+    mock_aws_fetch_data.return_value = aws_mock_data
     
     print("\n🔬 Testing Resource.field_paths() method directly...")
     
