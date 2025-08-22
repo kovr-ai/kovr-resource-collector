@@ -58,7 +58,7 @@ class Settings(BaseModel):
 
     # AWS Configuration
     AWS_REGION: str = "us-east-1"
-    AWS_PROFILE: str = "dev-kovr"
+    AWS_PROFILE: str = ""
     AWS_ACCESS_KEY_ID: str = ""
     AWS_SECRET_ACCESS_KEY: str = ""
     
