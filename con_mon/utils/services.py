@@ -28,6 +28,16 @@ from con_mon.mappings.aws import (
     CloudTrailResource,
     CloudWatchResource,
 )
+from con_mon.mappings.google import (
+    GoogleConnectorService,
+    GoogleConnectorInput,
+    GoogleResourceCollection,
+    google_connector_service,
+
+    # GoogleResources
+    UserResource,
+    GroupResource,
+)
 
 
 class ResourceCollectionService(object):
@@ -40,6 +50,8 @@ class ResourceCollectionService(object):
             return github_connector_service
         elif self.connector_type == 'aws':
             return aws_connector_service
+        elif self.connector_type == 'google':
+            return google_connector_service
         raise ValueError(f"Unsupported connector type: {self.connector_type}")
 
     @property
@@ -49,6 +61,8 @@ class ResourceCollectionService(object):
             return GithubConnectorInput
         elif self.connector_type == 'aws':
             return AwsConnectorInput
+        elif self.connector_type == 'google':
+            return GoogleConnectorInput
         raise ValueError(f"Unsupported connector type: {self.connector_type}")
 
     @property
@@ -58,6 +72,8 @@ class ResourceCollectionService(object):
             return GithubResourceCollection
         elif self.connector_type == 'aws':
             return AwsResourceCollection
+        elif self.connector_type == 'google':
+            return GoogleResourceCollection
         raise ValueError(f"Unsupported connector type: {self.connector_type}")
 
     @property
@@ -72,6 +88,11 @@ class ResourceCollectionService(object):
                 IAMResource,
                 CloudTrailResource,
                 CloudWatchResource,
+            ]
+        elif self.connector_type == 'google':
+            return [
+                UserResource,
+                GroupResource,
             ]
         raise ValueError(f"Unsupported connector type: {self.connector_type}")
 
@@ -92,6 +113,10 @@ class ResourceCollectionService(object):
                 credentials = {
                     'role_arn': 'dummy_arn',
                     'external_id': 'dummy_external_id',
+                }
+            elif self.connector_type == 'google':
+                credentials = {
+                    'super_admin_email': 'dummy_email',
                 }
             else:
                 raise ValueError(f"Dummy not available for connector type: {self.connector_type}")
