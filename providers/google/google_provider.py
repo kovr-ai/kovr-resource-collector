@@ -4,7 +4,13 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 import boto3
 import json
-from con_mon.mappings.google import GoogleInfoData, UserResource, GroupResource, GoogleResourceCollection
+from con_mon.mappings.google import (
+    GoogleInfoData,
+    UserResource,
+    GroupResource,
+    GoogleResourceCollection
+)
+import os
 from typing import Dict, List, Tuple
 from con_mon.utils.config import settings
 from datetime import datetime
@@ -19,10 +25,18 @@ SCOPES = [
 class GoogleProvider(Provider):
     def __init__(self, data: dict):
         self.data = data
+        self._mock_response_filepath = 'tests/mocks/Google/response.json'
+        self.use_mock_data = settings.USE_MOCKS and os.path.exists(self._mock_response_filepath)
         super().__init__(Providers.GOOGLE.value, data)
 
     def connect(self):
-        service_account_info = self.get_service_account_secret_from_aws()
+        # Skip Google connection if using mock data
+        if self.use_mock_data:
+            print("🔄 Mock mode detected - skipping Google connection")
+            self.client = None  # No real client needed for mock data
+            return
+
+        service_account_info = self.get_service_account_secret_from_Google()
 
         credentials = service_account.Credentials.from_service_account_info(
             service_account_info,
@@ -33,28 +47,89 @@ class GoogleProvider(Provider):
         service = build('admin', 'directory_v1', credentials=credentials)
         self.client = service
 
-    def get_service_account_secret_from_aws(self):
+    def get_service_account_secret_from_Google(self):
         boto3.setup_default_session(region_name='us-west-2')
-        # session = boto3.Session(profile_name=settings.AWS_PROFILE)
+        # session = boto3.Session(profile_name=settings.Google_PROFILE)
         # secrets_client = session.client('secretsmanager')
         secrets_client = boto3.client('secretsmanager')
         response = secrets_client.get_secret_value(SecretId=SERVICE_ACCOUNT_SECRET)
         return json.loads(response['SecretString'])
 
-    def process(self) -> Tuple[GoogleInfoData, GoogleResourceCollection]:
-        # Fetch all users
-        results = self.client.users().list(customer='my_customer', maxResults=500, orderBy='email').execute()
-        users = results.get('users', [])
-        
-        # Fetch all groups
-        results = self.client.groups().list(customer='my_customer', maxResults=500, orderBy='email').execute()
-        groups = results.get('groups', [])
+    def _fetch_data(self) -> dict:
+        data: dict = dict()
+        if self.use_mock_data:
+            print("🔄 Collecting mock Google data via test mocks")
+            with open(
+                    self._mock_response_filepath,
+                    'r'
+            ) as mock_response_file:
+                data = json.load(mock_response_file)
+        else:
+            # Fetch all users
+            results = self.client.users().list(customer='my_customer', maxResults=500, orderBy='email').execute()
+            users = results.get('users', [])
 
-        # Create GoogleUserResource objects
-        user_resources = []
-        for user in users:
+            # Fetch all groups
+            results = self.client.groups().list(customer='my_customer', maxResults=500, orderBy='email').execute()
+            groups = results.get('groups', [])
+
+            for user in users:
+                user_id = f"google-user-{user['id']}"
+                data['users'][user_id] = user
+
+            for group in groups:
+                group_id = f"google-group-{group['id']}"
+                data['groups'][group_id] = group
+
+        return data
+
+    def process(self) -> Tuple[GoogleInfoData, GoogleResourceCollection]:
+
+        """Process data collection - uses mock data if available, otherwise real AWS API calls"""
+        data: dict = self._fetch_data()
+        resource_collection = self._create_resource_collection_from_data(data)
+        info_data = self._create_info_data_from_resource_collection(resource_collection)
+
+        return info_data, resource_collection
+
+    def _create_resource_collection_from_data(self, google_data: dict) -> GoogleResourceCollection:
+        """Helper method to create GoogleResourceCollection from raw GOOGLE data"""
+
+        # Create GoogleResourceCollection
+        user_resources: List[UserResource] = self._create_user_resource_from_data(google_data['users'])
+        group_resources: List[GroupResource] = self._create_group_resource_from_data(google_data['groups'])
+
+        # Calculate statistics
+        admin_users_count = sum(1 for user in user_resources if user.isAdmin)
+        suspended_users_count = sum(1 for user in user_resources if user.suspended)
+        two_factor_enrolled_users = sum(1 for user in user_resources if user.isEnrolledIn2Sv)
+
+        resource_collection = GoogleResourceCollection(
+            resources=user_resources + group_resources,
+            source_connector='google',
+            total_count=len(user_resources + group_resources),
+            fetched_at=datetime.now().isoformat(),
+            collection_metadata={
+                'total_users': len(user_resources),
+                'total_groups': len(group_resources),
+                'admin_users_count': admin_users_count,
+                'suspended_users_count': suspended_users_count,
+                'two_factor_enrolled_users': two_factor_enrolled_users,
+                'collection_errors': []
+            },
+            google_api_metadata={
+                'collection_time': datetime.now().isoformat(),
+                'api_version': 'directory_v1',
+                'customer_id': user_resources[0].customerId if user_resources else ''
+            }
+        )
+        return resource_collection
+
+    def _create_user_resource_from_data(self, users_data: dict) -> UserResource:
+        user_resources: List[UserResource] = []
+        for user_id, user in users_data.items():
             user_resource = UserResource(
-                id=f"google-user-{user.get('id', '')}",
+                id=user_id,
                 source_connector='google',
                 user_id=user.get('id', ''),
                 user_data={
@@ -103,12 +178,13 @@ class GoogleProvider(Provider):
                 }
             )
             user_resources.append(user_resource)
+        return user_resources
 
-        # Create GoogleGroupResource objects
-        group_resources = []
-        for group in groups:
+    def _create_group_resource_from_data(self, groups_data: dict) -> GroupResource:
+        group_resources: List[GroupResource] = []
+        for group_id, group in groups_data.items():
             group_resource = GroupResource(
-                id=f"google-group-{group.get('id', '')}",
+                id=group_id,
                 source_connector='google',
                 group_id=group.get('id', ''),
                 group_data={
@@ -130,57 +206,42 @@ class GoogleProvider(Provider):
                 }
             )
             group_resources.append(group_resource)
+        return group_resources
 
-        # Combine all resources
-        all_resources = user_resources + group_resources
-
-        # Calculate statistics
-        admin_users_count = sum(1 for user in users if user.get('isAdmin', False))
-        suspended_users_count = sum(1 for user in users if user.get('suspended', False))
-        two_factor_enrolled_users = sum(1 for user in users if user.get('isEnrolledIn2Sv', False))
-        two_factor_enforced_users = sum(1 for user in users if user.get('isEnforcedIn2Sv', False))
-
-        # Create GoogleResourceCollection
-        resource_collection = GoogleResourceCollection(
-            resources=all_resources,
-            source_connector='google',
-            total_count=len(all_resources),
-            fetched_at=datetime.now().isoformat(),
-            collection_metadata={
-                'total_users': len(users),
-                'total_groups': len(groups),
-                'admin_users_count': admin_users_count,
-                'suspended_users_count': suspended_users_count,
-                'two_factor_enrolled_users': two_factor_enrolled_users,
-                'two_factor_enforced_users': two_factor_enforced_users,
-                'collection_errors': []
+    def _create_info_data_from_resource_collection(
+            self,
+            resource_collection: GoogleResourceCollection
+    ) -> GoogleInfoData:
+        users = [
+            resource
+            for resource in resource_collection.resources
+            if isinstance(resource, UserResource)
+        ]
+        groups = [
+            resource
+            for resource in resource_collection.resources
+            if isinstance(resource, GroupResource)
+        ]
+        return GoogleInfoData(
+            raw_json={
+                resource.id: json.loads(resource.model_dump_json())
+                for resource in resource_collection.resources
             },
-            google_api_metadata={
-                'collection_time': datetime.now().isoformat(),
-                'api_version': 'directory_v1',
-                'customer_id': users[0].get('customerId', '') if users else ''
-            }
-        )
-
-        # Create GoogleInfoData object
-        info_data = GoogleInfoData(
             account_id=self.data.get('super_admin_email', 'unknown'),
             users=[
                 {
-                    'id': user.get('id', ''),
-                    'name': user.get('name', {}).get('fullName', ''),
-                    'email': user.get('primaryEmail', '')
+                    'id': user.id,
+                    'name': user.name.fullName,
+                    'email': user.primaryEmail,
                 }
                 for user in users
             ],
             groups=[
                 {
-                    'id': group.get('id', ''),
-                    'name': group.get('name', ''),
-                    'email': group.get('email', '')
+                    'id': group.id,
+                    'name': group.name,
+                    'email': group.email,
                 }
                 for group in groups
             ]
         )
-        
-        return info_data, resource_collection
