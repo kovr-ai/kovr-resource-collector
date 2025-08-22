@@ -54,12 +54,15 @@ def load_settings(app: str = "con_mon", env: str = "local") -> Settings:
     load_dotenv()
     secrets = dict()
     bool_mapping = {
+        True: True,
         'True': True,
         'true': True,
         '1': True,
+        False: False,
         'False': False,
         'false': False,
         '0': False,
+        None: None,
         'None': None,
         'Null': None,
         'null': None,
