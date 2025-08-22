@@ -23,11 +23,10 @@ SCOPES = [
 
 @provider_class
 class GoogleProvider(Provider):
-    def __init__(self, data: dict):
-        self.data = data
-        self._mock_response_filepath = 'tests/mocks/Google/response.json'
+    def __init__(self, metadata: dict):
+        self._mock_response_filepath = 'tests/mocks/google/response.json'
         self.use_mock_data = settings.USE_MOCKS and os.path.exists(self._mock_response_filepath)
-        super().__init__(Providers.GOOGLE.value, data)
+        super().__init__(Providers.GOOGLE.value, metadata)
 
     def connect(self):
         # Skip Google connection if using mock data
@@ -41,7 +40,7 @@ class GoogleProvider(Provider):
         credentials = service_account.Credentials.from_service_account_info(
             service_account_info,
             scopes=SCOPES,
-            subject=self.data.get('super_admin_email')
+            subject=self.metadata.get('super_admin_email')
         )
 
         service = build('admin', 'directory_v1', credentials=credentials)
@@ -100,9 +99,9 @@ class GoogleProvider(Provider):
         group_resources: List[GroupResource] = self._create_group_resource_from_data(google_data['groups'])
 
         # Calculate statistics
-        admin_users_count = sum(1 for user in user_resources if user.isAdmin)
-        suspended_users_count = sum(1 for user in user_resources if user.suspended)
-        two_factor_enrolled_users = sum(1 for user in user_resources if user.isEnrolledIn2Sv)
+        admin_users_count = sum(1 for user in user_resources if user.admin_info.isAdmin)
+        suspended_users_count = sum(1 for user in user_resources if user.basic_info.suspended)
+        two_factor_enrolled_users = sum(1 for user in user_resources if user.security_info.isEnrolledIn2Sv)
 
         resource_collection = GoogleResourceCollection(
             resources=user_resources + group_resources,
@@ -120,7 +119,7 @@ class GoogleProvider(Provider):
             google_api_metadata={
                 'collection_time': datetime.now().isoformat(),
                 'api_version': 'directory_v1',
-                'customer_id': user_resources[0].customerId if user_resources else ''
+                'customer_id': user_resources[0].basic_info.customerId if user_resources else ''
             }
         )
         return resource_collection
@@ -132,7 +131,7 @@ class GoogleProvider(Provider):
                 id=user_id,
                 source_connector='google',
                 user_id=user.get('id', ''),
-                user_data={
+                **{
                     'basic_info': {
                         'kind': user.get('kind', ''),
                         'id': user.get('id', ''),
@@ -187,7 +186,7 @@ class GoogleProvider(Provider):
                 id=group_id,
                 source_connector='google',
                 group_id=group.get('id', ''),
-                group_data={
+                **{
                     'basic_info': {
                         'kind': group.get('kind', ''),
                         'id': group.get('id', ''),
@@ -227,20 +226,20 @@ class GoogleProvider(Provider):
                 resource.id: json.loads(resource.model_dump_json())
                 for resource in resource_collection.resources
             },
-            account_id=self.data.get('super_admin_email', 'unknown'),
+            account_id=self.metadata['super_admin_email'],
             users=[
                 {
                     'id': user.id,
                     'name': user.name.fullName,
-                    'email': user.primaryEmail,
+                    'email': user.basic_info.primaryEmail,
                 }
                 for user in users
             ],
             groups=[
                 {
                     'id': group.id,
-                    'name': group.name,
-                    'email': group.email,
+                    'name': group.basic_info.name,
+                    'email': group.basic_info.email,
                 }
                 for group in groups
             ]
