@@ -660,6 +660,9 @@ class CSVDatabase(_BaseSQLDatabase):
                                 # Handle wildcard matching
                                 pattern = value.replace('*', '.*')
                                 mask &= df[column].astype(str).str.match(pattern, na=False)
+                            elif isinstance(value, list):
+                                # Handle IN clause (list of values)
+                                mask &= df[column].isin(value)
                             else:
                                 mask &= (df[column] == value)
                 
@@ -711,6 +714,9 @@ class CSVDatabase(_BaseSQLDatabase):
                                 # Handle wildcard matching
                                 pattern = value.replace('*', '.*')
                                 keep_mask &= ~df[column].astype(str).str.match(pattern, na=False)
+                            elif isinstance(value, list):
+                                # Handle IN clause (list of values)
+                                keep_mask &= ~df[column].isin(value)
                             else:
                                 keep_mask &= (df[column] != value)
                 else:
