@@ -593,76 +593,68 @@ google:
     # Google Workspace User Resource
     UserResource:
       user_id: "string"
-      user_data:
-        basic_info:
-          kind: "string"
-          id: "string"
-          etag: "string"
-          primaryEmail: "string"
-          customerId: "string"
-          lastLoginTime: "string"
-          creationTime: "string"
-          agreedToTerms: "boolean"
-          suspended: "boolean"
-          archived: "boolean"
-          changePasswordAtNextLogin: "boolean"
-          ipWhitelisted: "boolean"
-          isMailboxSetup: "boolean"
-          includeInGlobalAddressList: "boolean"
-        name:
-          givenName: "string"
-          familyName: "string"
-          fullName: "string"
-        admin_info:
-          isAdmin: "boolean"
-          isDelegatedAdmin: "boolean"
-        security_info:
-          isEnrolledIn2Sv: "boolean"
-          isEnforcedIn2Sv: "boolean"
-        organizational_info:
-          orgUnitPath: "string"
-        contact_info:
-          emails:
-            type: "array"
-            structure:
-              address: "string"
-              type: "string"
-              primary: "boolean"
-              customType: "string"
-          phones:
-            type: "array"
-            structure:
-              value: "string"
-              type: "string"
-          recoveryEmail: "string"
-          recoveryPhone: "string"
-        profile_info:
-          languages:
-            type: "array"
-            structure:
-              languageCode: "string"
-              preference: "string"
-          thumbnailPhotoUrl: "string"
-          thumbnailPhotoEtag: "string"
-        aliases:
-          nonEditableAliases: "array"
+      basic_info:
+        kind: "string"
+        id: "string"
+        etag: "string"
+        primaryEmail: "string"
+        customerId: "string"
+        lastLoginTime: "string"
+        creationTime: "string"
+        agreedToTerms: "boolean"
+        suspended: "boolean"
+        archived: "boolean"
+        changePasswordAtNextLogin: "boolean"
+        ipWhitelisted: "boolean"
+        isMailboxSetup: "boolean"
+        includeInGlobalAddressList: "boolean"
+      name:
+        givenName: "string"
+        familyName: "string"
+        fullName: "string"
+      admin_info:
+        isAdmin: "boolean"
+        isDelegatedAdmin: "boolean"
+      security_info:
+        isEnrolledIn2Sv: "boolean"
+        isEnforcedIn2Sv: "boolean"
+      organizational_info:
+        orgUnitPath: "string"
+      contact_info:
+        emails[]:
+          address: "string"
+          type: "string"
+          primary: "boolean"
+          customType: "string"
+        phones[]:
+          value: "string"
+          type: "string"
+        recoveryEmail: "string"
+        recoveryPhone: "string"
+      profile_info:
+        languages[]:
+          languageCode: "string"
+          preference: "string"
+        thumbnailPhotoUrl: "string"
+        thumbnailPhotoEtag: "string"
+      aliases:
+        nonEditableAliases[]: "string"
 
     # Google Workspace Group Resource
     GroupResource:
       group_id: "string"
-      group_data:
-        basic_info:
-          kind: "string"
-          id: "string"
-          etag: "string"
-          email: "string"
-          name: "string"
-          description: "string"
-          adminCreated: "boolean"
-        membership_info:
-          directMembersCount: "string"
-        aliases:
-          nonEditableAliases: "array"
+      basic_info:
+        kind: "string"
+        id: "string"
+        etag: "string"
+        email: "string"
+        name: "string"
+        description: "string"
+        adminCreated: "boolean"
+      membership_info:
+        directMembersCount: "string"
+      aliases:
+        nonEditableAliases: "array"
 
   resource_collection:
     resources[]:
