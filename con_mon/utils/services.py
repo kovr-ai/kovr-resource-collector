@@ -1,4 +1,5 @@
 """Service utilities for con_mon."""
+import json
 from typing import Type, List, Tuple
 from pydantic import BaseModel
 from datetime import datetime
@@ -235,22 +236,18 @@ class ConMonResultService(object):
         # Separate passed and failed resources
         success_resources = []
         failed_resources = []
-        resource_jsons = dict(resources=[])
+        resource_json = dict()
         
         for check_result in self.check_results:
-            resource_jsons['resources'].append(check_result.resource)
-            resource_data = {
-                'id': getattr(check_result.resource, 'id', str(check_result.resource)),
-                'name': getattr(check_result.resource, 'name', str(check_result.resource)),
-                'type': check_result.resource.__class__.__name__,
-            }
+            resource = check_result.resource
+            resource_json[resource.id] = json.loads(resource.model_dump_json())
             
             if check_result.passed is True:
-                success_resources.append({**resource_data, 'status': 'passed'})
+                success_resources.append(check_result.resource.id)
             elif check_result.passed is False:
-                failed_resources.append({**resource_data, 'status': 'failed'})
-            else:  # check_result.passed is None (execution error)
-                failed_resources.append({**resource_data, 'status': 'error', 'error': check_result.error})
+                failed_resources.append(check_result.resource.id)
+            else:
+                failed_resources.append(check_result.resource.id)
         
         # Calculate metrics
         success_count = len(success_resources)
@@ -277,7 +274,7 @@ class ConMonResultService(object):
             success_resources=success_resources,
             failed_resources=failed_resources,
             exclusions=[],  # No exclusions for now
-            resource_json=resource_jsons,
+            resource_json=resource_json,
             created_at=datetime.now(),
             updated_at=datetime.now()
         )
