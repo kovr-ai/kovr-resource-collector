@@ -254,6 +254,70 @@ class BaseLoader(ABC):
             print(f"   ❌ Upsert failed: {e}")
             raise
 
+    def delete_insert_rows(self, fields: List[str], instances: List[TableModel]) -> List[TableModel]:
+        """
+        Delete existing rows based on specified fields, then bulk insert new instances.
+        First deletes all records that match the field values from any of the instances,
+        then inserts all the provided instances.
+
+        Args:
+            fields: List of fields on which to match existing rows for deletion
+            instances: List of TableModel instances to insert after deletion
+
+        Returns:
+            List of inserted TableModel instances
+        """
+        if not instances:
+            return []
+            
+        table_name = self.get_table_name
+        model_class = self.get_model_class
+        
+        print(f"🗑️➕ Delete-Insert operation for {len(instances)} {model_class.__name__} records in {table_name}...")
+        
+        try:
+            # Analyze all instances to build optimized single DELETE query
+            print(f"   🔍 Analyzing {len(instances)} instances to optimize DELETE query...")
+            
+            # Collect all field values from instances
+            field_values = {field: [] for field in fields}
+            for instance in instances:
+                for field in fields:
+                    if hasattr(instance, field):
+                        field_values[field].append(getattr(instance, field))
+                    else:
+                        raise ValueError(f"Field '{field}' not found in model instance")
+            
+            # Build optimized WHERE condition
+            where_condition = {}
+            for field, values in field_values.items():
+                unique_values = list(dict.fromkeys(values))  # Remove duplicates while preserving order
+                
+                if len(unique_values) == 1:
+                    # All instances have the same value for this field - use equality
+                    where_condition[field] = unique_values[0]
+                    print(f"   📌 Field '{field}' is constant: {unique_values[0]}")
+                else:
+                    # Multiple values for this field - use IN clause
+                    where_condition[field] = unique_values
+                    print(f"   📊 Field '{field}' varies: {len(unique_values)} unique values")
+            
+            # Execute single optimized DELETE query
+            print(f"   🗑️  Executing single DELETE query with optimized conditions...")
+            deleted_count = self.db.execute('delete', table_name=table_name, where=where_condition)
+            print(f"   🗑️  Deleted {deleted_count} existing record(s)")
+            
+            # Now bulk insert all instances
+            print(f"   ➕ Inserting {len(instances)} new record(s)...")
+            inserted_count = self.insert_rows(instances)
+            
+            print(f"   ✅ Successfully completed delete-insert operation: {inserted_count} records inserted")
+            return instances
+            
+        except Exception as e:
+            print(f"   ❌ Delete-Insert operation failed: {e}")
+            raise
+
     def export_to_csv(
         self,
         where_clause: Optional[str] = None,

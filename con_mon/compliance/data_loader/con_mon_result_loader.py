@@ -85,11 +85,15 @@ class ConMonResultLoader(BaseLoader):
         history_loader = ConMonResultHistoryLoader()
         total_inserted = history_loader.insert_history(instances)
 
-        for instance in instances:
-            self.upsert_row(
-                ['customer_id', 'connection_id', 'check_id'],
-                instance
-            )
+        # for instance in instances:
+        #     self.upsert_row(
+        #         ['customer_id', 'connection_id', 'check_id'],
+        #         instance
+        #     )
+        self.delete_insert_rows(
+            ['customer_id', 'connection_id', 'check_id'],
+            instances
+        )
 
         return total_inserted
 
@@ -125,42 +129,6 @@ class ConMonResultHistoryLoader(BaseLoader):
             instances.append(instance)
         
         print(f"✅ Loaded {len(instances)} ConMonResultHistory for customer {customer_id}, connection {connection_id}")
-        return instances
-
-    def load_by_check_id_with_history(self, check_id: str, 
-                                     limit: Optional[int] = None) -> List[ConMonResultHistory]:
-        """
-        Load historical check results for a specific check ID.
-        
-        Args:
-            check_id: Check ID to filter by
-            limit: Maximum number of records to return (optional)
-            
-        Returns:
-            List of ConMonResultHistory for the check
-        """
-        table_name = self.get_table_name
-        select_fields = self.get_select_fields
-        
-        query = f"""
-        SELECT {', '.join(select_fields)} 
-        FROM {table_name} 
-        WHERE check_id = %s 
-        ORDER BY archived_at DESC
-        """
-        
-        if limit:
-            query += f" LIMIT {limit}"
-        
-        raw_rows = self.db.execute('select', table_name='con_mon_results_history', where={'check_id': check_id})
-        
-        instances = []
-        for raw_row in raw_rows:
-            processed_row = self.process_row(raw_row)
-            instance = ConMonResultHistory.from_row(processed_row)
-            instances.append(instance)
-        
-        print(f"✅ Loaded {len(instances)} ConMonResultHistory for check {check_id}")
         return instances
 
     def insert_history(self, instances: List[ConMonResult]) -> int:

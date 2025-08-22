@@ -226,7 +226,7 @@ class ConMonResultService(object):
         self.customer_id = customer_id
         self.connection_id = connection_id
 
-    def get_con_mon_results(self) -> List[ConMonResult]:
+    def get_con_mon_result(self) -> ConMonResult:
         """
         Convert CheckResult objects into ConMonResult objects for database storage.
         
@@ -237,7 +237,7 @@ class ConMonResultService(object):
         success_resources = []
         failed_resources = []
         resource_json = dict()
-        
+
         for check_result in self.check_results:
             resource = check_result.resource
             resource_json[resource.id] = json.loads(resource.model_dump_json())
@@ -279,18 +279,26 @@ class ConMonResultService(object):
             updated_at=datetime.now()
         )
         
-        return [con_mon_result]
+        return con_mon_result
 
-    def insert_in_db(self) -> Tuple[int, int]:
-        con_mon_results = self.get_con_mon_results()
+    @classmethod
+    def insert_in_db(
+        cls,
+        executed_check_results: List[Tuple[Check, CheckResult]],
+        customer_id: str,
+        connection_id: int,
+    ) -> int:
+        con_mon_results: List[ConMonResult] = list()
+        for check, check_results in executed_check_results:
+            con_mon_result = cls(
+                check,
+                check_results,
+                customer_id,
+                connection_id,
+            ).get_con_mon_result()
+            con_mon_results.append(con_mon_result)
+
         if not con_mon_results:
-            return 0, 0
-            
-        # Insert new results (this will handle moving old results to history)
-        result_insert_count = ConMonResultLoader().insert_rows(con_mon_results)
-        
-        # History count will be handled by the insert_rows method
-        # For now, return the same count as an approximation
-        history_insert_count = result_insert_count
-        
-        return result_insert_count, history_insert_count
+            return 0
+
+        return ConMonResultLoader().insert_results(con_mon_results)
