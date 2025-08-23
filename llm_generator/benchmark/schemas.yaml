@@ -1,0 +1,12 @@
+benchmark:
+  prompt_input:
+    # populate this
+  prompt_output:
+    checks[]: ./check
+    metadata:
+      title: string
+      description: string
+      version: string
+
+check:
+  # populate this
