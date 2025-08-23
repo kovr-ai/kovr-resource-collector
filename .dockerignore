@@ -140,7 +140,6 @@ coverage
 *.lcov
 .jest
 test-results
-tests
 spec
 __tests__
 
