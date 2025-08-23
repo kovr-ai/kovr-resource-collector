@@ -15,7 +15,12 @@ from typing import Dict, Any, List
 from datetime import datetime
 
 # Local imports
-from .prompts import PromptFactory
+from .prompts import (
+    get_literature_prompt,
+    get_check_names_prompt, 
+    get_enrichment_prompt,
+    generate_check_id
+)
 
 # System imports  
 from con_mon.utils.llm.client import get_llm_client
@@ -44,42 +49,53 @@ class BenchmarkService:
 
     def generate_metadata(
             self,
-            benchmark_text: str,
-            benchmark_source: str,
+            benchmark_name: str,
             benchmark_version: str = "latest",
-            extraction_context: str = ""
     ) -> Dict[str, Any]:
         """
-        Step 1: Extract atomic checks from benchmark documentation.
+        Steps 1+2: Generate benchmark literature and extract check names.
         
         Args:
-            benchmark_text: Raw benchmark document text
-            benchmark_source: Source name (e.g., "OWASP Top 10 2021")
-            benchmark_version: Version identifier (e.g., "2021") 
-            extraction_context: Additional context for LLM
+            benchmark_name: Source name (e.g., "OWASP Top 10 2021")
+            benchmark_version: Version identifier (e.g., "2021")
             
         Returns:
-            Dictionary containing extracted checks and metadata
+            Dictionary containing literature, check names, and metadata
         """
-        logger.info(f"Starting Step 1: Extract checks from {benchmark_source}")
+        logger.info(f"Starting Steps 1+2: Generate literature and extract check names for {benchmark_name}")
         
-        # Create appropriate prompt based on benchmark type
-        prompt = PromptFactory.create_prompt(benchmark_source, benchmark_version)
+        # Step 1: Generate comprehensive benchmark literature
+        logger.info("Step 1: Generating benchmark literature...")
+        literature_prompt = get_literature_prompt(benchmark_name, benchmark_version)
+        literature = self.llm_client.generate_text(literature_prompt)
+        logger.info(f"✅ Generated literature ({len(literature)} characters)")
         
-        # Format prompt with benchmark text
-        formatted_prompt = prompt.format_prompt(
-            benchmark_text=benchmark_text,
-            extraction_context=extraction_context
-        )
-        
-        # Call LLM for extraction
-        response = self.llm_client.generate_text(formatted_prompt)
-        
-        # Parse and return result (simplified for initial implementation)
+        # Step 2: Extract check names from literature
+        logger.info("Step 2: Extracting check names from literature...")
+        check_names_prompt = get_check_names_prompt(benchmark_name, benchmark_version, literature)
+        check_names_response = self.llm_client.generate_text(check_names_prompt)
+
+        check_names_data = self._parse_json_response(check_names_response)
+        check_names = check_names_data.get("check_names", [])
+        logger.info(f"✅ Extracted {len(check_names)} check names")
+
+        return {
+            "benchmark_name": benchmark_name,
+            "benchmark_version": benchmark_version,
+            "literature": literature,
+            "check_names": check_names,
+            "metadata": {
+                "total_check_names_extracted": len(check_names),
+                "literature_length": len(literature),
+                "extraction_date": datetime.now().isoformat()
+            }
+        }
+    
+    def _parse_json_response(self, response: str) -> Dict[str, Any]:
+        """Parse JSON response from LLM with enhanced error handling."""
         try:
             return json.loads(response)
         except json.JSONDecodeError as e:
-            # Enhanced error handling with response logging
             logger.warning(f"Failed to parse LLM response as JSON: {e}")
             logger.info(f"LLM Response (first 500 chars): {response[:500]}")
             
@@ -87,83 +103,84 @@ class BenchmarkService:
             import re
             json_match = re.search(r'```json\s*(.*?)\s*```', response, re.DOTALL)
             if json_match:
-                try:
-                    logger.info("Found JSON in markdown code block, attempting to parse...")
-                    return json.loads(json_match.group(1))
-                except json.JSONDecodeError as e2:
-                    logger.warning(f"Failed to parse extracted JSON: {e2}")
+                logger.info("Found JSON in markdown code block, attempting to parse...")
+                return json.loads(json_match.group(1))
             
-            # Fallback response
-            logger.warning("Using fallback empty response")
-            return {
-                "metadata": {
-                    "benchmark_source": benchmark_source,
-                    "extraction_date": datetime.now().isoformat(),
-                    "total_checks_extracted": 0
-                },
-                "checks": []
-            }
+            raise e
     
-    def generate_checks_metadata(self, raw_checks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def generate_checks_metadata(
+            self,
+            benchmark_name: str,
+            benchmark_version: str,
+            check_names: List[str],
+    ) -> List[Dict[str, Any]]:
         """
-        Step 2: Map raw checks to existing controls using LLM-suggested controls.
+        Step 3: Enrich individual checks with full details and control mappings.
+        
+        Takes check names from Steps 1+2 and creates enriched check objects with:
+        - Detailed literature for each check
+        - Suggested controls from LLM
+        - Mapped control IDs from the database  
+        - Framework information and confidence scores
         
         Args:
-            raw_checks: List of raw check dictionaries from Step 1 (with suggested_controls)
+            benchmark_name: Source name (e.g., "OWASP Top 10 2021")
+            benchmark_version: Version identifier (e.g., "2021")
+            check_names: List of check names
             
         Returns:
             List of enriched check dictionaries with control mappings
         """
-        logger.info(f"Starting Step 2: Map {len(raw_checks)} checks to controls using suggestions")
+        logger.info(f"Starting Step 3: Enrich {len(check_names)} checks with full details")
         
-        # Load controls and existing checks for mapping
+        # Load existing controls and checks for mapping
         controls = self._load_controls()
         existing_checks = self._load_existing_checks()
+        logger.info(f"Loaded {len(controls)} controls for mapping")
+        logger.info(f"Loaded {len(existing_checks)} existing checks for mapping")
         
         enriched_checks = []
-        
-        for check_data in raw_checks:
-            try:
-                # Get LLM-suggested controls from Step 1
-                suggested_controls = check_data.get('suggested_controls', [])
-                
-                # Map suggested controls to actual database controls
-                mapped_controls = self._map_suggested_to_actual_controls(suggested_controls, controls)
-                
-                # Map to existing benchmark checks
-                benchmark_mappings = self._map_to_existing_benchmarks(check_data, existing_checks)
-                
-                # Calculate mapping confidence based on successful matches
-                mapping_confidence = len(mapped_controls) / len(suggested_controls) if suggested_controls else 0.0
-                
-                # Enrich check data with mappings
-                enriched_check = check_data.copy()
-                enriched_check.update({
-                    'controls': [ctrl['control_name'] for ctrl in mapped_controls],
-                    'frameworks': list(set([ctrl.get('framework_name', 'Unknown') for ctrl in mapped_controls])),
-                    'benchmark_mapping': benchmark_mappings,
-                    'mapping_confidence': round(mapping_confidence, 2),
-                    'mapped_controls_details': mapped_controls,  # Keep detailed info
-                    'unmapped_suggested_controls': self._find_unmapped_controls(suggested_controls, mapped_controls),
-                    'mapped_at': datetime.now().isoformat()
-                })
-                
-                enriched_checks.append(enriched_check)
-                
-            except Exception as e:
-                logger.error(f"Error mapping check {check_data.get('check_id', 'unknown')}: {e}")
-                # Add check with empty mappings rather than failing completely
-                enriched_check = check_data.copy()
-                enriched_check.update({
-                    'controls': [],
-                    'frameworks': [],
-                    'benchmark_mapping': [],
-                    'mapping_confidence': 0.0,
-                    'mapped_at': datetime.now().isoformat(),
-                    'mapping_error': str(e)
-                })
-                enriched_checks.append(enriched_check)
-        
+        for i, check_name in enumerate(check_names[:2]):
+            logger.info(f"Enriching check {i+1}/{len(check_names)}: {check_name}")
+            
+            # Generate unique check ID
+            check_id = generate_check_id(benchmark_name, benchmark_version, check_name)
+            
+            # Step 3: Generate enriched check using LLM
+            enrichment_prompt = get_enrichment_prompt(
+                benchmark_name, benchmark_version, check_name, check_id
+            )
+            enrichment_response = self.llm_client.generate_text(enrichment_prompt)
+
+            # Parse enriched check from LLM
+            enriched_check = self._parse_json_response(enrichment_response)
+
+            # Map suggested controls to actual database controls
+            suggested_controls = enriched_check.get('suggested_controls', [])
+            mapped_controls = self._map_suggested_to_actual_controls(
+                suggested_controls, controls
+            )
+
+            # Find existing benchmark mappings
+            benchmark_mappings = self._map_to_existing_benchmarks(enriched_check, existing_checks)
+
+            # Calculate mapping confidence
+            total_suggested = len(suggested_controls)
+            mapped_count = len(mapped_controls)
+            confidence = (mapped_count / total_suggested) if total_suggested > 0 else 0.0
+
+            # Update enriched check with mapping results
+            enriched_check.update({
+                'controls': [ctrl['control_id'] for ctrl in mapped_controls],
+                'frameworks': list(set(ctrl['framework_name'] for ctrl in mapped_controls)),
+                'benchmark_mapping': benchmark_mappings,
+                'mapping_confidence': confidence,
+                'mapped_controls_details': mapped_controls,
+                'mapped_at': datetime.now().isoformat()
+            })
+
+            enriched_checks.append(enriched_check)
+
         logger.info(f"Successfully mapped {len(enriched_checks)} checks to controls")
         return enriched_checks
     

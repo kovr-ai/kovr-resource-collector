@@ -1,26 +1,18 @@
 benchmark:
-  prompt_input:
-    benchmark_text: string
-    benchmark_source: string      # e.g., "OWASP Top 10 2021"
-    benchmark_version: string     # e.g., "2021"
-    extraction_context: string    # Additional context for LLM
-  
-  prompt_output:
-    checks[]: ./check
-    metadata:
-      title: string
-      description: string
-      version: string
-      total_checks_extracted: int
-      extraction_date: datetime
-      benchmark_source: string
-      coverage_metrics: ./coverage_metrics
+  unique_id: string             # Global unique ID format: "OWASP-2021"
+  name: string                  # Short descriptive name
+  version: string               # Version identifier
+  literature: string            # Targeted and actionable literature
+  checks[]: ./check             # List of checks
+  metadata:
+    total_checks_extracted: int
+    extraction_date: datetime
+    coverage_metrics: ./coverage_metrics
 
 check:
-  check_id: string              # Global unique ID format: "OWASP-2021-A01-001"
-  title: string                 # Short descriptive name
-  description: string           # Targeted and actionable description
-  benchmark_source: string      # Source benchmark reference
+  unique_id: string             # Global unique ID format: "OWASP-2021-A01-001"
+  name: string                  # Short descriptive name
+  literature: string            # Targeted and actionable literature
   
   # Step 2 mapping results
   controls[]: string            # Mapped control IDs: ["NIST-800-53-AC-3"]

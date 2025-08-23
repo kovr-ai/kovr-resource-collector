@@ -1,139 +1,152 @@
 """
-Benchmark Check Extraction Prompts - Step 1 Implementation
+Benchmark Processing Prompts - 3-Step LLM Architecture
 
-This module provides LLM prompt templates for extracting atomic compliance checks 
-from benchmark documentation (OWASP, Mitre Att&ck).
-
-Implements Section 1, Step 1: Extract Checks Literature
+Simple function-based prompts for:
+- Step 1: Literature Generation
+- Step 2: Check Names Extraction  
+- Step 3: Check Enrichment
 """
 
-from abc import ABC, abstractmethod
 from datetime import datetime
 
 
-class BenchmarkExtractionPrompt(ABC):
-    """Base class for benchmark check extraction prompts."""
-    
-    def __init__(self, benchmark_source: str, benchmark_version: str):
-        self.benchmark_source = benchmark_source
-        self.benchmark_version = benchmark_version
-    
-    @abstractmethod
-    def get_extraction_template(self) -> str:
-        """Get the LLM prompt template for extracting checks."""
-        pass
-    
-    @abstractmethod
-    def generate_check_id(self, index: int, category: str = None) -> str:
-        """Generate a global unique check ID."""
-        pass
-    
-    def format_prompt(self, benchmark_text: str, extraction_context: str = "") -> str:
-        """Format the complete prompt with benchmark text."""
-        template = self.get_extraction_template()
-        return template.format(
-            benchmark_text=benchmark_text,
-            benchmark_source=self.benchmark_source,
-            benchmark_version=self.benchmark_version,
-            extraction_context=extraction_context,
-            current_date=datetime.now().isoformat()
-        )
+def get_literature_prompt(benchmark_source: str, benchmark_version: str) -> str:
+    """Step 1: Generate comprehensive benchmark literature."""
+    return """You are a cybersecurity expert generating comprehensive benchmark literature.
+
+**TASK:** Generate complete, detailed content for: {benchmark_source}
+
+**OBJECTIVE:** Create comprehensive benchmark literature that covers all major categories, requirements, recommendations, and implementation guidance.
+
+**Benchmark:** {benchmark_source} (Version: {benchmark_version})
+
+**REQUIREMENTS:**
+1. Generate complete, authoritative content based on your knowledge of {benchmark_source}
+2. Include all major categories/sections with detailed explanations
+3. Provide specific requirements, recommendations, and prevention measures
+4. Include practical examples and implementation guidance
+5. Ensure content is comprehensive enough for subsequent check extraction
+
+**OUTPUT FORMAT:**
+Return ONLY the comprehensive benchmark literature as plain text. Do not include JSON formatting or metadata - just the complete benchmark content.
+
+**EXAMPLE STRUCTURE (adapt to {benchmark_source}):**
+- Introduction and overview
+- All major categories/sections with detailed requirements
+- Specific security controls and recommendations
+- Implementation guidance and best practices
+- Examples and use cases
+
+Generate the comprehensive benchmark literature now:""".format(
+        benchmark_source=benchmark_source,
+        benchmark_version=benchmark_version
+    )
 
 
-class GenericBenchmarkPrompt(BenchmarkExtractionPrompt):
-    """Generic benchmark extraction prompt for any compliance standard."""
-    
-    def generate_check_id(self, index: int, category: str = None) -> str:
-        """Generate generic check ID: BENCH-{version}-{category}-{index}"""
-        # Clean benchmark source for ID (remove spaces, special chars)
-        clean_source = ''.join(c for c in self.benchmark_source.upper() if c.isalnum())[:10]
-        if category:
-            return f"{clean_source}-{self.benchmark_version}-{category}-{str(index).zfill(3)}"
-        return f"{clean_source}-{self.benchmark_version}-{str(index).zfill(3)}"
-    
-    def get_extraction_template(self) -> str:
-        return """You are a cybersecurity expert extracting atomic compliance checks from benchmark documentation.
+def get_check_names_prompt(benchmark_source: str, benchmark_version: str, literature: str) -> str:
+    """Step 2: Extract atomic check names from literature."""
+    return """You are a cybersecurity expert extracting atomic check names from benchmark literature.
 
-**CRITICAL REQUIREMENTS:**
-1. Each check must be a SINGLE, atomic requirement (no sub-check splitting)
-2. Generate globally unique check IDs following a consistent format
-3. Create targeted and actionable descriptions
-4. Focus on requirements that can be implemented and tested
-5. **IMPORTANT**: Suggest related compliance controls (NIST, ISO, etc.) for each check
+**TASK:** Analyze the benchmark literature and extract a comprehensive list of atomic check names.
 
-**Input Benchmark:**
-Source: {benchmark_source}
-Version: {benchmark_version}
-Context: {extraction_context}
+**Benchmark:** {benchmark_source} (Version: {benchmark_version})
 
-**Benchmark Text:**
-{benchmark_text}
+**LITERATURE:**
+{literature}
 
-**Output Format (JSON):**
-```json
+**REQUIREMENTS:**
+1. Scan the entire literature and identify ALL distinct, atomic security requirements
+2. Each check must be a SINGLE, testable requirement (no compound requirements)
+3. Generate clear, descriptive names for each check
+4. Ensure comprehensive coverage - don't miss any requirements
+5. Extract 50-200+ checks depending on the benchmark complexity
+
+**OUTPUT FORMAT (JSON):**
 {{
   "metadata": {{
     "benchmark_source": "{benchmark_source}",
     "benchmark_version": "{benchmark_version}",
-    "extraction_date": "{current_date}",
-    "total_checks_extracted": <number>
+    "literature_processed_at": "{current_date}",
+    "total_check_names_extracted": <number>
   }},
-  "checks": [
-    {{
-      "check_id": "UNIQUE-ID-FORMAT",
-      "title": "Short descriptive title",
-      "description": "Specific, actionable requirement",
-      "benchmark_source": "{benchmark_source}",
-      "category": "category_name",
-      "severity": "high|medium|low",
-      "tags": ["relevant", "tags"],
-      "suggested_controls": [
-        "NIST-800-53-AC-3",
-        "ISO-27001-A.9.1.2",
-        "NIST-800-171-3.1.1"
-      ],
-      "control_reasoning": "Brief explanation of why these controls are relevant",
-      "extracted_at": "{current_date}"
-    }}
+  "check_names": [
+    "Clear descriptive check name 1",
+    "Clear descriptive check name 2",
+    "Clear descriptive check name 3"
   ]
 }}
-```
 
-**Instructions:**
-1. Analyze the benchmark structure and identify distinct requirements
-2. Generate consistent, unique check IDs based on the benchmark format
-3. Create clear, implementable descriptions for each requirement
-4. Categorize checks based on the benchmark's organization
-5. Assign severity based on risk indicators in the text
-6. Add relevant tags for filtering and organization
-7. **CRITICAL**: For each check, suggest 2-5 related compliance controls from frameworks like:
-   - NIST 800-53 (format: NIST-800-53-XX-##)
-   - NIST 800-171 (format: NIST-800-171-#.#.#)
-   - ISO 27001 (format: ISO-27001-A.#.#.#)
-   - Other relevant frameworks
-8. Provide brief reasoning for control suggestions
-9. Ensure each check is atomic and testable
+**EXTRACTION GUIDELINES:**
+- Focus on implementable, testable requirements
+- Break down complex sections into atomic checks
+- Use clear, action-oriented language
+- Avoid duplicates but ensure comprehensive coverage
+- Include both technical and policy requirements
 
-**Control Suggestion Guidelines:**
-- Access Control requirements → AC controls (NIST-800-53-AC-*)
-- Authentication/Identity → IA controls (NIST-800-53-IA-*)
-- Audit/Logging → AU controls (NIST-800-53-AU-*)
-- Configuration → CM controls (NIST-800-53-CM-*)
-- Encryption/Crypto → SC controls (NIST-800-53-SC-*)
-- Consider cross-framework mappings where applicable
-
-Generate the JSON output now:"""
+Extract ALL atomic check names from the literature now:""".format(
+        benchmark_source=benchmark_source,
+        benchmark_version=benchmark_version,
+        literature=literature,
+        current_date=datetime.now().isoformat()
+    )
 
 
-class PromptFactory:
-    """Simplified factory for creating GenericBenchmarkPrompt instances."""
-    
-    @classmethod
-    def create_prompt(cls, benchmark_source: str, benchmark_version: str) -> BenchmarkExtractionPrompt:
-        """Create GenericBenchmarkPrompt for any benchmark source."""
-        return GenericBenchmarkPrompt(benchmark_source, benchmark_version)
-    
-    @classmethod
-    def available_prompts(cls) -> list:
-        """Get list of available prompt types."""
-        return ['generic']
+def get_enrichment_prompt(benchmark_source: str, benchmark_version: str, check_name: str, check_id: str) -> str:
+    """Step 3: Enrich individual check with full details."""
+    return """You are a cybersecurity expert creating detailed, enriched compliance checks.
+
+**TASK:** Create a comprehensive, enriched check object for a specific requirement.
+
+**Benchmark:** {benchmark_source} (Version: {benchmark_version})
+**Check Name:** {check_name}
+
+**REQUIREMENTS:**
+1. Generate a complete check object with all required fields
+2. Create targeted literature specific to this check
+3. Suggest relevant compliance controls from major frameworks
+4. Provide detailed categorization and severity assessment
+5. Include comprehensive implementation guidance
+
+**OUTPUT FORMAT (JSON):**
+{{
+  "unique_id": "{check_id}",
+  "name": "{check_name}",
+  "literature": "Detailed, targeted literature for this specific check including requirements, rationale, and implementation guidance.",
+  "controls": [],
+  "frameworks": [],
+  "benchmark_mapping": [],
+  "mapping_confidence": 0.0,
+  "category": "Primary security category",
+  "severity": "high|medium|low",
+  "tags": ["relevant", "classification", "tags"],
+  "extracted_at": "{current_date}",
+  "mapped_at": "{current_date}",
+  "suggested_controls": [
+    "NIST-800-53-XX-##",
+    "ISO-27001-A.#.#.#",
+    "NIST-800-171-#.#.#"
+  ],
+  "control_reasoning": "Detailed explanation of why these specific controls are relevant to this check"
+}}
+
+**ENRICHMENT GUIDELINES:**
+- **Literature**: Write 2-3 paragraphs of targeted content for this specific check
+- **Controls**: Suggest 3-7 highly relevant controls from NIST 800-53, ISO 27001, NIST 800-171
+- **Category**: Primary security domain (Access Control, Cryptography, Audit, etc.)
+- **Severity**: Risk level based on potential impact
+- **Tags**: 3-6 classification tags for filtering and organization
+- **Control Reasoning**: Explain the connection between the check and suggested controls
+
+Generate the enriched check object now:""".format(
+        benchmark_source=benchmark_source,
+        benchmark_version=benchmark_version,
+        check_name=check_name,
+        check_id=check_id,
+        current_date=datetime.now().isoformat()
+    )
+
+
+def generate_check_id(benchmark_source: str, benchmark_version: str, check_name: str) -> str:
+    """Generate unique check ID."""
+    clean_source = ''.join(c for c in benchmark_source.upper() if c.isalnum())[:10]
+    return f"{clean_source}-{benchmark_version}-{check_name.replace(' ', '-')}"

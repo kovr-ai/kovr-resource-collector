@@ -12,25 +12,19 @@ from . import benchmark
 
 # Re-export key benchmark functionality
 from .benchmark import (
-    benchmark_service,
     generate_metadata,
     generate_checks_metadata,
     generate_coverage_report,
-    PromptFactory,
-    GenericBenchmarkPrompt
 )
 
 __all__ = [
     # Submodules
     'benchmark',
     
-    # Core services  
-    'benchmark_service',
+    # Core services
     'generate_metadata',
     'generate_checks_metadata', 
     'generate_coverage_report',
-    'PromptFactory',
-    'GenericBenchmarkPrompt'
 ]
 
 __version__ = "1.0.0"
