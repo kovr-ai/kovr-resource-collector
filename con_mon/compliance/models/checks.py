@@ -278,7 +278,7 @@ class Check(TableModel):
             
             # Import the module dynamically (resource_type_str already contains full path)
             import importlib
-            module = importlib.import_module(module_path)
+            module = importlib.import_module(module_path.replace('_v2', ''))
             
             # Get the class from the module
             resource_class = getattr(module, class_name)

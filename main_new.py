@@ -25,7 +25,7 @@ def main(
         checks = checks_loader.load_by_ids(check_ids)
     else:
         checks = checks_loader.load_all()
-    
+
     print(f"✅ Loaded {len(checks)} checks from database")
 
     connection_loader = ConnectionLoader()
@@ -48,29 +48,17 @@ def main(
     # Generate summary using con_mon helpers with Check objects
     helpers.print_summary(executed_check_results)
 
-    # Process and store check results using ConMonResultService
-    total_result_count = 0
-    total_history_count = 0
-    for executed_check_result in executed_check_results:
-        check, check_results = executed_check_result
-        con_mon_result_service = ConMonResultService(
-            check=check,
-            check_results=check_results,
-            customer_id=customer_id,
-            connection_id=connection_id
-        )
-        result_count, history_count = con_mon_result_service.insert_in_db()
-        print(f'Added {result_count} records to database and {history_count} history records')
-        total_result_count += result_count
-        total_history_count += history_count
+    total_result_count = ConMonResultService.insert_in_db(
+        executed_check_results=executed_check_results,
+        customer_id=customer_id,
+        connection_id=connection_id
+    )
     
-    print(f"\n💾 **Database Storage:**")
-    print(f"   • TODO: Port SQL utilities from con_mon to store results")
+    print("\n💾 **Database Storage:**")
     print(f"   • Customer ID: {customer_id}")
     print(f"   • Connection ID: {connection_id}")
     print(f"   • Checks executed: {len(executed_check_results)}")
     print(f"   • Results Inserted: {total_result_count}")
-    print(f"   • History Inserted: {total_history_count}")
 
 
 def params_from_connection_id(
