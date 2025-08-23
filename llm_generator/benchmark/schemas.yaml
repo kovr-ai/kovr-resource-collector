@@ -1,46 +1,49 @@
-benchmark:
-  unique_id: string             # Global unique ID format: "OWASP-2021"
-  name: string                  # Short descriptive name
-  version: string               # Version identifier
-  literature: string            # Targeted and actionable literature
-  checks[]: ./check             # List of checks
-  metadata:
+benchmark_and_checks_literature:
+  Benchmark:
+    unique_id: string             # Global unique ID format: "OWASP-2021"
+    name: string                  # Short descriptive name
+    version: string               # Version identifier
+    literature: string            # Targeted and actionable literature
+    checks[]:
+      - "benchmark_and_checks_literature.Check"
+    metadata:
+      total_checks_extracted: int
+      extraction_date: datetime
+      coverage_metrics:
+        - "benchmark_and_checks_literature.CoverageMetrics"
+
+  Check:
+    unique_id: string             # Global unique ID format: "OWASP-2021-A01-001"
+    name: string                  # Short descriptive name
+    literature: string            # Targeted and actionable literature
+
+    # Step 2 mapping results
+    controls[]: string            # Mapped control IDs: ["NIST-800-53-AC-3"]
+    frameworks[]: string          # Framework names: ["NIST-800-53", "ISO-27001"]
+    benchmark_mapping[]: string   # Existing benchmark IDs if any
+    mapping_confidence: float     # Confidence score for mappings (0.0-1.0)
+
+    # Additional metadata
+    category: string              # Check category
+    severity: string              # Risk severity level
+    tags[]: string               # Classification tags
+
+    # Raw extraction metadata
+    extracted_at: datetime
+    mapped_at: datetime
+
+  CoverageMetrics:
     total_checks_extracted: int
-    extraction_date: datetime
-    coverage_metrics: ./coverage_metrics
+    mapped_to_controls: int
+    mapped_to_existing_benchmarks: int
+    unmapped_checks: int
+    coverage_percentages:
+      extraction: float           # Always 100% for extracted checks
+      control_mapping: float      # % of checks mapped to controls
+      benchmark_mapping: float    # % mapped to existing benchmarks
 
-check:
-  unique_id: string             # Global unique ID format: "OWASP-2021-A01-001"
-  name: string                  # Short descriptive name
-  literature: string            # Targeted and actionable literature
-  
-  # Step 2 mapping results
-  controls[]: string            # Mapped control IDs: ["NIST-800-53-AC-3"]
-  frameworks[]: string          # Framework names: ["NIST-800-53", "ISO-27001"]
-  benchmark_mapping[]: string   # Existing benchmark check IDs if any
-  mapping_confidence: float     # Confidence score for mappings (0.0-1.0)
-  
-  # Additional metadata
-  category: string              # Check category
-  severity: string              # Risk severity level
-  tags[]: string               # Classification tags
-  
-  # Raw extraction metadata
-  extracted_at: datetime
-  mapped_at: datetime
-
-coverage_metrics:
-  total_checks_extracted: int
-  mapped_to_controls: int
-  mapped_to_existing_benchmarks: int
-  unmapped_checks: int
-  coverage_percentages:
-    extraction: float           # Always 100% for extracted checks
-    control_mapping: float      # % of checks mapped to controls
-    benchmark_mapping: float    # % mapped to existing benchmarks
-  
-  # Framework breakdown
-  framework_coverage: 
-    framework_name: string
-    controls_mapped: int
-    checks_mapped: int
+    # Framework breakdown
+    framework_coverage:
+      framework_name: string
+      controls_mapped: int
+      checks_mapped: int
