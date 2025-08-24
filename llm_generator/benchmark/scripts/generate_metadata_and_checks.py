@@ -17,6 +17,9 @@ Usage Examples:
     # With specific version
     python generate_metadata_and_checks.py --name "OWASP Top 10" --version "2021"
     
+    # Multi-threaded processing for faster completion
+    python generate_metadata_and_checks.py --name "OWASP Top 10 2021" --threads 8
+    
     # Custom data directory
     python generate_metadata_and_checks.py --name "ISO 27001" --data-dir /custom/path
 
@@ -78,6 +81,7 @@ class BenchmarkProcessor:
             self,
             benchmark_name: str,
             benchmark_version: str | None = None,
+            thread_count: int = 1,
     ) -> Dict[str, Any]:
         """
         Execute the complete Section 1 workflow.
@@ -85,6 +89,7 @@ class BenchmarkProcessor:
         Args:
             benchmark_name: Source name (e.g., "OWASP Top 10 2021")
             benchmark_version: Version identifier
+            thread_count: Number of threads to use for parallel processing
 
         Returns:
             Complete processing results with all three steps
@@ -104,7 +109,9 @@ class BenchmarkProcessor:
 
         # Step 2: Map to Controls and Existing Benchmarks
         logger.info("🔗 Step 2: Mapping checks to controls...")
-        enriched_checks = generate_checks_metadata(benchmark)
+        if thread_count > 1:
+            logger.info(f"🧵 Using {thread_count} threads for parallel processing")
+        enriched_checks = generate_checks_metadata(benchmark, thread_count)
 
         mapped_count = sum(1 for check in enriched_checks if check.controls)
         logger.info(f"✅ Successfully mapped {mapped_count}/{len(enriched_checks)} checks to controls")
@@ -299,12 +306,23 @@ def main():
                        help='Benchmark version (default: latest)')
     parser.add_argument('--data-dir', type=Path,
                        help='Base directory for structured data (default: llm_generator/benchmark/data)')
+    
+    # Processing options
+    parser.add_argument('--threads', type=int, default=1,
+                       help='Number of threads to use for parallel check processing (default: 1)')
     parser.add_argument('--verbose', action='store_true',
                        help='Enable verbose logging')
     parser.add_argument('--quiet', '-q', action='store_true',
                        help='Suppress summary output')
 
     args = parser.parse_args()
+    
+    # Validate thread count
+    if args.threads < 1:
+        logger.error("❌ Thread count must be at least 1")
+        sys.exit(1)
+    if args.threads > 32:
+        logger.warning(f"⚠️  Large thread count ({args.threads}) may overwhelm LLM API. Consider using fewer threads.")
     
     # Initialize processor
     processor = BenchmarkProcessor(verbose=args.verbose)
@@ -315,7 +333,8 @@ def main():
     # Process benchmark using 3-step architecture
     results = processor.process_benchmark(
         benchmark_name=benchmark_name,
-        benchmark_version=benchmark_version
+        benchmark_version=benchmark_version,
+        thread_count=args.threads
     )
 
     # Always save structured data (main purpose of the script)

@@ -9,22 +9,28 @@ resource mappings and targeted guidance:
 2. Step 2: Coverage on System Compatibility  
 
 Usage Examples:
-    # Process enriched checks from benchmark processing
-    python generate_system_guidance.py --benchmark-dir /path/to/owasp-top-10-2021
+    # Process enriched checks from a benchmark (most common usage)
+    python generate_system_guidance.py --name "owasp"
     
-    # Process from JSON file
-    python generate_system_guidance.py --checks-file processed_checks.json
+    # Process another benchmark  
+    python generate_system_guidance.py --name "nist"
     
-    # Custom output directory
-    python generate_system_guidance.py --benchmark-dir /path/to/benchmark --output-dir /custom/path
+    # Process from JSON file (alternative)
+    python generate_system_guidance.py --name "owasp" --checks-file processed_checks.json
     
     # Verbose mode
-    python generate_system_guidance.py --benchmark-dir /path/to/benchmark --verbose
+    python generate_system_guidance.py --name "owasp" --verbose
+    
+    # Multi-threaded processing for faster completion
+    python generate_system_guidance.py --name "owasp" --threads 8
+
+Prerequisites:
+    Before running this script, ensure benchmark data has been generated:
+    python llm_generator/benchmark/scripts/generate_metadata_and_checks.py --name "<benchmark_name>"
 
 Example Input Sources:
-    • Output from llm_generator/benchmark processing
+    • Output from llm_generator/benchmark processing (checks/ directory)
     • JSON files containing enriched Check objects
-    • Direct benchmark directory with checks/ subdirectory
 """
 
 import argparse
@@ -35,6 +41,7 @@ import yaml
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor
 
 # Add parent directories to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
@@ -64,12 +71,14 @@ class SystemGuidanceProcessor:
     def process_checks(
             self,
             enriched_checks: List[Check],
+            thread_count: int = 1,
     ) -> Dict[str, Any]:
         """
         Execute the complete Section 2 workflow.
 
         Args:
             enriched_checks: List of enriched Check objects from Section 1
+            thread_count: Number of threads to use for parallel processing
 
         Returns:
             Complete processing results with system compatibility info
@@ -78,7 +87,9 @@ class SystemGuidanceProcessor:
 
         # Step 1: Expand to Resource Types and Field Paths
         logger.info("🔗 Step 1: Enriching checks with system resource types and field paths...")
-        system_enriched_checks = enrich_checks_with_system_resources(enriched_checks)
+        if thread_count > 1:
+            logger.info(f"🧵 Using {thread_count} threads for parallel processing")
+        system_enriched_checks = enrich_checks_with_system_resources(enriched_checks, thread_count)
 
         compatible_count = sum(
             1 for check in system_enriched_checks 
@@ -90,9 +101,9 @@ class SystemGuidanceProcessor:
         logger.info("📊 Step 2: Generating system compatibility coverage...")
         coverage_report = generate_system_compatibility_coverage(system_enriched_checks)
 
-        resource_pct = coverage_report.coverage_percentages['resource_types']
-        field_path_pct = coverage_report.coverage_percentages['field_paths']
-        guidance_pct = coverage_report.coverage_percentages['targeted_guidance']
+        resource_pct = coverage_report.coverage_percentages.resource_types
+        field_path_pct = coverage_report.coverage_percentages.field_paths
+        guidance_pct = coverage_report.coverage_percentages.targeted_guidance
         logger.info(f"✅ Coverage: {resource_pct:.1f}% resources, {field_path_pct:.1f}% field paths, {guidance_pct:.1f}% guidance")
 
         # Combine results
@@ -109,7 +120,7 @@ class SystemGuidanceProcessor:
                 'checks_with_system_compatibility': compatible_count,
                 'checks_with_field_paths': coverage_report.checks_with_field_paths,
                 'checks_with_guidance': coverage_report.checks_with_targeted_guidance,
-                'average_field_paths_per_check': coverage_report.quality_metrics['avg_field_paths_per_check'],
+                'average_field_paths_per_check': coverage_report.quality_metrics.avg_field_paths_per_check,
                 'processing_status': 'completed'
             }
         }
@@ -171,10 +182,24 @@ class SystemGuidanceProcessor:
 
     def _dict_to_check(self, check_data: Dict[str, Any]) -> Check:
         """Convert dictionary data to Check object."""
-        return Check(**{
-            key: value for key, value in check_data.items()
-            if key in Check.__fields__
-        })
+        # Extract only fields that exist in the Check model
+        valid_fields = {}
+        # Use model_fields for Pydantic V2 compatibility
+        check_fields = getattr(Check, 'model_fields', getattr(Check, '__fields__', {}))
+        
+        for key, value in check_data.items():
+            if key in check_fields:
+                valid_fields[key] = value
+        
+        try:
+            return Check(**valid_fields)
+        except Exception as e:
+            # Log detailed error for debugging
+            logger.debug(f"Validation error for check data: {e}")
+            logger.debug(f"Available fields: {list(check_fields.keys())}")
+            logger.debug(f"Provided fields: {list(check_data.keys())}")
+            logger.debug(f"Valid fields extracted: {list(valid_fields.keys())}")
+            raise
 
     def save_results(self, results: Dict[str, Any], output_path: Path):
         """Save processing results to JSON file."""
@@ -292,17 +317,17 @@ class SystemGuidanceProcessor:
         # Coverage breakdown
         coverage = results['coverage_report'].coverage_percentages
         print("\n📊 SYSTEM COMPATIBILITY COVERAGE:")
-        print(f"  • Resource Types: {coverage['resource_types']:.1f}%")
-        print(f"  • Field Paths: {coverage['field_paths']:.1f}%")
-        print(f"  • Targeted Guidance: {coverage['targeted_guidance']:.1f}%")
+        print(f"  • Resource Types: {coverage.resource_types:.1f}%")
+        print(f"  • Field Paths: {coverage.field_paths:.1f}%")
+        print(f"  • Targeted Guidance: {coverage.targeted_guidance:.1f}%")
 
         # Provider breakdown
         provider_coverage = results['coverage_report'].provider_coverage
         print("\n🏢 PROVIDER BREAKDOWN:")
-        print(f"  • GitHub: {provider_coverage['github_checks']} checks")
-        print(f"  • AWS: {provider_coverage['aws_checks']} checks")
-        print(f"  • Google: {provider_coverage['google_checks']} checks")
-        print(f"  • Multi-Provider: {provider_coverage['multi_provider_checks']} checks")
+        print(f"  • GitHub: {provider_coverage.github_checks} checks")
+        print(f"  • AWS: {provider_coverage.aws_checks} checks")
+        print(f"  • Google: {provider_coverage.google_checks} checks")
+        print(f"  • Multi-Provider: {provider_coverage.multi_provider_checks} checks")
 
         print("\n" + "=" * 80)
 
@@ -315,12 +340,14 @@ def main():
         epilog=__doc__
     )
 
-    # Input options (mutually exclusive)
-    input_group = parser.add_mutually_exclusive_group(required=True)
-    input_group.add_argument('--benchmark-dir', type=Path,
-                           help='Directory containing benchmark processing output (with checks/ subdirectory)')
+    # Benchmark name input
+    parser.add_argument('--name', type=str, required=True,
+                       help='Name of the benchmark to process (e.g., "owasp", "nist", "iso27001")')
+    
+    # Alternative input options
+    input_group = parser.add_mutually_exclusive_group(required=False)
     input_group.add_argument('--checks-file', type=Path,
-                           help='JSON file containing enriched check data')
+                           help='JSON file containing enriched check data (overrides --name)')
 
     # Output options
     parser.add_argument('--output-dir', type=Path,
@@ -329,6 +356,8 @@ def main():
                        help='JSON file to save complete results')
 
     # Processing options
+    parser.add_argument('--threads', type=int, default=1,
+                       help='Number of threads to use for parallel check processing (default: 1)')
     parser.add_argument('--verbose', action='store_true',
                        help='Enable verbose logging')
     parser.add_argument('--quiet', '-q', action='store_true',
@@ -336,19 +365,55 @@ def main():
 
     args = parser.parse_args()
 
+    # Validate thread count
+    if args.threads < 1:
+        logger.error("❌ Thread count must be at least 1")
+        sys.exit(1)
+    if args.threads > 32:
+        logger.warning(f"⚠️  Large thread count ({args.threads}) may overwhelm LLM API. Consider using fewer threads.")
+
     # Initialize processor
     processor = SystemGuidanceProcessor(verbose=args.verbose)
 
     # Load enriched checks
-    if args.benchmark_dir:
-        enriched_checks = processor.load_checks_from_benchmark_dir(args.benchmark_dir)
-        benchmark_name = args.benchmark_dir.name
-    elif args.checks_file:
+    if args.checks_file:
         enriched_checks = processor.load_checks_from_json(args.checks_file)
         benchmark_name = args.checks_file.stem
+    else:
+        # Use benchmark name to construct path
+        benchmark_name = args.name
+        script_dir = Path(__file__).parent
+        benchmark_dir = script_dir.parent.parent / "benchmark" / "data" / "benchmarks" / benchmark_name
+        checks_dir = benchmark_dir / "checks"
+        
+        # Check if benchmark directory exists
+        if not benchmark_dir.exists():
+            logger.error(f"❌ Benchmark directory not found: {benchmark_dir}")
+            logger.error(f"   Available location: llm_generator/benchmark/data/benchmarks/{benchmark_name}/")
+            logger.error(f"   Run: python llm_generator/benchmark/scripts/generate_metadata_and_checks.py --name \"{benchmark_name}\"")
+            sys.exit(1)
+        
+        # Check if checks directory exists and has files
+        if not checks_dir.exists():
+            logger.error(f"❌ Checks directory not found: {checks_dir}")
+            logger.error(f"   Expected: llm_generator/benchmark/data/benchmarks/{benchmark_name}/checks/")
+            logger.error(f"   Run: python llm_generator/benchmark/scripts/generate_metadata_and_checks.py --name \"{benchmark_name}\"")
+            sys.exit(1)
+        
+        # Check if there are YAML files in checks directory
+        check_files = list(checks_dir.glob("*.yaml"))
+        if not check_files:
+            logger.error(f"❌ No check files found in: {checks_dir}")
+            logger.error(f"   Expected: *.yaml files in checks/ directory")
+            logger.error(f"   Run: python llm_generator/benchmark/scripts/generate_metadata_and_checks.py --name \"{benchmark_name}\"")
+            sys.exit(1)
+        
+        logger.info(f"📁 Processing benchmark: {benchmark_name}")
+        logger.info(f"📂 Found {len(check_files)} check files in: {checks_dir}")
+        enriched_checks = processor.load_checks_from_benchmark_dir(benchmark_dir)
 
     # Process checks through Section 2 workflow
-    results = processor.process_checks(enriched_checks)
+    results = processor.process_checks(enriched_checks, args.threads)
 
     # Save results
     if args.output_file:

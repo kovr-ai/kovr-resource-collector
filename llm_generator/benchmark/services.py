@@ -13,6 +13,7 @@ import json
 import logging
 from typing import Dict, Any, List
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Local imports - prompts
 from .prompts import (
@@ -84,7 +85,7 @@ class BenchmarkService:
         check_names_data = self._parse_json_response(check_names_response)
         check_names = check_names_data.get("check_names", [])
         # debugging for sub set of checks
-        check_names = check_names[:2]
+        # check_names = check_names[:2]
         logger.info(f"✅ Extracted {len(check_names)} check names")
 
         benchmark_id = generate_benchmark_id(benchmark_name, benchmark_version)
@@ -123,6 +124,7 @@ class BenchmarkService:
     def generate_checks_metadata(
             self,
             benchmark,
+            thread_count: int = 1,
     ):
         """
         Step 3: Enrich individual checks with full details and control mappings.
@@ -135,6 +137,7 @@ class BenchmarkService:
 
         Args:
             benchmark: Benchmark model with check_names in metadata
+            thread_count: Number of threads to use for parallel processing (default: 1)
 
         Returns:
             List of enriched Check model instances with control mappings
@@ -147,55 +150,46 @@ class BenchmarkService:
         logger.info(f"Loaded {len(controls)} controls for mapping")
         logger.info(f"Loaded {len(existing_checks)} existing checks for mapping")
 
-        enriched_checks = []
-        for i, check_name in enumerate(benchmark.check_names):
-            logger.info(f"Enriching check {i + 1}/{len(benchmark.check_names)}: {check_name}")
-
-            # Generate unique check ID
-            check_id = generate_check_id(benchmark.name, benchmark.version, check_name)
-
-            # Step 3: Generate enriched check using LLM
-            enrichment_prompt = get_enrichment_prompt(
-                benchmark.name, benchmark.version, check_name, check_id
-            )
-            enrichment_response = self.llm_client.generate_text(enrichment_prompt)
-
-            # Parse enriched check from LLM
-            enriched_check_data = self._parse_json_response(enrichment_response)
-
-            # Map suggested controls to actual database controls
-            suggested_controls = enriched_check_data.get('suggested_controls', [])
-            mapped_controls = self._map_suggested_to_actual_controls(
-                suggested_controls, controls
-            )
-
-            # Find existing benchmark mappings
-            benchmark_mappings = self._map_to_existing_benchmarks(enriched_check_data, existing_checks)
-
-            # Calculate mapping confidence
-            total_suggested = len(suggested_controls)
-            mapped_count = len(mapped_controls)
-            confidence = (mapped_count / total_suggested) if total_suggested > 0 else 0.0
-
-            enriched_check = Check(
-                unique_id=enriched_check_data.get('unique_id', check_id),
-                name=enriched_check_data.get('name', check_name),
-                literature=enriched_check_data.get('literature', ''),
-                controls=[
-                    str(ctrl['control_id'])
-                    for ctrl in mapped_controls
-                ],
-                frameworks=list(set(ctrl['framework_name'] for ctrl in mapped_controls)),
-                benchmark_mapping=benchmark_mappings,
-                mapping_confidence=confidence,
-                category=enriched_check_data.get('category', ''),
-                severity=enriched_check_data.get('severity', 'medium'),
-                tags=enriched_check_data.get('tags', []),
-                extracted_at=datetime.now(),
-                mapped_at=datetime.now()
-            )
-
-            enriched_checks.append(enriched_check)
+        # Process checks in parallel using threading
+        if thread_count == 1:
+            # Single-threaded processing (preserve original logging behavior)
+            enriched_checks = []
+            for i, check_name in enumerate(benchmark.check_names):
+                logger.info(f"Enriching check {i + 1}/{len(benchmark.check_names)}: {check_name}")
+                enriched_check = self._process_single_check_enrichment(
+                    benchmark, check_name, controls, existing_checks
+                )
+                enriched_checks.append(enriched_check)
+        else:
+            # Multi-threaded processing
+            logger.info(f"Using {thread_count} threads for parallel processing...")
+            enriched_checks = []
+            
+            with ThreadPoolExecutor(max_workers=thread_count) as executor:
+                # Submit all tasks
+                future_to_check = {
+                    executor.submit(
+                        self._process_single_check_enrichment,
+                        benchmark, check_name, controls, existing_checks
+                    ): check_name 
+                    for check_name in benchmark.check_names
+                }
+                
+                # Collect results as they complete
+                completed = 0
+                for future in as_completed(future_to_check):
+                    completed += 1
+                    check_name = future_to_check[future]
+                    
+                    try:
+                        result = future.result()
+                        enriched_checks.append(result)
+                        logger.info(f"✅ Completed {completed}/{len(benchmark.check_names)}: {check_name}")
+                    except Exception as e:
+                        logger.error(f"❌ Failed to process check {check_name}: {e}")
+                        # Create fallback check
+                        fallback_check = self._create_fallback_check(benchmark, check_name)
+                        enriched_checks.append(fallback_check)
 
         logger.info(f"Successfully mapped {len(enriched_checks)} checks to controls")
         return enriched_checks
@@ -396,6 +390,78 @@ class BenchmarkService:
         }
 
         return framework_mapping.get(framework_id, "Unknown")
+
+    def _process_single_check_enrichment(self, benchmark, check_name: str, controls, existing_checks):
+        """Process a single check enrichment (thread-safe)."""
+        try:
+            # Generate unique check ID
+            check_id = generate_check_id(benchmark.name, benchmark.version, check_name)
+
+            # Generate enriched check using LLM
+            enrichment_prompt = get_enrichment_prompt(
+                benchmark.name, benchmark.version, check_name, check_id
+            )
+            enrichment_response = self.llm_client.generate_text(enrichment_prompt)
+
+            # Parse enriched check from LLM
+            enriched_check_data = self._parse_json_response(enrichment_response)
+
+            # Map suggested controls to actual database controls
+            suggested_controls = enriched_check_data.get('suggested_controls', [])
+            mapped_controls = self._map_suggested_to_actual_controls(
+                suggested_controls, controls
+            )
+
+            # Find existing benchmark mappings
+            benchmark_mappings = self._map_to_existing_benchmarks(enriched_check_data, existing_checks)
+
+            # Calculate mapping confidence
+            total_suggested = len(suggested_controls)
+            mapped_count = len(mapped_controls)
+            confidence = (mapped_count / total_suggested) if total_suggested > 0 else 0.0
+
+            enriched_check = Check(
+                unique_id=enriched_check_data.get('unique_id', check_id),
+                name=enriched_check_data.get('name', check_name),
+                literature=enriched_check_data.get('literature', ''),
+                controls=[
+                    str(ctrl['control_id'])
+                    for ctrl in mapped_controls
+                ],
+                frameworks=list(set(ctrl['framework_name'] for ctrl in mapped_controls)),
+                benchmark_mapping=benchmark_mappings,
+                mapping_confidence=confidence,
+                category=enriched_check_data.get('category', ''),
+                severity=enriched_check_data.get('severity', 'medium'),
+                tags=enriched_check_data.get('tags', []),
+                extracted_at=datetime.now(),
+                mapped_at=datetime.now()
+            )
+
+            return enriched_check
+            
+        except Exception as e:
+            logger.error(f"Failed to enrich check {check_name}: {e}")
+            return self._create_fallback_check(benchmark, check_name)
+
+    def _create_fallback_check(self, benchmark, check_name: str):
+        """Create a fallback Check when processing fails."""
+        check_id = generate_check_id(benchmark.name, benchmark.version, check_name)
+        
+        return Check(
+            unique_id=check_id,
+            name=check_name,
+            literature=f"Failed to generate detailed literature for check: {check_name}",
+            controls=[],
+            frameworks=[],
+            benchmark_mapping=[],
+            mapping_confidence=0.0,
+            category="unknown",
+            severity="medium",
+            tags=["processing-error"],
+            extracted_at=datetime.now(),
+            mapped_at=datetime.now()
+        )
 
 
 # Global service instance for external usage
