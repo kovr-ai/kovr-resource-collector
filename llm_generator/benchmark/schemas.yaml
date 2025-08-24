@@ -4,6 +4,7 @@ benchmark_and_checks_literature:
     name: string                  # Short descriptive name
     version: string               # Version identifier
     literature: string            # Targeted and actionable literature
+    check_names[]: string
     checks[]:
       - "benchmark_and_checks_literature.Check"
     metadata:
@@ -18,8 +19,8 @@ benchmark_and_checks_literature:
     literature: string            # Targeted and actionable literature
 
     # Step 2 mapping results
-    controls[]: string            # Mapped control IDs: ["NIST-800-53-AC-3"]
-    frameworks[]: string          # Framework names: ["NIST-800-53", "ISO-27001"]
+    controls[]: string            # Mapped controls: ["NIST-800-53-AC-3"]
+    frameworks[]: string          # Mapped frameworks: ["NIST-800-53", "ISO-27001"]
     benchmark_mapping[]: string   # Existing benchmark IDs if any
     mapping_confidence: float     # Confidence score for mappings (0.0-1.0)
 

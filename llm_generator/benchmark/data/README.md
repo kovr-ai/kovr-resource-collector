@@ -36,7 +36,7 @@ Individual check files containing:
 - **check_id**: Globally unique identifier (e.g., "OWASP-2021-A01-001")
 - **title**: Short descriptive name
 - **description**: Detailed, actionable requirement
-- **benchmark_source**: Source benchmark reference
+- **benchmark_name**: Source benchmark reference
 - **category**: Check category (Access Control, Authentication, etc.)
 - **severity**: Risk severity level (high, medium, low)
 - **tags**: Classification tags for filtering

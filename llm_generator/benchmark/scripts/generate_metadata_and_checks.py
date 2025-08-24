@@ -56,7 +56,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Example usage constants for supported benchmarks
-EXAMPLE_BENCHMARK_SOURCES = [
+EXAMPLE_benchmark_nameS = [
     "OWASP Top 10 2021",
     "Mitre ATT&CK v13",
     "PCI DSS v4.0",
@@ -93,64 +93,45 @@ class BenchmarkProcessor:
 
         # Step 1: Extract Checks Literature
         logger.info("📋 Step 1: Extracting checks from benchmark text...")
-        extraction_result = generate_metadata(
+        benchmark = generate_metadata(
             benchmark_name=benchmark_name,
             benchmark_version=benchmark_version,
         )
 
-        extracted_check_names = extraction_result['check_names']
-        logger.info(f"✅ Extracted {len(extracted_check_names)} check names")
-        if not extracted_check_names:
+        logger.info(f"✅ Extracted {len(benchmark.check_names)} check names")
+        if not benchmark.check_names:
             raise RuntimeError(f'No check names found for Benchmark {benchmark_name}:{benchmark_version}')
 
         # Step 2: Map to Controls and Existing Benchmarks
         logger.info("🔗 Step 2: Mapping checks to controls...")
-        enriched_checks = generate_checks_metadata(
-            benchmark_name=benchmark_name,
-            benchmark_version=benchmark_version,
-            check_names=extracted_check_names
-        )
+        enriched_checks = generate_checks_metadata(benchmark)
 
-        mapped_count = sum(1 for check in enriched_checks if check.get('controls'))
+        mapped_count = sum(1 for check in enriched_checks if check.controls)
         logger.info(f"✅ Successfully mapped {mapped_count}/{len(enriched_checks)} checks to controls")
-
-        if self.verbose:
-            for check in enriched_checks[:3]:  # Show first 3
-                controls = check.get('controls', [])
-                confidence = check.get('mapping_confidence', 0)
-                logger.debug(f"  {check.get('check_id')}: {len(controls)} controls (confidence: {confidence})")
 
         # Step 3: Generate Coverage Report
         logger.info("📊 Step 3: Generating coverage report...")
         coverage_report = generate_coverage_report(enriched_checks)
 
-        control_pct = coverage_report['coverage_percentages']['control_mapping']
-        benchmark_pct = coverage_report['coverage_percentages']['benchmark_mapping']
+        control_pct = coverage_report.coverage_percentages.control_mapping
+        benchmark_pct = coverage_report.coverage_percentages.benchmark_mapping
         logger.info(f"✅ Coverage: {control_pct:.1f}% controls, {benchmark_pct:.1f}% benchmarks")
 
-        # Combine results
+        # Combine results as structured object
         complete_result = {
+            'benchmark': benchmark,
+            'processed_checks': enriched_checks,
+            'coverage_report': coverage_report,
             'benchmark_info': {
                 'name': benchmark_name,
                 'version': benchmark_version,
                 'processing_date': datetime.now().isoformat(),
             },
-
-            # Step 1 Results
-            'extraction_metadata': extraction_result.get('metadata', {}),
-
-            # Step 2 Results
-            'processed_checks': enriched_checks,
-
-            # Step 3 Results
-            'coverage_report': coverage_report,
-
-            # Summary
             'summary': {
-                'total_checks_extracted': len(extracted_check_names),
+                'total_checks_extracted': len(benchmark.check_names),
                 'checks_mapped_to_controls': mapped_count,
                 'average_mapping_confidence': self._calculate_average_confidence(enriched_checks),
-                'unique_frameworks': len(set().union(*[check.get('frameworks', []) for check in enriched_checks])),
+                'unique_frameworks': len(set().union(*[check.frameworks or [] for check in enriched_checks])),
                 'processing_status': 'completed'
             }
         }
@@ -161,7 +142,7 @@ class BenchmarkProcessor:
 
     def _calculate_average_confidence(self, checks: list) -> float:
         """Calculate average mapping confidence across all checks."""
-        confidences = [check.get('mapping_confidence', 0) for check in checks]
+        confidences = [check.mapping_confidence or 0 for check in checks]
         return sum(confidences) / len(confidences) if confidences else 0.0
 
     def save_results(self, results: Dict[str, Any], output_path: Path):
@@ -200,9 +181,10 @@ class BenchmarkProcessor:
         logger.info(f"📁 Saving structured data to: {benchmark_dir}")
 
         # Save metadata.yaml
+        benchmark = results['benchmark']
         metadata = {
             'benchmark_info': results['benchmark_info'],
-            'extraction_metadata': results['extraction_metadata'],
+            'extraction_metadata': benchmark.metadata,
             'summary': results['summary'],
             'processing_completed_at': results['benchmark_info']['processing_date']
         }
@@ -215,18 +197,18 @@ class BenchmarkProcessor:
         # Save coverage.yaml
         coverage_file = benchmark_dir / "coverage.yaml"
         with open(coverage_file, 'w', encoding='utf-8') as f:
-            yaml.dump(results['coverage_report'], f, default_flow_style=False, sort_keys=False)
+            yaml.dump(results['coverage_report'].model_dump(), f, default_flow_style=False, sort_keys=False)
         logger.info(f"✅ Saved coverage: {coverage_file}")
 
         # Save individual check files
         checks_saved = 0
         for check in results['processed_checks']:
-            check_id = check.get('check_id', f"check_{checks_saved + 1}")
+            check_id = check.unique_id or f"check_{checks_saved + 1}"
             check_filename = f"{self._sanitize_filename(check_id)}.yaml"
             check_file = checks_dir / check_filename
 
             with open(check_file, 'w', encoding='utf-8') as f:
-                yaml.dump(check, f, default_flow_style=False, sort_keys=False)
+                yaml.dump(check.model_dump(), f, default_flow_style=False, sort_keys=False)
             checks_saved += 1
 
         logger.info(f"✅ Saved {checks_saved} check files to: {checks_dir}")
@@ -255,13 +237,12 @@ class BenchmarkProcessor:
         print("📊 BENCHMARK PROCESSING SUMMARY")
         print("=" * 80)
 
-        from pdb import set_trace;set_trace()
         # Basic info
-        benchmark = results['benchmark_info']
-        extraction_metadata = results['extraction_metadata']
-        print(f"📋 Benchmark: {benchmark['name']}:{benchmark['version']}")
-        print(f"📅 Processed: {benchmark['processing_date'][:19].replace('T', ' ')}")
-        print(f"📄 Literature: {extraction_metadata['literature_length']:,} characters")
+        benchmark_info = results['benchmark_info']
+        benchmark = results['benchmark']
+        print(f"📋 Benchmark: {benchmark_info['name']}:{benchmark_info['version']}")
+        print(f"📅 Processed: {benchmark_info['processing_date'][:19].replace('T', ' ')}")
+        print(f"📄 Literature: {benchmark.metadata.total_checks_extracted} check names extracted")
 
         # Summary stats
         summary = results['summary']
@@ -272,27 +253,26 @@ class BenchmarkProcessor:
         print(f"  • Frameworks: {summary['unique_frameworks']}")
 
         # Coverage breakdown
-        coverage = results['coverage_report']['coverage_percentages']
+        coverage = results['coverage_report'].coverage_percentages
         print("\n📊 COVERAGE:")
-        print(f"  • Extraction: {coverage['extraction']:.1f}%")
-        print(f"  • Control Mapping: {coverage['control_mapping']:.1f}%")
-        print(f"  • Benchmark Mapping: {coverage['benchmark_mapping']:.1f}%")
+        print(f"  • Extraction: {coverage.extraction:.1f}%")
+        print(f"  • Control Mapping: {coverage.control_mapping:.1f}%")
+        print(f"  • Benchmark Mapping: {coverage.benchmark_mapping:.1f}%")
 
         # Top mapped checks
         checks = results['processed_checks']
-        mapped_checks = [c for c in checks if c.get('controls')]
+        mapped_checks = [c for c in checks if c.controls]
 
-        # from pdb import set_trace;set_trace()
-        # if mapped_checks:
-        #     print(f"\n🔗 TOP MAPPED CHECKS:")
-        #     for i, check in enumerate(sorted(
-        #             mapped_checks,
-        #             key=lambda x: x.get('mapping_confidence', 0),
-        #             reverse=True
-        #     )[:5], 1):
-        #         controls = ', '.join(check.get('controls', [])[:3])
-        #         confidence = check.get('mapping_confidence', 0)
-        #         print(f"  {i}. {check.get('check_id', 'N/A')} → [{controls}] ({confidence:.2f})")
+        if mapped_checks:
+            print(f"\n🔗 TOP MAPPED CHECKS:")
+            for i, check in enumerate(sorted(
+                    mapped_checks,
+                    key=lambda x: x.mapping_confidence or 0,
+                    reverse=True
+            )[:5], 1):
+                controls = ', '.join(check.controls[:3] if check.controls else [])
+                confidence = check.mapping_confidence or 0
+                print(f"  {i}. {check.unique_id or 'N/A'} → [{controls}] ({confidence:.2f})")
 
         print("\n" + "=" * 80)
 
@@ -310,7 +290,7 @@ def main():
     )
 
     # Benchmark info (required)
-    examples_text = f"Examples: {', '.join(EXAMPLE_BENCHMARK_SOURCES[:3])}, etc."
+    examples_text = f"Examples: {', '.join(EXAMPLE_benchmark_nameS[:3])}, etc."
     parser.add_argument('--name', '-n', type=str, required=True,
                        help=f'Benchmark name. {examples_text}')
     
