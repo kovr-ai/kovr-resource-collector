@@ -303,6 +303,36 @@ class YamlModelMapping(BaseModel):
                 fields.append(yaml_field)
                 fields.extend(nested_fields)
 
+            elif isinstance(field_def, list):
+                # Handle list fields with resolved schema references (e.g., valid_resources[])
+                # This happens when schema references like "system_compatible_checks.ResourceSchema" are resolved
+                if len(field_def) > 0 and isinstance(field_def[0], dict):
+                    # List contains resolved schema references (dictionaries)
+                    # Use the first item as the template for the nested model
+                    nested_name = f"{parent_name}_{clean_field_name}" if parent_name else clean_field_name
+                    nested_fields, nested_annotations, nested_field_defs = cls.process_yaml_dict(field_def[0], nested_name)
+
+                    nested_model = cls.create_yaml_model(
+                        name=nested_name.title(),
+                        annotations=nested_annotations,
+                        fields=nested_field_defs
+                    )
+
+                    # This should always be a list since it comes from field_name.endswith('[]')
+                    yaml_field = YamlField(name=clean_field_name, dtype=YamlFieldType.LIST)
+                    model_annotations[clean_field_name] = List[nested_model]
+                    model_fields[clean_field_name] = Field(default_factory=list)
+
+                    fields.append(yaml_field)
+                    fields.extend(nested_fields)
+                else:
+                    # List contains simple types or is empty
+                    # Default to List[str] for simple arrays
+                    yaml_field = YamlField(name=clean_field_name, dtype=YamlFieldType.LIST)
+                    model_annotations[clean_field_name] = List[str]
+                    model_fields[clean_field_name] = Field(default_factory=list)
+                    fields.append(yaml_field)
+
         return fields, model_annotations, model_fields
 
     @classmethod

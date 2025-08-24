@@ -4,7 +4,7 @@ system_compatible_checks:
     unique_id: string             # Global unique ID format: "OWASP-2021-A01-001"
     name: string                  # Short descriptive name
     literature: string            # Original targeted literature
-    
+
     # Benchmark mapping results (from Section 1)
     controls[]: string            # Mapped controls: ["NIST-800-53-AC-3"]
     frameworks[]: string          # Mapped frameworks: ["NIST-800-53", "ISO-27001"]
@@ -21,13 +21,12 @@ system_compatible_checks:
     field_paths_used[]: string    # Actual field paths: ["repo.basic_info.branches[].protected"]
     targeted_guidance: string     # System-specific actionable guidance
     system_enriched_at: datetime  # When system enrichment was performed
-
-  ResourceSchema:
-    resource_type: string         # Resource type identifier: "GitHub::Repo"
-    display_name: string          # Human readable name: "GitHub Repository"
-    field_paths[]: string         # Available field paths for this resource
-    provider: string              # System provider: "github", "aws", "google"
-    description: string           # Resource type description
+    
+    # Resource selection results
+    valid_resources[]:
+      - "system_compatible_checks.ResourceSchema"    # Resources that are valid for this check
+    invalid_resources[]:
+      - "system_compatible_checks.ResourceSchema"    # Resources that are not valid for this check
 
   SystemCompatibilityCoverage:
     # Basic counts
@@ -54,3 +53,10 @@ system_compatible_checks:
       avg_field_paths_per_check: float
       avg_guidance_length: float
       checks_with_multiple_resources: int
+
+  ResourceSchema:
+    resource_name: string         # Resource name: "GitHubResource"
+    field_paths[]: string         # Available field paths for this resource
+    provider: string              # System provider: "github", "aws", "google"
+    literature: string           # Resource type description
+    reason: string                # Reason why Resource type is valid/invalid for this check

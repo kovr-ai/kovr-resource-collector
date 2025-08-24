@@ -26,7 +26,7 @@ from con_mon.compliance.models import (
     CheckResult
 )
 from con_mon.connectors.models import ConnectorType
-from con_mon.resources import Resource
+from con_mon.resources import Resource, ResourceCollection
 from .client import get_llm_client, LLMRequest, LLMResponse
 
 
@@ -257,47 +257,31 @@ class ProviderConfig:
     def __init__(self, connector_type: ConnectorType):
         self.connector_type = connector_type
         self.provider_name = connector_type.value
+        self.resources: List[Type[Resource]] = list()
+        self.resource_collection: ResourceCollection = None
+        self.resource_wise_field_paths: Dict[Resource, List[str]] = dict()
         self.load_provider_data()
     
     def load_provider_data(self):
         """Load provider-specific resource schemas and configurations"""
-        try:
-            # Load resource schemas
-            current_dir = os.path.dirname(os.path.abspath(__file__))
-            resources_yaml_path = os.path.join(current_dir, '..', '..', 'resources', 'resources.yaml')
-            
-            with open(resources_yaml_path, 'r') as f:
-                resources_data = yaml.safe_load(f)
-            
-            provider_data = resources_data.get(self.provider_name, {})
-            self.resources = provider_data.get('resources', {})
-            self.resource_collection = provider_data.get('resource_collection', {})
-            
-            # Extract resource model names
-            self.resource_models = list(self.resources.keys())
-            
-            # Generate field path examples for each resource
-            self.field_path_examples = {}
-            for resource_name, schema in self.resources.items():
-                # Use the new Resource.field_paths() method instead of _extract_field_paths
-                try:
-                    # Dynamically import and get the resource class
-                    resource_class = self._get_resource_class(resource_name)
-                    if resource_class:
-                        self.field_path_examples[resource_name] = resource_class.field_paths(max_depth=4)
-                    else:
-                        # Fallback to basic field paths if class not found
-                        self.field_path_examples[resource_name] = self._extract_basic_field_paths(schema)
-                except Exception as e:
-                    print(f"⚠️ Error generating field paths for {resource_name}: {e}")
-                    # Fallback to basic field paths
-                    self.field_path_examples[resource_name] = self._extract_basic_field_paths(schema)
-                
-        except Exception as e:
-            self.resources = {}
-            self.resource_collection = {}
-            self.resource_models = []
-            self.field_path_examples = {}
+        # Load resource schemas
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        resources_yaml_path = os.path.join(current_dir, '..', '..', 'resources', 'resources.yaml')
+
+        with open(resources_yaml_path, 'r') as f:
+            resources_data = yaml.safe_load(f)
+
+        provider_data = resources_data[self.provider_name]
+
+        # Generate field path examples for each resource
+        for resource_name, schema in provider_data['resources'].items():
+            # Dynamically import and get the resource class
+            resource_model = self._get_resource_class(resource_name)
+            self.resources.append(resource_model)
+            self.resource_wise_field_paths[resource_name] = resource_model.field_paths(
+                max_depth=10,
+                short_list=True,
+            )
 
     def _get_resource_class(self, resource_name: str) -> Optional[Type[Resource]]:
         """Dynamically import and return the Resource class for a given resource name."""

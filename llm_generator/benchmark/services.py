@@ -180,16 +180,10 @@ class BenchmarkService:
                 for future in as_completed(future_to_check):
                     completed += 1
                     check_name = future_to_check[future]
-                    
-                    try:
-                        result = future.result()
-                        enriched_checks.append(result)
-                        logger.info(f"✅ Completed {completed}/{len(benchmark.check_names)}: {check_name}")
-                    except Exception as e:
-                        logger.error(f"❌ Failed to process check {check_name}: {e}")
-                        # Create fallback check
-                        fallback_check = self._create_fallback_check(benchmark, check_name)
-                        enriched_checks.append(fallback_check)
+
+                    result = future.result()
+                    enriched_checks.append(result)
+                    logger.info(f"✅ Completed {completed}/{len(benchmark.check_names)}: {check_name}")
 
         logger.info(f"Successfully mapped {len(enriched_checks)} checks to controls")
         return enriched_checks

@@ -1,48 +1,36 @@
 """
-Check Guidance Module - Section 2: System Compatibility Enrichment
+Check Guidance Module - Resource Selection (Step 1)
 
-This module provides functionality to enrich benchmark checks with system-compatible
-resource types and field paths, making them actionable against supported systems.
+This module provides functionality to determine which resource types are valid
+for compliance checks, making them actionable against supported systems.
 
 Main Functions:
-    enrich_checks_with_system_resources: Step 1 - Expand to Resource Types and Field Paths
-    generate_system_compatibility_coverage: Step 2 - Coverage on System Compatibility
+    select_valid_resources_for_check: Step 1 - Identify compatible resource types
 
 Usage:
-    from llm_generator.check_guidance import (
-        enrich_checks_with_system_resources,
-        generate_system_compatibility_coverage
-    )
+    from llm_generator.check_guidance import select_valid_resources_for_check
     
-    # Step 1: Enrich checks with system resources
-    system_enriched_checks = enrich_checks_with_system_resources(enriched_checks)
-    
-    # Step 2: Generate coverage report
-    coverage_report = generate_system_compatibility_coverage(system_enriched_checks)
+    # Determine valid resource types for a check
+    enriched_check = select_valid_resources_for_check(check)
+    # Returns: SystemEnrichedCheck object with valid_resources and invalid_resources
 """
 
 from .services import (
-    enrich_checks_with_system_resources,
-    generate_system_compatibility_coverage,
-    check_guidance_service
+    select_valid_resources_for_check,
+    resource_selection_service
 )
 
 from .models import (
-    SystemEnrichedCheck,
     ResourceSchema, 
-    SystemCompatibilityCoverage
 )
 
 __all__ = [
     # Main workflow functions
-    'enrich_checks_with_system_resources',
-    'generate_system_compatibility_coverage',
+    'select_valid_resources_for_check',
     
     # Service instance
-    'check_guidance_service',
+    'resource_selection_service',
     
     # Model classes
-    'SystemEnrichedCheck',
     'ResourceSchema',
-    'SystemCompatibilityCoverage'
 ]
