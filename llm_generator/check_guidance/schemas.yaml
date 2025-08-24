@@ -12,7 +12,7 @@ system_compatible_checks:
     mapping_confidence: float     # Confidence score for mappings (0.0-1.0)
     category: string              # Check category
     severity: string              # Risk severity level
-    tags[]: string               # Classification tags
+    tags[]: string                # Classification tags
     extracted_at: datetime
     mapped_at: datetime
     
@@ -58,5 +58,5 @@ system_compatible_checks:
     resource_name: string         # Resource name: "GitHubResource"
     provider: string              # System provider: "github", "aws", "google"
     field_paths[]: string         # Available field paths for this resource
-    literature: string           # Resource type description
+    literature: string            # Resource type description
     reason: string                # Reason why Resource type is valid/invalid for this check

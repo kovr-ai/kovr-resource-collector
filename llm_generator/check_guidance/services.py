@@ -70,6 +70,7 @@ class ResourceSelectionService:
                 except Exception as e:
                     logger.error(f"Failed to parse response: {e}")
                     llm_result = dict(
+                        is_valid=None,
                         field_paths=[],
                         literature=response,
                         reason="LLM Response Failed to parse",
