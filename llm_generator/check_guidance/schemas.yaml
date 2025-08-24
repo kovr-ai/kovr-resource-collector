@@ -56,7 +56,7 @@ system_compatible_checks:
 
   ResourceSchema:
     resource_name: string         # Resource name: "GitHubResource"
-    field_paths[]: string         # Available field paths for this resource
     provider: string              # System provider: "github", "aws", "google"
+    field_paths[]: string         # Available field paths for this resource
     literature: string           # Resource type description
     reason: string                # Reason why Resource type is valid/invalid for this check

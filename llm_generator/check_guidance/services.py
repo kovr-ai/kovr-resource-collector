@@ -65,7 +65,15 @@ class ResourceSelectionService:
                 response = self.llm_client.generate_text(prompt)
 
                 # Parse the JSON response and map to ResourceSchema objects
-                llm_result = self._parse_json_response(response)
+                try:
+                    llm_result = self._parse_json_response(response)
+                except Exception as e:
+                    logger.error(f"Failed to parse response: {e}")
+                    llm_result = dict(
+                        field_paths=[],
+                        literature=response,
+                        reason="LLM Response Failed to parse",
+                    )
                 resource_dict = dict(
                     resource_name=resource_name,
                     provider=provider,
