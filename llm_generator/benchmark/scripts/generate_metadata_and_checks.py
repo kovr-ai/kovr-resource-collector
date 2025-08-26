@@ -49,6 +49,7 @@ from llm_generator.benchmark import (
     generate_metadata,
     generate_checks_metadata,
     generate_coverage_report,
+    update_benchmark_coverage_metrics,
 )
 
 # Configure logging
@@ -124,9 +125,14 @@ class BenchmarkProcessor:
         benchmark_pct = coverage_report.coverage_percentages.benchmark_mapping
         logger.info(f"✅ Coverage: {control_pct:.1f}% controls, {benchmark_pct:.1f}% benchmarks")
 
+        # Step 4: Update benchmark with coverage metrics
+        logger.info("📈 Step 4: Updating benchmark with coverage metrics...")
+        updated_benchmark = update_benchmark_coverage_metrics(benchmark, coverage_report)
+        logger.info("✅ Benchmark metadata updated with coverage metrics")
+
         # Combine results as structured object
         complete_result = {
-            'benchmark': benchmark,
+            'benchmark': updated_benchmark,
             'processed_checks': enriched_checks,
             'coverage_report': coverage_report,
             'benchmark_info': {

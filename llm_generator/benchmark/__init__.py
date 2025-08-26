@@ -13,14 +13,16 @@ Only services and models (dynamically generated) are exported from here.
 from .services import (
     generate_metadata,
     generate_checks_metadata, 
-    generate_coverage_report
+    generate_coverage_report,
+    update_benchmark_coverage_metrics
 )
 from .models import MODEL_NAMES
 
 # Package exports
 __all__ = [
     # Service Methods (Section 1 Steps)
-    'generate_metadata',          # Step 1: Extract Checks Literature
-    'generate_checks_metadata',   # Step 2: Map to Controls
-    'generate_coverage_report',   # Step 3: Coverage Reporting
+    'generate_metadata',                    # Step 1: Extract Checks Literature
+    'generate_checks_metadata',             # Step 2: Map to Controls
+    'generate_coverage_report',             # Step 3: Coverage Reporting
+    'update_benchmark_coverage_metrics',    # Step 4: Update Benchmark with Coverage
 ] + MODEL_NAMES

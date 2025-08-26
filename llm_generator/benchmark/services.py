@@ -99,7 +99,7 @@ class BenchmarkService:
             metadata={
                 "total_checks_extracted": len(check_names),
                 "extraction_date": datetime.now(),
-                "coverage_metrics": None
+                "coverage_metrics": []  # Empty list initially, populated after coverage analysis
             }
         )
         return benchmark
@@ -202,6 +202,47 @@ class BenchmarkService:
         mapped_to_controls = sum(1 for check in processed_checks if check.controls)
         mapped_to_existing_benchmarks = sum(1 for check in processed_checks if check.benchmark_mapping)
 
+        # Calculate framework coverage breakdown
+        framework_stats = {}
+        unique_controls = set()
+        
+        for check in processed_checks:
+            if check.frameworks:
+                for framework in check.frameworks:
+                    if framework not in framework_stats:
+                        framework_stats[framework] = {
+                            'controls_mapped': set(),
+                            'checks_mapped': 0
+                        }
+                    
+                    # Track controls for this framework
+                    if check.controls:
+                        for control in check.controls:
+                            framework_stats[framework]['controls_mapped'].add(control)
+                            unique_controls.add(control)
+                    
+                    # Increment checks mapped for this framework
+                    framework_stats[framework]['checks_mapped'] += 1
+
+        # Determine primary framework coverage (most dominant framework or summary)
+        if framework_stats:
+            # Find the framework with the most checks mapped
+            primary_framework = max(framework_stats.keys(), 
+                                  key=lambda f: framework_stats[f]['checks_mapped'])
+            
+            framework_coverage = {
+                'framework_name': primary_framework,
+                'controls_mapped': len(framework_stats[primary_framework]['controls_mapped']),
+                'checks_mapped': framework_stats[primary_framework]['checks_mapped']
+            }
+        else:
+            # No framework mappings found
+            framework_coverage = {
+                'framework_name': 'No Framework Mapping',
+                'controls_mapped': len(unique_controls),
+                'checks_mapped': mapped_to_controls
+            }
+
         return CoverageMetrics(
             total_checks_extracted=total_checks,
             mapped_to_controls=mapped_to_controls,
@@ -212,12 +253,31 @@ class BenchmarkService:
                 'control_mapping': (mapped_to_controls / total_checks * 100) if total_checks > 0 else 0,
                 'benchmark_mapping': (mapped_to_existing_benchmarks / total_checks * 100) if total_checks > 0 else 0
             },
-            framework_coverage={
-                'framework_name': 'Mixed',
-                'controls_mapped': mapped_to_controls,
-                'checks_mapped': total_checks
+            framework_coverage=framework_coverage
+        )
+
+    def update_benchmark_coverage_metrics(self, benchmark, coverage_metrics):
+        """
+        Update benchmark metadata with coverage metrics after processing.
+        
+        Args:
+            benchmark: Benchmark model instance to update
+            coverage_metrics: CoverageMetrics instance from generate_coverage_report
+            
+        Returns:
+            Updated Benchmark instance with coverage metrics populated
+        """
+        # Update the metadata with coverage metrics (as list according to schema)
+        # Use model_copy to create updated benchmark with new coverage metrics
+        updated_benchmark = benchmark.model_copy(
+            update={
+                'metadata': benchmark.metadata.model_copy(
+                    update={'coverage_metrics': [coverage_metrics]}
+                )
             }
         )
+        
+        return updated_benchmark
 
     # Helper methods for control mapping
     def _load_controls(self):
@@ -465,3 +525,4 @@ benchmark_service = BenchmarkService()
 generate_metadata = benchmark_service.generate_metadata
 generate_checks_metadata = benchmark_service.generate_checks_metadata
 generate_coverage_report = benchmark_service.generate_coverage_report
+update_benchmark_coverage_metrics = benchmark_service.update_benchmark_coverage_metrics
