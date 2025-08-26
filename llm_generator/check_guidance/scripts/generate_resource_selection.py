@@ -5,7 +5,7 @@ Resource Selection Generation Script
 This script processes benchmark checks and identifies valid resource types:
 1. Load enriched checks from benchmark processing output
 2. Determine valid/invalid resource types for each check using LLM
-3. Save results in structured YAML format under check_guidance/data/benchmark/
+3. Save results in structured YAML format under data/benchmarks/<benchmark_name>/check_guidance/
 
 Usage Examples:
     # Generate resource selection for OWASP checks
@@ -143,9 +143,10 @@ class ResourceSelectionProcessor:
     def _load_benchmark_checks(self, benchmark_name: str, data_dir: Optional[Path] = None) -> List[Check]:
         """Load enriched checks from benchmark processing output."""
         if data_dir is None:
-            # Default to benchmark data directory
+            # Default to centralized data directory at project root
             script_dir = Path(__file__).parent
-            data_dir = script_dir.parent.parent / "benchmark" / "data"
+            project_root = script_dir.parent.parent.parent  # Navigate up to project root
+            data_dir = project_root / "data"
 
         # Construct path to benchmark checks
         benchmark_dir = data_dir / "benchmarks" / benchmark_name
@@ -200,7 +201,7 @@ class ResourceSelectionProcessor:
         Save processing results in structured YAML format.
 
         Structure:
-        check_guidance/data/benchmark/<benchmark_name>/
+        data/benchmarks/<benchmark_name>/check_guidance/
         ├── metadata.yaml       # Processing info and summary
         └── checks/             # Individual enriched check files
             ├── <check_id_1>_resources.yaml
@@ -208,12 +209,14 @@ class ResourceSelectionProcessor:
             └── ...
         """
         if base_data_dir is None:
-            # Default to check_guidance/data
+            # Default to centralized data/benchmarks directory at project root
             script_dir = Path(__file__).parent
-            base_data_dir = script_dir.parent / "data"
+            project_root = script_dir.parent.parent.parent  # Navigate up to project root
+            base_data_dir = project_root / "data"
 
-        # Create output directory
-        output_dir = base_data_dir / "benchmark" / self._sanitize_name(benchmark_name)
+        # Create output directory (as subdirectory under benchmark)
+        benchmark_dir = base_data_dir / "benchmarks" / self._sanitize_name(benchmark_name)
+        output_dir = benchmark_dir / "check_guidance"
         output_dir.mkdir(parents=True, exist_ok=True)
 
         checks_dir = output_dir / "checks"
@@ -302,7 +305,7 @@ def main():
     
     # Optional settings
     parser.add_argument('--data-dir', type=Path,
-                       help='Base directory for structured data (default: llm_generator/check_guidance/data)')
+                       help='Base directory for structured data (default: data/ at project root)')
     
     # Processing options
     parser.add_argument('--threads', type=int, default=1,

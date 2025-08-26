@@ -174,9 +174,10 @@ class BenchmarkProcessor:
             └── ...
         """
         if base_data_dir is None:
-            # Default to llm_generator/benchmark/data
+            # Default to centralized data/benchmarks directory at project root
             script_dir = Path(__file__).parent
-            base_data_dir = script_dir.parent / "data"
+            project_root = script_dir.parent.parent.parent  # Navigate up to project root
+            base_data_dir = project_root / "data"
 
         # Create benchmark directory
         benchmark_dir = base_data_dir / "benchmarks" / self._sanitize_benchmark_name(benchmark_name)
@@ -305,7 +306,7 @@ def main():
     parser.add_argument('--version', '-v', type=str, default='latest',
                        help='Benchmark version (default: latest)')
     parser.add_argument('--data-dir', type=Path,
-                       help='Base directory for structured data (default: llm_generator/benchmark/data)')
+                       help='Base directory for structured data (default: data/ at project root)')
     
     # Processing options
     parser.add_argument('--threads', type=int, default=1,

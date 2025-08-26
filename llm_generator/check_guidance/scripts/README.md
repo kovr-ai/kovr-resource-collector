@@ -14,7 +14,7 @@ A comprehensive CLI tool that executes the complete system compatibility enrichm
 #### Process from Benchmark Output
 ```bash
 # Process checks from benchmark processing output
-python generate_system_guidance.py --benchmark-dir llm_generator/benchmark/data/benchmarks/owasp_top_10_2021
+python generate_system_guidance.py --benchmark-dir data/benchmarks/owasp_top_10_2021
 
 # With verbose logging
 python generate_system_guidance.py --benchmark-dir /path/to/benchmark --verbose
