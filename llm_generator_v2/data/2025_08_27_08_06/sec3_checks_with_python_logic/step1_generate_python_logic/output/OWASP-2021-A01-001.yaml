@@ -1,7 +1,7 @@
 resource:
-  field_path: "repo.basic_info.branches[].protected"
+  field_path: "repo.basic_info.branches[]"
   logic: |
-    def check_branch_protection(repo):
+    def check_branch_protection(fetched_value):
         """
         Check if main/master branches have branch protection enabled
         
@@ -9,29 +9,15 @@ resource:
             repo: Dictionary containing repository data
             
         Returns:
-            dict: {"status": "PASS|FAIL", "message": str}
+            bool: True if passed, False if failed
         """
-        try:
-            branches = repo.get("basic_info", {}).get("branches", [])
-            main_branches = ["main", "master"]
-            
-            for branch in branches:
-                branch_name = branch.get("name", "").lower()
-                if branch_name in main_branches:
-                    if not branch.get("protected", False):
-                        return {
-                            "status": "FAIL", 
-                            "message": f"Branch '{branch.get('name')}' is not protected"
-                        }
-                        
-            # If we get here, all main branches are protected
-            return {
-                "status": "PASS",
-                "message": "Main branch protection is properly configured"
-            }
-            
-        except Exception as e:
-            return {
-                "status": "FAIL",
-                "message": f"Error checking branch protection: {str(e)}"
-            }
+        main_branches = ["main", "master"]
+        
+        for branch in fetched_value:
+            branch_name = branch.get("name", "").lower()
+            if branch_name in main_branches:
+                if not branch.get("protected", False):
+                    return False
+                    
+        # If we get here, all main branches are protected
+        return True

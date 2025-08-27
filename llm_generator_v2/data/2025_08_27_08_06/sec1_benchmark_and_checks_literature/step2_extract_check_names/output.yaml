@@ -1,5 +1,5 @@
 benchmark:
   check_names:
-    - "check name 1"
-    - "check name 2"
-    - "check name 3"
+    - "Branch protection enabled"
+    - "Encryption at rest enabled" 
+    - "Multi-factor authentication required"

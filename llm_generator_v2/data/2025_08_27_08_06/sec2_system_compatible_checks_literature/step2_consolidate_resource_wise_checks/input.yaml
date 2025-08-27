@@ -7,11 +7,19 @@ check:
       literature: "Verify that all branches named 'main' have branch protection enabled"
       field_paths:
         - "repo.basic_info.branches[].protected"
-  - unique_id: "OWASP-2021-A01-001"
-    is_valid: "false" 
-    reason: "Resource AWS::EC2::Instance doesn't support branch protection concepts"
+  - unique_id: "OWASP-2021-A02-001"
+    is_valid: "true"
+    reason: "Resource AWS::S3::Bucket supports encryption validation"
     resource:
-      name: "AWS::EC2::Instance"
-      literature: "Branch protection is not applicable to EC2 instances"
+      name: "AWS::S3::Bucket"
+      literature: "Verify that S3 buckets have server-side encryption enabled"
       field_paths:
-        - "instance.security_groups[].name"
+        - "bucket.encryption.rules[].apply_server_side_encryption_by_default"
+  - unique_id: "OWASP-2021-A03-001"
+    is_valid: "true"
+    reason: "Resource Azure::ActiveDirectory::User supports MFA validation"
+    resource:
+      name: "Azure::ActiveDirectory::User"
+      literature: "Verify that Azure AD users have MFA enabled"
+      field_paths:
+        - "user.authentication.mfa_enabled"

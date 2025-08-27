@@ -1,0 +1,27 @@
+check:
+  unique_id: "OWASP-2021-A03-001"
+  literature: "User accounts must require multi-factor authentication to provide additional security beyond username and password combinations"
+  controls:
+    - unique_id: "NIST-800-53-IA-2"
+      reason: "Multi-factor authentication requirements for user identification"
+      confidence: 0.95
+    - unique_id: "ISO-27001-A.9.4.2"
+      reason: "Secure log-on procedures requiring multiple authentication factors"
+      confidence: 0.85
+  benchmarks:
+    - unique_id: "MITRE-ATT&CK-T1078"
+      reason: "Multi-factor authentication prevents compromise of valid accounts"
+      confidence: 0.95
+    - unique_id: "MITRE-ATT&CK-T1110"
+      reason: "MFA significantly reduces effectiveness of brute force attacks"
+      confidence: 0.9
+    - unique_id: "MITRE-ATT&CK-T1556"
+      reason: "Secures authentication processes against modification attacks"
+      confidence: 0.85
+  category: "identification_authentication"
+  severity: "high"
+  tags:
+    - "mfa"
+    - "authentication"
+    - "user_security"
+    - "azure"

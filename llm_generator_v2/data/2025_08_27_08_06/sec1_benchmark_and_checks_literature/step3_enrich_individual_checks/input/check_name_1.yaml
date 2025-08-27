@@ -1,6 +1,0 @@
-check:
-  name: "check name 1"
-benchmark:
-  name: "owasp"
-  version: null
-  literature: "literature text"
