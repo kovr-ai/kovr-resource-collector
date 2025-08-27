@@ -62,7 +62,7 @@ eic_inputs = [
     for check_name in ecn_output.benchmark.check_names
 ]
 
-eic_outputs = eic.service.execute(eic_inputs)
+eic_outputs = eic.service.execute(eic_inputs, threads=8)
 enriched_checks = [
     eic_output.check
     for eic_output in eic_outputs
@@ -106,7 +106,7 @@ for i, check in enumerate(enriched_checks):  # Process first 2 for demo
             atl_inputs.append(atl_input)
             print(f"     {connector_type.value}/{resource_model_name}: Prepared")
 
-atl_outputs = atl.service.execute(atl_inputs)
+atl_outputs = atl.service.execute(atl_inputs, threads=8)
 
 # Step 5: Consolidate Resource-wise Checks
 print("\nStep 5: Consolidating resource-wise checks...")
@@ -176,11 +176,7 @@ for consolidated_check in crwc_outputs:
         gpl_inputs.append(gpl_input)
         print(f"       ✅ Prepared logic generation for: {resource.name}")
 
-gpl_outputs = gpl.service.execute(gpl_inputs)
-
-# Step 7: Validate with Mock Data
-print(f"\nStep 7: Validating Python logic with mock data...")
-vwmd_inputs = []
+gpl_outputs = gpl.service.execute(gpl_inputs, threads=8)
 
 # # Step 7: Validate with Mock Data
 # print(f"\nStep 7: Validating Python logic with mock data...")
@@ -291,7 +287,7 @@ print(f"   Checks enriched: {len(enriched_checks)}")
 print(f"   Resource analyses: {len(atl_outputs)}")
 print(f"   Consolidated checks: {len(crwc_outputs)}")
 print(f"   Python logic generated: {len(gpl_outputs)}")
-print(f"   Mock validations: {len(vwmd_outputs)}")
+# print(f"   Mock validations: {len(vwmd_outputs)}")
 # print(f"   Logic repairs: {len(rlee_outputs)}")
 # print(f"   Repaired checks consolidated: {len(crc_outputs)}")
 
