@@ -5,6 +5,7 @@ Generate Python Logic Service Implementation
 import json
 import re
 from typing import Any, Dict
+from pydantic import BaseModel
 from llm_generator_v2.services import Service
 from .templates import PROMPT
 
@@ -20,8 +21,20 @@ class GeneratePythonLogicService(Service):
     def __init__(self):
         super().__init__("generate_python_logic")
 
+    def _get_input_filename(self, input_: BaseModel) -> str:
+        """Generate unique filename for input based on check unique_id."""
+        return f"{input_.check.unique_id}.yaml"
+
+    def _get_output_filename(self, output_: BaseModel) -> str:
+        """Generate unique filename for output based on check unique_id and field path."""
+        check_id = output_.resource.check.unique_id
+        field_path = output_.resource.field_path
+        # Clean the field path to be filename-safe
+        safe_field_path = field_path.replace(' ', '_').replace('(', '').replace(')', '').replace(',', '').replace('.', '').replace('/', '_')
+        return f"{check_id}_{safe_field_path[:30]}.yaml"
+
     def _match_input_output(self, input_, output_):
-        return input_.check.unique_id == output_.check.unique_id
+        return input_.check.unique_id == output_.resource.check.unique_id
 
     def _process_input(self, input_data: Any) -> Any:
         """Process a single input and generate Python logic"""

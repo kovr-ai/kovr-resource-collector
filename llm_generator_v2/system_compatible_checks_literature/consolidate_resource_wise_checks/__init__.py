@@ -1,39 +1,74 @@
-# Step 2: Consolidate Resource-wise Checks (NON-LLM)
 """
-This step consolidates multiple checks that apply to the same resource,
-separating valid and invalid resources and organizing the literature and field paths.
+Dynamic model generation for services.
+Models are automatically created from execution.yaml configuration.
 """
 
+from pathlib import Path
 from llm_generator_v2.yaml_loader import ExecutionYamlMapping
+current_path = Path(__file__).parent
+service_name = current_path.name
+module_name = current_path.parent.name
+
+# Get the execution.yaml path relative to this module
+execution_yaml_path = Path(__file__).parents[2] / "execution.yaml"
 
 # Load execution configuration
-execution_config = ExecutionYamlMapping.load_yaml("llm_generator_v2/execution.yaml")
+execution_config = ExecutionYamlMapping.load_yaml(execution_yaml_path)
+
+# Find this service's configuration dynamically
+service_config = None
 module_config = None
 for module in execution_config.modules:
-    if module.name == "system_compatible_checks_literature":
+    if module.name == module_name:
         module_config = module
-        break
-
-if module_config is None:
-    raise RuntimeError("Could not find module configuration for system_compatible_checks_literature")
-
-service_config = None
-for step in module_config.steps:
-    if step.name == "consolidate_resource_wise_checks":
-        service_config = step
+        for step in module.steps:
+            if step.name == service_name:
+                service_config = step
+                break
         break
 
 if service_config is None:
-    raise RuntimeError("Could not find service configuration for consolidate_resource_wise_checks")
+    raise RuntimeError(f"Could not find service configuration for {module_name}.{service_name} in execution.yaml")
 
-# Generate dynamic models
-Input = service_config.input_model.pydantic_model
-InputCheck = getattr(Input.model_fields['check'].annotation, '__args__', [Input.model_fields['check'].annotation])[0]
-InputResource = getattr(InputCheck.model_fields['resource'].annotation, '__args__', [InputCheck.model_fields['resource'].annotation])[0]
+if module_config is None:
+    raise RuntimeError(f"Could not find module configuration for {module_name} in execution.yaml")
 
-Output = service_config.output_model.pydantic_model
-OutputCheck = getattr(Output.model_fields['check'].annotation, '__args__', [Output.model_fields['check'].annotation])[0]
+# Create service instance with proper arguments
+from .services import Service
+service = Service(
+    module_config=module_config,
+    service_config=service_config
+)
 
-# Create service instance
-from llm_generator_v2.system_compatible_checks_literature.consolidate_resource_wise_checks.services import ConsolidateResourceWiseChecksService
-service = ConsolidateResourceWiseChecksService(module_config, service_config)
+# Make dynamic Input and Output models available
+Input = service.Input
+Output = service.Output
+
+# Dynamically extract all nested models from Input and Output
+nested_models = {}
+export_list = ['Input', 'Output', 'service']
+
+# Extract nested models from Input
+for field_name, field_info in Input.model_fields.items():
+    nested_model = field_info.annotation
+
+    if hasattr(nested_model, '__name__') and hasattr(nested_model, 'model_fields'):  # It's a proper Pydantic model
+        input_model_name = f"Input{field_name.title()}"
+        nested_models[input_model_name] = nested_model
+        export_list.append(input_model_name)
+
+# Extract nested models from Output
+for field_name, field_info in Output.model_fields.items():
+    nested_model = field_info.annotation
+
+    if hasattr(nested_model, '__name__') and hasattr(nested_model, 'model_fields'):  # It's a proper Pydantic model
+        output_model_name = f"Output{field_name.title()}"
+        nested_models[output_model_name] = nested_model
+        export_list.append(output_model_name)
+
+# Make all nested models available in module namespace
+for model_name, model_class in nested_models.items():
+    globals()[model_name] = model_class
+
+# Make all models and service available for import
+__all__ = export_list

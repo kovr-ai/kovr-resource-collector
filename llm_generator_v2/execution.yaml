@@ -26,6 +26,7 @@ benchmark_and_checks_literature:
     input[]:
       check:
         name: string
+        unique_id: string
       benchmark:
         name: string
         version: string
@@ -63,6 +64,7 @@ system_compatible_checks_literature:
           field_paths[]: string
     output[]:
       resource:
+        name: string
         check:
           unique_id: string
         is_valid: bool

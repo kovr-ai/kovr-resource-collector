@@ -6,6 +6,7 @@ import json
 import traceback
 from typing import Any, Dict, List
 from pathlib import Path
+from pydantic import BaseModel
 from llm_generator_v2.services import Service
 
 
@@ -15,6 +16,18 @@ class ValidateWithMockDataService(Service):
     def __init__(self):
         super().__init__("validate_with_mock_data")
         self.mock_data_cache = {}
+
+    def _get_input_filename(self, input_: BaseModel) -> str:
+        """Generate unique filename for input based on check unique_id."""
+        return f"{input_.check.unique_id}.yaml"
+
+    def _get_output_filename(self, output_: BaseModel) -> str:
+        """Generate unique filename for output based on check unique_id."""
+        # For validation errors, we'll use a generic name since the output structure is different
+        return f"validation_errors.yaml"
+
+    def _match_input_output(self, input_, output_):
+        return input_.check.unique_id == input_.check.unique_id  # Since output is just errors, match by input unique_id
     
     def _process_input(self, input_data: Any) -> Any:
         """Process a single input and validate Python logic"""

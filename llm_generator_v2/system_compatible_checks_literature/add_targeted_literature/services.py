@@ -6,6 +6,7 @@ Analyzes security checks and determines resource compatibility with detailed imp
 import json
 import logging
 from typing import Dict, Any
+from pydantic import BaseModel
 from llm_generator_v2.services import Service
 from llm_generator_v2.system_compatible_checks_literature.add_targeted_literature.templates import PROMPT
 
@@ -22,6 +23,18 @@ class AddTargetedLiteratureService(Service):
     Service that uses LLM to analyze security checks and generate resource-specific
     implementation guidance with field path validation.
     """
+
+    def _get_input_filename(self, input_: BaseModel) -> str:
+        """Generate unique filename for input based on check unique_id."""
+        return f"{input_.check.unique_id}.yaml"
+
+    def _get_output_filename(self, output_: BaseModel) -> str:
+        """Generate unique filename for output based on check unique_id and resource name."""
+        check_id = output_.resource.check.unique_id
+        resource_name = output_.resource.name
+        # Clean the resource name to be filename-safe
+        safe_resource_name = resource_name.replace(' ', '_').replace('(', '').replace(')', '').replace(',', '').replace('.', '')
+        return f"{check_id}_{safe_resource_name[:30]}.yaml"
 
     def _match_input_output(self, input_, output_):
         return input_.check.unique_id == output_.resource.check.unique_id

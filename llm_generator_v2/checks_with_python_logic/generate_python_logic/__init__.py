@@ -1,50 +1,74 @@
 """
-Generate Python Logic Service
-
-Generates field_path and Python logic from enriched checks using existing CheckPrompt patterns.
+Dynamic model generation for services.
+Models are automatically created from execution.yaml configuration.
 """
 
-from llm_generator_v2.yaml_loader import ExecutionYamlMapping
 from pathlib import Path
+from llm_generator_v2.yaml_loader import ExecutionYamlMapping
+current_path = Path(__file__).parent
+service_name = current_path.name
+module_name = current_path.parent.name
+
+# Get the execution.yaml path relative to this module
+execution_yaml_path = Path(__file__).parents[2] / "execution.yaml"
 
 # Load execution configuration
-execution_config = ExecutionYamlMapping.load_yaml(
-    Path(__file__).parent.parent.parent / "execution.yaml"
-)
+execution_config = ExecutionYamlMapping.load_yaml(execution_yaml_path)
 
-# Find this module's configuration
+# Find this service's configuration dynamically
+service_config = None
 module_config = None
 for module in execution_config.modules:
-    if module.name == "checks_with_python_logic":
+    if module.name == module_name:
         module_config = module
+        for step in module.steps:
+            if step.name == service_name:
+                service_config = step
+                break
         break
 
-if not module_config:
-    raise RuntimeError("Could not find module configuration for checks_with_python_logic in execution.yaml")
+if service_config is None:
+    raise RuntimeError(f"Could not find service configuration for {module_name}.{service_name} in execution.yaml")
 
-# Find this service's configuration
-service_config = None
-for step in module_config.steps:
-    if step.name == "generate_python_logic":
-        service_config = step
-        break
+if module_config is None:
+    raise RuntimeError(f"Could not find module configuration for {module_name} in execution.yaml")
 
-if not service_config:
-    raise RuntimeError("Could not find service configuration for generate_python_logic in execution.yaml")
+# Create service instance with proper arguments
+from .services import Service
+service = Service(
+    module_config=module_config,
+    service_config=service_config
+)
 
-# Expose the Pydantic models from the service configuration
-Input = service_config.input_model.pydantic_model
-Output = service_config.output_model.pydantic_model
+# Make dynamic Input and Output models available
+Input = service.Input
+Output = service.Output
 
-# Extract nested models for convenience (following pattern from Section 1)
-# For input[].check structure
-InputCheck = Input.model_fields['check'].annotation
+# Dynamically extract all nested models from Input and Output
+nested_models = {}
+export_list = ['Input', 'Output', 'service']
 
-# For input[].check.resource structure
-InputResource = InputCheck.model_fields['resource'].annotation
+# Extract nested models from Input
+for field_name, field_info in Input.model_fields.items():
+    nested_model = field_info.annotation
 
-# For output[].resource structure  
-OutputResource = Output.model_fields['resource'].annotation
+    if hasattr(nested_model, '__name__') and hasattr(nested_model, 'model_fields'):  # It's a proper Pydantic model
+        input_model_name = f"Input{field_name.title()}"
+        nested_models[input_model_name] = nested_model
+        export_list.append(input_model_name)
 
-# Expose models
-__all__ = ['Input', 'InputCheck', 'InputResource', 'Output', 'OutputResource', 'service_config']
+# Extract nested models from Output
+for field_name, field_info in Output.model_fields.items():
+    nested_model = field_info.annotation
+
+    if hasattr(nested_model, '__name__') and hasattr(nested_model, 'model_fields'):  # It's a proper Pydantic model
+        output_model_name = f"Output{field_name.title()}"
+        nested_models[output_model_name] = nested_model
+        export_list.append(output_model_name)
+
+# Make all nested models available in module namespace
+for model_name, model_class in nested_models.items():
+    globals()[model_name] = model_class
+
+# Make all models and service available for import
+__all__ = export_list

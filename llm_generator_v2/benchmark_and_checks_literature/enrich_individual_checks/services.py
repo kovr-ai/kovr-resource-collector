@@ -1,4 +1,5 @@
 import json
+from pydantic import BaseModel
 
 from llm_generator_v2 import services
 from .templates import PROMPT
@@ -37,7 +38,7 @@ class Service(services.Service):
         raise self.CannotParseLLMResponse()
 
     def _match_input_output(self, input_, output_):
-        return input_.check.name == output_.check.name
+        return input_.check.unique_id == output_.check.unique_id
 
     def _create_check_output(self, data: dict):
         """Create CheckOutput from parsed JSON data."""
@@ -88,6 +89,15 @@ class Service(services.Service):
             'severity': 'FALLBACK',
             'tags': ['security', 'compliance', 'validation']
         }
+
+    def _get_input_filename(self, input_: BaseModel) -> str:
+        """Generate unique filename for input based on check unique_id."""
+        return f"{input_.check.unique_id}.yaml"
+
+    def _get_output_filename(self, output_: BaseModel) -> str:
+        """Generate unique filename for output based on check unique_id."""
+        unique_id = output_.check.unique_id
+        return f"{unique_id}.yaml"
 
     def _process_input(self, input_):
         # Get benchmark name from input
