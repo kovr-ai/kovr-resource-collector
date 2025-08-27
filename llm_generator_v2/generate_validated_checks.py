@@ -45,22 +45,36 @@ if len(ecn_output.benchmark.check_names) > 5:
 
 # Step 3: Enrich individual checks (process first few checks as example)
 print("\nStep 3: Enriching individual checks...")
-enriched_checks = []
-
-for i, check_name in enumerate(ecn_output.benchmark.check_names):  # Process first 3 checks
-    print(f"   Enriching check {i+1}/{len(ecn_output.benchmark.check_names)+1}: {check_name}")
-    
-    eic_input = eic.Input(
+eic_input = [
+    eic.Input(
         check=eic.InputCheck(name=check_name),
         benchmark=eic.InputBenchmark.model_validate(
             gbl_output.benchmark.model_dump()
         ),
     )
+    for check_name in ecn_output.benchmark.check_names
+]
 
-    eic_output = eic.service.execute(eic_input)
-    enriched_checks.append(eic_output.check)
-    
-    print(f"   ✅ {eic_output.check.unique_id} - {eic_output.check.category} - {eic_output.check.severity}")
+eic_output = eic.service.execute(eic_input)
+enriched_checks = [
+    eic_o.check
+    for eic_o in eic_output
+]
+
+# for i, check_name in enumerate(ecn_output.benchmark.check_names):  # Process first 3 checks
+#     print(f"   Enriching check {i+1}/{len(ecn_output.benchmark.check_names)+1}: {check_name}")
+#
+#     eic_input = eic.Input(
+#         check=eic.InputCheck(name=check_name),
+#         benchmark=eic.InputBenchmark.model_validate(
+#             gbl_output.benchmark.model_dump()
+#         ),
+#     )
+#
+#     eic_output = eic.service.execute(eic_input)
+#     enriched_checks.append(eic_output.check)
+#
+#     print(f"   ✅ {eic_output.check.unique_id} - {eic_output.check.category} - {eic_output.check.severity}")
 
 # ============================================================================
 # SECTION 2: System Compatible Checks Literature  
@@ -79,7 +93,8 @@ print(f"   Loaded {len(provider_resources)} providers")
 # Step 1: Add Targeted Literature (process first 2 checks for demo)
 print(f"\nStep 4: Adding targeted literature for resources...")
 atl_results = []
-
+atl_input = []
+alt_meta = []
 for i, check in enumerate(enriched_checks):  # Process first 2 for demo
     print(f"   Processing check {i+1}/{len(enriched_checks)+1}: {check.unique_id}")
     
@@ -95,7 +110,7 @@ for i, check in enumerate(enriched_checks):  # Process first 2 for demo
             if resource_model_name in provider_config.resource_wise_field_paths:
                 field_paths = provider_config.resource_wise_field_paths[resource_model_name][:3]  # First 3 paths
             
-            atl_input = atl.Input(
+            atl_i = atl.Input(
                 check=atl.InputCheck(
                     unique_id=check.unique_id,
                     name=check.unique_id,
@@ -109,14 +124,17 @@ for i, check in enumerate(enriched_checks):  # Process first 2 for demo
                     )
                 )
             )
-            
-            atl_output = atl.service.execute(atl_input)
-            atl_results.append((check, resource_model_name, atl_output))
-            
-            print(f"     {connector_type.value}/{resource_model_name}: {atl_output.resource.is_valid}")
+            atl_input.append(atl_i)
+            alt_meta.append((check, resource_model_name))
+            print(f"     {connector_type.value}/{resource_model_name}: Prepared")
 
+atl_output = atl.service.execute(atl_input)
+for alt_m, alt_o in zip(alt_meta, atl_output):
+    print(f"   {alt_o.check.unique_id}")
+    res_tuple = (*alt_m, alt_o)
+    atl_results.append(res_tuple)
 # Step 2: Consolidate Resource-wise Checks
-print(f"\nStep 5: Consolidating resource-wise checks...")
+print("\nStep 5: Consolidating resource-wise checks...")
 
 consolidation_data = defaultdict(list)
 

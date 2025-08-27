@@ -3,6 +3,7 @@ from pathlib import Path
 from datetime import datetime
 from pydantic import BaseModel
 from typing import Type, List
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from llm_generator_v2.yaml_loader import ModuleYamlMapping, ServiceYamlField
 from con_mon.utils.llm.client import get_llm_client
@@ -241,9 +242,7 @@ class Service:
         if self.output_model.is_list:
             # Handle array output: load from output/ folder
             output_folder = data_folder / "output"
-            if not output_folder.exists():
-                raise FileNotFoundError(f"Output folder not found: {output_folder}")
-
+            output_data = None
             # Load all YAML files from output folder
             for yaml_file in sorted(output_folder.glob("*.yaml")):
                 output_data = self._read_yaml(yaml_file)
@@ -343,12 +342,32 @@ class Service:
         
         return items
 
-    def execute(self, input_: BaseModel | List[BaseModel]):
+    def execute(self, input_: BaseModel | List[BaseModel], threads=None):
         if isinstance(input_, list):
-            return [
-                self.execute(item)
-                for item in input_
-            ]
+            if threads and threads > 1:
+                # Parallel processing using ThreadPoolExecutor
+                with ThreadPoolExecutor(max_workers=threads) as executor:
+                    # Submit all tasks
+                    future_to_input = {
+                        executor.submit(self.execute, item): item 
+                        for item in input_
+                    }
+                    
+                    # Collect results in original order
+                    results = []
+                    for item in input_:
+                        for future, original_input in future_to_input.items():
+                            if original_input is item:
+                                results.append(future.result())
+                                break
+                    
+                    return results
+            else:
+                # Sequential processing (original behavior)
+                return [
+                    self.execute(item)
+                    for item in input_
+                ]
         # Regular single object processing
         self._save_input(input_)
 

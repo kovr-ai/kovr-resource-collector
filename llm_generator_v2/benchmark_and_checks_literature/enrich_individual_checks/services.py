@@ -72,26 +72,28 @@ class Service(services.Service):
             'literature': f"Security check for: {check_name}. This check helps ensure system security by validating compliance with security best practices.",
             'controls': [
                 {
-                    'unique_id': 'NIST-800-53-AC-3',
-                    'reason': 'Generic access control mapping for security check',
-                    'confidence': 0.5
+                    'unique_id': f"FALLBACK-{hash(check_name) % 10000:04d}",
+                    'reason': 'CHECK ENRICHMENT FAILED',
+                    'confidence': 0.0
                 }
             ],
             'benchmarks': [
                 {
-                    'unique_id': 'MITRE-ATT&CK-T1078',
-                    'reason': 'General security validation mapping',
-                    'confidence': 0.5
+                    'unique_id': f"FALLBACK-{hash(check_name) % 10000:04d}",
+                    'reason': 'CHECK ENRICHMENT FAILED',
+                    'confidence': 0.0
                 }
             ],
-            'category': 'access_control',
-            'severity': 'medium',
+            'category': 'FALLBACK',
+            'severity': 'FALLBACK',
             'tags': ['security', 'compliance', 'validation']
         }
 
     def _process_input(self, input_):
         # Get benchmark name from input
-        benchmark_name = getattr(input_.benchmark, 'name', 'OWASP') if hasattr(input_, 'benchmark') else 'OWASP'
-        enriched_check = self.enrich_check(input_, benchmark_name)
+        try:
+            enriched_check = self.enrich_check(input_, input_.benchmark.name)
+        except self.CannotParseLLMResponse:
+            enriched_check = self._create_fallback_enrichment(input_.check.name)
 
         return self.Output(check=enriched_check)
