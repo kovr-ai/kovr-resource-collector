@@ -75,7 +75,7 @@ class YamlModelMapping(BaseModel):
                 # Get the base type (string, integer, etc.)
                 field_type = YamlFieldType(field_def) if field_def in YamlFieldType._value2member_map_ else YamlFieldType.ANY
                 python_type = YamlFieldType.yaml_field_type_to_python_type(field_type)
-                
+
                 if is_field_list:
                     # For array types, wrap the base type in List
                     yaml_field = YamlField(name=clean_field_name, dtype=YamlFieldType.LIST)
@@ -86,7 +86,7 @@ class YamlModelMapping(BaseModel):
                     yaml_field = YamlField(name=clean_field_name, dtype=field_type)
                     model_annotations[clean_field_name] = python_type
                     model_fields[clean_field_name] = Field(default=None)
-                
+
                 fields.append(yaml_field)
 
             elif isinstance(field_def, dict):
@@ -149,14 +149,14 @@ class ModuleYamlMapping(BaseModel):
 class ExecutionYamlMapping(BaseModel):
     """Mapping class for schema configurations from YAML (e.g., schemas.yaml)."""
     modules: List[ModuleYamlMapping]
-    
+
     @staticmethod
     def _load_yaml_data(path_or_dict: str | Path | dict) -> dict:
         """Load YAML data from file path or dict."""
         if isinstance(path_or_dict, (str, Path)):
             if not os.path.exists(str(path_or_dict)):
                 raise FileNotFoundError(f"YAML file not found: {path_or_dict}")
-            
+
             with open(path_or_dict, 'r') as file:
                 return yaml.safe_load(file)
         elif isinstance(path_or_dict, dict):
@@ -166,24 +166,24 @@ class ExecutionYamlMapping(BaseModel):
 
     @classmethod
     def _resolve_references(
-        cls,
-        model_def: Dict[str, Any], 
-        step_namespace: str, 
-        all_schemas: Dict[str, Any]
+            cls,
+            model_def: Dict[str, Any],
+            step_namespace: str,
+            all_schemas: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
         Resolve schema references like 'benchmark_and_checks_literature.generate_benchmark_literature.Input'.
-        
+
         Args:
             model_def: The model definition to resolve references in
             step_namespace: The schema namespace (e.g., 'benchmark_and_checks_literature')
             all_schemas: All schema definitions
-            
+
         Returns:
             Dict with references resolved to actual schema definitions
         """
         resolved = {}
-        
+
         for field_name, field_def in model_def.items():
             if isinstance(field_def, list):
                 # Handle array fields like checks[]: ["benchmark_and_checks_literature.Check"]
@@ -205,9 +205,9 @@ class ExecutionYamlMapping(BaseModel):
             else:
                 # Keep field as-is
                 resolved[field_name] = field_def
-        
+
         return resolved
-    
+
     @classmethod
     def load_yaml(
             cls,
@@ -215,28 +215,28 @@ class ExecutionYamlMapping(BaseModel):
     ) -> 'ExecutionYamlMapping':
         """
         Load execution configuration from a YAML file or dictionary.
-        
+
         Args:
             path_or_dict: Either a path to a YAML file or a dictionary containing the YAML data
-            
+
         Returns:
             ExecutionYamlMapping: The complete execution mapping with all modules and steps
         """
         yaml_data = cls._load_yaml_data(path_or_dict)
-        
+
         if not yaml_data or not isinstance(yaml_data, dict):
             raise ValueError("Invalid YAML data: expected a dictionary with execution configuration")
-        
+
         modules = []
-        
+
         # Process each top-level module (e.g., benchmark_and_checks_literature)
         for module_index, (module_name, module_steps) in enumerate(yaml_data.items()):
             module_index += 1
             if not isinstance(module_steps, dict):
                 continue
-                
+
             steps = []
-            
+
             # Process each step within the module (e.g., generate_benchmark_literature)
             for step_index, (step_name, step_def) in enumerate(module_steps.items()):
                 step_index += 1
@@ -244,23 +244,27 @@ class ExecutionYamlMapping(BaseModel):
                     # Extract input and output definitions
                     input_def = step_def.get('input', {})
                     output_def = step_def.get('output', {})
-                    
+
                     # Handle array inputs/outputs (input[], output[])
                     input_array_def = step_def.get('input[]', {})
                     output_array_def = step_def.get('output[]', {})
-                    
+
                     # Use array definitions if present, otherwise use regular definitions
                     final_input_def = input_array_def if input_array_def else input_def
                     final_output_def = output_array_def if output_array_def else output_def
-                    
+
                     # Resolve any references within input/output models
                     resolved_input = cls._resolve_references(final_input_def, module_name, yaml_data) if final_input_def else {}
                     resolved_output = cls._resolve_references(final_output_def, module_name, yaml_data) if final_output_def else {}
-                    
+
                     # Create model mappings for input and output
                     input_mapping = YamlModelMapping.load_yaml({'input': resolved_input}) if resolved_input else None
-                    output_mapping = YamlModelMapping.load_yaml({'output': resolved_output}) if resolved_output else None
-                    
+                    output_mapping = YamlModelMapping.load_yaml( {'output': resolved_output}) if resolved_output else None
+
+                    if input_array_def:
+                        input_mapping.is_list = True
+                    if output_array_def:
+                        output_mapping.is_list = True
                     if input_mapping and output_mapping:
                         service_field = ServiceYamlField(
                             index=step_index,
@@ -269,7 +273,7 @@ class ExecutionYamlMapping(BaseModel):
                             output_model=output_mapping
                         )
                         steps.append(service_field)
-            
+
             if steps:
                 module_mapping = ModuleYamlMapping(
                     index=module_index,
@@ -277,5 +281,5 @@ class ExecutionYamlMapping(BaseModel):
                     steps=steps
                 )
                 modules.append(module_mapping)
-        
+
         return cls(modules=modules)
