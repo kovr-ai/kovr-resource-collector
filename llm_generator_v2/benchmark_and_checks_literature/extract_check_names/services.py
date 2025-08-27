@@ -1,9 +1,9 @@
 import json
-from llm_generator_v2.services import Service
+from llm_generator_v2 import services
 from .templates import PROMPT
 
 
-class ExtractCheckNames(Service):
+class Service(services.Service):
     @staticmethod
     def _extract_from_text_fallback(text: str) -> list[str]:
         """Fallback method to extract check names if JSON parsing fails."""
@@ -39,7 +39,6 @@ class ExtractCheckNames(Service):
     def _process_input(self, input_):
         check_names = self.extract_check_names(input_)
 
-        # Use dynamic Output model
-        return self.Output(
-            benchmark={'check_names': check_names}
-        )
+        return self.Output(benchmark=dict(
+            check_names=check_names,
+        ))

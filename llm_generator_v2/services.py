@@ -1,6 +1,3 @@
-import os
-
-
 import yaml
 from pathlib import Path
 from datetime import datetime
@@ -44,7 +41,7 @@ class Service:
         """Access to dynamically generated Output model."""
         return self.output_model.pydantic_model
 
-    def _write_input_yaml(self, data: BaseModel, path: Path):
+    def _write_yaml(self, data: BaseModel, path: Path):
         """Write input data to YAML file."""
         # Ensure directory exists
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -58,6 +55,12 @@ class Service:
         with open(path, 'r') as f:
             data = yaml.safe_load(f)
             return self.Input(**data)
+
+    def _read_output_yaml(self, path: Path) -> BaseModel:
+        """Read output data from YAML file."""
+        with open(path, 'r') as f:
+            data = yaml.safe_load(f)
+            return self.Output(**data)
 
     def _get_data_folder_path(self, step_name: str) -> Path:
         """Generate path for input/output data files."""
@@ -82,7 +85,7 @@ class Service:
         Save input data to input.yaml file.
         """
         input_path = self._get_data_folder_path(self.name) / "input.yaml"
-        self._write_input_yaml(input_, input_path)
+        self._write_yaml(input_, input_path)
 
     def _load_input(self) -> BaseModel:
         """
@@ -104,10 +107,10 @@ class Service:
 
     def _save_output(self, output: BaseModel):
         """
-        saves output file in set data directory
-        should be in base class
+        Save output data to output.yaml file.
         """
-        raise NotImplementedError()
+        output_path = self._get_data_folder_path(self.name) / "output.yaml"
+        self._write_yaml(output, output_path)
 
     def execute(self, input_: BaseModel):
         input_ = self._prepare_input(input_)

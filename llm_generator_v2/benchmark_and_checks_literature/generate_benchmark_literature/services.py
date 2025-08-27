@@ -20,8 +20,8 @@ class Service(services.Service):
         unique_id = self.generate_unique_id(input_)
         literature = self.generate_literature(input_)
 
-        return self.Output(
+        return self.Output(benchmark=dict(
             unique_id=unique_id,
             literature=literature,
-        )
+        ))
 
