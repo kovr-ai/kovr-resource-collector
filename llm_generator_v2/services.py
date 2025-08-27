@@ -31,10 +31,6 @@ class Service:
 
         # Generate timestamp for this execution run
         self.execution_timestamp = datetime.now().strftime("%Y_%m_%d_%H_%M")
-        # self.execution_timestamp = '2025_08_27_10_44'
-
-        # Counter to ensure unique filenames across multiple execute calls
-        self._execution_counter = 0
 
     @property
     def Input(self) -> Type[BaseModel]:

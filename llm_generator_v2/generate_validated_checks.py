@@ -69,7 +69,7 @@ enriched_checks = [
 provider_resources = get_provider_resources_mapping()
 print(f"   Loaded {len(provider_resources)} providers")
 
-# Step 1: Add Targeted Literature (process first 2 checks for demo)
+# Step 4: Add Targeted Literature (process first 2 checks for demo)
 print(f"\nStep 4: Adding targeted literature for resources...")
 atl_input = []
 for i, check in enumerate(enriched_checks):  # Process first 2 for demo
@@ -105,7 +105,8 @@ for i, check in enumerate(enriched_checks):  # Process first 2 for demo
             print(f"     {connector_type.value}/{resource_model_name}: Prepared")
 
 atl_output = atl.service.execute(atl_input)
-# Step 2: Consolidate Resource-wise Checks
+
+# Step 5: Consolidate Resource-wise Checks
 print("\nStep 5: Consolidating resource-wise checks...")
 
 consolidation_data = defaultdict(list)
@@ -135,15 +136,9 @@ for check_id, check_resources in consolidation_data.items():
     
     print(f"   ✅ Valid: {len(crwc_output.check.valid_resources)}, Invalid: {len(crwc_output.check.invalid_resources)}")
 
-# ============================================================================
-# SECTION 3: Checks with Python Logic
-# ============================================================================
-
-print(f"\n🔧 SECTION 3: Checks with Python Logic")
-
-# Step 1: Generate Python Logic (process all valid resources from Section 2)
+# Step 6: Generate Python Logic (process all valid resources from Section 2)
 print(f"\nStep 6: Generating Python logic for valid resources...")
-gpl_results = []
+gpl_input = []
 
 for consolidated_check in crwc_results:
     print(f"   Processing check: {consolidated_check.check.unique_id}")
@@ -152,7 +147,7 @@ for consolidated_check in crwc_results:
     for resource in consolidated_check.check.valid_resources:
         print(f"     Generating logic for: {resource.name}")
         
-        gpl_input = gpl.Input(
+        gpl_i = gpl.Input(
             check=gpl.InputCheck(
                 unique_id=consolidated_check.check.unique_id,
                 name=consolidated_check.check.unique_id,
@@ -171,24 +166,32 @@ for consolidated_check in crwc_results:
         # Fill in check details from enriched_checks
         for enriched_check in enriched_checks:
             if enriched_check.unique_id == consolidated_check.check.unique_id:
-                gpl_input.check.literature = enriched_check.literature
-                gpl_input.check.category = enriched_check.category
-                gpl_input.check.control_names = [ctrl.unique_id for ctrl in enriched_check.controls] if enriched_check.controls else []
+                gpl_i.check.literature = enriched_check.literature
+                gpl_i.check.category = enriched_check.category
+                gpl_i.check.control_names = [ctrl.unique_id for ctrl in enriched_check.controls] if enriched_check.controls else []
                 break
         
-        gpl_output = gpl.service.execute(gpl_input)
-        gpl_results.append((consolidated_check.check.unique_id, resource.name, gpl_output))
-        
-        print(f"       ✅ Generated logic for field: {gpl_output.resource.field_path}")
+        gpl_input.append(gpl_i)
+        print(f"       ✅ Prepared logic generation for: {resource.name}")
 
-# Step 2: Validate with Mock Data
+gpl_output = gpl.service.execute(gpl_input)
+gpl_results = []
+for i, gpl_o in enumerate(gpl_output):
+    # Extract the original check_id and resource_name from the input
+    original_input = gpl_input[i]
+    check_id = original_input.check.unique_id
+    resource_name = original_input.check.resource.name
+    gpl_results.append((check_id, resource_name, gpl_o))
+    print(f"       ✅ Generated logic for field: {gpl_o.resource.field_path}")
+
+# Step 7: Validate with Mock Data
 print(f"\nStep 7: Validating Python logic with mock data...")
-vwmd_results = []
+vwmd_input = []
 
 for check_id, resource_name, gpl_result in gpl_results:
     print(f"   Validating {check_id} / {resource_name}")
     
-    vwmd_input = vwmd.Input(
+    vwmd_i = vwmd.Input(
         check=vwmd.InputCheck(
             unique_id=check_id,
             name=check_id,
@@ -200,10 +203,19 @@ for check_id, resource_name, gpl_result in gpl_results:
         )
     )
     
-    vwmd_output = vwmd.service.execute(vwmd_input)
-    vwmd_results.append(vwmd_output)
+    vwmd_input.append(vwmd_i)
+    print(f"     ✅ Prepared validation for: {resource_name}")
+
+vwmd_output = vwmd.service.execute(vwmd_input)
+vwmd_results = []
+for i, vwmd_o in enumerate(vwmd_output):
+    # Extract the original check_id and resource_name from the input
+    original_input = vwmd_input[i]
+    check_id = original_input.check.unique_id
+    resource_name = original_input.check.resource.name
+    vwmd_results.append(vwmd_o)
     
-    error_count = len(vwmd_output.errors)
+    error_count = len(vwmd_o.errors)
     print(f"     ✅ Validation: {error_count} errors found")
 
 print(f"\n🎉 Pipeline completed successfully!")
