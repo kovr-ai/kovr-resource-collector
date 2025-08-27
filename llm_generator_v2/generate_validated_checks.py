@@ -50,7 +50,7 @@ if len(ecn_output.benchmark.check_names) > 5:
 
 # Step 3: Enrich individual checks (process first few checks as example)
 print("\nStep 3: Enriching individual checks...")
-eic_input = [
+eic_inputs = [
     eic.Input(
         check=eic.InputCheck(name=check_name),
         benchmark=eic.InputBenchmark.model_validate(
@@ -60,10 +60,10 @@ eic_input = [
     for check_name in ecn_output.benchmark.check_names
 ]
 
-eic_output = eic.service.execute(eic_input)
+eic_outputs = eic.service.execute(eic_inputs)
 enriched_checks = [
-    eic_o.check
-    for eic_o in eic_output
+    eic_output.check
+    for eic_output in eic_outputs
 ]
 
 provider_resources = get_provider_resources_mapping()
@@ -71,7 +71,7 @@ print(f"   Loaded {len(provider_resources)} providers")
 
 # Step 4: Add Targeted Literature (process first 2 checks for demo)
 print(f"\nStep 4: Adding targeted literature for resources...")
-atl_input = []
+atl_inputs = []
 for i, check in enumerate(enriched_checks):  # Process first 2 for demo
     print(f"   Processing check {i+1}/{len(enriched_checks)+1}: {check.unique_id}")
     
@@ -87,7 +87,7 @@ for i, check in enumerate(enriched_checks):  # Process first 2 for demo
             if resource_model_name in provider_config.resource_wise_field_paths:
                 field_paths = provider_config.resource_wise_field_paths[resource_model_name][:3]  # First 3 paths
             
-            atl_i = atl.Input(
+            atl_input = atl.Input(
                 check=atl.InputCheck(
                     unique_id=check.unique_id,
                     name=check.unique_id,
@@ -101,53 +101,53 @@ for i, check in enumerate(enriched_checks):  # Process first 2 for demo
                     )
                 )
             )
-            atl_input.append(atl_i)
+            atl_inputs.append(atl_input)
             print(f"     {connector_type.value}/{resource_model_name}: Prepared")
 
-atl_output = atl.service.execute(atl_input)
+atl_outputs = atl.service.execute(atl_inputs)
 
 # Step 5: Consolidate Resource-wise Checks
 print("\nStep 5: Consolidating resource-wise checks...")
 
 consolidation_data = defaultdict(list)
 
-for alt_o in atl_output:
-    if not alt_o.resource.is_valid:
+for alt_output in atl_outputs:
+    if not alt_output.resource.is_valid:
         continue
 
-    consolidation_data[alt_o.check.unique_id].append({
-        "unique_id": alt_o.check.unique_id,
-        "is_valid": alt_o.resource.is_valid,
-        "reason": alt_o.resource.reason,
+    consolidation_data[alt_output.check.unique_id].append({
+        "unique_id": alt_output.check.unique_id,
+        "is_valid": alt_output.resource.is_valid,
+        "reason": alt_output.resource.reason,
         "resource": {
-            "name": alt_o.resource.name,
-            "literature": alt_o.resource.literature,
-            "field_paths": alt_o.resource.field_paths
+            "name": alt_output.resource.name,
+            "literature": alt_output.resource.literature,
+            "field_paths": alt_output.resource.field_paths
         }
     })
 
-crwc_results = []
+crwc_outputs = []
 for check_id, check_resources in consolidation_data.items():
     print(f"   Consolidating {len(check_resources)} resource(s) for: {check_id}")
     
     crwc_input = crwc.Input(check=check_resources)
     crwc_output = crwc.service.execute(crwc_input)
-    crwc_results.append(crwc_output)
+    crwc_outputs.append(crwc_output)
     
     print(f"   ✅ Valid: {len(crwc_output.check.valid_resources)}, Invalid: {len(crwc_output.check.invalid_resources)}")
 
 # Step 6: Generate Python Logic (process all valid resources from Section 2)
 print(f"\nStep 6: Generating Python logic for valid resources...")
-gpl_input = []
+gpl_inputs = []
 
-for consolidated_check in crwc_results:
+for consolidated_check in crwc_outputs:
     print(f"   Processing check: {consolidated_check.check.unique_id}")
     
     # Generate logic for each valid resource
     for resource in consolidated_check.check.valid_resources:
         print(f"     Generating logic for: {resource.name}")
         
-        gpl_i = gpl.Input(
+        gpl_input = gpl.Input(
             check=gpl.InputCheck(
                 unique_id=consolidated_check.check.unique_id,
                 name=consolidated_check.check.unique_id,
@@ -166,66 +166,51 @@ for consolidated_check in crwc_results:
         # Fill in check details from enriched_checks
         for enriched_check in enriched_checks:
             if enriched_check.unique_id == consolidated_check.check.unique_id:
-                gpl_i.check.literature = enriched_check.literature
-                gpl_i.check.category = enriched_check.category
-                gpl_i.check.control_names = [ctrl.unique_id for ctrl in enriched_check.controls] if enriched_check.controls else []
+                gpl_input.check.literature = enriched_check.literature
+                gpl_input.check.category = enriched_check.category
+                gpl_input.check.control_names = [ctrl.unique_id for ctrl in enriched_check.controls] if enriched_check.controls else []
                 break
         
-        gpl_input.append(gpl_i)
+        gpl_inputs.append(gpl_input)
         print(f"       ✅ Prepared logic generation for: {resource.name}")
 
-gpl_output = gpl.service.execute(gpl_input)
-gpl_results = []
-for i, gpl_o in enumerate(gpl_output):
-    # Extract the original check_id and resource_name from the input
-    original_input = gpl_input[i]
-    check_id = original_input.check.unique_id
-    resource_name = original_input.check.resource.name
-    gpl_results.append((check_id, resource_name, gpl_o))
-    print(f"       ✅ Generated logic for field: {gpl_o.resource.field_path}")
+gpl_outputs = gpl.service.execute(gpl_inputs)
 
 # Step 7: Validate with Mock Data
 print(f"\nStep 7: Validating Python logic with mock data...")
-vwmd_input = []
+vwmd_inputs = []
 
-for check_id, resource_name, gpl_result in gpl_results:
+# for check_id, resource_name, gpl_result in gpl_results:
+for gpl_output in gpl_outputs:
+    resource_name = gpl_output.resource.name
+    check_id = gpl_output.check.unique_id
     print(f"   Validating {check_id} / {resource_name}")
     
-    vwmd_i = vwmd.Input(
+    vwmd_input = vwmd.Input(
         check=vwmd.InputCheck(
             unique_id=check_id,
             name=check_id,
             resource=vwmd.InputResource(
                 name=resource_name,
-                field_path=gpl_result.resource.field_path,
-                logic=gpl_result.resource.logic
+                field_path=gpl_output.resource.field_path,
+                logic=gpl_output.resource.logic
             )
         )
     )
     
-    vwmd_input.append(vwmd_i)
+    vwmd_inputs.append(vwmd_input)
     print(f"     ✅ Prepared validation for: {resource_name}")
 
-vwmd_output = vwmd.service.execute(vwmd_input)
-vwmd_results = []
-for i, vwmd_o in enumerate(vwmd_output):
-    # Extract the original check_id and resource_name from the input
-    original_input = vwmd_input[i]
-    check_id = original_input.check.unique_id
-    resource_name = original_input.check.resource.name
-    vwmd_results.append(vwmd_o)
-    
-    error_count = len(vwmd_o.errors)
-    print(f"     ✅ Validation: {error_count} errors found")
+vwmd_outputs = vwmd.service.execute(vwmd_inputs)
 
 print(f"\n🎉 Pipeline completed successfully!")
 print(f"   Literature generated: {len(gbl_output.benchmark.literature)} chars")  
 print(f"   Checks extracted: {len(ecn_output.benchmark.check_names)}")
 print(f"   Checks enriched: {len(enriched_checks)}")
-print(f"   Resource analyses: {len(atl_output)}")
-print(f"   Consolidated checks: {len(crwc_results)}")
-print(f"   Python logic generated: {len(gpl_results)}")
-print(f"   Mock validations: {len(vwmd_results)}")
+print(f"   Resource analyses: {len(atl_outputs)}")
+print(f"   Consolidated checks: {len(crwc_outputs)}")
+print(f"   Python logic generated: {len(gpl_outputs)}")
+print(f"   Mock validations: {len(vwmd_outputs)}")
 
 # Show one enriched check in detail
 if enriched_checks:
@@ -236,13 +221,13 @@ if enriched_checks:
     print(f"   Benchmarks: {len(sample_check.benchmarks)} mapped") 
     print(f"   Tags: {', '.join(sample_check.tags)}")
 
-if crwc_results:
-    sample_result = crwc_results[0]
+if crwc_outputs:
+    sample_result = crwc_outputs[0]
     print(f"\n🔧 Sample consolidated result: {sample_result.check.unique_id}")
     print(f"   Resources: {len(sample_result.check.valid_resources)} valid, {len(sample_result.check.invalid_resources)} invalid")
 
-if vwmd_results:
-    sample_validation = vwmd_results[0]
+if vwmd_outputs:
+    sample_validation = vwmd_outputs[0]
     error_count = len(sample_validation.errors)
     print(f"\n⚡ Sample validation result: {error_count} errors")
     if sample_validation.errors:
