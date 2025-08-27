@@ -14,7 +14,6 @@ benchmark_and_checks_literature:
   extract_check_names:
     input:
       benchmark:
-        unique_id: string
         name: string
         version: string
         literature: string
@@ -27,6 +26,10 @@ benchmark_and_checks_literature:
     input[]:
       check:
         name: string
+      benchmark:
+        name: string
+        version: string
+        literature: string
     output[]:
       check:
         unique_id: string
