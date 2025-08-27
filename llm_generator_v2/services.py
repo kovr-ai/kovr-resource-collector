@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from llm_generator_v2.yaml_loader import ServiceYamlField
+from con_mon.utils.llm.client import get_llm_client
 
 
 class Service:
@@ -7,6 +8,7 @@ class Service:
             self,
             service_config: ServiceYamlField,
     ):
+        self.llm_client = get_llm_client()
         self._service_config = service_config
         self.index = self._service_config.index
         self.name = self._service_config.name
