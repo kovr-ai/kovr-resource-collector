@@ -3,6 +3,10 @@ from llm_generator_v2.benchmark_and_checks_literature import (
     extract_check_names as ecn,
     enrich_individual_checks as eic,
 )
+from llm_generator_v2.system_compatible_checks_literature import (
+    add_targeted_literature as atl,
+    consolidate_resource_wise_checks as crwc,
+)
 
 # Step 1: Generate benchmark literature
 print("Step 1: Generating benchmark literature...")
@@ -54,10 +58,92 @@ for i, check_name in enumerate(ecn_output.benchmark.check_names):  # Process fir
     
     print(f"   ✅ {eic_output.check.unique_id} - {eic_output.check.category} - {eic_output.check.severity}")
 
+# ============================================================================
+# SECTION 2: System Compatible Checks Literature  
+# ============================================================================
+
+print(f"\n🔧 SECTION 2: System Compatible Checks Literature")
+
+# Load provider mappings dynamically (following con_mon pattern)
+from con_mon.utils.llm.generate import get_provider_resources_mapping
+from con_mon.utils.llm.prompt import ProviderConfig
+from collections import defaultdict
+
+provider_resources = get_provider_resources_mapping()
+print(f"   Loaded {len(provider_resources)} providers")
+
+# Step 1: Add Targeted Literature (process first 2 checks for demo)
+print(f"\nStep 4: Adding targeted literature for resources...")
+atl_results = []
+
+for i, check in enumerate(enriched_checks):  # Process first 2 for demo
+    print(f"   Processing check {i+1}/{len(enriched_checks)+1}: {check.unique_id}")
+    
+    control_names = [ctrl.unique_id for ctrl in check.controls] if check.controls else []
+    
+    # Process each provider-resource combination (following con_mon pattern)
+    for connector_type, resource_models in provider_resources.items():
+        provider_config = ProviderConfig(connector_type)
+        
+        for resource_model_name in resource_models:  # First resource per provider for demo
+            # Get field paths dynamically from the resource model
+            field_paths = []
+            if resource_model_name in provider_config.resource_wise_field_paths:
+                field_paths = provider_config.resource_wise_field_paths[resource_model_name][:3]  # First 3 paths
+            
+            atl_input = atl.Input(
+                check=atl.InputCheck(
+                    unique_id=check.unique_id,
+                    name=check.unique_id,
+                    literature=check.literature,
+                    category=check.category,
+                    control_names=control_names,
+                    provider=connector_type.value,
+                    resource=atl.InputResource(
+                        name=resource_model_name,
+                        field_paths=field_paths
+                    )
+                )
+            )
+            
+            atl_output = atl.service.execute(atl_input)
+            atl_results.append((check, resource_model_name, atl_output))
+            
+            print(f"     {connector_type.value}/{resource_model_name}: {atl_output.resource.is_valid}")
+
+# Step 2: Consolidate Resource-wise Checks
+print(f"\nStep 5: Consolidating resource-wise checks...")
+
+consolidation_data = defaultdict(list)
+
+for check, resource_name, result in atl_results:
+    consolidation_data[check.unique_id].append({
+        "unique_id": check.unique_id,
+        "is_valid": result.resource.is_valid,
+        "reason": result.resource.reason,
+        "resource": {
+            "name": resource_name,
+            "literature": result.resource.literature,
+            "field_paths": result.resource.field_paths
+        }
+    })
+
+crwc_results = []
+for check_id, check_resources in consolidation_data.items():
+    print(f"   Consolidating {len(check_resources)} resource(s) for: {check_id}")
+    
+    crwc_input = crwc.Input(check=check_resources)
+    crwc_output = crwc.service.execute(crwc_input)
+    crwc_results.append(crwc_output)
+    
+    print(f"   ✅ Valid: {len(crwc_output.check.valid_resources)}, Invalid: {len(crwc_output.check.invalid_resources)}")
+
 print(f"\n🎉 Pipeline completed successfully!")
 print(f"   Literature generated: {len(gbl_output.benchmark.literature)} chars")  
 print(f"   Checks extracted: {len(ecn_output.benchmark.check_names)}")
 print(f"   Checks enriched: {len(enriched_checks)}")
+print(f"   Resource analyses: {len(atl_results)}")
+print(f"   Consolidated checks: {len(crwc_results)}")
 
 # Show one enriched check in detail
 if enriched_checks:
@@ -67,3 +153,8 @@ if enriched_checks:
     print(f"   Controls: {len(sample_check.controls)} mapped")
     print(f"   Benchmarks: {len(sample_check.benchmarks)} mapped") 
     print(f"   Tags: {', '.join(sample_check.tags)}")
+
+if crwc_results:
+    sample_result = crwc_results[0]
+    print(f"\n🔧 Sample consolidated result: {sample_result.check.unique_id}")
+    print(f"   Resources: {len(sample_result.check.valid_resources)} valid, {len(sample_result.check.invalid_resources)} invalid")

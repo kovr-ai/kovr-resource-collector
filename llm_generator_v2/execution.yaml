@@ -62,7 +62,9 @@ system_compatible_checks_literature:
           field_paths[]: string
     output[]:
       resource:
-        is_valid: string
+        check:
+          unique_id: string
+        is_valid: bool
         literature: string
         field_paths[]: string
         reason: string
@@ -81,7 +83,7 @@ system_compatible_checks_literature:
     input:
       check[]:
         unique_id: string
-        is_valid: string
+        is_valid: bool
         reason: string
         resource:
           name: string
