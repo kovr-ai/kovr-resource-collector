@@ -19,7 +19,10 @@ class GeneratePythonLogicService(Service):
     
     def __init__(self):
         super().__init__("generate_python_logic")
-    
+
+    def _match_input_output(self, input_, output_):
+        return input_.check.unique_id == output_.check.unique_id
+
     def _process_input(self, input_data: Any) -> Any:
         """Process a single input and generate Python logic"""
         # Convert Pydantic model to dict if needed

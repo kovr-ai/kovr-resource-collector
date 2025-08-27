@@ -56,7 +56,7 @@ for i, check_name in enumerate(ecn_output.benchmark.check_names):  # Process fir
             gbl_output.benchmark.model_dump()
         ),
     )
-    
+
     eic_output = eic.service.execute(eic_input)
     enriched_checks.append(eic_output.check)
     
@@ -121,6 +121,9 @@ print(f"\nStep 5: Consolidating resource-wise checks...")
 consolidation_data = defaultdict(list)
 
 for check, resource_name, result in atl_results:
+    if not result.resource.is_valid:
+        continue
+
     consolidation_data[check.unique_id].append({
         "unique_id": check.unique_id,
         "is_valid": result.resource.is_valid,
@@ -132,6 +135,7 @@ for check, resource_name, result in atl_results:
         }
     })
 
+from pdb import set_trace;set_trace()
 crwc_results = []
 for check_id, check_resources in consolidation_data.items():
     print(f"   Consolidating {len(check_resources)} resource(s) for: {check_id}")

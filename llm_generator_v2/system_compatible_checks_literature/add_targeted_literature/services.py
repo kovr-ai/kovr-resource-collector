@@ -23,6 +23,9 @@ class AddTargetedLiteratureService(Service):
     implementation guidance with field path validation.
     """
 
+    def _match_input_output(self, input_, output_):
+        return input_.check.unique_id == output_.resource.check.unique_id
+
     def _process_input(self, input_data) -> Dict[str, Any]:
         """
         Process input through LLM to generate targeted literature for resource implementation.
@@ -94,7 +97,16 @@ class AddTargetedLiteratureService(Service):
     @staticmethod
     def _parse_json_direct(response: str) -> Dict[str, Any]:
         """Direct JSON parsing attempt."""
-        return json.loads(response.strip())
+        parsed = json.loads(response.strip())
+        
+        # Ensure is_valid is boolean
+        if 'is_valid' in parsed and not isinstance(parsed['is_valid'], bool):
+            if isinstance(parsed['is_valid'], str):
+                parsed['is_valid'] = parsed['is_valid'].lower() in ['true', '1', 'yes']
+            else:
+                parsed['is_valid'] = bool(parsed['is_valid'])
+        
+        return parsed
     
     @staticmethod
     def _parse_json_with_markdown_removal(response: str) -> Dict[str, Any]:
@@ -107,7 +119,16 @@ class AddTargetedLiteratureService(Service):
         elif cleaned.startswith('```') and cleaned.endswith('```'):
             cleaned = cleaned[3:-3].strip()
         
-        return json.loads(cleaned)
+        parsed = json.loads(cleaned)
+        
+        # Ensure is_valid is boolean
+        if 'is_valid' in parsed and not isinstance(parsed['is_valid'], bool):
+            if isinstance(parsed['is_valid'], str):
+                parsed['is_valid'] = parsed['is_valid'].lower() in ['true', '1', 'yes']
+            else:
+                parsed['is_valid'] = bool(parsed['is_valid'])
+        
+        return parsed
     
     @staticmethod
     def _parse_json_with_extraction(response: str) -> Dict[str, Any]:
@@ -118,7 +139,16 @@ class AddTargetedLiteratureService(Service):
         
         if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
             json_str = response[start_idx:end_idx + 1]
-            return json.loads(json_str)
+            parsed = json.loads(json_str)
+            
+            # Ensure is_valid is boolean
+            if 'is_valid' in parsed and not isinstance(parsed['is_valid'], bool):
+                if isinstance(parsed['is_valid'], str):
+                    parsed['is_valid'] = parsed['is_valid'].lower() in ['true', '1', 'yes']
+                else:
+                    parsed['is_valid'] = bool(parsed['is_valid'])
+            
+            return parsed
         
         raise ValueError("No JSON object found in response")
     
@@ -136,7 +166,7 @@ class AddTargetedLiteratureService(Service):
         check_name = check['name']
         
         return {
-            'is_valid': 'partial',
+            'is_valid': False,  # Always boolean - partial cases should be classified as False for safety
             'literature': f'Analysis needed for {resource_name} implementation of {check_name}. '
                          f'This resource may be applicable but requires manual review to determine '
                          f'specific implementation details and field path relevance.',

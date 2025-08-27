@@ -36,6 +36,9 @@ class Service(services.Service):
                 pass
         raise self.CannotParseLLMResponse()
 
+    def _match_input_output(self, input_, output_):
+        return input_.check.name == output_.check.name
+
     def _create_check_output(self, data: dict):
         """Create CheckOutput from parsed JSON data."""
         return {

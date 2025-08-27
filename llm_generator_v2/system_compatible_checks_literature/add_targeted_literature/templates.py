@@ -40,7 +40,7 @@ Return your analysis as a JSON object with this exact structure:
 
 ```json
 {{
-  "is_valid": true/false,
+  "is_valid": true,
   "literature": "Detailed explanation of how this resource implements the security check...",
   "field_paths": ["path1", "path2", "path3"],
   "reason": "Clear explanation of why this resource is valid/invalid",
@@ -53,7 +53,7 @@ Return your analysis as a JSON object with this exact structure:
     "description": "Overview of what needs to be fixed",
     "instructions": ["Step 1", "Step 2", "Step 3"],
     "estimated_time": "5 minutes/1 hour/etc",
-    "automation_available": true/false
+    "automation_available": true
   }}
 }}
 ```
@@ -61,10 +61,12 @@ Return your analysis as a JSON object with this exact structure:
 ## Guidelines:
 
 - Be specific about how the resource field paths relate to the security check
-- Provide actionable remediation steps
-- Consider edge cases and partial implementations
+- Provide actionable remediation steps  
 - Use clear, technical language appropriate for security engineers
 - Ensure field_paths only include relevant paths from the provided list
+- **CRITICAL**: is_valid must be a boolean (true/false), never a string
+- Use true for fully applicable resources, false for inapplicable resources
+- Do NOT use "partial" - classify as either true or false based on primary applicability
 
 Analyze the security check and resource now:
 """

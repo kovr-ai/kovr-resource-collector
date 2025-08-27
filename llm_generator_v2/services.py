@@ -30,7 +30,7 @@ class Service:
 
         # Generate timestamp for this execution run
         self.execution_timestamp = datetime.now().strftime("%Y_%m_%d_%H_%M")
-        self.execution_timestamp = '2025_08_27_10_44'
+        # self.execution_timestamp = '2025_08_27_10_44'
         
         # Counter to ensure unique filenames across multiple execute calls
         self._execution_counter = 0
@@ -103,8 +103,7 @@ class Service:
                 safe_name = check_name.replace(' ', '_').replace('(', '').replace(')', '').replace(',', '').replace('.', '')
                 return f"check_{index:03d}_{safe_name[:50]}.yaml"
 
-        # Fallback to index-based naming
-        return f"item_{index:03d}.yaml"
+        raise ValueError('filename not generated for output')
 
     def _save_input(self, input_: BaseModel):
         """Save input data - either as single input.yaml or array in input/ folder"""
@@ -191,15 +190,22 @@ class Service:
         
         return items
 
-    def _prepare_output(self, output: BaseModel | dict | str | bytes | bytearray, ):
+    def _prepare_output(self, output: BaseModel | List[BaseModel] | dict | str | bytes | bytearray):
         """
         makes sure the output adheres to service output model
         should be in base class
         """
+        if isinstance(output, list):
+            return [
+                self._prepare_output(o)
+                for o in output
+            ]
         if isinstance(output, (str, bytes, bytearray)):
             return self.Output.model_validate_json(output)
         if isinstance(output, (dict, BaseModel)):
             return self.Output.model_validate(output)
+        if isinstance(output, self.Output):
+            return output
         raise self.ValidationError(f'type {type(output)} is not supported')
 
     def _save_output(self, output_: BaseModel):
@@ -225,7 +231,10 @@ class Service:
             output_file = data_folder / "output.yaml"
             self._write_yaml(output_file, output_data)
 
-    def _load_output(self) -> BaseModel:
+    def _match_input_output(self, input_: BaseModel, output_: BaseModel):
+        raise NotImplementedError()
+
+    def _load_output(self, input_: BaseModel) -> BaseModel | None:
         """Load output data - either from output.yaml or output/ folder array"""
         data_folder = self._get_data_folder_path()
 
@@ -236,26 +245,21 @@ class Service:
                 raise FileNotFoundError(f"Output folder not found: {output_folder}")
 
             # Load all YAML files from output folder
-            items = []
             for yaml_file in sorted(output_folder.glob("*.yaml")):
-                item_data = self._read_yaml(yaml_file)
-                items.append(item_data)
-
-            # Find the array field name and create output structure
-            # For array models, the first field should be the array field
-            if self.output_model.fields:
-                first_field = self.output_model.fields[0]
-                field_name = first_field.name
-                clean_field_name = field_name.rstrip('[]')
-                output_data = {clean_field_name: items}
-            else:
-                output_data = {'items': items}
+                output_data = self._read_yaml(yaml_file)
+                output = self.Output.model_validate(output_data)
+                if self._match_input_output(input_, output):
+                    break
         else:
             # Handle single output: load from output.yaml
             output_file = data_folder / "output.yaml"
-            if not output_file.exists():
-                raise FileNotFoundError(f"Output file not found: {output_file}")
-            output_data = self._read_yaml(output_file)
+            if output_file.exists():
+                output_data = self._read_yaml(output_file)
+            else:
+                output_data = None
+
+        if output_data is None:
+            return output_data
 
         return self.Output.model_validate(output_data)
     
@@ -340,40 +344,19 @@ class Service:
         return items
 
     def execute(self, input_: BaseModel | List[BaseModel]):
-        if isinstance(input_, BaseModel):
-            input_ = self._prepare_input(input_)
-            
-            # For array services, if we get single input, wrap in a list for internal processing
-            if self.input_model.is_list:
-                # Process as array internally but present single interface
-                internal_input = [input_]
-                self._save_input_array(internal_input)
-                
-                try:
-                    output_array = self._load_output_array_for_execution(self._execution_counter)
-                except Exception:
-                    output_array = []
-                    for single_input in internal_input:
-                        single_output = self._process_input(single_input)
-                        prepared_output = self._prepare_output(single_output)
-                        output_array.append(prepared_output)
-                    self._save_output_array_for_execution(output_array, self._execution_counter)
-                
-                # Increment counter for next execution
-                self._execution_counter += 1
-                
-                # Return first item for single input
-                return output_array[0] if output_array else None
-            else:
-                # Regular single object processing
-                self._save_input(input_)
+        if isinstance(input_, list):
+            return [
+                self.execute(item)
+                for item in input_
+            ]
+        # Regular single object processing
+        self._save_input(input_)
 
-                try:
-                    output_dict = self._load_output()
-                except Exception:
-                    output_dict = self._process_input(input_)
+        output_dict = self._load_output(input_)
+        if not output_dict:
+            output_dict = self._process_input(input_)
 
-                output = self._prepare_output(output_dict)
-                self._save_output(output)
+        output = self._prepare_output(output_dict)
+        self._save_output(output)
 
-                return output
+        return output
