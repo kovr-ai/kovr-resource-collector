@@ -18,6 +18,9 @@ execution_config = ExecutionYamlMapping.load_yaml(execution_yaml_path)
 # Find this service's configuration dynamically
 service_config = None
 module_config = None
+
+service_config = None
+module_config = None
 for module in execution_config.modules:
     if module.name == module_name:
         module_config = module

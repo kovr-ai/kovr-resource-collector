@@ -231,6 +231,7 @@ class ExecutionYamlMapping(BaseModel):
         
         # Process each top-level module (e.g., benchmark_and_checks_literature)
         for module_index, (module_name, module_steps) in enumerate(yaml_data.items()):
+            module_index += 1
             if not isinstance(module_steps, dict):
                 continue
                 
@@ -238,14 +239,23 @@ class ExecutionYamlMapping(BaseModel):
             
             # Process each step within the module (e.g., generate_benchmark_literature)
             for step_index, (step_name, step_def) in enumerate(module_steps.items()):
+                step_index += 1
                 if isinstance(step_def, dict):
                     # Extract input and output definitions
                     input_def = step_def.get('input', {})
                     output_def = step_def.get('output', {})
                     
+                    # Handle array inputs/outputs (input[], output[])
+                    input_array_def = step_def.get('input[]', {})
+                    output_array_def = step_def.get('output[]', {})
+                    
+                    # Use array definitions if present, otherwise use regular definitions
+                    final_input_def = input_array_def if input_array_def else input_def
+                    final_output_def = output_array_def if output_array_def else output_def
+                    
                     # Resolve any references within input/output models
-                    resolved_input = cls._resolve_references(input_def, module_name, yaml_data) if input_def else {}
-                    resolved_output = cls._resolve_references(output_def, module_name, yaml_data) if output_def else {}
+                    resolved_input = cls._resolve_references(final_input_def, module_name, yaml_data) if final_input_def else {}
+                    resolved_output = cls._resolve_references(final_output_def, module_name, yaml_data) if final_output_def else {}
                     
                     # Create model mappings for input and output
                     input_mapping = YamlModelMapping.load_yaml({'input': resolved_input}) if resolved_input else None

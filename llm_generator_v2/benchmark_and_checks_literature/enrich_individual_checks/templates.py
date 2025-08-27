@@ -5,7 +5,7 @@ PROMPT = """You are a cybersecurity expert enriching a security check with compr
 **CHECK TO ENRICH:** {check_name}
 
 **REQUIREMENTS:**
-1. Generate a comprehensive unique_id in format: "{benchmark_name}-{year}-{section}-{number}" (e.g., "OWASP-2021-A01-001")
+1. Generate a comprehensive unique_id in format: "{{benchmark_name}}-{{year}}-{{section}}-{{number}}" (e.g., "OWASP-2021-A01-001")
 2. Create detailed literature explaining what this check validates and why it's important
 3. Map to relevant security controls (NIST 800-53, ISO 27001, etc.) with reasoning and confidence scores
 4. Map to relevant attack techniques (MITRE ATT&CK) with reasoning and confidence scores  

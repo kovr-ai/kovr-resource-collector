@@ -30,6 +30,7 @@ class Service:
 
         # Generate timestamp for this execution run
         self.execution_timestamp = datetime.now().strftime("%Y_%m_%d_%H_%M")
+        self.execution_timestamp = '2025_08_27_10_44'
 
     @property
     def Input(self) -> Type[BaseModel]:
@@ -112,11 +113,21 @@ class Service:
         output_path = self._get_data_folder_path(self.name) / "output.yaml"
         self._write_yaml(output, output_path)
 
+    def _load_output(self) -> BaseModel:
+        """
+        Load output data from output.yaml file.
+        """
+        output_path = self._get_data_folder_path(self.name) / "output.yaml"
+        return self._read_output_yaml(output_path)
+
     def execute(self, input_: BaseModel):
         input_ = self._prepare_input(input_)
         self._save_input(input_)
 
-        output_dict = self._process_input(input_)
+        try:
+            output_dict = self._load_output()
+        except Exception:
+            output_dict = self._process_input(input_)
 
         output = self._prepare_output(output_dict)
         self._save_output(output)
