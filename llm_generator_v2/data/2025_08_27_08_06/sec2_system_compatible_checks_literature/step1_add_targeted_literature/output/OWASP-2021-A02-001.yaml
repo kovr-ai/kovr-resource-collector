@@ -1,0 +1,18 @@
+resource:
+  is_valid: "true"
+  literature: "Verify that AWS S3 buckets have server-side encryption enabled by checking encryption rules and configuration settings"
+  field_paths:
+    - "bucket.encryption.rules[].apply_server_side_encryption_by_default"
+  reason: "AWS::S3::Bucket resource contains encryption configuration in the encryption.rules array"
+  output_statements:
+    success: "S3 bucket encryption at rest is properly configured"
+    failure: "S3 bucket lacks required encryption at rest configuration"
+    partial: "Some encryption settings configured but may not cover all scenarios"
+  fix_details:
+    description: "Enable server-side encryption for S3 bucket"
+    instructions:
+      - "Open AWS S3 console and select the bucket"
+      - "Go to Properties tab and find Default encryption"
+      - "Enable server-side encryption with AES-256 or KMS"
+    estimated_time: "2-5 minutes"
+    automation_available: true

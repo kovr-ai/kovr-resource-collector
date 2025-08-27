@@ -1,0 +1,14 @@
+check:
+  unique_id: "OWASP-2021-A01-001"
+  valid_resources:
+    - name: "GitHub::Repo"
+      literature: "Verify that all branches named 'main' have branch protection enabled"
+      field_paths:
+        - "repo.basic_info.branches[].protected"
+      reason: "Resource GitHub::Repo supports branch protection validation"
+  invalid_resources:
+    - name: "AWS::EC2::Instance"
+      literature: "Branch protection is not applicable to EC2 instances"
+      field_paths:
+        - "instance.security_groups[].name"
+      reason: "Resource AWS::EC2::Instance doesn't support branch protection concepts"
