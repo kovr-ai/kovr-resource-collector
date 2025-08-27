@@ -73,7 +73,18 @@ class ConsolidateResourceWiseChecksService(Service):
         
         for check in checks:
             resource = check['resource']
-            is_valid = resource.get('is_valid', 'false').lower()
+            # Handle both boolean and string is_valid values
+            is_valid_raw = resource.get('is_valid', False)
+            
+            # Normalize to boolean for consistent comparison
+            if isinstance(is_valid_raw, bool):
+                is_valid = is_valid_raw
+            elif isinstance(is_valid_raw, str):
+                is_valid = is_valid_raw.lower() in ['true', '1', 'yes', 'partial']
+                is_partial = is_valid_raw.lower() == 'partial'
+            else:
+                is_valid = False
+                is_partial = False
             
             resource_info = {
                 'name': resource.get('name', 'unknown_resource'),
@@ -82,11 +93,10 @@ class ConsolidateResourceWiseChecksService(Service):
                 'reason': resource.get('reason', 'No reason provided')
             }
             
-            if is_valid == 'true':
-                valid_resources.append(resource_info)
-            elif is_valid == 'partial':
-                # Treat partial as valid but include reason in literature
-                resource_info['literature'] = f"[PARTIAL] {resource_info['literature']}"
+            if is_valid:
+                if isinstance(is_valid_raw, str) and is_valid_raw.lower() == 'partial':
+                    # Treat partial as valid but include reason in literature
+                    resource_info['literature'] = f"[PARTIAL] {resource_info['literature']}"
                 valid_resources.append(resource_info)
             else:
                 invalid_resources.append(resource_info)
