@@ -1,31 +1,26 @@
-from llm_generator_v2.services import Service
-
-from .models import (
-    Input,
-    Output
-)
+from llm_generator_v2 import services
 from .templates import PROMPT, UNIQUE_ID
 
 
-class GenerateBenchmarkLiterature(Service):
-    def generate_unique_id(self, input_: Input) -> str:
+class Service(services.Service):
+    def generate_unique_id(self, input_) -> str:
         return UNIQUE_ID.format(
             benchmark_name=input_.name,
             benchmark_version=input_.version,
         )
 
-    def generate_literature(self, input_: Input) -> str:
+    def generate_literature(self, input_) -> str:
         prompt = PROMPT.format(
             benchmark_name=input_.name,
             benchmark_version=input_.version,
         )
         return self.llm_client.generate_text(prompt)
 
-    def _process_input(self, input_: Input) -> Output:
+    def _process_input(self, input_):
         unique_id = self.generate_unique_id(input_)
         literature = self.generate_literature(input_)
 
-        return Output(
+        return self.Output(
             unique_id=unique_id,
             literature=literature,
         )

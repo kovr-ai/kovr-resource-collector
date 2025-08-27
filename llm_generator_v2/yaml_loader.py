@@ -84,7 +84,7 @@ class YamlModelMapping(BaseModel):
                 else:
                     # For non-array types
                     yaml_field = YamlField(name=clean_field_name, dtype=field_type)
-                    model_annotations[clean_field_name] = Union[python_type, None]
+                    model_annotations[clean_field_name] = python_type
                     model_fields[clean_field_name] = Field(default=None)
                 
                 fields.append(yaml_field)
@@ -105,7 +105,7 @@ class YamlModelMapping(BaseModel):
                     model_fields[clean_field_name] = Field(default_factory=list)
                 else:
                     yaml_field = YamlField(name=clean_field_name, dtype=YamlFieldType.OBJECT)
-                    model_annotations[clean_field_name] = Union[nested_model, None]
+                    model_annotations[clean_field_name] = nested_model
                     model_fields[clean_field_name] = Field(default=None)
 
                 fields.append(yaml_field)
