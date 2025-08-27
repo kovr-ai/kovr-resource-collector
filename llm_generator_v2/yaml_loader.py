@@ -163,9 +163,10 @@ class ExecutionYamlMapping(BaseModel):
             return path_or_dict
         else:
             raise ValueError("Input must be either a file path (str or Path) or a dictionary")
-    
-    @staticmethod
+
+    @classmethod
     def _resolve_references(
+        cls,
         model_def: Dict[str, Any], 
         step_namespace: str, 
         all_schemas: Dict[str, Any]
