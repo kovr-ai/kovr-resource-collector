@@ -6,12 +6,12 @@ This is a NON-LLM service that consolidates multiple resource analyses for the s
 import logging
 from typing import Dict, Any, List
 from collections import defaultdict
-from llm_generator_v2.services import Service
+from llm_generator_v2.services import Service as BaseService
 
 logger = logging.getLogger(__name__)
 
 
-class ConsolidateResourceWiseChecksService(Service):
+class ConsolidateResourceWiseChecksService(BaseService):
     """
     NON-LLM service that consolidates multiple resource analyses for a single security check.
     Groups valid and invalid resources together with their literature and field paths.

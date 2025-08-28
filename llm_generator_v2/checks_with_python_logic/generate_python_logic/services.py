@@ -6,7 +6,7 @@ import json
 import re
 from typing import Any, Dict
 from pydantic import BaseModel
-from llm_generator_v2.services import Service
+from llm_generator_v2.services import Service as BaseService
 from .templates import PROMPT
 
 
@@ -15,7 +15,7 @@ class CannotParseLLMResponse(Exception):
     pass
 
 
-class GeneratePythonLogicService(Service):
+class GeneratePythonLogicService(BaseService):
     """Service for generating Python validation logic from enriched checks"""
 
     def _get_input_filename(self, input_: BaseModel) -> str:

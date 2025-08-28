@@ -7,7 +7,7 @@ import json
 import logging
 from typing import Dict, Any
 from pydantic import BaseModel
-from llm_generator_v2.services import Service
+from llm_generator_v2.services import Service as BaseService
 from llm_generator_v2.system_compatible_checks_literature.add_targeted_literature.templates import PROMPT
 
 logger = logging.getLogger(__name__)
@@ -18,7 +18,7 @@ class CannotParseLLMResponse(Exception):
     pass
 
 
-class AddTargetedLiteratureService(Service):
+class AddTargetedLiteratureService(BaseService):
     """
     Service that uses LLM to analyze security checks and generate resource-specific
     implementation guidance with field path validation.

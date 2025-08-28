@@ -2,7 +2,7 @@ from llm_generator_v2 import services
 from .templates import PROMPT, UNIQUE_ID
 
 
-class Service(services.Service):
+class GenerateBenchmarkLiteratureService(services.Service):
     def generate_unique_id(self, input_) -> str:
         return UNIQUE_ID.format(
             benchmark_name=input_.benchmark.name,

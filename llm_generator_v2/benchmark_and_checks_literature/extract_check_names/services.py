@@ -3,7 +3,7 @@ from llm_generator_v2 import services
 from .templates import PROMPT
 
 
-class Service(services.Service):
+class ExtractCheckNamesService(services.Service):
     @staticmethod
     def _extract_from_text_fallback(text: str) -> list[str]:
         """Fallback method to extract check names if JSON parsing fails."""

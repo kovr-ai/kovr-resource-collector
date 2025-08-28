@@ -5,7 +5,7 @@ from llm_generator_v2 import services
 from .templates import PROMPT
 
 
-class Service(services.Service):
+class EnrichIndividualChecksService(services.Service):
     class CannotParseLLMResponse(Exception):
         pass
 
