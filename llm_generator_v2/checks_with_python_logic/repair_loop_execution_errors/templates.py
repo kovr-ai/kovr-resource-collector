@@ -61,17 +61,6 @@ Based on the errors above, the previous logic had these issues:
 
 **IMPORTANT:** When field_path extracts nested data, the results may be **Pydantic model objects**, NOT Python dictionaries!
 
-**✅ BEST PRACTICE - Safe attribute/key access:**
-```python
-def safe_get(obj, key, default=None):
-    \"\"\"Safely get value from dict or Pydantic object\"\"\"
-    if hasattr(obj, key):
-        return getattr(obj, key, default)
-    elif isinstance(obj, dict):
-        return obj.get(key, default)
-    return default
-```
-
 **REQUIREMENTS:**
 1. Choose ONE field path from the available paths: {{check.resource.field_paths}}
 2. **IMPORTANT:** Choose a DIFFERENT field path than what was used before (if possible)

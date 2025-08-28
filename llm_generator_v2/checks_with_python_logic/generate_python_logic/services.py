@@ -31,9 +31,32 @@ class GeneratePythonLogicService(BaseService):
             return f"{output_.resource.check.unique_id}-{output_.resource.name}.yaml"
         raise self.GenerateUniqueFilepath()
 
+    @staticmethod
+    def mark_primitives(field_paths):
+        result = {}
+        field_set = set(field_paths)
+
+        for path in field_paths:
+            has_children = any(other.startswith(path + ".") for other in field_set)
+
+            if path.endswith("[]"):
+                result[path] = "not primitive" if has_children else "primitive list"
+            else:
+                if path + "[]" in field_set or has_children:
+                    result[path] = "not primitive"
+                else:
+                    result[path] = "primitive"
+
+        return result
+
     def _process_input(self, input_):
         """Process a single input and generate Python logic"""
         # Format the prompt
+        primitive_aware_field_paths = self.mark_primitives(input_.check.resource.field_paths)
+        primitive_aware_field_paths_str = "\n- ".join([
+            f"{field}: {type_}"
+            for field, type_ in primitive_aware_field_paths.items()
+        ])
         prompt = PROMPT.format(
             check_unique_id=input_.check.unique_id,
             check_name=input_.check.name,
@@ -41,7 +64,7 @@ class GeneratePythonLogicService(BaseService):
             check_literature=input_.check.literature,
             check_control_names="\n- ".join(input_.check.control_names),
             resource_name=input_.check.resource.name,
-            resource_field_paths="\n- ".join(input_.check.resource.field_paths),
+            resource_field_paths=primitive_aware_field_paths_str,
             resource_reason=input_.check.resource.reason,
             resource_literature=input_.check.resource.literature,
         )
@@ -64,7 +87,8 @@ class GeneratePythonLogicService(BaseService):
             logic=parsed_response["logic"],
             check=dict(
                 unique_id=input_.check.unique_id,
-            )
+            ),
+            prompt=prompt,
         ))
 
     @staticmethod

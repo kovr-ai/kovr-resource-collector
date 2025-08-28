@@ -96,26 +96,6 @@ for statement in fetched_value:
             # Handle condition logic...
 ```
 
-**✅ BEST PRACTICE - Safe attribute/key access:**
-```python
-def safe_get(obj, key, default=None):
-    \"\"\"Safely get value from dict or Pydantic object\"\"\"
-    if hasattr(obj, key):
-        return getattr(obj, key, default)
-    elif isinstance(obj, dict):
-        return obj.get(key, default)
-    return default
-
-# Usage:
-for statement in fetched_value:
-    effect = safe_get(statement, 'Effect')
-    if effect == 'Allow':
-        condition = safe_get(statement, 'Condition')
-        if condition:
-            bool_condition = safe_get(condition, 'Bool')
-            # etc...
-```
-
 **❌ WRONG LOGIC (assumes full resource):**
 ```python
 # This will FAIL because fetched_value is NOT the full resource
@@ -141,6 +121,8 @@ if isinstance(fetched_value, list):
 - fetched_value will contain ONLY the data extracted by this path
 - Do NOT assume fetched_value has the full resource structure
 - Write logic that works with the specific data format returned by this field path
+- Do not assume fetched_value will be always be pydantic object, some might be primitive
+- Use the hit for type attached to field_path to understand what will be the type of fetched_value
 
 **🚨 CRITICAL: VARIABLE SCOPE IN CUSTOM LOGIC 🚨**
 
@@ -154,9 +136,9 @@ if isinstance(fetched_value, list):
 
 **❌ WRONG - Using undefined variables:**
 ```python
-# This will cause NameError - 'resource' is not defined
-policy_statements = safe_get(resource, 'policies.*.default_version.Document.Statement')
-log_groups = safe_get(resource, 'log_groups', [])
+# These field paths will cause NameError - 'resource' is not defined
+resource.policies[].default_version.Document.Statement
+resource.log_groups
 ```
 
 **✅ CORRECT - Only use fetched_value:**
