@@ -138,6 +138,7 @@ class ServiceYamlField(BaseModel):
     name: str
     input_model: YamlModelMapping
     output_model: YamlModelMapping
+    # raises: List[BaseException]
 
 
 class ModuleYamlMapping(BaseModel):
@@ -244,6 +245,7 @@ class ExecutionYamlMapping(BaseModel):
                     # Extract input and output definitions
                     input_def = step_def.get('input', {})
                     output_def = step_def.get('output', {})
+                    exceptions_def = step_def.get('raises', {})
 
                     # Handle array inputs/outputs (input[], output[])
                     input_array_def = step_def.get('input[]', {})

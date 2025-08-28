@@ -12,6 +12,8 @@ from con_mon.utils.llm.client import get_llm_client
 class Service:
     class ValidationError(Exception):
         pass
+    class GenerateUniqueFilepath(Exception):
+        pass
 
     def __init__(
             self,
@@ -31,6 +33,7 @@ class Service:
 
         # Generate timestamp for this execution run
         self.execution_timestamp = datetime.now().strftime("%Y_%m_%d_%H_%M")
+        self.execution_timestamp = 'debugging'
 
     @property
     def Input(self) -> Type[BaseModel]:
@@ -142,71 +145,26 @@ class Service:
             output_file = data_folder / "output.yaml"
             self._write_yaml(output_file, output_data)
 
-    def _match_input_output(self, input_: BaseModel, output_: BaseModel):
-        raise NotImplementedError()
-
     def _load_output(self, input_: BaseModel) -> BaseModel | None:
-        """Load output data - either from output.yaml or output/ folder array"""
+        """Save output data - either as single output.yaml or array in output/ folder"""
         data_folder = self._get_data_folder_path()
-        output_data = None
 
         if self.output_model.is_list:
-            # Handle array output: load from output/ folder
+            # Handle array output: create output/ folder with individual files
             output_folder = data_folder / "output"
-            # Load all YAML files from output folder
-            for yaml_file in sorted(output_folder.glob("*.yaml")):
-                output_data = self._read_yaml(yaml_file)
-                output = self.Output.model_validate(output_data)
-                if self._match_input_output(input_, output):
-                    break
+            output_folder.mkdir(parents=True, exist_ok=True)
+
+            filename = self._get_output_filename(input_)
+            output_file = output_folder / filename
         else:
-            # Handle single output: load from output.yaml
+            # Handle single output: save as output.yaml
             output_file = data_folder / "output.yaml"
-            if output_file.exists():
-                output_data = self._read_yaml(output_file)
 
-        if output_data is None:
-            return output_data
-
-        return self.Output.model_validate(output_data)
-
-    def _save_output_array(self, output_array: List[BaseModel]):
-        """Save array of outputs to individual YAML files"""
-        data_folder = self._get_data_folder_path()
-        output_folder = data_folder / "output"
-        output_folder.mkdir(parents=True, exist_ok=True)
-
-        for i, output_item in enumerate(output_array):
-            output_data = output_item.model_dump()
-            # Generate unique filename for outputs, even if unique_id is the same
-            if isinstance(output_data, dict) and 'check' in output_data and isinstance(output_data['check'], dict):
-                check_data = output_data['check']
-                if 'unique_id' in check_data:
-                    # Add index to make filename unique
-                    unique_id = check_data['unique_id']
-                    filename = f"{unique_id}_{i:03d}.yaml"
-                else:
-                    filename = self._get_item_filename(output_data, i)
-            else:
-                filename = self._get_item_filename(output_data, i)
-            item_file = output_folder / filename
-            self._write_yaml(item_file, output_data)
-
-    def _load_output_array(self) -> List[BaseModel]:
-        """Load array of outputs from individual YAML files"""
-        data_folder = self._get_data_folder_path()
-        output_folder = data_folder / "output"
-
-        if not output_folder.exists():
-            raise FileNotFoundError(f"Output folder not found: {output_folder}")
-
-        items = []
-        for yaml_file in sorted(output_folder.glob("*.yaml")):
-            item_data = self._read_yaml(yaml_file)
-            item = self.Output.model_validate(item_data)
-            items.append(item)
-
-        return items
+        if output_file.exists():
+            output_data = self._read_yaml(output_file)
+            return self.Output.model_validate(output_data)
+        else:
+            return None
 
     def execute(
             self,
@@ -215,9 +173,12 @@ class Service:
     ):
         if isinstance(input_, list):
             if threads and threads > 1:
+                print(f'Opening {threads} threads...')
                 return self.execute_threads(input_, threads)
+                # return self.execute(input_)
             else:
                 # Sequential processing (original behavior)
+                print('Sequential processing...')
                 return [
                     self.execute(item)
                     for item in input_
@@ -228,6 +189,10 @@ class Service:
         output_dict = self._load_output(input_)
         if not output_dict:
             output_dict = self._process_input(input_)
+            # try:
+            #     output_dict = self._process_input(input_)
+            # except Exception:
+            #     from pdb import set_trace;set_trace()
 
         output = self._prepare_output(output_dict)
         self._save_output(output)

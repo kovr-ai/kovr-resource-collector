@@ -37,14 +37,9 @@ class EnrichIndividualChecksService(services.Service):
                 pass
         raise self.CannotParseLLMResponse()
 
-    def _match_input_output(self, input_, output_):
-        return input_.check.unique_id == output_.check.unique_id
-
     def _create_check_output(self, data: dict):
         """Create CheckOutput from parsed JSON data."""
         return {
-            'name': data.get("unique_id", ""),  # Use unique_id as name
-            'unique_id': data.get("unique_id", ""),
             'literature': data.get("literature", ""),
             'controls': [
                 {
@@ -67,46 +62,27 @@ class EnrichIndividualChecksService(services.Service):
             'tags': data.get("tags", [])
         }
 
-    def _create_fallback_enrichment(self, check_name: str):
-        """Create fallback enrichment when JSON parsing fails."""
-        fallback_id = f"FALLBACK-{hash(check_name) % 10000:04d}"
-        return {
-            'name': fallback_id,  # Add name field
-            'unique_id': fallback_id,
-            'literature': f"Security check for: {check_name}. This check helps ensure system security by validating compliance with security best practices.",
-            'controls': [
-                {
-                    'unique_id': f"FALLBACK-{hash(check_name) % 10000:04d}",
-                    'reason': 'CHECK ENRICHMENT FAILED',
-                    'confidence': 0.0
-                }
-            ],
-            'benchmarks': [
-                {
-                    'unique_id': f"FALLBACK-{hash(check_name) % 10000:04d}",
-                    'reason': 'CHECK ENRICHMENT FAILED',
-                    'confidence': 0.0
-                }
-            ],
-            'category': 'FALLBACK',
-            'severity': 'FALLBACK',
-            'tags': ['security', 'compliance', 'validation']
-        }
-
     def _get_input_filename(self, input_: BaseModel) -> str:
         """Generate unique filename for input based on check unique_id."""
         return f"{input_.check.unique_id}.yaml"
 
-    def _get_output_filename(self, output_: BaseModel) -> str:
+    def _get_output_filename(self, output: BaseModel) -> str:
         """Generate unique filename for output based on check unique_id."""
-        unique_id = output_.check.unique_id
-        return f"{unique_id}.yaml"
+        return f"{output.check.unique_id}.yaml"
 
     def _process_input(self, input_):
         # Get benchmark name from input
-        try:
-            enriched_check = self.enrich_check(input_, input_.benchmark.name)
-        except self.CannotParseLLMResponse:
-            enriched_check = self._create_fallback_enrichment(input_.check.name)
+        enriched_check = self.enrich_check(input_, input_.benchmark.name)
+        enriched_check.update(unique_id=input_.check.unique_id)
 
         return self.Output(check=enriched_check)
+
+    # def _load_output(self, input_):
+    #     response = super()._load_output(input_)
+    #     from pdb import set_trace;set_trace()
+    #     return response
+
+    # def _save_output(self, output):
+    #     response = super()._save_output(output)
+    #     from pdb import set_trace;set_trace()
+    #     return response

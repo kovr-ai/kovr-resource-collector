@@ -1,6 +1,6 @@
 import json
 from llm_generator_v2 import services
-from .templates import PROMPT
+from .templates import PROMPT, UNIQUE_ID
 
 
 class ExtractCheckNamesService(services.Service):
@@ -36,8 +36,19 @@ class ExtractCheckNamesService(services.Service):
             # Fallback: try to extract from text if JSON parsing fails
             return self._extract_from_text_fallback(response)
 
+    def generate_unique_id(self, input_, check_name):
+        return UNIQUE_ID.format(
+            benchmark_name=input_.benchmark.name,
+            benchmark_version=input_.benchmark.version,
+            check_name=check_name.lower().replace(' ', '-').replace('_', '-'),
+        )
+
     def _process_input(self, input_):
         check_names = self.extract_check_names(input_)
+        check_names = [
+            self.generate_unique_id(input_, check_name)
+            for check_name in check_names
+        ]
 
         return self.Output(benchmark=dict(
             check_names=check_names,

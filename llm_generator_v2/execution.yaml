@@ -33,7 +33,6 @@ benchmark_and_checks_literature:
         literature: string
     output[]:
       check:
-        name: string
         unique_id: string
         literature: string
         controls[]:
@@ -54,7 +53,6 @@ system_compatible_checks_literature:
     input[]:
       check:
         unique_id: string
-        name: string
         literature: string
         category: string
         control_names[]: string
@@ -83,16 +81,16 @@ system_compatible_checks_literature:
 
   # [NON-LLM STEP] Step 2: Consolidate Checks for Resources in single Check
   consolidate_resource_wise_checks:
-    input:
-      check[]:
+    input[]:
+      check:
         unique_id: string
-        is_valid: bool
-        reason: string
-        resource:
+        resources[]:
+          is_valid: bool
+          reason: string
           name: string
           literature: string
           field_paths[]: string
-    output:
+    output[]:
       check:
         unique_id: string
         valid_resources[]:
@@ -184,7 +182,7 @@ checks_with_python_logic:
           instructions[]: string
           estimated_time: string
           automation_available: bool
-        resource:
+        resource[]:
           name: string
           field_path: string
           logic: string

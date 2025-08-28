@@ -32,17 +32,19 @@ gbl_output = gbl.service.execute(gbl_input)
 print(f"✅ Generated literature: {len(gbl_output.benchmark.literature)} characters")
 print(f"   Unique ID: {gbl_output.benchmark.unique_id}")
 
-# Step 2: Extract check names from literature  
+# Step 2: Extract check names from literature
 print("\nStep 2: Extracting check names...")
 ecn_input = ecn.Input(
     benchmark=ecn.InputBenchmark(
         unique_id=gbl_output.benchmark.unique_id,
         name='owasp',
-        version='latest', 
+        version='latest',
         literature=gbl_output.benchmark.literature,
     )
 )
 ecn_output = ecn.service.execute(ecn_input)
+# DEBUGGING
+ecn_output.benchmark.check_names = ecn_output.benchmark.check_names[:2]
 
 print(f"✅ Extracted {len(ecn_output.benchmark.check_names)} check names:")
 for i, check_name in enumerate(ecn_output.benchmark.check_names[:5], 1):
@@ -56,7 +58,7 @@ eic_inputs = [
     eic.Input(
         check=eic.InputCheck(
             name=check_name,
-            unique_id=check_name  # Add unique_id as required by execution.yaml
+            unique_id=check_name
         ),
         benchmark=eic.InputBenchmark.model_validate(
             gbl_output.benchmark.model_dump()
@@ -74,11 +76,11 @@ enriched_checks = [
 provider_resources = get_provider_resources_mapping()
 print(f"   Loaded {len(provider_resources)} providers")
 
-# Step 4: Add Targeted Literature (process first 2 checks for demo)
+# Step 4: Add Targeted Literature
 print(f"\nStep 4: Adding targeted literature for resources...")
 atl_inputs = []
-for i, check in enumerate(enriched_checks):  # Process first 2 for demo
-    print(f"   Processing check {i+1}/{len(enriched_checks)+1}: {check.unique_id}")
+for i, check in enumerate(enriched_checks):
+    print(f"   Processing check {i+1}/{len(enriched_checks)}: {check.unique_id}")
     
     control_names = [ctrl.unique_id for ctrl in check.controls] if check.controls else []
     
@@ -100,7 +102,7 @@ for i, check in enumerate(enriched_checks):  # Process first 2 for demo
                     category=check.category,
                     control_names=control_names,
                     provider=connector_type.value,
-                    resource=atl.InputResource(
+                    resource=dict(
                         name=resource_model_name,
                         field_paths=field_paths
                     )
@@ -124,18 +126,19 @@ for alt_output in atl_outputs:
         "unique_id": alt_output.resource.check.unique_id,
         "is_valid": alt_output.resource.is_valid,
         "reason": alt_output.resource.reason,
-        "resource": {
-            "name": alt_output.resource.name,
-            "literature": alt_output.resource.literature,
-            "field_paths": alt_output.resource.field_paths
-        }
+        "name": alt_output.resource.name,
+        "literature": alt_output.resource.literature,
+        "field_paths": alt_output.resource.field_paths
     })
 
 crwc_outputs = []
 for check_id, check_resources in consolidation_data.items():
     print(f"   Consolidating {len(check_resources)} resource(s) for: {check_id}")
-    
-    crwc_input = crwc.Input(check=check_resources)
+
+    crwc_input = crwc.Input(check=dict(
+        unique_id=check_id,
+        resources=check_resources,
+    ))
     crwc_output = crwc.service.execute(crwc_input)
     crwc_outputs.append(crwc_output)
     

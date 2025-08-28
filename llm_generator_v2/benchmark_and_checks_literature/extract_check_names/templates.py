@@ -28,3 +28,5 @@ Example format:
 - "Password complexity requirements met"
 
 Extract the check names now:"""
+
+UNIQUE_ID = "{benchmark_name}-{benchmark_version}-{check_name}"
