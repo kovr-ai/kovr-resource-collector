@@ -1,8 +1,8 @@
 """
 Models for connectors module - handles data fetching and resource collection.
 """
-from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Callable
+from abc import ABC
+from typing import Callable
 from pydantic import BaseModel, Field
 from enum import Enum
 from con_mon.resources.models import ResourceCollection
@@ -13,7 +13,7 @@ class ConnectorType(Enum):
     AWS = "aws"
     AZURE = "azure"
     GITHUB = "github"
-    GOOGLE_CLOUD = "google_cloud"
+    GOOGLE = "google"
     KUBERNETES = "kubernetes"
     DOCKER = "docker"
     CUSTOM = "custom"

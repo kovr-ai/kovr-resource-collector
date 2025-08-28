@@ -53,11 +53,28 @@ def load_settings(app: str = "con_mon", env: str = "local") -> Settings:
 
     load_dotenv()
     secrets = dict()
+    bool_mapping = {
+        True: True,
+        'True': True,
+        'true': True,
+        '1': True,
+        False: False,
+        'False': False,
+        'false': False,
+        '0': False,
+        None: None,
+        'None': None,
+        'Null': None,
+        'null': None,
+        '': None,
+    }
 
     # Create settings dictionary with values from secret or defaults
     settings_dict: Dict[str, Any] = {}
     for field_name, field_info in Settings.model_fields.items():
         settings_dict[field_name] = secrets.get(field_name, None) or os.getenv(field_name, field_info.default)
+        if field_info.annotation is bool:
+            settings_dict[field_name] = bool_mapping[settings_dict[field_name]]
 
     # Create and return Settings object
     return Settings(**settings_dict)

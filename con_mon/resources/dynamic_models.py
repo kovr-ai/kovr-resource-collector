@@ -469,6 +469,86 @@ def create_multi_resource_collection_model(resource_name: str, schema_definition
     return model
 
 
+def create_info_data_model_from_schema(info_model_name: str, schema_definition: Dict[str, Any], provider_name: str) -> Type[BaseModel]:
+    """Create a dynamic Pydantic model from an info_data schema definition."""
+    
+    # Start with empty fields
+    base_fields = {}
+    
+    # Process each field in the info_data section
+    for field_name, field_def in schema_definition.items():
+        if field_name.endswith('[]'):
+            # Array field like 'repositories[]'
+            clean_field_name = field_name[:-2]  # Remove '[]' suffix
+            
+            if isinstance(field_def, dict):
+                # Create nested model for array items
+                item_model_name = f"{info_model_name}{clean_field_name.title()}Item"
+                item_fields = {}
+                
+                for item_field_name, item_field_type in field_def.items():
+                    python_type = yaml_type_to_python_type(item_field_type, None)
+                    if python_type == str:
+                        item_fields[item_field_name] = (Optional[str], None)
+                    elif python_type == int:
+                        item_fields[item_field_name] = (Optional[int], None)
+                    elif python_type == bool:
+                        item_fields[item_field_name] = (Optional[bool], None)
+                    else:
+                        item_fields[item_field_name] = (Optional[python_type], None)
+                
+                # Create the item model
+                item_model = create_model(item_model_name, **item_fields)
+                base_fields[clean_field_name] = (List[item_model], Field(default_factory=list))
+            else:
+                # Simple array type
+                python_type = yaml_type_to_python_type(field_def, None)
+                base_fields[clean_field_name] = (List[python_type], Field(default_factory=list))
+        else:
+            # Simple field
+            if isinstance(field_def, dict):
+                # Nested object - create nested model
+                nested_model_name = f"{info_model_name}{field_name.title()}"
+                nested_fields = {}
+                
+                for nested_field_name, nested_field_type in field_def.items():
+                    python_type = yaml_type_to_python_type(nested_field_type, None)
+                    if python_type == str:
+                        nested_fields[nested_field_name] = (Optional[str], None)
+                    elif python_type == int:
+                        nested_fields[nested_field_name] = (Optional[int], None)
+                    elif python_type == bool:
+                        nested_fields[nested_field_name] = (Optional[bool], None)
+                    else:
+                        nested_fields[nested_field_name] = (Optional[python_type], None)
+                
+                nested_model = create_model(nested_model_name, **nested_fields)
+                base_fields[field_name] = (Optional[nested_model], None)
+            else:
+                # Simple field type
+                python_type = yaml_type_to_python_type(field_def, None)
+                if python_type == str:
+                    base_fields[field_name] = (Optional[str], None)
+                elif python_type == int:
+                    base_fields[field_name] = (Optional[int], None)
+                elif python_type == bool:
+                    base_fields[field_name] = (Optional[bool], None)
+                else:
+                    base_fields[field_name] = (Optional[python_type], None)
+    
+    # Create the InfoData model inheriting from InfoData base class
+    from .models import InfoData
+    model = create_model(info_model_name, __base__=InfoData, **base_fields)
+    
+    # Add metadata to the model
+    model.__is_collection__ = False
+    model.__collection_type__ = None
+    model.__provider__ = provider_name
+    model.__description__ = f"Info data model for {provider_name} provider"
+    
+    return model
+
+
 def load_and_create_dynamic_models(yaml_file_path: str = None) -> Dict[str, Type[BaseModel]]:
     """Load YAML schemas and create dynamic Pydantic models."""
     
@@ -488,6 +568,7 @@ def load_and_create_dynamic_models(yaml_file_path: str = None) -> Dict[str, Type
                 continue
                 
             # Get the structured sections
+            info_data_section = provider_config.get('info_data', {})
             resources_field_schemas = provider_config.get('resources_field_schemas', {})
             resources_section = provider_config.get('resources', {})
             main_collection = provider_config.get('ResourceCollection')
@@ -495,6 +576,18 @@ def load_and_create_dynamic_models(yaml_file_path: str = None) -> Dict[str, Type
             # Determine creation order within this provider
             data_models = []      # Models from resources_field_schemas
             resource_models = []  # Resource models from resources section
+            
+            # First, create InfoData model from info_data section
+            if info_data_section:
+                if provider_name == 'aws':
+                    info_model_name = "AWSInfoData"  # Match AWS naming convention
+                else:
+                    info_model_name = f"{provider_name.title()}InfoData"  # e.g., GithubInfoData
+                
+                info_model_class = create_info_data_model_from_schema(info_model_name, info_data_section, provider_name)
+                dynamic_models[info_model_name] = info_model_class
+                info_model_class.__provider__ = provider_name
+                info_model_class.__description__ = f"Info data model for {provider_name} provider"
             
             # First, get data models from resources_field_schemas section
             for model_name, model_config in resources_field_schemas.items():

@@ -2,12 +2,16 @@
 # Defines resource structures for different providers
 
 github:
-  resources_field_schemas:
-    # Nested data type schemas
-    RepositoryData:
-      name: "repository_data"
-      description: "Repository basic information and metadata"
-      fields:
+  info_data:
+    repositories[]:
+      name: "string"
+      url: "string"
+      default_branch_name: "string"
+
+  resources:
+    GithubResource:
+      id: "string"  # Repository name to be used as ID for easy identification
+      repository_data:
         basic_info:
           id: "integer"
           name: "string"
@@ -31,7 +35,7 @@ github:
           disabled: "boolean"
         metadata:
           default_branch: "string"
-          topics: "array"
+          topics[]: "string"
           has_issues: "boolean"
           has_projects: "boolean"
           has_wiki: "boolean"
@@ -39,88 +43,93 @@ github:
           has_downloads: "boolean"
           has_discussions: "boolean"
           is_template: "boolean"
-          license: "string"
+          license:
+            name: "string"
+            key: "string"
           visibility: "string"
           allow_forking: "boolean"
           web_commit_signoff_required: "boolean"
-        branches:
-          type: "array"  # List of branch objects
-          structure:
-            name: "string"
-            sha: "string"
-            protected: "boolean"
+        branches[]:
+          name: "string"
+          sha: "string"
+          protected: "boolean"
+          protection_details:
+            required_status_checks: "boolean"
+            enforce_admins: "boolean"
+            required_pull_request_reviews: "boolean"
+            restrictions: "object"
         statistics:
           total_commits: "integer"
           contributors_count: "integer"
           languages:
-            type: "object"  # Dictionary of language -> bytes
-            structure:
-              Python: "integer"
-              JavaScript: "integer"
-              # ... other languages
-          code_frequency: "array"
+            Python: "integer"
+            JavaScript: "integer"
+            TypeScript: "integer"
+            Shell: "integer"
+            HTML: "integer"
+          code_frequency[]:
+            timestamp: "integer"
+            additions: "integer"
+            deletions: "integer"
 
-    ActionsData:
-      name: "actions_data"
-      description: "GitHub Actions workflows and runs"
-      fields:
+      actions_data:
         workflows:
-          type: "object"  # Dictionary/map of workflow_id -> workflow_data
-          structure:
+          id: "integer"
+          name: "string"
+          path: "string"
+          state: "string"
+          created_at: "string"
+          updated_at: "string"
+          url: "string"
+          html_url: "string"
+          badge_url: "string"
+          recent_runs[]:
             id: "integer"
             name: "string"
-            path: "string"
-            state: "string"
+            head_branch: "string"
+            head_sha: "string"
+            status: "string"
+            conclusion: "string"
             created_at: "string"
             updated_at: "string"
-            url: "string"
-            html_url: "string"
-            badge_url: "string"
+            run_number: "integer"
+            run_attempt: "integer"
         total_workflows: "integer"
         active_workflows: "integer"
         recent_runs_count: "integer"
 
-    CollaborationData:
-      name: "collaboration_data"
-      description: "Collaboration information - issues, PRs, collaborators"
-      fields:
-        issues:
-          type: "array"  # List of issue objects
-          structure:
-            number: "integer"
-            title: "string"
-            state: "string"
-            user: "string"
-            created_at: "string"
-            updated_at: "string"
-            closed_at: "string"
-            labels: "array"
-            assignees: "array"
-            comments_count: "integer"
-            is_pull_request: "boolean"
-        pull_requests:
-          type: "array"  # List of pull request objects
-          structure:
-            number: "integer"
-            title: "string"
-            state: "string"
-            user: "string"
-            created_at: "string"
-            updated_at: "string"
-            closed_at: "string"
-            merged_at: "string"
-            base_branch: "string"
-        collaborators:
-          type: "array"  # List of collaborator objects
-          structure:
-            login: "string"
-            permissions:
-              admin: "boolean"
-              maintain: "boolean"
-              push: "boolean"
-              pull: "boolean"
-              triage: "boolean"
-            role_name: "string"
+      collaboration_data:
+        issues[]:
+          number: "integer"
+          title: "string"
+          state: "string"
+          user: "string"
+          created_at: "string"
+          updated_at: "string"
+          closed_at: "string"
+          labels[]: "string"
+          assignees[]: "string"
+          comments_count: "integer"
+          is_pull_request: "boolean"
+        pull_requests[]:
+          number: "integer"
+          title: "string"
+          state: "string"
+          user: "string"
+          created_at: "string"
+          updated_at: "string"
+          closed_at: "string"
+          merged_at: "string"
+          base_branch: "string"
+        collaborators[]:
+          login: "string"
+          permissions:
+            admin: "boolean"
+            maintain: "boolean"
+            push: "boolean"
+            pull: "boolean"
+            triage: "boolean"
+          role_name: "string"
         total_issues: "integer"
         open_issues: "integer"
         closed_issues: "integer"
@@ -130,59 +139,85 @@ github:
         draft_pull_requests: "integer"
         total_collaborators: "integer"
 
-    SecurityData:
-      name: "security_data"
-      description: "Security advisories, alerts and analysis"
-      fields:
+      security_data:
         security_advisories:
-          type: "object"
-          structure:
-            error: "string"  # May contain error message
-            advisories: "array"
+          error: "string"
+          advisories[]:
+            id: "string"
+            severity: "string"
+            summary: "string"
+            published_at: "string"
+            updated_at: "string"
+            withdrawn_at: "string"
+            vulnerabilities:
+              package: "string"
+              severity: "string"
+              vulnerable_version_range: "string"
+              first_patched_version: "string"
         vulnerability_alerts:
-          type: "object"
-          structure:
-            enabled: "boolean"
-            dependabot_alerts:
-              type: "array"
-              structure:
-                number: "integer"
-                state: "string"
-                severity: "string"
-                package: "string"
-                created_at: "string"
-                updated_at: "string"
-            error: "string"
+          enabled: "boolean"
+          dependabot_alerts[]:
+            number: "integer"
+            state: "string"
+            severity: "string"
+            package: "string"
+            created_at: "string"
+            updated_at: "string"
+          error: "string"
         dependency_graph:
-          type: "object"
-          structure:
-            has_vulnerability_alerts_enabled: "boolean"
-            security_and_analysis:
-              advanced_security: "string"
-              secret_scanning: "string"
-              secret_scanning_push_protection: "string"
+          has_vulnerability_alerts_enabled: "boolean"
+          security_and_analysis:
+            advanced_security: "string"
+            secret_scanning: "string"
+            secret_scanning_push_protection: "string"
         security_analysis:
           advanced_security_enabled: "boolean"
           secret_scanning_enabled: "boolean"
           push_protection_enabled: "boolean"
           dependency_review_enabled: "boolean"
         code_scanning_alerts:
-          type: "object"
-          structure:
-            error: "string"
-            alerts: "array"
+          error: "string"
+          alerts[]:
+            number: "integer"
+            state: "string"
+            dismissed_by:
+              login: "string"
+              id: "integer"
+              type: "string"
+            dismissed_at: "string"
+            dismissed_reason: "string"
+            rule:
+              id: "string"
+              severity: "string"
+              description: "string"
         total_advisories: "integer"
         total_dependabot_alerts: "integer"
         total_code_scanning_alerts: "integer"
         security_features_enabled: "integer"
 
-    OrganizationData:
-      name: "organization_data"
-      description: "Organization members, teams and collaborators"
-      fields:
-        members: "array"  # List of member objects (often empty)
-        teams: "array"   # List of team objects (often empty)
-        outside_collaborators: "array"  # List of collaborator objects (often empty)
+      organization_data:
+        members[]:
+          login: "string"
+          id: "integer"
+          type: "string"
+          site_admin: "boolean"
+          role: "string"
+        teams[]:
+          id: "integer"
+          name: "string"
+          slug: "string"
+          description: "string"
+          privacy: "string"
+          permission: "string"
+        outside_collaborators[]:
+          login: "string"
+          id: "integer"
+          type: "string"
+          permissions:
+            admin: "boolean"
+            maintain: "boolean"
+            push: "boolean"
+            pull: "boolean"
         total_members: "integer"
         total_teams: "integer"
         total_outside_collaborators: "integer"
@@ -191,367 +226,440 @@ github:
         teams_error: "string"
         collaborators_error: "string"
 
-    AdvancedFeaturesData:
-      name: "advanced_features_data"
-      description: "Advanced GitHub features - tags, webhooks"
-      fields:
-        tags:
-          type: "array"  # List of tag objects
-          structure:
-            name: "string"
-            commit_sha: "string"
-            commit_date: "string"
-        webhooks: "array"  # List of webhook objects (often empty)
+      advanced_features_data:
+        tags[]:
+          name: "string"
+          commit_sha: "string"
+          commit_date: "string"
+          message: "string"
+        webhooks[]:
+          id: "integer"
+          name: "string"
+          active: "boolean"
+          events[]: "string"
+          config:
+            url: "string"
+            content_type: "string"
+            insecure_ssl: "string"
+            secret: "string"
         total_tags: "integer"
         total_webhooks: "integer"
         active_webhooks: "integer"
         tags_error: "string"
         webhooks_error: "string"
 
-  resources:
-    # Main resource schemas
-    Resource:
-      name: "github"
-      description: "GitHub repository resource"
-      provider: "github"
-
-      # Define the structure that matches GitHub API response with all data types
-      fields:
-        name: "string"  # Repository name for easy identification
-        repository_data: "RepositoryData"  # Nested Pydantic model
-        actions_data: "ActionsData"        # Nested Pydantic model
-        collaboration_data: "CollaborationData"  # Nested Pydantic model
-        security_data: "SecurityData"      # Nested Pydantic model
-        organization_data: "OrganizationData"    # Nested Pydantic model
-        advanced_features_data: "AdvancedFeaturesData"  # Nested Pydantic model
-
-  ResourceCollection:
-    name: "github_collection"
-    description: "Collection of GitHub repository resources from a single connector call"
-    provider: "github"
-    collection_type: "GithubResource"
-
-    # Define the structure for GitHub resource collections
-    fields:
-      resources:
-        - "github.resources.Resource"
-      source_connector: "string"
-      total_count: "integer"
-      fetched_at: "string"
-      collection_metadata:
-        authenticated_user: "string"
-        total_repositories: "integer"
-        total_workflows: "integer"
-        total_issues: "integer"
-        total_pull_requests: "integer"
-        total_security_alerts: "integer"
-        total_collaborators: "integer"
-        total_tags: "integer"
-        total_active_webhooks: "integer"
-      github_api_metadata:
-        collection_time: "string"
-        api_version: "string"
-        scope: "array"
+  resource_collection:
+    resources[]:
+      - "github.resources.GithubResource"
+    source_connector: "string"
+    total_count: "integer"
+    fetched_at: "string"
 
 aws:
+  info_data:
+    accounts[]:
+      account_name: "string"
+      account_id: "string"
+
   resources:
-    # AWS EC2 Resource Schema
     EC2Resource:
-      name: "aws_ec2"
-      description: "AWS EC2 service resource"
-      provider: "aws"
-      service: "ec2"
-
-      fields:
-        # Account-level information
-        account:
-          limits:
-            type: "object"  # Dictionary of limit_name -> limit_value
-            structure:
-              supported-platforms: "string"
-              vpc-max-security-groups-per-interface: "string"
-              max-elastic-ips: "string"
-              max-instances: "string"
-              vpc-max-elastic-ips: "string"
-              default-vpc: "string"
-          reserved_instances: "array"
-          spot_instances: "array"
-        # EC2 resources
-        instances:
-          type: "object"  # Dictionary/map of instance_id -> instance_data
-          structure:
-            instance_type: "string"
-            state: "string"
-            launch_time: "string"
-            image_id: "string"
-            vpc_id: "string"
-            subnet_id: "string"
-            availability_zone: "string"
-            key_name: "string"
-            platform: "string"
-            monitoring: "string"
-            iam_instance_profile:
-              type: "object"
-              structure:
-                Arn: "string"
-                Id: "string"
-            ebs_optimized: "boolean"
-            instance_lifecycle: "string"
-            security_groups: "array"
-            network_interfaces: "array"
-            block_device_mappings: "array"
-        security_groups:
-          type: "object"  # Dictionary/map of group_id -> security_group_data
-          structure:
-            group_name: "string"
-            description: "string"
-            vpc_id: "string"
-            inbound_rules: "array"
-            outbound_rules: "array"
-        vpcs:
-          type: "object"  # Dictionary/map of vpc_id -> vpc_data
-          structure:
-            cidr_block: "string"
-            state: "string"
-            dhcp_options_id: "string"
-            instance_tenancy: "string"
-            is_default: "boolean"
-            cidr_block_association_set: "array"
-        subnets:
-          type: "object"  # Dictionary/map of subnet_id -> subnet_data
-          structure:
-            vpc_id: "string"
-            availability_zone: "string"
-            availability_zone_id: "string"
-            cidr_block: "string"
-            state: "string"
-        route_tables:
-          type: "object"  # Dictionary/map of route_table_id -> route_table_data
-          structure:
-            vpc_id: "string"
-            routes: "array"
-            associations: "array"
-        nat_gateways:
-          type: "object"  # Dictionary/map of nat_gateway_id -> nat_gateway_data
-          structure:
-            state: "string"
-            subnet_id: "string"
-            vpc_id: "string"
-            create_time: "string"
-            delete_time: "string"
-        elastic_ips:
-          type: "object"  # Dictionary/map of allocation_id -> eip_data
-          structure:
-            public_ip: "string"
-            domain: "string"
-            instance_id: "string"
-            network_interface_id: "string"
-            private_ip_address: "string"
-        key_pairs:
-          type: "object"  # Dictionary/map of key_name -> key_pair_data
-          structure:
-            key_fingerprint: "string"
-            key_type: "string"
-        snapshots:
-          type: "object"  # Dictionary/map of snapshot_id -> snapshot_data
-          structure:
+      id: "string"  # To be used as ID for easy identification
+      region: "string"
+      account:
+        limits:
+          supported-platforms: "string"
+          vpc-max-security-groups-per-interface: "string"
+          max-elastic-ips: "string"
+          max-instances: "string"
+          vpc-max-elastic-ips: "string"
+          default-vpc: "string"
+        reserved_instances[]:
+          id: "string"
+          instance_type: "string"
+          availability_zone: "string"
+          state: "string"
+          instance_count: "integer"
+          platform: "string"
+        spot_instances[]:
+          id: "string"
+          instance_type: "string"
+          state: "string"
+          availability_zone: "string"
+          spot_price: "string"
+          launch_time: "string"
+      instances[]:
+        id: "string"  # Instance ID
+        instance_type: "string"
+        state: "string"
+        private_ip_address: "string"
+        public_ip_address: "string"
+        launch_time: "string"
+        image_id: "string"
+        vpc_id: "string"
+        subnet_id: "string"
+        availability_zone: "string"
+        key_name: "string"
+        platform: "string"
+        monitoring: "string"
+        iam_instance_profile:
+          Arn: "string"
+          Id: "string"
+        ebs_optimized: "boolean"
+        instance_lifecycle: "string"
+        security_groups[]: "string"
+        network_interfaces[]: "string"
+        block_device_mappings[]:
+          device_name: "string"
+          ebs:
             volume_id: "string"
-            volume_size: "integer"
-            state: "string"
-            start_time: "string"
-            progress: "string"
-        volumes:
-          type: "object"  # Dictionary/map of volume_id -> volume_data
-          structure:
-            size: "integer"
-            volume_type: "string"
-            state: "string"
-            availability_zone: "string"
-            create_time: "string"
-            encrypted: "boolean"
-            iops: "integer"
-            throughput: "integer"
-        network_interfaces:
-          type: "object"  # Dictionary/map of network_interface_id -> interface_data
-          structure:
-            subnet_id: "string"
-            vpc_id: "string"
-            availability_zone: "string"
-            description: "string"
-            interface_type: "string"
-            private_ip_address: "string"
-            private_dns_name: "string"
-            source_dest_check: "boolean"
             status: "string"
-            mac_address: "string"
-            security_groups: "array"
-        internet_gateways:
-          type: "object"  # Dictionary/map of internet_gateway_id -> gateway_data
-          structure:
+            attach_time: "string"
+            delete_on_termination: "boolean"
+      security_groups:
+        group_name: "string"
+        description: "string"
+        vpc_id: "string"
+        inbound_rules[]:
+          protocol: "string"
+          from_port: "integer"
+          to_port: "integer"
+          cidr: "string"
+          description: "string"
+          source_groups:
+            group_id: "string"
+            group_name: "string"
+        outbound_rules[]:
+          protocol: "string"
+          from_port: "integer"
+          to_port: "integer"
+          cidr: "string"
+          description: "string"
+          destination_groups:
+            group_id: "string"
+            group_name: "string"
+      vpcs[]:
+        id: "string"  # VPC ID
+        cidr_block: "string"
+        state: "string"
+        dhcp_options_id: "string"
+        instance_tenancy: "string"
+        is_default: "boolean"
+        cidr_block_association_set[]:
+          association_id: "string"
+          cidr_block: "string"
+          state: "string"
+      subnets[]:
+        vpc_id: "string"
+        availability_zone: "string"
+        availability_zone_id: "string"
+        cidr_block: "string"
+        state: "string"
+        map_public_ip_on_launch: "boolean"
+        available_ip_address_count: "integer"
+      route_tables[]:
+        vpc_id: "string"
+        routes[]:
+          destination_cidr_block: "string"
+          gateway_id: "string"
+          instance_id: "string"
+          state: "string"
+          origin: "string"
+        associations[]:
+          route_table_id: "string"
+          subnet_id: "string"
+          main: "boolean"
+          association_state:
             state: "string"
-            attachments: "array"
+            status_message: "string"
+      nat_gateways[]:
+        state: "string"
+        subnet_id: "string"
+        vpc_id: "string"
+        create_time: "string"
+        delete_time: "string"
+        connectivity_type: "string"
+        public_ip: "string"
+        private_ip: "string"
+      elastic_ips[]:
+        public_ip: "string"
+        domain: "string"
+        instance_id: "string"
+        network_interface_id: "string"
+        private_ip_address: "string"
+      key_pairs[]:
+        key_fingerprint: "string"
+        key_type: "string"
+        public_key: "string"
+        create_time: "string"
+      snapshots[]:
+        volume_id: "string"
+        volume_size: "integer"
+        state: "string"
+        start_time: "string"
+        progress: "string"
+        encrypted: "boolean"
+        owner_id: "string"
+        description: "string"
+      volumes[]:
+        size: "integer"
+        volume_type: "string"
+        state: "string"
+        availability_zone: "string"
+        create_time: "string"
+        encrypted: "boolean"
+        iops: "integer"
+        throughput: "integer"
+        multi_attach_enabled: "boolean"
+      network_interfaces[]:
+        subnet_id: "string"
+        vpc_id: "string"
+        availability_zone: "string"
+        description: "string"
+        interface_type: "string"
+        private_ip_address: "string"
+        private_dns_name: "string"
+        source_dest_check: "boolean"
+        status: "string"
+        mac_address: "string"
+        security_groups[]:
+          group_id: "string"
+          group_name: "string"
+      internet_gateways[]:
+        state: "string"
+        attachments[]:
+          vpc_id: "string"
+          state: "string"
 
-    # AWS IAM Resource Schema
     IAMResource:
-      name: "aws_iam"
-      description: "AWS IAM service resource"
-      provider: "aws"
-      service: "iam"
+      id: "string"  # To be used as ID for easy identification
+      users[]:
+        id: "string"  # User ID
+        arn: "string"
+        user_id: "string"
+        create_date: "string"
+        path: "string"
+        access_keys[]:
+          id: "string"
+          status: "string"
+          create_date: "string"
+          last_used_date: "string"
+          last_used_service: "string"
+          last_used_region: "string"
+        mfa_devices[]:
+          serial_number: "string"
+          enable_date: "string"
+          type: "string"
+          virtual_mfa_token: "string"
+      policies[]:
+        id: "string"  # Policy ID
+        policy_name: "string"
+        policy_id: "string"
+        create_date: "string"
+        update_date: "string"
+        path: "string"
+        default_version_id: "string"
+        attachment_count: "integer"
+        default_version:
+          Document:
+            Version: "string"
+            Statement[]:
+              Effect: "string"
+              Action[]: "string"
+              Resource: "string"
+              Condition: "object"
+          VersionId: "string"
+          IsDefaultVersion: "boolean"
+          CreateDate: "string"
 
-      fields:
-        # IAM resources
-        users:
-          type: "object"  # Dictionary/map of user_arn -> user_data
-          structure:
-            arn: "string"
-            user_id: "string"
-            create_date: "string"
-            path: "string"
-            access_keys: "array"
-            mfa_devices: "array"
-        policies:
-          type: "object"  # Dictionary/map of policy_arn -> policy_data
-          structure:
-            policy_name: "string"
-            policy_id: "string"
-            create_date: "string"
-            update_date: "string"
-            path: "string"
-            default_version_id: "string"
-            attachment_count: "integer"
-            default_version:
-              Document:
-                Version: "string"
-                Statement: "array"
-              VersionId: "string"
-              IsDefaultVersion: "boolean"
-              CreateDate: "string"
-
-    # AWS S3 Resource Schema
     S3Resource:
-      name: "aws_s3"
-      description: "AWS S3 service resource"
-      provider: "aws"
-      service: "s3"
+      id: "string"  # To be used as ID for easy identification
+      buckets[]:
+        id: "string"  # Bucket ID
+        name: "string"
+        creation_date: "string"
+        region: "string"
+        versioning_status: "string"  # Single status per bucket
+        logging_enabled: "boolean"
+        website_enabled: "boolean"
+        encryption:
+          enabled: "boolean"
+          type: "string"
+          kms_key_id: "string"
+        public_access_block:
+          block_public_acls: "boolean"
+          block_public_policy: "boolean"
+          ignore_public_acls: "boolean"
+          restrict_public_buckets: "boolean"
 
-      fields:
-        # S3 resources
-        buckets:
-          type: "object"  # Dictionary/map of bucket_name -> bucket_data
-          structure:
-            name: "string"
-            creation_date: "string"
-            region: "string"
-
-    # AWS CloudTrail Resource Schema
     CloudTrailResource:
-      name: "aws_cloudtrail"
-      description: "AWS CloudTrail service resource"
-      provider: "aws"
-      service: "cloudtrail"
+      id: "string"  # To be used as ID for easy identification
+      trails[]:
+        id: "string"  # Trail ID
+        name: "string"
+        s3_bucket_name: "string"
+        s3_key_prefix: "string"
+        include_global_service_events: "boolean"
+        is_multi_region_trail: "boolean"
+        enable_log_file_validation: "boolean"
+        event_selectors[]:
+          read_write_type: "string"
+          include_management_events: "boolean"
+          data_resources:
+            type: "string"
+            values[]: "string"
+        insight_selectors[]:
+          insight_type: "string"
+        is_logging: "boolean"
+        kms_key_id: "string"
+        log_file_validation_enabled: "boolean"
+        tags[]:
+          key: "string"
+          value: "string"
+      event_selectors[]:  # Add event_selectors at resource level
+        read_write_type: "string"
+        include_management_events: "boolean"
+        data_resources:
+          type: "string"
+          values[]: "string"
 
-      fields:
-        # CloudTrail resources
-        trails:
-          type: "object"  # Dictionary/map of trail_name -> trail_data
-          structure:
-            name: "string"
-            s3_bucket_name: "string"
-            s3_key_prefix: "string"
-            include_global_service_events: "boolean"
-            is_multi_region_trail: "boolean"
-            enable_log_file_validation: "boolean"
-            event_selectors: "array"
-            insight_selectors: "array"
-            is_logging: "boolean"
-            kms_key_id: "string"
-
-    # AWS CloudWatch Resource Schema
     CloudWatchResource:
-      name: "aws_cloudwatch"
-      description: "AWS CloudWatch service resource"
-      provider: "aws"
-      service: "cloudwatch"
+      id: "string"  # To be used as ID for easy identification
+      log_groups[]:
+        id: "string"
+        log_group_name: "string"
+        creation_time: "integer"
+        retention_in_days: "integer"
+        metric_filter_count: "integer"
+        arn: "string"
+        stored_bytes: "integer"
+        kms_key_id: "string"
+      metrics[]:
+        namespace: "string"
+        metric_name: "string"
+        dimensions[]:
+          Name: "string"
+          Value: "string"
+      alarms[]:
+        alarm_name: "string"
+        alarm_description: "string"
+        actions_enabled: "boolean"
+        ok_actions[]: "string"
+        alarm_actions[]: "string"
+        insufficient_data_actions[]: "string"
+        state_value: "string"
+        state_reason: "string"
+        state_updated_timestamp: "string"
+        metric_name: "string"
+        namespace: "string"
+        statistic: "string"
+        dimensions[]:
+          Name: "string"
+          Value: "string"
+        period: "integer"
+        evaluation_periods: "integer"
+        threshold: "number"
+        comparison_operator: "string"
+      dashboards[]:
+        dashboard_name: "string"
+        dashboard_arn: "string"
+        dashboard_body: "string"
+        size: "integer"
+        last_modified: "string"
 
-      fields:
-        # CloudWatch resources
-        log_groups:
-          type: "object"  # Dictionary/map of log_group_name -> log_group_data
-          structure:
-            log_group_name: "string"
-            creation_time: "integer"
-            retention_in_days: "integer"
-            metric_filter_count: "integer"
-            arn: "string"
-            stored_bytes: "integer"
-            kms_key_id: "string"
-        metrics: 
-          type: "array"  # List of metric objects
-          structure:
-            namespace: "string"
-            metric_name: "string"  
-            dimensions:
-              type: "array"
-              structure:
-                Name: "string"
-                Value: "string"
-        alarms:
-          type: "object"  # Dictionary/map of alarm_name -> alarm_data
-          structure:
-            alarm_name: "string"
-            alarm_description: "string"
-            actions_enabled: "boolean"
-            ok_actions: "array"
-            alarm_actions: "array"
-            insufficient_data_actions: "array"
-            state_value: "string"
-            state_reason: "string"
-            state_updated_timestamp: "string"
-            metric_name: "string"
-            namespace: "string"
-            statistic: "string"
-            dimensions:
-              type: "array"
-              structure:
-                Name: "string"
-                Value: "string"
-            period: "integer"
-            evaluation_periods: "integer"
-            threshold: "number"
-            comparison_operator: "string"
-        dashboards:
-          type: "object"  # Dictionary/map of dashboard_name -> dashboard_data
-          structure:
-            dashboard_name: "string"
-            dashboard_arn: "string"
-            dashboard_body: "string"
-            size: "integer"
-            last_modified: "string"
+  resource_collection:
+    resources[]:
+      - "aws.resources.EC2Resource"
+      - "aws.resources.IAMResource"
+      - "aws.resources.S3Resource"
+      - "aws.resources.CloudTrailResource"
+      - "aws.resources.CloudWatchResource"
+    source_connector: "string"
+    total_count: "integer"
+    fetched_at: "string"
 
-  ResourceCollection:
-    name: "aws_collection"
-    description: "Collection of AWS resources from a single connector call"
-    provider: "aws"
-    collection_type: "AWSResource"
+google:
+  info_data:
+    account_id: "string"
+    users[]:
+      id: "string"
+      name: "string"
+      email: "string"
+    groups[]:
+      id: "string"
+      name: "string"
+      email: "string"
 
-    # Define the structure for AWS resource collections
-    fields:
-      resources:
-        - "aws.resources.EC2Resource"
-        - "aws.resources.IAMResource"
-        - "aws.resources.S3Resource"
-        - "aws.resources.CloudTrailResource"
-        - "aws.resources.CloudWatchResource"
-      source_connector: "string"
-      total_count: "integer"
-      fetched_at: "string"
-      collection_metadata:
-        account_id: "string"
-        regions: "array"
-        services_collected: "array"
-        collection_errors: "array"
-      aws_api_metadata:
-        collection_time: "string"
-        api_version: "string"
-        services: "array"
-        regions_scanned: "array"
+  resources:
+    # Google Workspace User Resource
+    UserResource:
+      user_id: "string"
+      basic_info:
+        kind: "string"
+        id: "string"
+        etag: "string"
+        primaryEmail: "string"
+        customerId: "string"
+        lastLoginTime: "string"
+        creationTime: "string"
+        agreedToTerms: "boolean"
+        suspended: "boolean"
+        archived: "boolean"
+        changePasswordAtNextLogin: "boolean"
+        ipWhitelisted: "boolean"
+        isMailboxSetup: "boolean"
+        includeInGlobalAddressList: "boolean"
+      name:
+        givenName: "string"
+        familyName: "string"
+        fullName: "string"
+      admin_info:
+        isAdmin: "boolean"
+        isDelegatedAdmin: "boolean"
+      security_info:
+        isEnrolledIn2Sv: "boolean"
+        isEnforcedIn2Sv: "boolean"
+      organizational_info:
+        orgUnitPath: "string"
+      contact_info:
+        emails[]:
+          address: "string"
+          type: "string"
+          primary: "boolean"
+          customType: "string"
+        phones[]:
+          value: "string"
+          type: "string"
+        recoveryEmail: "string"
+        recoveryPhone: "string"
+      profile_info:
+        languages[]:
+          languageCode: "string"
+          preference: "string"
+        thumbnailPhotoUrl: "string"
+        thumbnailPhotoEtag: "string"
+      aliases:
+        nonEditableAliases[]: "string"
+
+    # Google Workspace Group Resource
+    GroupResource:
+      group_id: "string"
+      basic_info:
+        kind: "string"
+        id: "string"
+        etag: "string"
+        email: "string"
+        name: "string"
+        description: "string"
+        adminCreated: "boolean"
+      membership_info:
+        directMembersCount: "string"
+      aliases:
+        nonEditableAliases: "array"
+
+  resource_collection:
+    resources[]:
+      - "aws.resources.UserResource"
+      - "aws.resources.GroupResource"
+    source_connector: "string"
+    total_count: "integer"
+    fetched_at: "string"

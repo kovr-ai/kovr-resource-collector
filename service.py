@@ -24,7 +24,7 @@ def main():
             response = sqs.receive_message(
                 QueueUrl=settings.CONNECTOR_QUEUE,
                 MaxNumberOfMessages=1,
-                WaitTimeSeconds=5,
+                WaitTimeSeconds=20,
             )
             messages = response.get("Messages", [])
             if not messages:
@@ -44,8 +44,8 @@ def main():
                     continue
                 try:
                     print("Running pipeline", message)
-                    run_pipeline(message)
                     delete_message(handle)
+                    run_pipeline(message)
                 except Exception as e:
                     print(e)
                     continue

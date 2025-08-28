@@ -29,7 +29,7 @@ class Settings(BaseModel):
         # AWS Configuration
         AWS_REGION (str): AWS region for services, defaults to "us-east-1"
         AWS_PROFILE (str): AWS profile name for credentials, defaults to "dev-kovr"
-        external_id (str): AWS access key ID (optional if using IAM roles)
+        AWS_ACCESS_KEY_ID (str): AWS access key ID (optional if using IAM roles)
         AWS_SECRET_ACCESS_KEY (str): AWS secret access key (optional if using IAM roles)
         
         # AWS Bedrock Configuration
@@ -47,18 +47,25 @@ class Settings(BaseModel):
     DB_NAME: str
     DB_USER: str
     DB_PASSWORD: str
+
     LOG_LEVEL: str = "DEBUG"
-    
+
+    # CSV Configuration
+    CSV_DATA: str = ""
+
+    # MOCK Configuration
+    USE_MOCKS: bool = False
+
     # AWS Configuration
     AWS_REGION: str = "us-east-1"
-    AWS_PROFILE: str = "dev-kovr"
+    AWS_PROFILE: str = ""
     AWS_ACCESS_KEY_ID: str = ""
     AWS_SECRET_ACCESS_KEY: str = ""
     
     # AWS Bedrock Configuration
     BEDROCK_REGION: str = "us-east-1"
-    BEDROCK_MODEL_ID: str = "anthropic.claude-3-sonnet-20240229-v1:0"
-    BEDROCK_MAX_TOKENS: int = 4096
+    BEDROCK_MODEL_ID: str = "anthropic.claude-3-5-sonnet-20240620-v1:0"  # Upgraded to Claude 3.5 Sonnet
+    BEDROCK_MAX_TOKENS: int = 8192  # Increased for longer, more detailed prompts
     BEDROCK_TEMPERATURE: float = 0.1
     BEDROCK_TOP_P: float = 0.9
     BEDROCK_TIMEOUT: int = 300

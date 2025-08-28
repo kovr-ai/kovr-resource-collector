@@ -2,34 +2,40 @@ from providers.provider import Provider, provider_class
 from constants import Providers
 import os
 import importlib
+from datetime import datetime
 from github import Github, Auth
 from github.GithubException import GithubException
 from .models.report_models import GitHubReport
 from dotenv import load_dotenv
 from pathlib import Path
 import json
-from typing import Dict, Any
-from con_mon.resources import GithubResource, GithubResourceCollection
-
-# Load environment variables from .env file
-load_dotenv()
+from typing import Dict, Any, Tuple, List
+from con_mon.mappings.github import (
+    GithubInfoData,
+    GithubResource,
+    GithubResourceCollection
+)
+from con_mon.utils.config import settings
 
 
 @provider_class
 class GitHubProvider(Provider):
     def __init__(self, metadata: dict):
-        self.GITHUB_TOKEN = metadata["personal_access_token"]
+        self._mock_response_filepath = 'tests/mocks/github/response.json'
+        self.use_mock_data = settings.USE_MOCKS and os.path.exists(self._mock_response_filepath)
+        self.access_token = metadata["personal_access_token"]
+        self.user = None
 
         super().__init__(Providers.GITHUB.value, metadata)
-        
+
         # Define services to collect data from
         self.services = [
-            {"name": "repositories", "class": self._get_service_class("RepositoriesService")},
-            {"name": "actions", "class": self._get_service_class("ActionsService")},  
-            {"name": "collaboration", "class": self._get_service_class("CollaborationService")},
-            {"name": "security", "class": self._get_service_class("SecurityService")},
-            {"name": "organization", "class": self._get_service_class("OrganizationService")},
-            {"name": "advanced_features", "class": self._get_service_class("AdvancedFeaturesService")}
+            {"key": "repository_data", "name": "repositories", "class": self._get_service_class("RepositoriesService")},
+            {"key": "actions_data", "name": "actions", "class": self._get_service_class("ActionsService")},
+            {"key": "collaboration_data", "name": "collaboration", "class": self._get_service_class("CollaborationService")},
+            {"key": "security_data", "name": "security", "class": self._get_service_class("SecurityService")},
+            {"key": "organization_data", "name": "organization", "class": self._get_service_class("OrganizationService")},
+            {"key": "advanced_features_data", "name": "advanced_features", "class": self._get_service_class("AdvancedFeaturesService")}
         ]
 
     def _get_service_class(self, service_class_name: str):
@@ -38,37 +44,96 @@ class GitHubProvider(Provider):
             # Map service class names to their module names
             service_module_map = {
                 "RepositoriesService": "repositories",
-                "ActionsService": "actions", 
+                "ActionsService": "actions",
                 "CollaborationService": "collaboration",
                 "SecurityService": "security",
                 "OrganizationService": "organization",
                 "AdvancedFeaturesService": "advanced_features"
             }
-            
+
             if service_class_name not in service_module_map:
                 raise ValueError(f"Unknown service class: {service_class_name}")
-            
+
             module_name = service_module_map[service_class_name]
             module_path = f"providers.gh.services.{module_name}"
-            
+
             # Import the module
             module = importlib.import_module(module_path)
-            
+
             # Get the service class
             service_class = getattr(module, service_class_name)
             return service_class
-            
+
         except Exception as e:
             print(f"Error loading service class {service_class_name}: {e}")
             raise
 
+    def _save_mock_data(self, data: dict) -> None:
+        print("🔄 Saving mock Github data")
+        with open(
+                self._mock_response_filepath,
+                'w'
+        ) as mock_response_file:
+            mock_response_file.write(json.dumps(data, indent=4))
+
+    def _fetch_data(self) -> dict:
+        """Process data collection and return GitHubReport model"""
+        if self.use_mock_data:
+            print("🔄 Collecting mock Github data via test mocks")
+            with open(
+                    self._mock_response_filepath,
+                    'r'
+            ) as mock_response_file:
+                data = json.load(mock_response_file)
+        else:
+            print("🔄 Collecting real Github data via API calls")
+            try:
+                repos = list(self.user.get_repos())
+                print(f"Found {len(repos)} repositories")
+            except Exception as e:
+                print(f"Error getting repositories: {e}")
+                repos = []
+
+            data: dict = dict()
+            # Process each repository
+            for repo in repos:
+                repo_id = repo.full_name
+                print(f"Processing repository: {repo_id}")
+                repo_dict: dict = dict(
+                    id=repo_id,
+                    description=repo.description
+                )
+                # Process each service for this repository
+                for service in self.services:
+                    try:
+                        print(f"Collecting data for service: {service['name']}")
+                        instance = service["class"](self.client, repo)
+                        service_data = instance.process()
+                        repo_dict.update({
+                            service['key']: json.loads(service_data.model_dump_json())
+                        })
+                    except Exception as e:
+                        repo_dict.update({
+                            service['key']: dict()
+                        })
+                        print(f"Error processing {service['name']} for {repo_id}: {e}")
+                        continue
+
+                data.update({repo_id: repo_dict})
+
+        return data
+
     def connect(self):
         """Establish connection to GitHub API"""
         try:
-            auth = Auth.Token(self.GITHUB_TOKEN)
+            auth = Auth.Token(self.access_token)
             self.client = Github(auth=auth)
-            # self.user = self.client.get_user()
-            # print(f"Connected to GitHub as: {self.user.login}")
+            if self.use_mock_data:
+                self.user = None
+                print(f"Connected to GitHub as: mock user")
+            else:
+                self.user = self.client.get_user()
+                print(f"Connected to GitHub as: {self.user.login}")
         except GithubException as e:
             print(f"GitHub connection error: {e}")
             raise
@@ -76,128 +141,47 @@ class GitHubProvider(Provider):
             print(f"Unexpected error during GitHub connection: {e}")
             raise
 
-    def process(self) -> GithubResourceCollection:
+    def process(self) -> Tuple[GithubInfoData, GithubResourceCollection]:
         """Process data collection and return GitHubReport model"""
-        with open(
-            'github_response.json',
-            'r'
-        ) as mock_response_file:
-            mock_response = json.load(mock_response_file)
-            
-            # Create lookup dictionaries for each data type by repository
-            repositories_lookup = {item['repository']: item for item in mock_response.get('repositories_data', [])}
-            actions_lookup = {item['repository']: item for item in mock_response.get('actions_data', [])}
-            collaboration_lookup = {item['repository']: item for item in mock_response.get('collaboration_data', [])}
-            security_lookup = {item['repository']: item for item in mock_response.get('security_data', [])}
-            organization_lookup = {item['repository']: item for item in mock_response.get('organization_data', [])}
-            advanced_features_lookup = {item['repository']: item for item in mock_response.get('advanced_features_data', [])}
-            
-            # Convert to GithubResource objects with ALL data types
-            github_resources = []
-            for repo_name in repositories_lookup.keys():
-                try:
-                    # Create comprehensive GithubResource with all data types
-                    resource_data = {
-                        'name': repo_name,
-                        'repository_data': repositories_lookup.get(repo_name, {}),
-                        'actions_data': actions_lookup.get(repo_name, {}),
-                        'collaboration_data': collaboration_lookup.get(repo_name, {}),
-                        'security_data': security_lookup.get(repo_name, {}),
-                        'organization_data': organization_lookup.get(repo_name, {}),
-                        'advanced_features_data': advanced_features_lookup.get(repo_name, {}),
-                        # Add required base Resource fields
-                        'id': f"github-{repo_name.replace('/', '-')}",
-                        'source_connector': 'github'
-                    }
+        data: dict = self._fetch_data()
+        resource_collection = self._create_resource_collection_from_data(data)
+        info_data = self._create_info_data_from_resource_collection(resource_collection)
+        return info_data, resource_collection
 
-                    github_resource = GithubResource(**resource_data)
-                    github_resources.append(github_resource)
-                except Exception as e:
-                    print(f"Error converting repository data for {repo_name}: {e}")
-                    continue
-            
-            # Create and return GithubResourceCollection
-            return GithubResourceCollection(
-                resources=github_resources,
-                source_connector='github',
-                total_count=len(github_resources),
-                fetched_at=mock_response.get('collection_time'),
-                collection_metadata={
-                    'authenticated_user': mock_response.get('authenticated_user'),
-                    'total_repositories': mock_response.get('total_repositories'),
-                    'total_workflows': mock_response.get('total_workflows', 0),
-                    'total_issues': mock_response.get('total_issues', 0),
-                    'total_pull_requests': mock_response.get('total_pull_requests', 0),
-                    'total_security_alerts': mock_response.get('total_security_alerts', 0),
-                    'total_collaborators': mock_response.get('total_collaborators', 0),
-                    'total_tags': mock_response.get('total_tags', 0),
-                    'total_active_webhooks': mock_response.get('total_active_webhooks', 0),
-                    'rate_limit_info': mock_response.get('rate_limit_info')
-                },
-                github_api_metadata={
-                    'collection_time': mock_response.get('collection_time'),
-                    'api_version': 'v3',  # GitHub API version
-                    'scope': ['repo', 'read:org', 'actions:read', 'security_events:read']  # Extended scopes
-                }
-            )
-
-        report = GitHubReport(
-            authenticated_user=self.user.login if hasattr(self, 'user') else None
+    def _create_resource_collection_from_data(self, data: dict) -> GithubResourceCollection:
+        resource_collection = GithubResourceCollection(
+            resources=list(),
+            source_connector='github',
+            total_count=0,
+            fetched_at=datetime.now().isoformat()
         )
-        
-        # Get list of repositories
-        try:
-            repos = list(self.user.get_repos())
-            print(f"Found {len(repos)} repositories")
-        except Exception as e:
-            print(f"Error getting repositories: {e}")
-            repos = []
-        
         # Process each repository
-        for repo in repos:
-            print(f"Processing repository: {repo.full_name}")
-            
-            # Process each service for this repository
-            for service in self.services:
-                try:
-                    print(f"Collecting data for service: {service['name']}")
-                    instance = service["class"](self.client, repo)
-                    service_data = instance.process()
-                    
-                    # Add data to report based on service type
-                    if service['name'] == 'repositories':
-                        report.add_repository_data(service_data)
-                    elif service['name'] == 'actions':
-                        report.add_actions_data(service_data)
-                    elif service['name'] == 'collaboration':
-                        report.add_collaboration_data(service_data)
-                    elif service['name'] == 'security':
-                        report.add_security_data(service_data)
-                    elif service['name'] == 'organization':
-                        report.add_organization_data(service_data)
-                    elif service['name'] == 'advanced_features':
-                        report.add_advanced_features_data(service_data)
-                        
-                except Exception as e:
-                    print(f"Error processing {service['name']} for {repo.full_name}: {e}")
-                    continue
-        
-            # MINI RUN: Break after first repository for testing
-            print("Mini run complete - stopping after first repository")
-            break
+        for resource_id, resource_data in data.items():
+            print(f"Processing repository: {resource_id}")
+            resource: GithubResource = GithubResource(
+                source_connector='github',
+                **resource_data
+            )
+            resource_collection.resources.append(resource)
+            resource_collection.total_count += 1
+        return resource_collection
 
-        # Add rate limit information
-        try:
-            rate_limit = self.client.get_rate_limit()
-            if rate_limit and hasattr(rate_limit, 'core'):
-                report.rate_limit_info = {
-                    'core': {
-                        'limit': rate_limit.core.limit,
-                        'remaining': rate_limit.core.remaining,
-                        'reset': rate_limit.core.reset.isoformat()
-                    }
+    def _create_info_data_from_resource_collection(
+            self,
+            resource_collection: GithubResourceCollection
+    ) -> GithubInfoData:
+        info_data = GithubInfoData(
+            raw_json={
+                resource.id: json.loads(resource.model_dump_json())
+                for resource in resource_collection.resources
+            },
+            repositories=[
+                {
+                    'name': resource.id,
+                    'url': resource.repository_data.basic_info.html_url,
+                    'default_branch_name': resource.repository_data.metadata.default_branch,
                 }
-        except Exception as e:
-            print(f"Could not get rate limit info: {e}")
-        
-        return report.model_dump()
+                for resource in resource_collection.resources
+            ]
+        )
+        return info_data
