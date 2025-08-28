@@ -43,6 +43,7 @@ class Service(services.Service):
     def _create_check_output(self, data: dict):
         """Create CheckOutput from parsed JSON data."""
         return {
+            'name': data.get("unique_id", ""),  # Use unique_id as name
             'unique_id': data.get("unique_id", ""),
             'literature': data.get("literature", ""),
             'controls': [
@@ -68,8 +69,10 @@ class Service(services.Service):
 
     def _create_fallback_enrichment(self, check_name: str):
         """Create fallback enrichment when JSON parsing fails."""
+        fallback_id = f"FALLBACK-{hash(check_name) % 10000:04d}"
         return {
-            'unique_id': f"FALLBACK-{hash(check_name) % 10000:04d}",
+            'name': fallback_id,  # Add name field
+            'unique_id': fallback_id,
             'literature': f"Security check for: {check_name}. This check helps ensure system security by validating compliance with security best practices.",
             'controls': [
                 {

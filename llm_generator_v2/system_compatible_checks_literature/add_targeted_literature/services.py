@@ -30,11 +30,17 @@ class AddTargetedLiteratureService(Service):
 
     def _get_output_filename(self, output_: BaseModel) -> str:
         """Generate unique filename for output based on check unique_id and resource name."""
-        check_id = output_.resource.check.unique_id
-        resource_name = output_.resource.name
-        # Clean the resource name to be filename-safe
-        safe_resource_name = resource_name.replace(' ', '_').replace('(', '').replace(')', '').replace(',', '').replace('.', '')
-        return f"{check_id}_{safe_resource_name[:30]}.yaml"
+        try:
+            check_id = output_.resource.check.unique_id
+            resource_name = output_.resource.name
+            # Clean the resource name to be filename-safe
+            safe_resource_name = resource_name.replace(' ', '_').replace('(', '').replace(')', '').replace(',', '').replace('.', '')
+            return f"{check_id}_{safe_resource_name[:30]}.yaml"
+        except Exception as e:
+            logger.error(f"Error in _get_output_filename: {e}")
+            logger.error(f"Output structure: {output_.model_dump() if hasattr(output_, 'model_dump') else output_}")
+            # Return a generic filename as fallback
+            return f"fallback_{hash(str(output_)) % 10000:04d}.yaml"
 
     def _match_input_output(self, input_, output_):
         return input_.check.unique_id == output_.resource.check.unique_id
@@ -78,7 +84,9 @@ class AddTargetedLiteratureService(Service):
             return {"resource": analysis}
         except CannotParseLLMResponse as e:
             logger.warning(f"Failed to parse LLM response: {e}")
-            return {"resource": self._create_fallback_analysis(check)}
+            fallback_analysis = self._create_fallback_analysis(check)
+            logger.info(f"Created fallback analysis: {fallback_analysis}")
+            return {"resource": fallback_analysis}
     
     def _parse_llm_response(self, response: str) -> Dict[str, Any]:
         """
@@ -179,11 +187,15 @@ class AddTargetedLiteratureService(Service):
         check_name = check['name']
         
         return {
+            'name': resource_name,
+            'check': {
+                'unique_id': check['unique_id']
+            },
             'is_valid': False,  # Always boolean - partial cases should be classified as False for safety
             'literature': f'Analysis needed for {resource_name} implementation of {check_name}. '
                          f'This resource may be applicable but requires manual review to determine '
                          f'specific implementation details and field path relevance.',
-            'field_paths': check['resource']['field_paths'][:3],  # Limit to first 3 paths
+            'field_paths': check['resource']['field_paths'][:3] if check['resource']['field_paths'] else [],  # Limit to first 3 paths
             'reason': 'Automated analysis was unable to complete. Manual review required to '
                      'determine resource applicability and implementation approach.',
             'output_statements': {

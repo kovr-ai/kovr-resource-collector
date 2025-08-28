@@ -12,12 +12,12 @@ from llm_generator_v2.system_compatible_checks_literature import (
     add_targeted_literature as atl,
     consolidate_resource_wise_checks as crwc,
 )
-from llm_generator_v2.checks_with_python_logic import (
-    generate_python_logic as gpl,
-    # validate_with_mock_data as vwmd,
-    # repair_loop_execution_errors as rlee,
-    # consolidate_repaired_checks as crc,
-)
+# from llm_generator_v2.checks_with_python_logic import (
+#     # generate_python_logic as gpl,
+#     # validate_with_mock_data as vwmd,
+#     # repair_loop_execution_errors as rlee,
+#     # consolidate_repaired_checks as crc,
+# )
 
 # Step 1: Generate benchmark literature
 print("Step 1: Generating benchmark literature...")

@@ -17,9 +17,6 @@ class CannotParseLLMResponse(Exception):
 
 class GeneratePythonLogicService(Service):
     """Service for generating Python validation logic from enriched checks"""
-    
-    def __init__(self):
-        super().__init__("generate_python_logic")
 
     def _get_input_filename(self, input_: BaseModel) -> str:
         """Generate unique filename for input based on check unique_id."""
