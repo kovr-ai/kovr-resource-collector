@@ -24,16 +24,13 @@ class ConsolidateRepairedChecksService(Service):
         """Generate unique filename for output based on check unique_id."""
         return f"{output_.checks.unique_id}.yaml"
 
-    def _match_input_output(self, input_, output_):
-        return input_.check.unique_id == output_.checks.unique_id
-
     def _process_input(self, input_data) -> Dict[str, Any]:
         """
         Consolidate repaired Python logic into final check format.
-        
+
         Args:
             input_data: Pydantic model containing check and resource information
-            
+
         Returns:
             Dictionary with consolidated check containing final format
         """
@@ -42,10 +39,10 @@ class ConsolidateRepairedChecksService(Service):
             input_dict = input_data.model_dump()
         else:
             input_dict = input_data
-            
+
         check = input_dict['check']
         resource = input_dict['resource']
-        
+
         # Create consolidated check structure
         consolidated_check = {
             'checks': {
@@ -77,7 +74,7 @@ class ConsolidateRepairedChecksService(Service):
                 'severity': 'medium'
             }
         }
-        
+
         logger.info(f"Consolidated repaired check: {check['unique_id']}")
-        
+
         return consolidated_check

@@ -33,9 +33,6 @@ class RepairLoopExecutionErrorsService(Service):
         safe_field_path = field_path.replace(' ', '_').replace('(', '').replace(')', '').replace(',', '').replace('.', '').replace('/', '_')
         return f"{check_id}_{safe_field_path[:30]}.yaml"
 
-    def _match_input_output(self, input_, output_):
-        return input_.check.unique_id == output_.resource.check.unique_id
-
     def _process_input(self, input_data: Any) -> Any:
         """Process a single input and repair Python logic based on errors"""
         # Convert Pydantic model to dict if needed
