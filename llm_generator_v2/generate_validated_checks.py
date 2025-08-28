@@ -54,7 +54,10 @@ if len(ecn_output.benchmark.check_names) > 5:
 print("\nStep 3: Enriching individual checks...")
 eic_inputs = [
     eic.Input(
-        check=eic.InputCheck(name=check_name),
+        check=eic.InputCheck(
+            name=check_name,
+            unique_id=check_name  # Add unique_id as required by execution.yaml
+        ),
         benchmark=eic.InputBenchmark.model_validate(
             gbl_output.benchmark.model_dump()
         ),
