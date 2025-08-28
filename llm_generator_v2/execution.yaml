@@ -121,6 +121,7 @@ checks_with_python_logic:
           reason: string
     output[]:
       resource:
+        name: string
         check:
           unique_id: string
         field_path: string
