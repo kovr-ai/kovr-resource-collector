@@ -79,7 +79,6 @@ class AddTargetedLiteratureService(BaseService):
             return {"resource": resource}
         except self.CannotParseLLMResponse as e:
             logger.warning(f"Failed to parse LLM response: {e}")
-            from pdb import set_trace;set_trace()
             raise e
             fallback_analysis = self._create_fallback_analysis(check)
             logger.info(f"Created fallback analysis: {fallback_analysis}")
