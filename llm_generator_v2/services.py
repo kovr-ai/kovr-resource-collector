@@ -98,7 +98,10 @@ class Service:
             input_folder = data_folder / "input"
             input_folder.mkdir(parents=True, exist_ok=True)
 
-            filename = self._get_input_filename(input_)
+            try:
+                filename = self._get_input_filename(input_)
+            except NotImplementedError:
+                return
             item_file = input_folder / filename
             self._write_yaml(item_file, input_data)
         else:
@@ -137,7 +140,10 @@ class Service:
             output_folder = data_folder / "output"
             output_folder.mkdir(parents=True, exist_ok=True)
 
-            filename = self._get_output_filename(output)
+            try:
+                filename = self._get_output_filename(output)
+            except NotImplementedError:
+                return
             item_file = output_folder / filename
             self._write_yaml(item_file, output_data)
         else:
@@ -154,7 +160,10 @@ class Service:
             output_folder = data_folder / "output"
             output_folder.mkdir(parents=True, exist_ok=True)
 
-            filename = self._get_output_filename(input_)
+            try:
+                filename = self._get_output_filename(input_)
+            except NotImplementedError:
+                return None
             output_file = output_folder / filename
         else:
             # Handle single output: save as output.yaml
@@ -162,7 +171,10 @@ class Service:
 
         if output_file.exists():
             output_data = self._read_yaml(output_file)
-            return self.Output.model_validate(output_data)
+            try:
+                return self.Output.model_validate(output_data)
+            except Exception:
+                raise self.ValidationError(f'Output File: {output_file} is corrupted')
         else:
             return None
 
@@ -175,7 +187,7 @@ class Service:
             if threads and threads > 1:
                 print(f'Opening {threads} threads...')
                 return self.execute_threads(input_, threads)
-                # return self.execute(input_)
+                return self.execute(input_)
             else:
                 # Sequential processing (original behavior)
                 print('Sequential processing...')
@@ -194,7 +206,11 @@ class Service:
             # except Exception:
             #     from pdb import set_trace;set_trace()
 
-        output = self._prepare_output(output_dict)
+        try:
+            output = self._prepare_output(output_dict)
+        except Exception as e:
+            # from pdb import set_trace;set_trace()
+            raise e
         self._save_output(output)
 
         return output

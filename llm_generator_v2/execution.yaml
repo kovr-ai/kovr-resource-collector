@@ -126,6 +126,7 @@ checks_with_python_logic:
           unique_id: string
         field_path: string
         logic: string
+        prompt: string
 
   # [NON-LLM STEP] Step 2: Validation of generated Python Logic using Mock data
   validate_with_mock_data:
@@ -133,6 +134,7 @@ checks_with_python_logic:
       check:
         unique_id: string
         resource:
+          name: string
           field_path: string
           logic: string
     output[]:

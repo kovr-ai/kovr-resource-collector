@@ -14,7 +14,7 @@ from llm_generator_v2.system_compatible_checks_literature import (
 )
 from llm_generator_v2.checks_with_python_logic import (
     generate_python_logic as gpl,
-    # validate_with_mock_data as vwmd,
+    validate_with_mock_data as vwmd,
     # repair_loop_execution_errors as rlee,
     # consolidate_repaired_checks as crc,
 )
@@ -44,7 +44,7 @@ ecn_input = ecn.Input(
 )
 ecn_output = ecn.service.execute(ecn_input)
 # DEBUGGING
-ecn_output.benchmark.check_names = ecn_output.benchmark.check_names[:2]
+# ecn_output.benchmark.check_names = ecn_output.benchmark.check_names[:2]
 
 print(f"✅ Extracted {len(ecn_output.benchmark.check_names)} check names:")
 for i, check_name in enumerate(ecn_output.benchmark.check_names[:5], 1):
@@ -92,7 +92,7 @@ for i, check in enumerate(enriched_checks):
             # Get field paths dynamically from the resource model
             field_paths = []
             if resource_model_name in provider_config.resource_wise_field_paths:
-                field_paths = provider_config.resource_wise_field_paths[resource_model_name][:3]  # First 3 paths
+                field_paths = provider_config.resource_wise_field_paths[resource_model_name]
 
             atl_input = atl.Input(
                 check=atl.InputCheck(
@@ -183,32 +183,32 @@ for consolidated_check in crwc_outputs:
         print(f"       ✅ Prepared logic generation for: {resource.name}")
 
 gpl_outputs = gpl.service.execute(gpl_inputs, threads=8)
-# # Step 7: Validate with Mock Data
-# print(f"\nStep 7: Validating Python logic with mock data...")
-# vwmd_inputs = []
-#
-# # for check_id, resource_name, gpl_result in gpl_results:
-# for gpl_output in gpl_outputs:
-#     resource_name = gpl_output.resource.name
-#     check_id = gpl_output.check.unique_id
-#     print(f"   Validating {check_id} / {resource_name}")
-#
-#     vwmd_input = vwmd.Input(
-#         check=vwmd.InputCheck(
-#             unique_id=check_id,
-#             name=check_id,
-#             resource=vwmd.InputResource(
-#                 name=resource_name,
-#                 field_path=gpl_output.resource.field_path,
-#                 logic=gpl_output.resource.logic
-#             )
-#         )
-#     )
-#
-#     vwmd_inputs.append(vwmd_input)
-#     print(f"     ✅ Prepared validation for: {resource_name}")
-#
-# vwmd_outputs = vwmd.service.execute(vwmd_inputs)
+# Step 7: Validate with Mock Data
+print(f"\nStep 7: Validating Python logic with mock data...")
+vwmd_inputs = []
+
+# for check_id, resource_name, gpl_result in gpl_results:
+for gpl_output in gpl_outputs:
+    resource_name = gpl_output.resource.name
+    check_id = gpl_output.resource.check.unique_id
+    print(f"   Validating {check_id} / {resource_name}")
+
+    vwmd_input = vwmd.Input(
+        check=vwmd.InputCheck(
+            unique_id=check_id,
+            name=check_id,
+            resource=dict(
+                name=resource_name,
+                field_path=gpl_output.resource.field_path,
+                logic=gpl_output.resource.logic
+            )
+        )
+    )
+
+    vwmd_inputs.append(vwmd_input)
+    print(f"     ✅ Prepared validation for: {resource_name}")
+
+vwmd_outputs = vwmd.service.execute(vwmd_inputs)
 #
 # # Step 8: Repair Loop Execution Errors (for failed validations)
 # print(f"\nStep 8: Repairing failed Python logic...")
@@ -291,8 +291,8 @@ print(f"   Checks extracted: {len(ecn_output.benchmark.check_names)}")
 print(f"   Checks enriched: {len(enriched_checks)}")
 print(f"   Resource analyses: {len(atl_outputs)}")
 print(f"   Consolidated checks: {len(crwc_outputs)}")
-# print(f"   Python logic generated: {len(gpl_outputs)}")
-# print(f"   Mock validations: {len(vwmd_outputs)}")
+print(f"   Python logic generated: {len(gpl_outputs)}")
+print(f"   Mock validations: {len(vwmd_outputs)}")
 # print(f"   Logic repairs: {len(rlee_outputs)}")
 # print(f"   Repaired checks consolidated: {len(crc_outputs)}")
 
@@ -310,15 +310,15 @@ if crwc_outputs:
     print(f"\n🔧 Sample consolidated result: {sample_result.check.unique_id}")
     print(f"   Resources: {len(sample_result.check.valid_resources)} valid, {len(sample_result.check.invalid_resources)} invalid")
 
-# if vwmd_outputs:
-#     sample_validation = vwmd_outputs[0]
-#     error_count = len(sample_validation.errors)
-#     print(f"\n⚡ Sample validation result: {error_count} errors")
-#     if sample_validation.errors:
-#         print(f"   First error: {sample_validation.errors[0]}")
-#     else:
-#         print(f"   No errors - validation passed!")
-#
+if vwmd_outputs:
+    sample_validation = vwmd_outputs[0]
+    error_count = len(sample_validation.errors)
+    print(f"\n⚡ Sample validation result: {error_count} errors")
+    if sample_validation.errors:
+        print(f"   First error: {sample_validation.errors[0]}")
+    else:
+        print(f"   No errors - validation passed!")
+
 # if rlee_outputs:
 #     sample_repair = rlee_outputs[0]
 #     print(f"\n🔧 Sample repaired logic: {sample_repair.resource.check.unique_id}")
