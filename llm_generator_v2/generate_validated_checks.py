@@ -12,12 +12,12 @@ from llm_generator_v2.system_compatible_checks_literature import (
     add_targeted_literature as atl,
     consolidate_resource_wise_checks as crwc,
 )
-# from llm_generator_v2.checks_with_python_logic import (
-#     # generate_python_logic as gpl,
-#     # validate_with_mock_data as vwmd,
-#     # repair_loop_execution_errors as rlee,
-#     # consolidate_repaired_checks as crc,
-# )
+from llm_generator_v2.checks_with_python_logic import (
+    generate_python_logic as gpl,
+    # validate_with_mock_data as vwmd,
+    # repair_loop_execution_errors as rlee,
+    # consolidate_repaired_checks as crc,
+)
 
 # Step 1: Generate benchmark literature
 print("Step 1: Generating benchmark literature...")
@@ -144,46 +144,45 @@ for check_id, check_resources in consolidation_data.items():
     
     print(f"   ✅ Valid: {len(crwc_output.check.valid_resources)}, Invalid: {len(crwc_output.check.invalid_resources)}")
 
-# # Step 6: Generate Python Logic (process all valid resources from Section 2)
-# print(f"\nStep 6: Generating Python logic for valid resources...")
-# gpl_inputs = []
-#
-# for consolidated_check in crwc_outputs:
-#     print(f"   Processing check: {consolidated_check.check.unique_id}")
-#
-#     # Generate logic for each valid resource
-#     for resource in consolidated_check.check.valid_resources:
-#         print(f"     Generating logic for: {resource.name}")
-#
-#         gpl_input = gpl.Input(
-#             check=gpl.InputCheck(
-#                 unique_id=consolidated_check.check.unique_id,
-#                 name=consolidated_check.check.unique_id,
-#                 literature="",  # Will be filled from enriched checks
-#                 category="",  # Will be filled from enriched checks
-#                 control_names=[],  # Will be filled from enriched checks
-#                 resource=gpl.InputResource(
-#                     name=resource.name,
-#                     literature=resource.literature,
-#                     field_paths=resource.field_paths,
-#                     reason=resource.reason
-#                 )
-#             )
-#         )
-#
-#         # Fill in check details from enriched_checks
-#         for enriched_check in enriched_checks:
-#             if enriched_check.unique_id == consolidated_check.check.unique_id:
-#                 gpl_input.check.literature = enriched_check.literature
-#                 gpl_input.check.category = enriched_check.category
-#                 gpl_input.check.control_names = [ctrl.unique_id for ctrl in enriched_check.controls] if enriched_check.controls else []
-#                 break
-#
-#         gpl_inputs.append(gpl_input)
-#         print(f"       ✅ Prepared logic generation for: {resource.name}")
-#
-# gpl_outputs = gpl.service.execute(gpl_inputs, threads=8)
-#
+# Step 6: Generate Python Logic (process all valid resources from Section 2)
+print(f"\nStep 6: Generating Python logic for valid resources...")
+gpl_inputs = []
+
+for consolidated_check in crwc_outputs:
+    print(f"   Processing check: {consolidated_check.check.unique_id}")
+
+    # Generate logic for each valid resource
+    for resource in consolidated_check.check.valid_resources:
+        print(f"     Generating logic for: {resource.name}")
+
+        gpl_input = gpl.Input(
+            check=gpl.InputCheck(
+                unique_id=consolidated_check.check.unique_id,
+                name=consolidated_check.check.unique_id,
+                literature="",  # Will be filled from enriched checks
+                category="",  # Will be filled from enriched checks
+                control_names=[],  # Will be filled from enriched checks
+                resource=dict(
+                    name=resource.name,
+                    literature=resource.literature,
+                    field_paths=resource.field_paths,
+                    reason=resource.reason
+                )
+            )
+        )
+
+        # Fill in check details from enriched_checks
+        for enriched_check in enriched_checks:
+            if enriched_check.unique_id == consolidated_check.check.unique_id:
+                gpl_input.check.literature = enriched_check.literature
+                gpl_input.check.category = enriched_check.category
+                gpl_input.check.control_names = [ctrl.unique_id for ctrl in enriched_check.controls] if enriched_check.controls else []
+                break
+
+        gpl_inputs.append(gpl_input)
+        print(f"       ✅ Prepared logic generation for: {resource.name}")
+
+gpl_outputs = gpl.service.execute(gpl_inputs, threads=8)
 # # Step 7: Validate with Mock Data
 # print(f"\nStep 7: Validating Python logic with mock data...")
 # vwmd_inputs = []
