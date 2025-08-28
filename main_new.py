@@ -110,11 +110,12 @@ def params_from_connection_id(
         metadata,
     )
 
-
-if __name__ == "__main__":
-    connection_id = os.environ.get("CONNECTION_ID")
-    check_ids_str = os.environ.get("CHECK_IDS")
+def wrapper(message: dict = {}):
+    connection_id = message.get("CONNECTION_ID") or os.environ.get("CONNECTION_ID")
+    check_ids_str = message.get("CHECK_IDS") or os.environ.get("CHECK_IDS")
     check_ids = check_ids_str.split(",") if check_ids_str else list()
+    if not connection_id and not check_ids:
+        return
     main(
         *params_from_connection_id(
             int(connection_id),
@@ -122,3 +123,6 @@ if __name__ == "__main__":
              for check_id in check_ids],
         ),
     )
+
+if __name__ == "__main__":
+    wrapper()
