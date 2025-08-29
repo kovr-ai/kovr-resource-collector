@@ -304,18 +304,23 @@ if crwc_outputs:
     print(f"\n🔧 Sample consolidated result: {sample_result.check.unique_id}")
     print(f"   Resources: {len(sample_result.check.valid_resources)} valid, {len(sample_result.check.invalid_resources)} invalid")
 
+total_errors = 0
+total_failed_checks = 0
 if vwmd_outputs:
-    total_errors = 0
     for validation in vwmd_outputs:
         error_count = len(validation.errors)
         total_errors += error_count
-        # print(f"\n⚡ Validation result: {error_count} errors")
-        # if validation.errors:
-        #     for validation_error in validation.errors:
-        #         print(f"   error: {validation_error.error}")
-        # else:
-        #     print(f"   No errors - validation passed!")
-    print(f"   Total errors: {total_errors}")
+        print(f"\n⚡ Validation result: {error_count} errors")
+        if validation.errors:
+            total_failed_checks += 1
+            # for validation_error in validation.errors:
+            #     print(f"   Resource Name: {validation_error.resource.name}")
+            #     print(f"   Field Path: {validation_error.resource.field_path}")
+            #     print(f"   Logic:\n{validation_error.resource.logic}")
+            #     print(f"   Error:\n{validation_error.error}")
+            #     # from pdb import set_trace;set_trace()
+        else:
+            print(f"   No errors - validation passed!")
 
 # if rlee_outputs:
 #     sample_repair = rlee_outputs[0]
@@ -337,5 +342,6 @@ print(f"   Resource analyses: {len(atl_outputs)}")
 print(f"   Consolidated checks: {len(crwc_outputs)}")
 print(f"   Python logic generated: {len(gpl_outputs)}")
 print(f"   Mock validations: {len(vwmd_outputs)}")
+print(f"   Failed checks: {total_failed_checks}")
 # print(f"   Logic repairs: {len(rlee_outputs)}")
 # print(f"   Repaired checks consolidated: {len(crc_outputs)}")

@@ -59,6 +59,8 @@ class ValidateWithMockDataService(Service):
         validation_results = []
 
         for resource in resources:
+            input_filepath = f"llm_generator_v2/data/debugging/sec3_checks_with_python_logic/step1_generate_python_logic/input/{input_check.unique_id}-{input_resource.name}.yaml"
+            output_filepath = f"llm_generator_v2/data/debugging/sec3_checks_with_python_logic/step1_generate_python_logic/output/{input_check.unique_id}-{input_resource.name}.yaml"
             try:
                 # Extract value using field path
                 if resource.__class__.__name__ == input_resource.name:
@@ -73,27 +75,39 @@ class ValidateWithMockDataService(Service):
                     raise Exception(f'resource failed silently')
 
                 validation_results.append({
-                    "resource_name": input_resource.name,
                     "success": True,
                     "result": result,
-                    "error": None,
+                    "error": "",
+                    "input_filepath": input_filepath,
+                    "output_filepath": output_filepath,
                     "fetched_value_type": str(type(fetched_value).__name__),
-                    "fetched_value_sample": str(fetched_value)[:100] if fetched_value is not None else "None"
+                    "fetched_value_sample": str(fetched_value)[:100] if fetched_value is not None else "None",
+                    "resource": {
+                        "name": input_resource.name,
+                        "field_path": input_resource.field_path,
+                        "logic": input_resource.logic,
+                    }
                 })
 
             except Exception as e:
-                input_filepath = f"llm_generator_v2/data/debugging/sec3_checks_with_python_logic/step1_generate_python_logic/input/{input_check.unique_id}-{input_resource.name}.yaml"
-                output_filepath = f"llm_generator_v2/data/debugging/sec3_checks_with_python_logic/step1_generate_python_logic/output/{input_check.unique_id}-{input_resource.name}.yaml"
                 trace_str = ''.join(traceback.format_exception(type(e), e, e.__traceback__))
+                if "__import__" in trace_str:
+                    from pdb import set_trace;set_trace()
+                    print(trace_str)
+                    print(input_resource.logic)
                 validation_results.append({
-                    "resource_name": input_resource.name,
                     "success": False,
                     "result": None,
                     "error": trace_str,
                     "input_filepath": input_filepath,
                     "output_filepath": output_filepath,
                     "fetched_value_type": "error",
-                    "fetched_value_sample": "error"
+                    "fetched_value_sample": "error",
+                    "resource": {
+                        "name": input_resource.name,
+                        "field_path": input_resource.field_path,
+                        "logic": input_resource.logic,
+                    }
                 })
 
         # Collect errors from failed tests

@@ -139,7 +139,10 @@ checks_with_python_logic:
           logic: string
     output[]:
       errors[]:
-        resource_name: string
+        resource:
+          name: string
+          field_path: string
+          logic: string
         success: bool
         result: bool
         error: string
