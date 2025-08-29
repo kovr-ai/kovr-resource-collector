@@ -138,7 +138,13 @@ checks_with_python_logic:
           field_path: string
           logic: string
     output[]:
-      errors[]: string
+      errors[]:
+        resource_name: string
+        success: bool
+        result: bool
+        error: string
+        input_filepath: string
+        output_filepath: string
 
   # Step 3: Repair Loop using execution errors
   repair_loop_execution_errors:

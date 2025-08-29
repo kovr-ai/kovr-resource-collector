@@ -123,6 +123,7 @@ if isinstance(fetched_value, list):
 - Write logic that works with the specific data format returned by this field path
 - Do not assume fetched_value will be always be pydantic object, some might be primitive
 - Use the hit for type attached to field_path to understand what will be the type of fetched_value
+- Before getting a field of pydantic object, check if it's not None
 
 **🚨 CRITICAL: VARIABLE SCOPE IN CUSTOM LOGIC 🚨**
 
@@ -150,6 +151,31 @@ if isinstance(fetched_value, list):
         if item and hasattr(item, 'some_attribute'):
             result = True
             break
+```
+
+**❌ WRONG - directly fetching field from pydantic object:**
+```python
+for public_access_block in fetched_value:
+    if not (public_access_block.block_public_acls and
+            public_access_block.block_public_policy and
+            public_access_block.ignore_public_acls and
+            public_access_block.restrict_public_buckets):
+        result = False
+        break
+```
+
+**✅ CORRECT - check if pydantic object is not None before using:**
+```python
+for public_access_block in fetched_value:
+    if public_access_block is None:
+        result = False
+        break
+    if not (public_access_block.block_public_acls and
+            public_access_block.block_public_policy and
+            public_access_block.ignore_public_acls and
+            public_access_block.restrict_public_buckets):
+        result = False
+        break
 ```
 
 **🚨 CRITICAL: FIELD PATH RESTRICTION 🚨**

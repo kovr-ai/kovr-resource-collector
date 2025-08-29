@@ -1,3 +1,7 @@
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 from collections import defaultdict
 
 from con_mon.utils.llm.generate import get_provider_resources_mapping
@@ -286,16 +290,6 @@ vwmd_outputs = vwmd.service.execute(vwmd_inputs)
 # crc_outputs = crc.service.execute(crc_inputs) if crc_inputs else []
 
 print(f"\n🎉 Pipeline completed successfully!")
-print(f"   Literature generated: {len(gbl_output.benchmark.literature)} chars")  
-print(f"   Checks extracted: {len(ecn_output.benchmark.check_names)}")
-print(f"   Checks enriched: {len(enriched_checks)}")
-print(f"   Resource analyses: {len(atl_outputs)}")
-print(f"   Consolidated checks: {len(crwc_outputs)}")
-print(f"   Python logic generated: {len(gpl_outputs)}")
-print(f"   Mock validations: {len(vwmd_outputs)}")
-# print(f"   Logic repairs: {len(rlee_outputs)}")
-# print(f"   Repaired checks consolidated: {len(crc_outputs)}")
-
 # Show one enriched check in detail
 if enriched_checks:
     sample_check = enriched_checks[0]
@@ -311,13 +305,17 @@ if crwc_outputs:
     print(f"   Resources: {len(sample_result.check.valid_resources)} valid, {len(sample_result.check.invalid_resources)} invalid")
 
 if vwmd_outputs:
-    sample_validation = vwmd_outputs[0]
-    error_count = len(sample_validation.errors)
-    print(f"\n⚡ Sample validation result: {error_count} errors")
-    if sample_validation.errors:
-        print(f"   First error: {sample_validation.errors[0]}")
-    else:
-        print(f"   No errors - validation passed!")
+    total_errors = 0
+    for validation in vwmd_outputs:
+        error_count = len(validation.errors)
+        total_errors += error_count
+        # print(f"\n⚡ Validation result: {error_count} errors")
+        # if validation.errors:
+        #     for validation_error in validation.errors:
+        #         print(f"   error: {validation_error.error}")
+        # else:
+        #     print(f"   No errors - validation passed!")
+    print(f"   Total errors: {total_errors}")
 
 # if rlee_outputs:
 #     sample_repair = rlee_outputs[0]
@@ -331,3 +329,13 @@ if vwmd_outputs:
 #     print(f"   Name: {sample_consolidated.checks.name}")
 #     print(f"   Category: {sample_consolidated.checks.category}")
 #     print(f"   Severity: {sample_consolidated.checks.severity}")
+
+print(f"   Literature generated: {len(gbl_output.benchmark.literature)} chars")
+print(f"   Checks extracted: {len(ecn_output.benchmark.check_names)}")
+print(f"   Checks enriched: {len(enriched_checks)}")
+print(f"   Resource analyses: {len(atl_outputs)}")
+print(f"   Consolidated checks: {len(crwc_outputs)}")
+print(f"   Python logic generated: {len(gpl_outputs)}")
+print(f"   Mock validations: {len(vwmd_outputs)}")
+# print(f"   Logic repairs: {len(rlee_outputs)}")
+# print(f"   Repaired checks consolidated: {len(crc_outputs)}")

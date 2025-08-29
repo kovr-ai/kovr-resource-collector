@@ -2,6 +2,7 @@
 Validate with Mock Data Service Implementation
 """
 
+import traceback
 from typing import List
 from pydantic import BaseModel
 from llm_generator_v2.services import Service
@@ -51,6 +52,7 @@ class ValidateWithMockDataService(Service):
     def _process_input(self, input_: BaseModel):
         """Process a single input and validate Python logic"""
         # Load mock data for this resource
+        input_check = input_.check
         input_resource = input_.check.resource
         resources = self._load_resources(input_resource.name)
 
@@ -80,11 +82,16 @@ class ValidateWithMockDataService(Service):
                 })
 
             except Exception as e:
+                input_filepath = f"llm_generator_v2/data/debugging/sec3_checks_with_python_logic/step1_generate_python_logic/input/{input_check.unique_id}-{input_resource.name}.yaml"
+                output_filepath = f"llm_generator_v2/data/debugging/sec3_checks_with_python_logic/step1_generate_python_logic/output/{input_check.unique_id}-{input_resource.name}.yaml"
+                trace_str = ''.join(traceback.format_exception(type(e), e, e.__traceback__))
                 validation_results.append({
                     "resource_name": input_resource.name,
                     "success": False,
-                    "result": False,
-                    "error": str(e),
+                    "result": None,
+                    "error": trace_str,
+                    "input_filepath": input_filepath,
+                    "output_filepath": output_filepath,
                     "fetched_value_type": "error",
                     "fetched_value_sample": "error"
                 })
@@ -93,10 +100,6 @@ class ValidateWithMockDataService(Service):
         errors = []
         for result in validation_results:
             if not result["success"]:
-                errors.append(f"Resource {result['resource_name']}: {result['error']}")
-
-        # If too many errors, summarize
-        if len(errors) > 10:
-            errors = errors[:10] + [f"... and {len(errors) - 10} more errors"]
+                errors.append(result)
 
         return self.Output(errors=errors)
