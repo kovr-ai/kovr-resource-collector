@@ -131,6 +131,7 @@ function = get_function()
         safe_globals = {
             '__builtins__': {
                 're': re,
+                'datetime': datetime,
                 'len': len,
                 'str': str,
                 'int': int,
