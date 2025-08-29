@@ -1,0 +1,2758 @@
+{
+  "1001": {
+    "check_name": "github_main_branch_protected",
+    "controls": [
+      1240,
+      1201,
+      1204,
+      1242
+    ],
+    "reasoning": "Branch protection controls configuration changes (CM-3-4-3), enforces access restrictions (AC-3-1-2), implements least privilege (AC-3-1-5), and restricts change access (CM-3-4-5)"
+  },
+  "1002": {
+    "check_name": "github_repository_private",
+    "controls": [
+      1217,
+      1201,
+      1202
+    ],
+    "reasoning": "Repository privacy controls mobile/external access (AC-3-1-18), enforces access restrictions (AC-3-1-2), and controls information flow (AC-3-1-3)"
+  },
+  "1003": {
+    "check_name": "github_minimum_branch_count",
+    "controls": [
+      287,
+      1238
+    ],
+    "reasoning": "Branch count relates to system inventory (CM-8) and baseline configuration (CM-3-4-1) for development practices"
+  },
+  "1004": {
+    "check_name": "github_advanced_security_enabled",
+    "controls": [
+      1303,
+      1299
+    ],
+    "reasoning": "Advanced security features provide flaw remediation (SI-3-14-1) and system monitoring capabilities (SI-3-14-3)"
+  },
+  "1005": {
+    "check_name": "github_secret_scanning_enabled",
+    "controls": [
+      1255,
+      1252,
+      1303
+    ],
+    "reasoning": "Secret scanning protects authentication credentials (IA-3-5-9), manages authenticators (IA-3-5-2), and enables flaw remediation (SI-3-14-1) by detecting exposed secrets"
+  },
+  "1006": {
+    "check_name": "github_push_protection_enabled",
+    "controls": [
+      1255,
+      1252,
+      1201
+    ],
+    "reasoning": "Push protection prevents secret exposure through password management (IA-3-5-9), authenticator management (IA-3-5-2), and access enforcement (AC-3-1-2)"
+  },
+  "1007": {
+    "check_name": "github_dependency_review_enabled",
+    "controls": [
+      1303,
+      1299,
+      1296
+    ],
+    "reasoning": "Dependency review enables flaw remediation (SI-3-14-1), system monitoring (SI-3-14-3), and malicious code protection (SI-3-14-2) through vulnerability detection"
+  },
+  "1008": {
+    "check_name": "github_no_dependabot_alerts",
+    "controls": [
+      1303,
+      1296,
+      1299
+    ],
+    "reasoning": "Zero dependabot alerts demonstrates active flaw remediation (SI-3-14-1), malicious code protection (SI-3-14-2), and system monitoring (SI-3-14-3)"
+  },
+  "1009": {
+    "check_name": "github_no_code_scanning_alerts",
+    "controls": [
+      1303,
+      1296,
+      1299
+    ],
+    "reasoning": "Zero code scanning alerts shows effective flaw remediation (SI-3-14-1), malicious code protection (SI-3-14-2), and continuous monitoring (SI-3-14-3)"
+  },
+  "1010": {
+    "check_name": "github_external_collaborators_limited",
+    "controls": [
+      1205,
+      1201,
+      1220
+    ],
+    "reasoning": "External collaborator limits implement privileged account controls (AC-3-1-6), access enforcement (AC-3-1-2), and external system usage restrictions (AC-3-1-21)"
+  },
+  "1011": {
+    "check_name": "github_repository_not_archived",
+    "controls": [
+      1200,
+      1238,
+      1239
+    ],
+    "reasoning": "Active repository status relates to account management (AC-3-1-1), baseline configuration (CM-3-4-1), and configuration settings (CM-3-4-2)"
+  },
+  "1012": {
+    "check_name": "github_repository_not_disabled",
+    "controls": [
+      1200,
+      1201,
+      1238
+    ],
+    "reasoning": "Repository availability ensures account management (AC-3-1-1), access enforcement (AC-3-1-2), and proper baseline configuration (CM-3-4-1)"
+  },
+  "1013": {
+    "check_name": "github_admin_members_limited",
+    "controls": [
+      90,
+      71,
+      1205
+    ],
+    "reasoning": "Limited admin privileges implement least privilege (AC-6), account management (AC-2), and privileged account controls (AC-3-1-6)"
+  },
+  "1014": {
+    "check_name": "github_has_security_features",
+    "controls": [
+      75,
+      1303,
+      1299
+    ],
+    "reasoning": "Multiple security features enable access enforcement (AC-3), flaw remediation (SI-3-14-1), and system monitoring (SI-3-14-3)"
+  },
+  "1015": {
+    "check_name": "github_webhooks_secured",
+    "controls": [
+      473,
+      658,
+      282
+    ],
+    "reasoning": "Webhook security controls nonlocal maintenance (MA-4), transmission confidentiality (SC-8), and configuration settings (CM-6)"
+  },
+  "1016": {
+    "check_name": "github_active_webhooks_monitored",
+    "controls": [
+      695,
+      473,
+      113
+    ],
+    "reasoning": "Webhook monitoring implements system monitoring (SI-4), nonlocal maintenance controls (MA-4), and audit record review (AU-6)"
+  },
+  "1017": {
+    "check_name": "github_recent_activity",
+    "controls": [
+      287,
+      282,
+      275
+    ],
+    "reasoning": "Repository activity tracking supports system inventory (CM-8), configuration settings (CM-6), and change control (CM-3)"
+  },
+  "1018": {
+    "check_name": "github_contributors_managed",
+    "controls": [
+      71,
+      75,
+      90
+    ],
+    "reasoning": "Contributor management implements account management (AC-2), access enforcement (AC-3), and least privilege (AC-6)"
+  },
+  "1019": {
+    "check_name": "github_issues_enabled",
+    "controls": [
+      549,
+      96,
+      113
+    ],
+    "reasoning": "Issue tracking enables incident handling (IR-4), event logging (AU-2), and audit record review (AU-6)"
+  },
+  "1020": {
+    "check_name": "github_template_usage_controlled",
+    "controls": [
+      282,
+      275,
+      244
+    ],
+    "reasoning": "Template control manages configuration settings (CM-6), change control (CM-3), and least functionality (CM-7)"
+  },
+  "1021": {
+    "check_name": "github_collaborators_monitored",
+    "controls": [
+      113,
+      71,
+      75
+    ],
+    "reasoning": "Collaborator monitoring supports audit record review (AU-6), account management (AC-2), and access enforcement (AC-3)"
+  },
+  "1022": {
+    "check_name": "github_open_issues_managed",
+    "controls": [
+      549,
+      113,
+      96
+    ],
+    "reasoning": "Issue management implements incident handling (IR-4), audit record review (AU-6), and event logging (AU-2)"
+  },
+  "1023": {
+    "check_name": "github_pull_requests_active",
+    "controls": [
+      275,
+      282,
+      113
+    ],
+    "reasoning": "Pull request activity demonstrates configuration change control (CM-3), configuration settings (CM-6), and audit review (AU-6)"
+  },
+  "1024": {
+    "check_name": "github_security_advisories_monitored",
+    "controls": [
+      96,
+      97,
+      549
+    ],
+    "reasoning": "Security advisory tracking implements event logging (AU-2), audit record content (AU-3), and incident handling (IR-4)"
+  },
+  "1025": {
+    "check_name": "github_workflows_controlled",
+    "controls": [
+      1201,
+      1204,
+      1242
+    ],
+    "reasoning": "Workflow control enforces access restrictions (AC-3-1-2), least privilege (AC-3-1-5), and change access restrictions (CM-3-4-5)"
+  },
+  "1026": {
+    "check_name": "github_active_workflows_monitored",
+    "controls": [
+      773,
+      695,
+      779
+    ],
+    "reasoning": "Workflow monitoring manages external system services (SA-9), system monitoring (SI-4), and developer security testing (SA-11)"
+  },
+  "1027": {
+    "check_name": "github_recent_workflow_activity",
+    "controls": [
+      779,
+      773,
+      275
+    ],
+    "reasoning": "CI/CD activity demonstrates developer security testing (SA-11), external system services (SA-9), and change control (CM-3)"
+  },
+  "1028": {
+    "check_name": "github_organization_members_controlled",
+    "controls": [
+      71,
+      75,
+      90
+    ],
+    "reasoning": "Organization membership control implements account management (AC-2), access enforcement (AC-3), and least privilege (AC-6)"
+  },
+  "1029": {
+    "check_name": "github_teams_structured",
+    "controls": [
+      75,
+      71,
+      65
+    ],
+    "reasoning": "Team structure enables access enforcement (AC-3), account management (AC-2), and separation of duties (AC-5)"
+  },
+  "1030": {
+    "check_name": "github_repository_has_license",
+    "controls": [
+      595,
+      282,
+      1
+    ],
+    "reasoning": "License requirements support program management (PM-1), configuration settings (CM-6), and policy procedures (AC-1)"
+  },
+  "2001": {
+    "check_name": "aws_ec2_security_groups_no_open_ingress",
+    "controls": [
+      75,
+      658,
+      282
+    ],
+    "reasoning": "Security group ingress rules enforce access control (AC-3), protect transmission confidentiality (SC-8), and implement configuration settings (CM-6)"
+  },
+  "2002": {
+    "check_name": "aws_iam_users_have_mfa",
+    "controls": [
+      157,
+      419,
+      78
+    ],
+    "reasoning": "MFA implements identification and authentication (IA-2), password-based authentication (IA-5(1)), and protects against unsuccessful logons (AC-7(1))"
+  },
+  "2003": {
+    "check_name": "aws_s3_buckets_encrypted",
+    "controls": [
+      658,
+      657,
+      656
+    ],
+    "reasoning": "S3 encryption provides transmission confidentiality (SC-8), cryptographic protection (SC-13), and protection of information at rest (SC-28)"
+  },
+  "2004": {
+    "check_name": "aws_cloudtrail_logging_enabled",
+    "controls": [
+      96,
+      97,
+      113
+    ],
+    "reasoning": "CloudTrail logging implements event logging (AU-2), audit record content (AU-3), and audit record review capabilities (AU-6)"
+  },
+  "2005": {
+    "check_name": "aws_cloudwatch_log_groups_exist",
+    "controls": [
+      695,
+      96,
+      97
+    ],
+    "reasoning": "CloudWatch log groups enable system monitoring (SI-4), event logging (AU-2), and audit record content (AU-3)"
+  },
+  "2006": {
+    "check_name": "aws_vpc_flow_logs_enabled",
+    "controls": [
+      695,
+      96,
+      658
+    ],
+    "reasoning": "VPC flow logs provide system monitoring (SI-4), event logging (AU-2), and transmission confidentiality analysis (SC-8)"
+  },
+  "2007": {
+    "check_name": "aws_vpc_no_default_vpc_usage",
+    "controls": [
+      75,
+      282,
+      244
+    ],
+    "reasoning": "Avoiding default VPC enforces access control (AC-3), proper configuration settings (CM-6), and least functionality (CM-7)"
+  },
+  "2008": {
+    "check_name": "aws_subnets_multi_az_deployment",
+    "controls": [
+      277,
+      278,
+      282
+    ],
+    "reasoning": "Multi-AZ deployment supports system backup (CP-9), contingency planning (CP-10), and configuration settings (CM-6)"
+  },
+  "2009": {
+    "check_name": "aws_nat_gateways_deployed",
+    "controls": [
+      658,
+      32,
+      282
+    ],
+    "reasoning": "NAT gateways provide transmission confidentiality (SC-8), information flow enforcement (AC-4), and proper configuration (CM-6)"
+  },
+  "2010": {
+    "check_name": "aws_route_tables_secured",
+    "controls": [
+      75,
+      32,
+      658
+    ],
+    "reasoning": "Secure routing enforces access control (AC-3), information flow enforcement (AC-4), and transmission confidentiality (SC-8)"
+  },
+  "2011": {
+    "check_name": "aws_ebs_volumes_encrypted",
+    "controls": [
+      658,
+      657,
+      656
+    ],
+    "reasoning": "EBS encryption provides transmission confidentiality (SC-8), cryptographic protection (SC-13), and protection at rest (SC-28)"
+  },
+  "2012": {
+    "check_name": "aws_ebs_snapshots_not_public",
+    "controls": [
+      75,
+      32,
+      96
+    ],
+    "reasoning": "Private snapshots enforce access control (AC-3), information flow enforcement (AC-4), and require audit logging (AU-2)"
+  },
+  "2013": {
+    "check_name": "aws_ebs_volumes_have_backups",
+    "controls": [
+      277,
+      278,
+      287
+    ],
+    "reasoning": "EBS backups implement system backup (CP-9), system recovery (CP-10), and system inventory (CM-8)"
+  },
+  "2014": {
+    "check_name": "aws_s3_versioning_enabled",
+    "controls": [
+      277,
+      278,
+      679
+    ],
+    "reasoning": "S3 versioning supports system backup (CP-9), system recovery (CP-10), and flaw remediation (SI-2)"
+  },
+  "2015": {
+    "check_name": "aws_s3_access_logging_enabled",
+    "controls": [
+      96,
+      97,
+      113
+    ],
+    "reasoning": "S3 access logging implements event logging (AU-2), audit record content (AU-3), and audit record review (AU-6)"
+  },
+  "2016": {
+    "check_name": "aws_s3_public_access_blocked",
+    "controls": [
+      75,
+      32,
+      96
+    ],
+    "reasoning": "S3 public access blocking enforces access control (AC-3), information flow enforcement (AC-4), and requires audit logging (AU-2)"
+  },
+  "2017": {
+    "check_name": "aws_s3_lifecycle_policies_configured",
+    "controls": [
+      282,
+      244,
+      287
+    ],
+    "reasoning": "S3 lifecycle policies manage configuration settings (CM-6), least functionality (CM-7), and system inventory (CM-8)"
+  },
+  "2018": {
+    "check_name": "aws_iam_roles_have_trust_policies",
+    "controls": [
+      157,
+      75,
+      71
+    ],
+    "reasoning": "IAM role trust policies implement identification and authentication (IA-2), access enforcement (AC-3), and account management (AC-2)"
+  },
+  "2019": {
+    "check_name": "aws_iam_policies_least_privilege",
+    "controls": [
+      90,
+      71,
+      75,
+      65
+    ],
+    "reasoning": "IAM least privilege policies implement least privilege principle (AC-6), account management (AC-2), access enforcement (AC-3), and separation of duties (AC-5)"
+  },
+  "2020": {
+    "check_name": "aws_iam_groups_used_for_permissions",
+    "controls": [
+      71,
+      75,
+      90
+    ],
+    "reasoning": "IAM groups usage implements account management (AC-2), access enforcement (AC-3), and least privilege (AC-6)"
+  },
+  "2021": {
+    "check_name": "aws_iam_users_in_groups",
+    "controls": [
+      71,
+      75,
+      65
+    ],
+    "reasoning": "IAM user group membership implements account management (AC-2), access enforcement (AC-3), and separation of duties (AC-5)"
+  },
+  "2022": {
+    "check_name": "aws_ec2_instances_no_public_ip",
+    "controls": [
+      75,
+      32,
+      244
+    ],
+    "reasoning": "Private instances enforce access control (AC-3), information flow enforcement (AC-4), and least functionality (CM-7)"
+  },
+  "2023": {
+    "check_name": "aws_ec2_instances_latest_ami",
+    "controls": [
+      679,
+      287,
+      282
+    ],
+    "reasoning": "Latest AMIs support flaw remediation (SI-2), system inventory (CM-8), and configuration settings (CM-6)"
+  },
+  "2024": {
+    "check_name": "aws_ec2_key_pairs_secured",
+    "controls": [
+      157,
+      419,
+      420
+    ],
+    "reasoning": "Secure key pairs implement identification and authentication (IA-2), password-based authentication (IA-5(1)), and public key authentication (IA-5(2))"
+  },
+  "2025": {
+    "check_name": "aws_elastic_ips_managed",
+    "controls": [
+      287,
+      282,
+      244
+    ],
+    "reasoning": "EIP management supports system inventory (CM-8), configuration settings (CM-6), and least functionality (CM-7)"
+  },
+  "2026": {
+    "check_name": "aws_ec2_account_limits_monitored",
+    "controls": [
+      287,
+      282,
+      695
+    ],
+    "reasoning": "Account limit monitoring implements system inventory (CM-8), configuration settings (CM-6), and system monitoring (SI-4)"
+  },
+  "2027": {
+    "check_name": "aws_ec2_platform_support_validated",
+    "controls": [
+      282,
+      244,
+      287
+    ],
+    "reasoning": "Platform validation ensures configuration settings (CM-6), least functionality (CM-7), and system inventory (CM-8)"
+  },
+  "2028": {
+    "check_name": "aws_ec2_reserved_instances_managed",
+    "controls": [
+      287,
+      282,
+      595
+    ],
+    "reasoning": "Reserved instance management supports system inventory (CM-8), configuration settings (CM-6), and program management (PM-1)"
+  },
+  "2029": {
+    "check_name": "aws_ec2_relationships_documented",
+    "controls": [
+      287,
+      282,
+      1
+    ],
+    "reasoning": "Resource relationships support system inventory (CM-8), configuration settings (CM-6), and policy procedures (AC-1)"
+  },
+  "2030": {
+    "check_name": "aws_ec2_internet_gateway_controlled",
+    "controls": [
+      75,
+      32,
+      244
+    ],
+    "reasoning": "IGW control enforces access control (AC-3), information flow enforcement (AC-4), and least functionality (CM-7)"
+  },
+  "2031": {
+    "check_name": "aws_cloudwatch_alarms_configured",
+    "controls": [
+      695,
+      549,
+      96
+    ],
+    "reasoning": "CloudWatch alarms implement system monitoring (SI-4), incident handling (IR-4), and event logging (AU-2)"
+  },
+  "2032": {
+    "check_name": "aws_cloudwatch_alarms_enabled",
+    "controls": [
+      695,
+      549,
+      282
+    ],
+    "reasoning": "Enabled alarms ensure system monitoring (SI-4), incident handling (IR-4), and configuration settings (CM-6)"
+  },
+  "2033": {
+    "check_name": "aws_cloudwatch_dashboards_exist",
+    "controls": [
+      695,
+      113,
+      96
+    ],
+    "reasoning": "CloudWatch dashboards support system monitoring (SI-4), audit record review (AU-6), and event logging (AU-2)"
+  },
+  "2034": {
+    "check_name": "aws_cloudwatch_alarm_actions_configured",
+    "controls": [
+      549,
+      695,
+      96
+    ],
+    "reasoning": "Alarm actions enable incident handling (IR-4), system monitoring (SI-4), and event logging (AU-2)"
+  },
+  "2035": {
+    "check_name": "aws_cloudwatch_metrics_retention_appropriate",
+    "controls": [
+      96,
+      97,
+      113
+    ],
+    "reasoning": "Metrics retention implements event logging (AU-2), audit record content (AU-3), and audit record review (AU-6)"
+  },
+  "2036": {
+    "check_name": "aws_s3_bucket_policies_secure",
+    "controls": [
+      75,
+      90,
+      32
+    ],
+    "reasoning": "Secure bucket policies enforce access control (AC-3), least privilege (AC-6), and information flow enforcement (AC-4)"
+  },
+  "2037": {
+    "check_name": "aws_s3_bucket_policies_exist",
+    "controls": [
+      75,
+      1,
+      282
+    ],
+    "reasoning": "Explicit bucket policies implement access control (AC-3), policy procedures (AC-1), and configuration settings (CM-6)"
+  },
+  "2038": {
+    "check_name": "aws_s3_bucket_policies_no_wildcards",
+    "controls": [
+      90,
+      75,
+      32
+    ],
+    "reasoning": "Limited wildcards implement least privilege (AC-6), access control (AC-3), and information flow enforcement (AC-4)"
+  },
+  "2039": {
+    "check_name": "aws_s3_bucket_policies_secure_transport",
+    "controls": [
+      658,
+      657,
+      282
+    ],
+    "reasoning": "HTTPS enforcement provides transmission confidentiality (SC-8), cryptographic protection (SC-13), and configuration settings (CM-6)"
+  },
+  "2040": {
+    "check_name": "aws_iam_account_settings_secure",
+    "controls": [
+      157,
+      71,
+      282
+    ],
+    "reasoning": "IAM account settings implement identification and authentication (IA-2), account management (AC-2), and configuration settings (CM-6)"
+  },
+  "2041": {
+    "check_name": "aws_iam_password_policy_enforced",
+    "controls": [
+      157,
+      419,
+      420
+    ],
+    "reasoning": "Password policies implement identification and authentication (IA-2), password-based authentication (IA-5(1)), and public key authentication (IA-5(2))"
+  },
+  "2042": {
+    "check_name": "aws_iam_relationships_maintained",
+    "controls": [
+      71,
+      287,
+      282
+    ],
+    "reasoning": "IAM relationships support account management (AC-2), system inventory (CM-8), and configuration settings (CM-6)"
+  },
+  "2043": {
+    "check_name": "aws_iam_service_linked_roles_managed",
+    "controls": [
+      287,
+      282,
+      71
+    ],
+    "reasoning": "Service-linked roles support system inventory (CM-8), configuration settings (CM-6), and account management (AC-2)"
+  },
+  "2044": {
+    "check_name": "aws_cloudtrail_tags_managed",
+    "controls": [
+      287,
+      282,
+      96
+    ],
+    "reasoning": "CloudTrail tagging supports system inventory (CM-8), configuration settings (CM-6), and event logging (AU-2)"
+  },
+  "2045": {
+    "check_name": "aws_ec2_network_interfaces_secured",
+    "controls": [
+      75,
+      32,
+      658
+    ],
+    "reasoning": "Network interface security enforces access control (AC-3), information flow enforcement (AC-4), and transmission confidentiality (SC-8)"
+  },
+  "2046": {
+    "check_name": "aws_ec2_detailed_monitoring_enabled",
+    "controls": [
+      695,
+      96,
+      282
+    ],
+    "reasoning": "Detailed monitoring implements system monitoring (SI-4), event logging (AU-2), and configuration settings (CM-6)"
+  },
+  "2047": {
+    "check_name": "aws_ec2_iam_instance_profiles_attached",
+    "controls": [
+      157,
+      75,
+      71
+    ],
+    "reasoning": "Instance profiles implement identification and authentication (IA-2), access enforcement (AC-3), and account management (AC-2)"
+  },
+  "2048": {
+    "check_name": "aws_ec2_ebs_optimized_enabled",
+    "controls": [
+      282,
+      287,
+      244
+    ],
+    "reasoning": "EBS optimization ensures configuration settings (CM-6), system inventory (CM-8), and least functionality (CM-7)"
+  },
+  "2049": {
+    "check_name": "aws_ec2_instance_lifecycle_managed",
+    "controls": [
+      287,
+      282,
+      595
+    ],
+    "reasoning": "Instance lifecycle management supports system inventory (CM-8), configuration settings (CM-6), and program management (PM-1)"
+  },
+  "2050": {
+    "check_name": "aws_ec2_instances_properly_tagged",
+    "controls": [
+      287,
+      282,
+      1
+    ],
+    "reasoning": "Instance tagging implements system inventory (CM-8), configuration settings (CM-6), and policy procedures (AC-1)"
+  },
+  "2051": {
+    "check_name": "aws_ec2_block_device_mappings_encrypted",
+    "controls": [
+      658,
+      657,
+      656
+    ],
+    "reasoning": "Block device encryption provides transmission confidentiality (SC-8), cryptographic protection (SC-13), and protection at rest (SC-28)"
+  },
+  "2052": {
+    "check_name": "aws_security_groups_outbound_rules_restricted",
+    "controls": [
+      75,
+      32,
+      90
+    ],
+    "reasoning": "Outbound restrictions enforce access control (AC-3), information flow enforcement (AC-4), and least privilege (AC-6)"
+  },
+  "2053": {
+    "check_name": "aws_cloudwatch_log_groups_encrypted",
+    "controls": [
+      658,
+      657,
+      96
+    ],
+    "reasoning": "Log encryption provides transmission confidentiality (SC-8), cryptographic protection (SC-13), and event logging (AU-2)"
+  },
+  "2054": {
+    "check_name": "aws_cloudwatch_log_groups_retention_appropriate",
+    "controls": [
+      96,
+      97,
+      113
+    ],
+    "reasoning": "Log retention implements event logging (AU-2), audit record content (AU-3), and audit record review (AU-6)"
+  },
+  "2055": {
+    "check_name": "aws_cloudwatch_log_groups_metric_filters_configured",
+    "controls": [
+      695,
+      96,
+      549
+    ],
+    "reasoning": "Metric filters enable system monitoring (SI-4), event logging (AU-2), and incident handling (IR-4)"
+  },
+  "2056": {
+    "check_name": "aws_iam_users_access_keys_rotated",
+    "controls": [
+      157,
+      419,
+      420
+    ],
+    "reasoning": "Access key rotation implements identification and authentication (IA-2), password-based authentication (IA-5(1)), and public key authentication (IA-5(2))"
+  },
+  "2057": {
+    "check_name": "aws_iam_users_console_access_controlled",
+    "controls": [
+      71,
+      75,
+      90
+    ],
+    "reasoning": "Console access control implements account management (AC-2), access enforcement (AC-3), and least privilege (AC-6)"
+  },
+  "2058": {
+    "check_name": "aws_iam_users_path_organized",
+    "controls": [
+      287,
+      282,
+      71
+    ],
+    "reasoning": "User path organization supports system inventory (CM-8), configuration settings (CM-6), and account management (AC-2)"
+  },
+  "2059": {
+    "check_name": "github_repository_size_appropriate",
+    "controls": [
+      287,
+      282,
+      244
+    ],
+    "reasoning": "Repository size management supports system inventory (CM-8), configuration settings (CM-6), and least functionality (CM-7)"
+  },
+  "2060": {
+    "check_name": "github_repository_language_documented",
+    "controls": [
+      287,
+      282,
+      1
+    ],
+    "reasoning": "Language documentation supports system inventory (CM-8), configuration settings (CM-6), and policy procedures (AC-1)"
+  },
+  "2061": {
+    "check_name": "github_repository_creation_date_reasonable",
+    "controls": [
+      287,
+      282,
+      113
+    ],
+    "reasoning": "Repository age tracking supports system inventory (CM-8), configuration settings (CM-6), and audit record review (AU-6)"
+  },
+  "2062": {
+    "check_name": "github_repository_multiple_languages",
+    "controls": [
+      287,
+      282,
+      244
+    ],
+    "reasoning": "Language diversity assessment supports system inventory (CM-8), configuration settings (CM-6), and least functionality (CM-7)"
+  },
+  "2063": {
+    "check_name": "github_repository_code_frequency_active",
+    "controls": [
+      287,
+      113,
+      96
+    ],
+    "reasoning": "Code frequency tracking supports system inventory (CM-8), audit record review (AU-6), and event logging (AU-2)"
+  },
+  "2064": {
+    "check_name": "github_repository_tags_managed",
+    "controls": [
+      275,
+      287,
+      282
+    ],
+    "reasoning": "Tag management implements configuration change control (CM-3), system inventory (CM-8), and configuration settings (CM-6)"
+  },
+  "2065": {
+    "check_name": "github_cross_resource_security_consistency",
+    "controls": [
+      75,
+      282,
+      1
+    ],
+    "reasoning": "Security consistency enforces access control (AC-3), configuration settings (CM-6), and policy procedures (AC-1)"
+  },
+  "2066": {
+    "check_name": "aws_ec2_platform_consistency",
+    "controls": [
+      282,
+      287,
+      244
+    ],
+    "reasoning": "Platform consistency ensures configuration settings (CM-6), system inventory (CM-8), and least functionality (CM-7)"
+  },
+  "2067": {
+    "check_name": "aws_vpc_subnet_availability_zone_distribution",
+    "controls": [
+      277,
+      278,
+      282
+    ],
+    "reasoning": "AZ distribution supports system backup (CP-9), contingency planning (CP-10), and configuration settings (CM-6)"
+  },
+  "2068": {
+    "check_name": "aws_security_groups_naming_convention",
+    "controls": [
+      287,
+      282,
+      1
+    ],
+    "reasoning": "Naming conventions support system inventory (CM-8), configuration settings (CM-6), and policy procedures (AC-1)"
+  },
+  "2069": {
+    "check_name": "aws_instance_security_group_associations",
+    "controls": [
+      75,
+      32,
+      90
+    ],
+    "reasoning": "Security group associations enforce access control (AC-3), information flow enforcement (AC-4), and least privilege (AC-6)"
+  },
+  "2070": {
+    "check_name": "aws_cloudwatch_dashboard_coverage",
+    "controls": [
+      695,
+      113,
+      282
+    ],
+    "reasoning": "Dashboard coverage implements system monitoring (SI-4), audit record review (AU-6), and configuration settings (CM-6)"
+  },
+  "2071": {
+    "check_name": "aws_iam_cross_resource_consistency",
+    "controls": [
+      71,
+      75,
+      282
+    ],
+    "reasoning": "IAM consistency implements account management (AC-2), access enforcement (AC-3), and configuration settings (CM-6)"
+  },
+  "2072": {
+    "check_name": "aws_s3_bucket_cross_reference_analysis",
+    "controls": [
+      282,
+      658,
+      75
+    ],
+    "reasoning": "S3 cross-reference analysis ensures configuration settings (CM-6), transmission confidentiality (SC-8), and access control (AC-3)"
+  },
+  "2073": {
+    "check_name": "aws_cloudtrail_multi_region_coverage",
+    "controls": [
+      96,
+      97,
+      113
+    ],
+    "reasoning": "Multi-region coverage implements event logging (AU-2), audit record content (AU-3), and audit record review (AU-6)"
+  },
+  "2074": {
+    "check_name": "github_organization_structure_governance",
+    "controls": [
+      71,
+      75,
+      282
+    ],
+    "reasoning": "Organization governance implements account management (AC-2), access enforcement (AC-3), and configuration settings (CM-6)"
+  },
+  "2075": {
+    "check_name": "github_member_to_admin_ratio",
+    "controls": [
+      90,
+      71,
+      1205
+    ],
+    "reasoning": "Member-admin ratio implements least privilege (AC-6), account management (AC-2), and privileged account controls (AC-3-1-6)"
+  },
+  "2076": {
+    "check_name": "github_repository_activity_consistency",
+    "controls": [
+      287,
+      113,
+      282
+    ],
+    "reasoning": "Activity consistency supports system inventory (CM-8), audit record review (AU-6), and configuration settings (CM-6)"
+  },
+  "2077": {
+    "check_name": "github_security_policy_completeness",
+    "controls": [
+      75,
+      1,
+      282
+    ],
+    "reasoning": "Security policy completeness enforces access control (AC-3), policy procedures (AC-1), and configuration settings (CM-6)"
+  },
+  "2078": {
+    "check_name": "github_collaboration_balance",
+    "controls": [
+      113,
+      71,
+      282
+    ],
+    "reasoning": "Collaboration balance supports audit record review (AU-6), account management (AC-2), and configuration settings (CM-6)"
+  },
+  "2079": {
+    "check_name": "github_issue_management_effectiveness",
+    "controls": [
+      549,
+      96,
+      113
+    ],
+    "reasoning": "Issue management implements incident handling (IR-4), event logging (AU-2), and audit record review (AU-6)"
+  },
+  "2080": {
+    "check_name": "github_workflow_security_integration",
+    "controls": [
+      773,
+      779,
+      282
+    ],
+    "reasoning": "Workflow security manages external system services (SA-9), developer security testing (SA-11), and configuration settings (CM-6)"
+  },
+  "2081": {
+    "check_name": "github_advanced_features_utilization",
+    "controls": [
+      282,
+      473,
+      287
+    ],
+    "reasoning": "Advanced features support configuration settings (CM-6), nonlocal maintenance (MA-4), and system inventory (CM-8)"
+  },
+  "2082": {
+    "check_name": "aws_resource_tagging_consistency",
+    "controls": [
+      287,
+      282,
+      1
+    ],
+    "reasoning": "Tagging consistency supports system inventory (CM-8), configuration settings (CM-6), and policy procedures (AC-1)"
+  },
+  "2083": {
+    "check_name": "aws_network_security_layering",
+    "controls": [
+      75,
+      32,
+      658
+    ],
+    "reasoning": "Network layering enforces access control (AC-3), information flow enforcement (AC-4), and transmission confidentiality (SC-8)"
+  },
+  "2084": {
+    "check_name": "aws_monitoring_coverage_assessment",
+    "controls": [
+      695,
+      96,
+      282
+    ],
+    "reasoning": "Monitoring coverage implements system monitoring (SI-4), event logging (AU-2), and configuration settings (CM-6)"
+  },
+  "2085": {
+    "check_name": "aws_identity_access_maturity",
+    "controls": [
+      157,
+      71,
+      75
+    ],
+    "reasoning": "IAM maturity implements identification and authentication (IA-2), account management (AC-2), and access enforcement (AC-3)"
+  },
+  "2086": {
+    "check_name": "aws_ec2_network_interface_security",
+    "controls": [
+      75,
+      32,
+      658
+    ],
+    "reasoning": "Network interface security enforces access control (AC-3), information flow enforcement (AC-4), and transmission confidentiality (SC-8)"
+  },
+  "2087": {
+    "check_name": "aws_ec2_instance_metadata_security",
+    "controls": [
+      658,
+      75,
+      282
+    ],
+    "reasoning": "Metadata security provides transmission confidentiality (SC-8), access control (AC-3), and configuration settings (CM-6)"
+  },
+  "2088": {
+    "check_name": "aws_ec2_placement_group_optimization",
+    "controls": [
+      282,
+      287,
+      244
+    ],
+    "reasoning": "Placement optimization ensures configuration settings (CM-6), system inventory (CM-8), and least functionality (CM-7)"
+  },
+  "2089": {
+    "check_name": "aws_iam_role_trust_relationship_security",
+    "controls": [
+      90,
+      75,
+      157
+    ],
+    "reasoning": "Trust relationship security implements least privilege (AC-6), access control (AC-3), and identification and authentication (IA-2)"
+  },
+  "2090": {
+    "check_name": "aws_s3_bucket_intelligent_tiering",
+    "controls": [
+      282,
+      287,
+      244
+    ],
+    "reasoning": "Intelligent tiering supports configuration settings (CM-6), system inventory (CM-8), and least functionality (CM-7)"
+  },
+  "2091": {
+    "check_name": "aws_cloudwatch_advanced_alarm_conditions",
+    "controls": [
+      695,
+      549,
+      282
+    ],
+    "reasoning": "Advanced alarms implement system monitoring (SI-4), incident handling (IR-4), and configuration settings (CM-6)"
+  },
+  "2092": {
+    "check_name": "aws_cloudtrail_advanced_event_selection",
+    "controls": [
+      96,
+      97,
+      113
+    ],
+    "reasoning": "Advanced event selection implements event logging (AU-2), audit record content (AU-3), and audit record review (AU-6)"
+  },
+  "2093": {
+    "check_name": "aws_multi_service_security_posture",
+    "controls": [
+      75,
+      157,
+      282
+    ],
+    "reasoning": "Multi-service posture enforces access control (AC-3), identification and authentication (IA-2), and configuration settings (CM-6)"
+  },
+  "2094": {
+    "check_name": "github_security_alert_response_maturity",
+    "controls": [
+      549,
+      96,
+      679
+    ],
+    "reasoning": "Alert response maturity implements incident handling (IR-4), event logging (AU-2), and flaw remediation (SI-2)"
+  },
+  "2095": {
+    "check_name": "github_code_quality_automation",
+    "controls": [
+      679,
+      1303,
+      282
+    ],
+    "reasoning": "Code quality automation supports flaw remediation (SI-2), flaw remediation (SI-3-14-1), and configuration settings (CM-6)"
+  },
+  "2096": {
+    "check_name": "github_branch_protection_comprehensiveness",
+    "controls": [
+      275,
+      1240,
+      1242
+    ],
+    "reasoning": "Comprehensive branch protection implements configuration change control (CM-3), configuration change control (CM-3-4-3), and change access restrictions (CM-3-4-5)"
+  },
+  "2097": {
+    "check_name": "github_development_velocity_health",
+    "controls": [
+      287,
+      113,
+      779
+    ],
+    "reasoning": "Development velocity supports system inventory (CM-8), audit record review (AU-6), and developer security testing (SA-11)"
+  },
+  "2098": {
+    "check_name": "github_organization_security_standardization",
+    "controls": [
+      282,
+      1,
+      75
+    ],
+    "reasoning": "Security standardization ensures configuration settings (CM-6), policy procedures (AC-1), and access control (AC-3)"
+  },
+  "2099": {
+    "check_name": "github_supply_chain_security",
+    "controls": [
+      773,
+      1296,
+      549
+    ],
+    "reasoning": "Supply chain security manages external system services (SA-9), malicious code protection (SI-3-14-2), and incident handling (IR-4)"
+  },
+  "2100": {
+    "check_name": "github_repository_maintenance_hygiene",
+    "controls": [
+      473,
+      282,
+      287
+    ],
+    "reasoning": "Maintenance hygiene supports nonlocal maintenance (MA-4), configuration settings (CM-6), and system inventory (CM-8)"
+  },
+  "2101": {
+    "check_name": "github_collaborative_development_maturity",
+    "controls": [
+      113,
+      71,
+      282
+    ],
+    "reasoning": "Collaborative maturity supports audit record review (AU-6), account management (AC-2), and configuration settings (CM-6)"
+  },
+  "2102": {
+    "check_name": "aws_cost_optimization_intelligence",
+    "controls": [
+      287,
+      282,
+      595
+    ],
+    "reasoning": "Cost optimization supports system inventory (CM-8), configuration settings (CM-6), and program management (PM-1)"
+  },
+  "2103": {
+    "check_name": "aws_disaster_recovery_readiness",
+    "controls": [
+      277,
+      278,
+      658
+    ],
+    "reasoning": "DR readiness implements system backup (CP-9), contingency planning (CP-10), and transmission confidentiality (SC-8)"
+  },
+  "2104": {
+    "check_name": "aws_compliance_automation_maturity",
+    "controls": [
+      695,
+      282,
+      549
+    ],
+    "reasoning": "Compliance automation implements system monitoring (SI-4), configuration settings (CM-6), and incident handling (IR-4)"
+  },
+  "2105": {
+    "check_name": "aws_operational_excellence_indicators",
+    "controls": [
+      282,
+      695,
+      113
+    ],
+    "reasoning": "Operational excellence ensures configuration settings (CM-6), system monitoring (SI-4), and audit record review (AU-6)"
+  },
+  "2106": {
+    "check_name": "aws_resource_utilization_efficiency",
+    "controls": [
+      282,
+      287,
+      595
+    ],
+    "reasoning": "Resource efficiency supports configuration settings (CM-6), system inventory (CM-8), and program management (PM-1)"
+  },
+  "2107": {
+    "check_name": "aws_security_compliance_scoring",
+    "controls": [
+      75,
+      90,
+      282
+    ],
+    "reasoning": "Compliance scoring enforces access control (AC-3), least privilege (AC-6), and configuration settings (CM-6)"
+  },
+  "2108": {
+    "check_name": "aws_data_residency_compliance",
+    "controls": [
+      658,
+      657,
+      656
+    ],
+    "reasoning": "Data residency ensures transmission confidentiality (SC-8), cryptographic protection (SC-13), and protection at rest (SC-28)"
+  },
+  "2109": {
+    "check_name": "aws_change_management_traceability",
+    "controls": [
+      275,
+      96,
+      113
+    ],
+    "reasoning": "Change traceability implements configuration change control (CM-3), event logging (AU-2), and audit record review (AU-6)"
+  },
+  "2110": {
+    "check_name": "aws_business_continuity_preparedness",
+    "controls": [
+      277,
+      278,
+      282
+    ],
+    "reasoning": "Business continuity implements system backup (CP-9), contingency planning (CP-10), and configuration settings (CM-6)"
+  },
+  "2111": {
+    "check_name": "aws_performance_monitoring_maturity",
+    "controls": [
+      695,
+      282,
+      113
+    ],
+    "reasoning": "Performance monitoring implements system monitoring (SI-4), configuration settings (CM-6), and audit record review (AU-6)"
+  },
+  "2112": {
+    "check_name": "aws_access_pattern_analytics",
+    "controls": [
+      157,
+      71,
+      113
+    ],
+    "reasoning": "Access analytics implements identification and authentication (IA-2), account management (AC-2), and audit record review (AU-6)"
+  },
+  "2113": {
+    "check_name": "aws_regulatory_compliance_readiness",
+    "controls": [
+      96,
+      97,
+      113
+    ],
+    "reasoning": "Regulatory readiness implements event logging (AU-2), audit record content (AU-3), and audit record review (AU-6)"
+  },
+  "2114": {
+    "check_name": "github_enterprise_security_governance",
+    "controls": [
+      75,
+      1,
+      282
+    ],
+    "reasoning": "Enterprise governance enforces access control (AC-3), policy procedures (AC-1), and configuration settings (CM-6)"
+  },
+  "2115": {
+    "check_name": "github_development_lifecycle_compliance",
+    "controls": [
+      275,
+      779,
+      282
+    ],
+    "reasoning": "Development lifecycle compliance implements configuration change control (CM-3), developer security testing (SA-11), and configuration settings (CM-6)"
+  },
+  "2116": {
+    "check_name": "github_intellectual_property_protection",
+    "controls": [
+      658,
+      1217,
+      75
+    ],
+    "reasoning": "IP protection provides transmission confidentiality (SC-8), mobile device access control (AC-3-1-18), and access enforcement (AC-3)"
+  },
+  "2117": {
+    "check_name": "github_code_review_enforcement",
+    "controls": [
+      679,
+      275,
+      779
+    ],
+    "reasoning": "Code review enforcement supports flaw remediation (SI-2), configuration change control (CM-3), and developer security testing (SA-11)"
+  },
+  "2118": {
+    "check_name": "github_team_based_access_control",
+    "controls": [
+      71,
+      75,
+      65
+    ],
+    "reasoning": "Team-based access implements account management (AC-2), access enforcement (AC-3), and separation of duties (AC-5)"
+  },
+  "2119": {
+    "check_name": "github_automated_security_testing",
+    "controls": [
+      779,
+      1303,
+      695
+    ],
+    "reasoning": "Automated security testing implements developer security testing (SA-11), flaw remediation (SI-3-14-1), and system monitoring (SI-4)"
+  },
+  "2120": {
+    "check_name": "github_vulnerability_management_process",
+    "controls": [
+      549,
+      679,
+      1303
+    ],
+    "reasoning": "Vulnerability management implements incident handling (IR-4), flaw remediation (SI-2), and flaw remediation (SI-3-14-1)"
+  },
+  "2121": {
+    "check_name": "github_compliance_documentation_standards",
+    "controls": [
+      282,
+      1,
+      287
+    ],
+    "reasoning": "Compliance documentation ensures configuration settings (CM-6), policy procedures (AC-1), and system inventory (CM-8)"
+  },
+  "2122": {
+    "check_name": "aws_enterprise_governance_maturity",
+    "controls": [
+      287,
+      282,
+      1
+    ],
+    "reasoning": "Enterprise governance implements system inventory (CM-8), configuration settings (CM-6), and policy procedures (AC-1)"
+  },
+  "2123": {
+    "check_name": "aws_security_operations_center_readiness",
+    "controls": [
+      695,
+      549,
+      96
+    ],
+    "reasoning": "SOC readiness implements system monitoring (SI-4), incident handling (IR-4), and event logging (AU-2)"
+  },
+  "2124": {
+    "check_name": "aws_incident_response_automation",
+    "controls": [
+      549,
+      695,
+      282
+    ],
+    "reasoning": "Incident response automation implements incident handling (IR-4), system monitoring (SI-4), and configuration settings (CM-6)"
+  },
+  "2125": {
+    "check_name": "aws_comprehensive_audit_trail_coverage",
+    "controls": [
+      113,
+      96,
+      97
+    ],
+    "reasoning": "Comprehensive audit trails implement audit record review (AU-6), event logging (AU-2), and audit record content (AU-3)"
+  },
+  "2126": {
+    "check_name": "aws_anomaly_detection_capabilities",
+    "controls": [
+      695,
+      549,
+      282
+    ],
+    "reasoning": "Anomaly detection implements system monitoring (SI-4), incident handling (IR-4), and configuration settings (CM-6)"
+  },
+  "2127": {
+    "check_name": "aws_security_event_correlation",
+    "controls": [
+      96,
+      97,
+      113
+    ],
+    "reasoning": "Event correlation implements event logging (AU-2), audit record content (AU-3), and audit record review (AU-6)"
+  },
+  "2128": {
+    "check_name": "aws_threat_intelligence_integration",
+    "controls": [
+      549,
+      695,
+      113
+    ],
+    "reasoning": "Threat intelligence implements incident handling (IR-4), system monitoring (SI-4), and audit record review (AU-6)"
+  },
+  "2129": {
+    "check_name": "aws_security_metrics_maturity",
+    "controls": [
+      695,
+      282,
+      113
+    ],
+    "reasoning": "Security metrics implement system monitoring (SI-4), configuration settings (CM-6), and audit record review (AU-6)"
+  },
+  "2130": {
+    "check_name": "aws_infrastructure_hardening_validation",
+    "controls": [
+      282,
+      75,
+      287
+    ],
+    "reasoning": "Infrastructure hardening ensures configuration settings (CM-6), access control (AC-3), and system inventory (CM-8)"
+  },
+  "10001": {
+    "check_name": "github_account_management_ac_3_1_1",
+    "controls": [
+      1200
+    ],
+    "reasoning": "Direct mapping to AC-3-1-1 (Account Management) for GitHub repository access control through collaborator management"
+  },
+  "10002": {
+    "check_name": "github_access_enforcement_ac_3_1_2",
+    "controls": [
+      1201
+    ],
+    "reasoning": "Direct mapping to AC-3-1-2 (Access Enforcement) through GitHub branch protection mechanisms"
+  },
+  "10003": {
+    "check_name": "github_separation_of_duties_ac_3_1_4",
+    "controls": [
+      1203
+    ],
+    "reasoning": "Direct mapping to AC-3-1-4 (Separation of Duties) through required code reviews on protected branches"
+  },
+  "10004": {
+    "check_name": "github_least_privilege_ac_3_1_5",
+    "controls": [
+      1204
+    ],
+    "reasoning": "Direct mapping to AC-3-1-5 (Least Privilege) through limited administrative access in GitHub organizations"
+  },
+  "10005": {
+    "check_name": "github_repository_private_ac_3_1_18",
+    "controls": [
+      1217
+    ],
+    "reasoning": "Direct mapping to AC-3-1-18 (Mobile Device Access Control) through private repository settings"
+  },
+  "20001": {
+    "check_name": "aws_iam_account_management_ac_3_1_1",
+    "controls": [
+      1200
+    ],
+    "reasoning": "Direct mapping to AC-3-1-1 (Account Management) for AWS IAM user account controls"
+  },
+  "20002": {
+    "check_name": "aws_security_groups_access_enforcement_ac_3_1_2",
+    "controls": [
+      1201
+    ],
+    "reasoning": "Direct mapping to AC-3-1-2 (Access Enforcement) through AWS security group ingress/egress rules"
+  },
+  "20003": {
+    "check_name": "aws_iam_least_privilege_ac_3_1_5",
+    "controls": [
+      1204
+    ],
+    "reasoning": "Direct mapping to AC-3-1-5 (Least Privilege) through AWS IAM policy restrictions and wildcard prevention"
+  },
+  "20004": {
+    "check_name": "aws_mfa_authentication_ac_3_1_6",
+    "controls": [
+      1205
+    ],
+    "reasoning": "Direct mapping to AC-3-1-6 (Privileged Account Controls) through AWS IAM MFA enforcement for privileged users"
+  },
+  "10301": {
+    "check_name": "github_baseline_configuration_cm_3_4_1",
+    "controls": [
+      1238
+    ],
+    "reasoning": "Direct mapping to CM-3-4-1 (Baseline Configuration) through GitHub default branch configuration"
+  },
+  "10302": {
+    "check_name": "github_configuration_change_control_cm_3_4_3",
+    "controls": [
+      1240
+    ],
+    "reasoning": "Direct mapping to CM-3-4-3 (Configuration Change Control) through GitHub branch protection mechanisms"
+  },
+  "20301": {
+    "check_name": "aws_baseline_configuration_cm_3_4_1",
+    "controls": [
+      1238
+    ],
+    "reasoning": "Direct mapping to CM-3-4-1 (Baseline Configuration) through AWS EC2 instance baseline tagging requirements"
+  },
+  "20302": {
+    "check_name": "aws_configuration_settings_cm_3_4_2",
+    "controls": [
+      1239
+    ],
+    "reasoning": "Direct mapping to CM-3-4-2 (Configuration Settings) through AWS security group configuration validation"
+  },
+  "10401": {
+    "check_name": "github_user_identification_ia_3_5_1",
+    "controls": [
+      1247
+    ],
+    "reasoning": "Direct mapping to IA-3-5-1 (User Identification) through GitHub collaborator identification and management"
+  },
+  "20401": {
+    "check_name": "aws_user_identification_ia_3_5_1",
+    "controls": [
+      1247
+    ],
+    "reasoning": "Direct mapping to IA-3-5-1 (User Identification) through AWS IAM user identification and creation tracking"
+  },
+  "20402": {
+    "check_name": "aws_multi_factor_authentication_ia_3_5_3",
+    "controls": [
+      1249
+    ],
+    "reasoning": "Direct mapping to IA-3-5-3 (Multi-Factor Authentication) through AWS IAM MFA device enforcement"
+  },
+  "10501": {
+    "check_name": "github_incident_response_plan_ir_3_6_1",
+    "controls": [
+      1258
+    ],
+    "reasoning": "Direct mapping to IR-3-6-1 (Incident Response Plan) through GitHub issues tracking for incident management"
+  },
+  "10502": {
+    "check_name": "github_incident_monitoring_ir_3_6_2",
+    "controls": [
+      1259
+    ],
+    "reasoning": "Direct mapping to IR-3-6-2 (Incident Monitoring) through GitHub active issue management and monitoring"
+  },
+  "20501": {
+    "check_name": "aws_incident_response_plan_ir_3_6_1",
+    "controls": [
+      1258
+    ],
+    "reasoning": "Direct mapping to IR-3-6-1 (Incident Response Plan) through AWS CloudTrail comprehensive logging for incident response"
+  },
+  "20502": {
+    "check_name": "aws_incident_monitoring_ir_3_6_2",
+    "controls": [
+      1259
+    ],
+    "reasoning": "Direct mapping to IR-3-6-2 (Incident Monitoring) through AWS CloudWatch alarms for incident detection"
+  },
+  "10601": {
+    "check_name": "github_organizational_maintenance_ma_3_7_1",
+    "controls": [
+      1261
+    ],
+    "reasoning": "Direct mapping to MA-3-7-1 (Organizational Maintenance) through GitHub repository activity and commit tracking"
+  },
+  "10602": {
+    "check_name": "github_maintenance_tools_ma_3_7_4",
+    "controls": [
+      1264
+    ],
+    "reasoning": "Direct mapping to MA-3-7-4 (Maintenance Tools) through GitHub webhooks and integration tooling"
+  },
+  "20601": {
+    "check_name": "aws_organizational_maintenance_ma_3_7_1",
+    "controls": [
+      1261
+    ],
+    "reasoning": "Direct mapping to MA-3-7-1 (Organizational Maintenance) through AWS resource tagging for maintenance tracking"
+  },
+  "10701": {
+    "check_name": "github_media_storage_mp_3_8_1",
+    "controls": [
+      1267
+    ],
+    "reasoning": "Direct mapping to MP-3-8-1 (Media Storage) through GitHub repository privacy for secure code storage"
+  },
+  "10702": {
+    "check_name": "github_media_access_mp_3_8_2",
+    "controls": [
+      1268
+    ],
+    "reasoning": "Direct mapping to MP-3-8-2 (Media Access) through GitHub collaborator access control for repository media"
+  },
+  "20701": {
+    "check_name": "aws_media_storage_mp_3_8_1",
+    "controls": [
+      1267
+    ],
+    "reasoning": "Direct mapping to MP-3-8-1 (Media Storage) through AWS S3 bucket encryption for secure media storage"
+  },
+  "20702": {
+    "check_name": "aws_media_access_mp_3_8_2",
+    "controls": [
+      1268
+    ],
+    "reasoning": "Direct mapping to MP-3-8-2 (Media Access) through AWS S3 public access blocking for controlled media access"
+  },
+  "20801": {
+    "check_name": "aws_physical_access_pe_3_10_1",
+    "controls": [
+      1276
+    ],
+    "reasoning": "Direct mapping to PE-3-10-1 (Physical Access Authorizations) through AWS availability zone deployment controls"
+  },
+  "20901": {
+    "check_name": "aws_personnel_screening_ps_3_9_1",
+    "controls": [
+      1282
+    ],
+    "reasoning": "Direct mapping to PS-3-9-1 (Personnel Screening) through AWS IAM group-based access management"
+  },
+  "11001": {
+    "check_name": "github_risk_assessment_ra_3_11_1",
+    "controls": [
+      1284
+    ],
+    "reasoning": "Direct mapping to RA-3-11-1 (Risk Assessment) through GitHub advanced security analysis and risk evaluation"
+  },
+  "21001": {
+    "check_name": "aws_risk_assessment_ra_3_11_1",
+    "controls": [
+      1284
+    ],
+    "reasoning": "Direct mapping to RA-3-11-1 (Risk Assessment) through AWS security group risk analysis and assessment"
+  },
+  "11101": {
+    "check_name": "github_system_protection_sc_3_13_1",
+    "controls": [
+      1287
+    ],
+    "reasoning": "Direct mapping to SC-3-13-1 (System Protection) through GitHub comprehensive security features implementation"
+  },
+  "11102": {
+    "check_name": "github_transmission_confidentiality_sc_3_13_8",
+    "controls": [
+      1294
+    ],
+    "reasoning": "Direct mapping to SC-3-13-8 (Transmission Confidentiality) through GitHub private repository HTTPS enforcement"
+  },
+  "21101": {
+    "check_name": "aws_system_protection_sc_3_13_1",
+    "controls": [
+      1287
+    ],
+    "reasoning": "Direct mapping to SC-3-13-1 (System Protection) through AWS VPC configuration and non-default VPC usage"
+  },
+  "21102": {
+    "check_name": "aws_transmission_confidentiality_sc_3_13_8",
+    "controls": [
+      1294
+    ],
+    "reasoning": "Direct mapping to SC-3-13-8 (Transmission Confidentiality) through AWS S3 encryption in transit"
+  },
+  "11201": {
+    "check_name": "github_flaw_remediation_si_3_14_1",
+    "controls": [
+      1303
+    ],
+    "reasoning": "Direct mapping to SI-3-14-1 (Flaw Remediation) through GitHub advanced security scanning and vulnerability detection"
+  },
+  "11202": {
+    "check_name": "github_malicious_code_protection_si_3_14_2",
+    "controls": [
+      1304
+    ],
+    "reasoning": "Direct mapping to SI-3-14-2 (Malicious Code Protection) through GitHub security features for code protection"
+  },
+  "21201": {
+    "check_name": "aws_flaw_remediation_si_3_14_1",
+    "controls": [
+      1303
+    ],
+    "reasoning": "Direct mapping to SI-3-14-1 (Flaw Remediation) through AWS EC2 instance patching and AMI management"
+  },
+  "21202": {
+    "check_name": "aws_malicious_code_protection_si_3_14_2",
+    "controls": [
+      1304
+    ],
+    "reasoning": "Direct mapping to SI-3-14-2 (Malicious Code Protection) through AWS security group restrictions against malicious traffic"
+  },
+  "11301": {
+    "check_name": "github_security_assessment_ca_3_12_1",
+    "controls": [
+      1234
+    ],
+    "reasoning": "Direct mapping to CA-3-12-1 (Security Assessment) through GitHub repository security analysis and assessment"
+  },
+  "11302": {
+    "check_name": "github_continuous_monitoring_ca_3_12_3",
+    "controls": [
+      1236
+    ],
+    "reasoning": "Direct mapping to CA-3-12-3 (Continuous Monitoring) through GitHub webhook-based continuous monitoring"
+  },
+  "21301": {
+    "check_name": "aws_security_assessment_ca_3_12_1",
+    "controls": [
+      1234
+    ],
+    "reasoning": "Direct mapping to CA-3-12-1 (Security Assessment) through AWS CloudTrail multi-region security assessment"
+  },
+  "21302": {
+    "check_name": "aws_continuous_monitoring_ca_3_12_3",
+    "controls": [
+      1236
+    ],
+    "reasoning": "Direct mapping to CA-3-12-3 (Continuous Monitoring) through AWS CloudWatch alarm-based continuous monitoring"
+  },
+  "21303": {
+    "check_name": "github_access_control_ac_3_1_3",
+    "controls": [
+      1202
+    ],
+    "reasoning": "Direct mapping to AC-3-1-3 (Information Flow Control) through GitHub repository permission management"
+  },
+  "21304": {
+    "check_name": "aws_access_control_ac_3_1_3",
+    "controls": [
+      1202
+    ],
+    "reasoning": "Direct mapping to AC-3-1-3 (Information Flow Control) through AWS IAM policy-based access control"
+  },
+  "21305": {
+    "check_name": "github_access_enforcement_ac_3_1_7",
+    "controls": [
+      1206
+    ],
+    "reasoning": "Direct mapping to AC-3-1-7 (Access Enforcement) through GitHub branch protection and access enforcement"
+  },
+  "21306": {
+    "check_name": "aws_access_enforcement_ac_3_1_7",
+    "controls": [
+      1206
+    ],
+    "reasoning": "Direct mapping to AC-3-1-7 (Access Enforcement) through AWS security group access enforcement"
+  },
+  "21307": {
+    "check_name": "github_information_flow_ac_3_1_8",
+    "controls": [
+      1207
+    ],
+    "reasoning": "Direct mapping to AC-3-1-8 (Information Flow Control) through GitHub repository privacy settings"
+  },
+  "21308": {
+    "check_name": "aws_information_flow_ac_3_1_8",
+    "controls": [
+      1207
+    ],
+    "reasoning": "Direct mapping to AC-3-1-8 (Information Flow Control) through AWS VPC network flow control"
+  },
+  "21309": {
+    "check_name": "github_security_attributes_ac_3_1_9",
+    "controls": [
+      1208
+    ],
+    "reasoning": "Direct mapping to AC-3-1-9 (Security Attributes) through GitHub repository topics and metadata attributes"
+  },
+  "21310": {
+    "check_name": "aws_security_attributes_ac_3_1_9",
+    "controls": [
+      1208
+    ],
+    "reasoning": "Direct mapping to AC-3-1-9 (Security Attributes) through AWS CloudTrail resource tagging for security attributes"
+  },
+  "21311": {
+    "check_name": "github_privileged_functions_ac_3_1_10",
+    "controls": [
+      1209
+    ],
+    "reasoning": "Direct mapping to AC-3-1-10 (Privileged Functions) through GitHub organization admin access control"
+  },
+  "21312": {
+    "check_name": "aws_privileged_functions_ac_3_1_10",
+    "controls": [
+      1209
+    ],
+    "reasoning": "Direct mapping to AC-3-1-10 (Privileged Functions) through AWS IAM role-based privileged function control"
+  },
+  "21313": {
+    "check_name": "github_security_training_at_3_2_2",
+    "controls": [
+      1223
+    ],
+    "reasoning": "Direct mapping to AT-3-2-2 (Security Training) through GitHub wiki documentation for security awareness training"
+  },
+  "21314": {
+    "check_name": "aws_security_training_at_3_2_2",
+    "controls": [
+      1223
+    ],
+    "reasoning": "Direct mapping to AT-3-2-2 (Security Training) through AWS CloudTrail logging for security training awareness"
+  },
+  "21315": {
+    "check_name": "github_audit_generation_au_3_3_3",
+    "controls": [
+      1227
+    ],
+    "reasoning": "Direct mapping to AU-3-3-3 (Audit Generation) through GitHub workflow logs for comprehensive audit generation"
+  },
+  "21316": {
+    "check_name": "aws_audit_generation_au_3_3_3",
+    "controls": [
+      1227
+    ],
+    "reasoning": "Direct mapping to AU-3-3-3 (Audit Generation) through AWS CloudWatch metrics for audit event generation"
+  },
+  "21317": {
+    "check_name": "github_audit_review_au_3_3_4",
+    "controls": [
+      1228
+    ],
+    "reasoning": "Direct mapping to AU-3-3-4 (Audit Review) through GitHub security advisories for audit record review"
+  },
+  "21318": {
+    "check_name": "aws_audit_review_au_3_3_4",
+    "controls": [
+      1228
+    ],
+    "reasoning": "Direct mapping to AU-3-3-4 (Audit Review) through AWS CloudWatch dashboards for audit record review"
+  },
+  "21319": {
+    "check_name": "github_audit_reduction_au_3_3_5",
+    "controls": [
+      1229
+    ],
+    "reasoning": "Direct mapping to AU-3-3-5 (Audit Reduction) through GitHub issue management for audit data reduction"
+  },
+  "21320": {
+    "check_name": "aws_audit_reduction_au_3_3_5",
+    "controls": [
+      1229
+    ],
+    "reasoning": "Direct mapping to AU-3-3-5 (Audit Reduction) through AWS CloudWatch log stream management for audit reduction"
+  },
+  "21321": {
+    "check_name": "github_configuration_monitoring_cm_3_4_4",
+    "controls": [
+      1241
+    ],
+    "reasoning": "Direct mapping to CM-3-4-4 (Configuration Monitoring) through GitHub repository settings monitoring"
+  },
+  "21322": {
+    "check_name": "aws_configuration_monitoring_cm_3_4_4",
+    "controls": [
+      1241
+    ],
+    "reasoning": "Direct mapping to CM-3-4-4 (Configuration Monitoring) through AWS EC2 instance configuration monitoring"
+  },
+  "21323": {
+    "check_name": "github_configuration_documentation_cm_3_4_5",
+    "controls": [
+      1242
+    ],
+    "reasoning": "Direct mapping to CM-3-4-5 (Configuration Documentation) through GitHub repository description and documentation"
+  },
+  "21324": {
+    "check_name": "aws_configuration_documentation_cm_3_4_5",
+    "controls": [
+      1242
+    ],
+    "reasoning": "Direct mapping to CM-3-4-5 (Configuration Documentation) through AWS EBS volume configuration documentation"
+  },
+  "21325": {
+    "check_name": "github_authenticator_management_ia_3_5_2",
+    "controls": [
+      1248
+    ],
+    "reasoning": "Direct mapping to IA-3-5-2 (Authenticator Management) through GitHub organization member management"
+  },
+  "21326": {
+    "check_name": "aws_authenticator_management_ia_3_5_2",
+    "controls": [
+      1248
+    ],
+    "reasoning": "Direct mapping to IA-3-5-2 (Authenticator Management) through AWS IAM user authenticator management"
+  },
+  "21327": {
+    "check_name": "github_identifier_management_ia_3_5_4",
+    "controls": [
+      1250
+    ],
+    "reasoning": "Direct mapping to IA-3-5-4 (Identifier Management) through GitHub outside collaborator identifier management"
+  },
+  "21328": {
+    "check_name": "aws_identifier_management_ia_3_5_4",
+    "controls": [
+      1250
+    ],
+    "reasoning": "Direct mapping to IA-3-5-4 (Identifier Management) through AWS IAM account identifier management"
+  },
+  "21329": {
+    "check_name": "github_authentication_feedback_ia_3_5_5",
+    "controls": [
+      1251
+    ],
+    "reasoning": "Direct mapping to IA-3-5-5 (Authentication Feedback) through GitHub security features for authentication feedback"
+  },
+  "21330": {
+    "check_name": "aws_authentication_feedback_ia_3_5_5",
+    "controls": [
+      1251
+    ],
+    "reasoning": "Direct mapping to IA-3-5-5 (Authentication Feedback) through AWS CloudTrail event selectors for authentication feedback"
+  },
+  "21331": {
+    "check_name": "github_maintenance_personnel_ma_3_7_2",
+    "controls": [
+      1262
+    ],
+    "reasoning": "Direct mapping to MA-3-7-2 (Maintenance Personnel) through GitHub team-based maintenance personnel management"
+  },
+  "21332": {
+    "check_name": "aws_maintenance_personnel_ma_3_7_2",
+    "controls": [
+      1262
+    ],
+    "reasoning": "Direct mapping to MA-3-7-2 (Maintenance Personnel) through AWS IAM relationships for maintenance personnel"
+  },
+  "21333": {
+    "check_name": "github_maintenance_controls_ma_3_7_3",
+    "controls": [
+      1263
+    ],
+    "reasoning": "Direct mapping to MA-3-7-3 (Maintenance Controls) through GitHub Dependabot alerts for maintenance controls"
+  },
+  "21334": {
+    "check_name": "aws_maintenance_controls_ma_3_7_3",
+    "controls": [
+      1263
+    ],
+    "reasoning": "Direct mapping to MA-3-7-3 (Maintenance Controls) through AWS EC2 snapshots for maintenance controls"
+  },
+  "21335": {
+    "check_name": "github_media_labeling_mp_3_8_3",
+    "controls": [
+      1269
+    ],
+    "reasoning": "Direct mapping to MP-3-8-3 (Media Labeling) through GitHub repository tags for media labeling"
+  },
+  "21336": {
+    "check_name": "aws_media_labeling_mp_3_8_3",
+    "controls": [
+      1269
+    ],
+    "reasoning": "Direct mapping to MP-3-8-3 (Media Labeling) through AWS S3 bucket naming for media labeling"
+  },
+  "21337": {
+    "check_name": "github_media_handling_mp_3_8_4",
+    "controls": [
+      1270
+    ],
+    "reasoning": "Direct mapping to MP-3-8-4 (Media Handling) through GitHub repository file management for media handling"
+  },
+  "21338": {
+    "check_name": "aws_media_handling_mp_3_8_4",
+    "controls": [
+      1270
+    ],
+    "reasoning": "Direct mapping to MP-3-8-4 (Media Handling) through AWS S3 bucket policies for media handling"
+  },
+  "21339": {
+    "check_name": "github_media_transport_mp_3_8_5",
+    "controls": [
+      1271
+    ],
+    "reasoning": "Direct mapping to MP-3-8-5 (Media Transport) through GitHub HTTPS secure connections for media transport"
+  },
+  "21340": {
+    "check_name": "aws_media_transport_mp_3_8_5",
+    "controls": [
+      1271
+    ],
+    "reasoning": "Direct mapping to MP-3-8-5 (Media Transport) through AWS S3 encryption for secure media transport"
+  },
+  "21341": {
+    "check_name": "github_physical_access_pe_3_10_2",
+    "controls": [
+      1277
+    ],
+    "reasoning": "Direct mapping to PE-3-10-2 (Physical Access Controls) through GitHub advanced security for physical access protection"
+  },
+  "21342": {
+    "check_name": "aws_physical_access_pe_3_10_2",
+    "controls": [
+      1277
+    ],
+    "reasoning": "Direct mapping to PE-3-10-2 (Physical Access Controls) through AWS multi-AZ deployment for physical access controls"
+  },
+  "21343": {
+    "check_name": "github_facility_controls_pe_3_10_3",
+    "controls": [
+      1278
+    ],
+    "reasoning": "Direct mapping to PE-3-10-3 (Facility Controls) through GitHub secret scanning for facility security controls"
+  },
+  "21344": {
+    "check_name": "aws_facility_controls_pe_3_10_3",
+    "controls": [
+      1278
+    ],
+    "reasoning": "Direct mapping to PE-3-10-3 (Facility Controls) through AWS VPC route tables for facility controls"
+  },
+  "21345": {
+    "check_name": "github_environmental_monitoring_pe_3_10_4",
+    "controls": [
+      1279
+    ],
+    "reasoning": "Direct mapping to PE-3-10-4 (Environmental Monitoring) through GitHub workflow monitoring for environmental controls"
+  },
+  "21346": {
+    "check_name": "aws_environmental_monitoring_pe_3_10_4",
+    "controls": [
+      1279
+    ],
+    "reasoning": "Direct mapping to PE-3-10-4 (Environmental Monitoring) through AWS CloudWatch alarms for environmental monitoring"
+  },
+  "21347": {
+    "check_name": "github_risk_categorization_ra_3_11_2",
+    "controls": [
+      1285
+    ],
+    "reasoning": "Direct mapping to RA-3-11-2 (Risk Categorization) through GitHub repository language classification for risk categorization"
+  },
+  "21348": {
+    "check_name": "aws_risk_categorization_ra_3_11_2",
+    "controls": [
+      1285
+    ],
+    "reasoning": "Direct mapping to RA-3-11-2 (Risk Categorization) through AWS EC2 key pairs for resource risk categorization"
+  },
+  "21349": {
+    "check_name": "github_boundary_protection_sc_3_13_2",
+    "controls": [
+      1288
+    ],
+    "reasoning": "Direct mapping to SC-3-13-2 (Boundary Protection) through GitHub private repository boundary protection"
+  },
+  "21350": {
+    "check_name": "aws_boundary_protection_sc_3_13_2",
+    "controls": [
+      1288
+    ],
+    "reasoning": "Direct mapping to SC-3-13-2 (Boundary Protection) through AWS security groups for network boundary protection"
+  },
+  "21351": {
+    "check_name": "github_network_segmentation_sc_3_13_3",
+    "controls": [
+      1289
+    ],
+    "reasoning": "Direct mapping to SC-3-13-3 (Network Segmentation) through GitHub organization teams for logical segmentation"
+  },
+  "21352": {
+    "check_name": "aws_network_segmentation_sc_3_13_3",
+    "controls": [
+      1289
+    ],
+    "reasoning": "Direct mapping to SC-3-13-3 (Network Segmentation) through AWS VPC configuration for network segmentation"
+  },
+  "21353": {
+    "check_name": "github_denial_of_service_sc_3_13_4",
+    "controls": [
+      1290
+    ],
+    "reasoning": "Direct mapping to SC-3-13-4 (Denial of Service Protection) through GitHub webhook rate limiting for DoS protection"
+  },
+  "21354": {
+    "check_name": "aws_denial_of_service_sc_3_13_4",
+    "controls": [
+      1290
+    ],
+    "reasoning": "Direct mapping to SC-3-13-4 (Denial of Service Protection) through AWS NAT gateways for DoS protection"
+  },
+  "21355": {
+    "check_name": "github_collaborative_computing_sc_3_13_5",
+    "controls": [
+      1291
+    ],
+    "reasoning": "Direct mapping to SC-3-13-5 (Collaborative Computing) through GitHub pull request management for secure collaboration"
+  },
+  "21356": {
+    "check_name": "aws_collaborative_computing_sc_3_13_5",
+    "controls": [
+      1291
+    ],
+    "reasoning": "Direct mapping to SC-3-13-5 (Collaborative Computing) through AWS internet gateways for collaborative computing controls"
+  },
+  "21357": {
+    "check_name": "github_cryptographic_protection_sc_3_13_6",
+    "controls": [
+      1292
+    ],
+    "reasoning": "Direct mapping to SC-3-13-6 (Cryptographic Protection) through GitHub SSH cryptographic protection"
+  },
+  "21358": {
+    "check_name": "aws_cryptographic_protection_sc_3_13_6",
+    "controls": [
+      1292
+    ],
+    "reasoning": "Direct mapping to SC-3-13-6 (Cryptographic Protection) through AWS S3 encryption for cryptographic protection"
+  },
+  "21359": {
+    "check_name": "github_network_disconnect_sc_3_13_7",
+    "controls": [
+      1293
+    ],
+    "reasoning": "Direct mapping to SC-3-13-7 (Network Disconnect) through GitHub repository archival for network disconnect capability"
+  },
+  "21360": {
+    "check_name": "aws_network_disconnect_sc_3_13_7",
+    "controls": [
+      1293
+    ],
+    "reasoning": "Direct mapping to SC-3-13-7 (Network Disconnect) through AWS elastic IPs for network disconnect capability"
+  },
+  "21361": {
+    "check_name": "github_transmission_integrity_sc_3_13_9",
+    "controls": [
+      1295
+    ],
+    "reasoning": "Direct mapping to SC-3-13-9 (Transmission Integrity) through GitHub HTTPS secure protocols for transmission integrity"
+  },
+  "21362": {
+    "check_name": "aws_transmission_integrity_sc_3_13_9",
+    "controls": [
+      1295
+    ],
+    "reasoning": "Direct mapping to SC-3-13-9 (Transmission Integrity) through AWS network interfaces for transmission integrity"
+  },
+  "21363": {
+    "check_name": "github_information_system_monitoring_si_3_14_3",
+    "controls": [
+      1305
+    ],
+    "reasoning": "Direct mapping to SI-3-14-3 (Information System Monitoring) through GitHub code scanning alerts for system monitoring"
+  },
+  "21364": {
+    "check_name": "aws_information_system_monitoring_si_3_14_3",
+    "controls": [
+      1305
+    ],
+    "reasoning": "Direct mapping to SI-3-14-3 (Information System Monitoring) through AWS CloudWatch alarms for information system monitoring"
+  },
+  "21365": {
+    "check_name": "github_software_firmware_integrity_si_3_14_4",
+    "controls": [
+      1306
+    ],
+    "reasoning": "Direct mapping to SI-3-14-4 (Software and Firmware Integrity) through GitHub dependency review for software integrity"
+  },
+  "21366": {
+    "check_name": "aws_software_firmware_integrity_si_3_14_4",
+    "controls": [
+      1306
+    ],
+    "reasoning": "Direct mapping to SI-3-14-4 (Software and Firmware Integrity) through AWS EC2 instance management for software integrity"
+  },
+  "21367": {
+    "check_name": "github_secure_communication_sc_8",
+    "controls": [
+      157
+    ],
+    "reasoning": "Direct mapping from GitHub repository system_communications_protection check: Verify GitHub repository uses HTTPS for clone URLs"
+  },
+  "21368": {
+    "check_name": "github_ssh_secure_transport_sc_8_1",
+    "controls": [
+      158
+    ],
+    "reasoning": "Direct mapping from GitHub repository system_communications_protection check: Verify GitHub repository has SSH URL for secure transport"
+  },
+  "21369": {
+    "check_name": "aws_vpc_network_segmentation_sc_7",
+    "controls": [
+      156
+    ],
+    "reasoning": "Direct mapping from AWS services system_communications_protection check: Verify AWS VPCs provide network segmentation"
+  },
+  "21370": {
+    "check_name": "aws_security_group_boundary_protection_sc_7_3",
+    "controls": [
+      159
+    ],
+    "reasoning": "Direct mapping from AWS services system_communications_protection check: Verify AWS security groups provide boundary protection"
+  },
+  "21371": {
+    "check_name": "aws_nat_gateway_outbound_protection_sc_7_4",
+    "controls": [
+      160
+    ],
+    "reasoning": "Direct mapping from AWS services system_communications_protection check: Verify AWS NAT gateways provide outbound connection protection"
+  },
+  "21372": {
+    "check_name": "aws_internet_gateway_controlled_access_sc_7_5",
+    "controls": [
+      161
+    ],
+    "reasoning": "Direct mapping from AWS services system_communications_protection check: Verify AWS internet gateways provide controlled external access"
+  },
+  "21373": {
+    "check_name": "github_repository_acquisition_controls_sa_4",
+    "controls": [
+      266
+    ],
+    "reasoning": "Direct mapping from GitHub repository system_services_acquisition check: Verify GitHub repository has proper acquisition documentation"
+  },
+  "21374": {
+    "check_name": "github_template_repository_standards_sa_4_1",
+    "controls": [
+      267
+    ],
+    "reasoning": "Direct mapping from GitHub repository system_services_acquisition check: Verify GitHub template repositories follow acquisition standards"
+  },
+  "21375": {
+    "check_name": "aws_resource_tagging_acquisition_sa_4_2",
+    "controls": [
+      268
+    ],
+    "reasoning": "Direct mapping from AWS services system_services_acquisition check: Verify AWS resources have proper tagging for acquisition tracking"
+  },
+  "21376": {
+    "check_name": "aws_service_configuration_management_sa_10",
+    "controls": [
+      280
+    ],
+    "reasoning": "Direct mapping from AWS services system_services_acquisition check: Verify AWS services have configuration management"
+  },
+  "21377": {
+    "check_name": "github_security_analysis_si_2",
+    "controls": [
+      1046
+    ],
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository has security analysis enabled"
+  },
+  "21378": {
+    "check_name": "github_dependency_scanning_si_2_2",
+    "controls": [
+      1048
+    ],
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository has dependency review enabled"
+  },
+  "21379": {
+    "check_name": "github_code_scanning_alerts_si_4",
+    "controls": [
+      1064
+    ],
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository monitors code scanning alerts"
+  },
+  "21380": {
+    "check_name": "github_dependabot_alerts_monitoring_si_4_2",
+    "controls": [
+      1066
+    ],
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository monitors Dependabot alerts"
+  },
+  "21381": {
+    "check_name": "aws_cloudwatch_monitoring_si_4_4",
+    "controls": [
+      1068
+    ],
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from AWS services system_information_integrity check: Verify AWS CloudWatch provides system monitoring"
+  },
+  "21382": {
+    "check_name": "aws_cloudwatch_alarms_si_4_5",
+    "controls": [
+      1069
+    ],
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from AWS services system_information_integrity check: Verify AWS CloudWatch has security alarms configured"
+  },
+  "21383": {
+    "check_name": "aws_cloudtrail_audit_logging_au_2",
+    "controls": [
+      81
+    ],
+    "reasoning": "Direct mapping from AWS services audit_accountability check: Verify AWS CloudTrail provides audit event logging"
+  },
+  "21384": {
+    "check_name": "aws_cloudtrail_event_selection_au_2_3",
+    "controls": [
+      84
+    ],
+    "reasoning": "Direct mapping from AWS services audit_accountability check: Verify AWS CloudTrail has proper event selection configured"
+  },
+  "21385": {
+    "check_name": "aws_cloudwatch_log_groups_au_3",
+    "controls": [
+      87
+    ],
+    "reasoning": "Direct mapping from AWS services audit_accountability check: Verify AWS CloudWatch maintains audit log groups"
+  },
+  "21386": {
+    "check_name": "aws_cloudwatch_log_streams_au_3_1",
+    "controls": [
+      88
+    ],
+    "reasoning": "Direct mapping from AWS services audit_accountability check: Verify AWS CloudWatch maintains audit log streams"
+  },
+  "21387": {
+    "check_name": "aws_cloudwatch_dashboards_au_6",
+    "controls": [
+      94
+    ],
+    "reasoning": "Direct mapping from AWS services audit_accountability check: Verify AWS CloudWatch provides audit review dashboards"
+  },
+  "21388": {
+    "check_name": "aws_cloudtrail_insight_selectors_au_6_1",
+    "controls": [
+      95
+    ],
+    "reasoning": "Direct mapping from AWS services audit_accountability check: Verify AWS CloudTrail uses insight selectors for audit analysis"
+  },
+  "21389": {
+    "check_name": "github_backup_branch_strategy_cp_6",
+    "controls": [
+      139
+    ],
+    "reasoning": "Direct mapping from GitHub repository contingency_planning check: Verify GitHub repository has multiple branches for continuity"
+  },
+  "21390": {
+    "check_name": "github_repository_archival_protection_cp_6_1",
+    "controls": [
+      140
+    ],
+    "reasoning": "Direct mapping from GitHub repository contingency_planning check: Verify GitHub repository is not archived for availability"
+  },
+  "21391": {
+    "check_name": "aws_ebs_volume_backup_cp_9",
+    "controls": [
+      143
+    ],
+    "reasoning": "Direct mapping from AWS services contingency_planning check: Verify AWS EBS volumes exist for data backup capabilities"
+  },
+  "21392": {
+    "check_name": "aws_route_table_security_sc_7_6",
+    "controls": [
+      162
+    ],
+    "reasoning": "Direct mapping from AWS services system_communications_protection check: Verify AWS route tables provide secure routing"
+  },
+  "21393": {
+    "check_name": "aws_subnet_network_isolation_sc_7_7",
+    "controls": [
+      163
+    ],
+    "reasoning": "Direct mapping from AWS services system_communications_protection check: Verify AWS subnets provide network isolation"
+  },
+  "21394": {
+    "check_name": "aws_network_interface_protection_sc_8_1",
+    "controls": [
+      164
+    ],
+    "reasoning": "Direct mapping from AWS services system_communications_protection check: Verify AWS network interfaces have cryptographic protection"
+  },
+  "21395": {
+    "check_name": "github_repository_encryption_sc_8_2",
+    "controls": [
+      165
+    ],
+    "reasoning": "Direct mapping from GitHub repository system_communications_protection check: Verify GitHub repository supports encrypted communications"
+  },
+  "21396": {
+    "check_name": "aws_s3_encryption_transmission_sc_8_3",
+    "controls": [
+      166
+    ],
+    "reasoning": "Direct mapping from AWS services system_communications_protection check: Verify AWS S3 supports encrypted data transmission"
+  },
+  "21397": {
+    "check_name": "github_developer_tools_acquisition_sa_5",
+    "controls": [
+      269
+    ],
+    "reasoning": "Direct mapping from GitHub repository system_services_acquisition check: Verify GitHub repository uses proper development tools"
+  },
+  "21398": {
+    "check_name": "github_project_management_sa_5_1",
+    "controls": [
+      270
+    ],
+    "reasoning": "Direct mapping from GitHub repository system_services_acquisition check: Verify GitHub repository has project management features"
+  },
+  "21399": {
+    "check_name": "aws_security_architecture_sa_8",
+    "controls": [
+      273
+    ],
+    "reasoning": "Direct mapping from AWS services system_services_acquisition check: Verify AWS architecture supports security requirements"
+  },
+  "21400": {
+    "check_name": "aws_security_engineering_sa_8_1",
+    "controls": [
+      274
+    ],
+    "reasoning": "Direct mapping from AWS services system_services_acquisition check: Verify AWS services implement security engineering principles"
+  },
+  "21401": {
+    "check_name": "github_vulnerability_disclosure_si_5",
+    "controls": [
+      1090
+    ],
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository has vulnerability disclosure process"
+  },
+  "21402": {
+    "check_name": "github_security_function_verification_si_6",
+    "controls": [
+      1092
+    ],
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository security functions work correctly"
+  },
+  "21403": {
+    "check_name": "aws_software_integrity_si_7",
+    "controls": [
+      1096
+    ],
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from AWS services system_information_integrity check: Verify AWS services maintain software integrity"
+  },
+  "21404": {
+    "check_name": "aws_information_integrity_si_7_1",
+    "controls": [
+      1097
+    ],
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from AWS services system_information_integrity check: Verify AWS services detect unauthorized changes"
+  },
+  "21405": {
+    "check_name": "aws_audit_record_generation_au_3_2",
+    "controls": [
+      89
+    ],
+    "reasoning": "Direct mapping from AWS services audit_accountability check: Verify AWS services generate comprehensive audit records"
+  },
+  "21406": {
+    "check_name": "aws_audit_monitoring_au_4",
+    "controls": [
+      92
+    ],
+    "reasoning": "Direct mapping from AWS services audit_accountability check: Verify AWS audit storage capacity is monitored"
+  },
+  "21407": {
+    "check_name": "aws_audit_response_au_5",
+    "controls": [
+      93
+    ],
+    "reasoning": "Direct mapping from AWS services audit_accountability check: Verify AWS systems respond to audit processing failures"
+  },
+  "21408": {
+    "check_name": "github_repository_backup_cp_2",
+    "controls": [
+      136
+    ],
+    "reasoning": "Direct mapping from GitHub repository contingency_planning check: Verify GitHub repository has backup strategy through forks"
+  },
+  "21409": {
+    "check_name": "aws_contingency_plan_testing_cp_3",
+    "controls": [
+      137
+    ],
+    "reasoning": "Direct mapping from AWS services contingency_planning check: Verify AWS services support contingency plan testing"
+  },
+  "21410": {
+    "check_name": "aws_backup_storage_cp_6_2",
+    "controls": [
+      141
+    ],
+    "reasoning": "Direct mapping from AWS services contingency_planning check: Verify AWS backup storage is geographically separated"
+  },
+  "21411": {
+    "check_name": "github_access_control_enforcement_ac_3",
+    "controls": [
+      32
+    ],
+    "reasoning": "Direct mapping from GitHub repository access_control check: Verify GitHub repository enforces access control policies"
+  },
+  "21412": {
+    "check_name": "aws_information_flow_control_ac_4",
+    "controls": [
+      33
+    ],
+    "reasoning": "Direct mapping from AWS services access_control check: Verify AWS services control information flow"
+  },
+  "21413": {
+    "check_name": "github_separation_of_duties_ac_5",
+    "controls": [
+      34
+    ],
+    "reasoning": "Direct mapping from GitHub repository access_control check: Verify GitHub repository implements separation of duties"
+  },
+  "21414": {
+    "check_name": "aws_least_privilege_ac_6",
+    "controls": [
+      35
+    ],
+    "reasoning": "Direct mapping from AWS services access_control check: Verify AWS IAM implements least privilege principle"
+  },
+  "21415": {
+    "check_name": "github_physical_access_pe_2",
+    "controls": [
+      185
+    ],
+    "reasoning": "Direct mapping from GitHub repository physical_environmental_protection check: Verify GitHub repository data has physical access controls"
+  },
+  "21416": {
+    "check_name": "aws_physical_access_control_pe_3",
+    "controls": [
+      186
+    ],
+    "reasoning": "Direct mapping from AWS services physical_environmental_protection check: Verify AWS services provide physical access control"
+  },
+  "21417": {
+    "check_name": "aws_access_control_devices_pe_5",
+    "controls": [
+      188
+    ],
+    "reasoning": "Direct mapping from AWS services physical_environmental_protection check: Verify AWS services implement access control for output devices"
+  },
+  "21418": {
+    "check_name": "github_monitoring_physical_access_pe_6",
+    "controls": [
+      189
+    ],
+    "reasoning": "Direct mapping from GitHub repository physical_environmental_protection check: Verify GitHub repository monitoring supports physical access tracking"
+  },
+  "21419": {
+    "check_name": "aws_transmission_medium_controls_pe_4",
+    "controls": [
+      187
+    ],
+    "reasoning": "Direct mapping from AWS services physical_environmental_protection check: Verify AWS controls access to transmission medium"
+  },
+  "21420": {
+    "check_name": "github_incident_handling_ir_2",
+    "controls": [
+      121
+    ],
+    "reasoning": "Direct mapping from GitHub repository incident_response check: Verify GitHub repository supports incident handling"
+  },
+  "21421": {
+    "check_name": "aws_incident_response_training_ir_3",
+    "controls": [
+      122
+    ],
+    "reasoning": "Direct mapping from AWS services incident_response check: Verify AWS services support incident response training"
+  },
+  "21422": {
+    "check_name": "github_incident_testing_ir_4",
+    "controls": [
+      123
+    ],
+    "reasoning": "Direct mapping from GitHub repository incident_response check: Verify GitHub repository supports incident response testing"
+  },
+  "21423": {
+    "check_name": "aws_maintenance_controls_ma_2",
+    "controls": [
+      175
+    ],
+    "reasoning": "Direct mapping from AWS services maintenance check: Verify AWS services have controlled maintenance"
+  },
+  "21424": {
+    "check_name": "github_maintenance_tools_ma_3",
+    "controls": [
+      176
+    ],
+    "reasoning": "Direct mapping from GitHub repository maintenance check: Verify GitHub repository maintenance tools are controlled"
+  },
+  "21425": {
+    "check_name": "aws_maintenance_personnel_ma_4",
+    "controls": [
+      177
+    ],
+    "reasoning": "Direct mapping from AWS services maintenance check: Verify AWS maintenance personnel are controlled"
+  },
+  "21426": {
+    "check_name": "github_planning_policy_pl_1",
+    "controls": [
+      210
+    ],
+    "reasoning": "Direct mapping from GitHub repository planning check: Verify GitHub repository has planning policy documentation"
+  },
+  "21427": {
+    "check_name": "aws_system_security_plan_pl_2",
+    "controls": [
+      211
+    ],
+    "reasoning": "Direct mapping from AWS services planning check: Verify AWS services support system security planning"
+  },
+  "21428": {
+    "check_name": "github_risk_assessment_ra_1",
+    "controls": [
+      228
+    ],
+    "reasoning": "Direct mapping from GitHub repository risk_assessment check: Verify GitHub repository supports risk assessment policy"
+  },
+  "21429": {
+    "check_name": "aws_security_categorization_ra_2",
+    "controls": [
+      229
+    ],
+    "reasoning": "Direct mapping from AWS services risk_assessment check: Verify AWS services support security categorization"
+  },
+  "21430": {
+    "check_name": "github_risk_assessment_ra_3",
+    "controls": [
+      230
+    ],
+    "reasoning": "Direct mapping from GitHub repository risk_assessment check: Verify GitHub repository conducts risk assessments"
+  },
+  "21431": {
+    "check_name": "aws_supply_chain_risk_sr_1",
+    "controls": [
+      245
+    ],
+    "reasoning": "Direct mapping from AWS services supply_chain_risk_management check: Verify AWS services address supply chain risk management"
+  },
+  "21432": {
+    "check_name": "github_supply_chain_protection_sr_2",
+    "controls": [
+      246
+    ],
+    "reasoning": "Direct mapping from GitHub repository supply_chain_risk_management check: Verify GitHub repository protects against supply chain threats"
+  },
+  "21433": {
+    "check_name": "aws_supply_chain_controls_sr_3",
+    "controls": [
+      247
+    ],
+    "reasoning": "Direct mapping from AWS services supply_chain_risk_management check: Verify AWS services implement supply chain controls"
+  },
+  "21434": {
+    "check_name": "github_information_system_monitoring_si_4_3",
+    "controls": [
+      1067
+    ],
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository has comprehensive monitoring"
+  },
+  "21435": {
+    "check_name": "aws_spam_protection_si_8",
+    "controls": [
+      1114
+    ],
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from AWS services system_information_integrity check: Verify AWS services provide spam and phishing protection"
+  },
+  "21436": {
+    "check_name": "github_information_input_restrictions_si_10",
+    "controls": [
+      1119
+    ],
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository validates information inputs"
+  },
+  "21437": {
+    "check_name": "aws_error_handling_si_11",
+    "controls": [
+      1126
+    ],
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from AWS services system_information_integrity check: Verify AWS services handle errors securely"
+  },
+  "21438": {
+    "check_name": "github_information_handling_si_12",
+    "controls": [
+      1127
+    ],
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository handles information securely"
+  },
+  "21439": {
+    "check_name": "aws_predictable_failure_prevention_si_13",
+    "controls": [
+      1131
+    ],
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from AWS services system_information_integrity check: Verify AWS services prevent predictable failures"
+  },
+  "21440": {
+    "check_name": "github_non_persistence_si_14",
+    "controls": [
+      1137
+    ],
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository supports non-persistent processing"
+  },
+  "21441": {
+    "check_name": "aws_information_output_filtering_si_15",
+    "controls": [
+      1141
+    ],
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from AWS services system_information_integrity check: Verify AWS services filter information output"
+  },
+  "21442": {
+    "check_name": "aws_cryptographic_key_establishment_sc_17",
+    "controls": [
+      167
+    ],
+    "reasoning": "Direct mapping from AWS services system_communications_protection check: Verify AWS services establish cryptographic keys securely"
+  },
+  "21443": {
+    "check_name": "github_mobile_code_sc_18",
+    "controls": [
+      168
+    ],
+    "reasoning": "Direct mapping from GitHub repository system_communications_protection check: Verify GitHub repository controls mobile code execution"
+  },
+  "21444": {
+    "check_name": "aws_voice_over_ip_sc_19",
+    "controls": [
+      169
+    ],
+    "reasoning": "Direct mapping from AWS services system_communications_protection check: Verify AWS services control Voice over IP communications"
+  },
+  "21445": {
+    "check_name": "github_secure_name_resolution_sc_20",
+    "controls": [
+      170
+    ],
+    "reasoning": "Direct mapping from GitHub repository system_communications_protection check: Verify GitHub repository uses secure name resolution"
+  },
+  "21446": {
+    "check_name": "aws_architecture_design_sa_17",
+    "controls": [
+      281
+    ],
+    "reasoning": "Direct mapping from AWS services system_services_acquisition check: Verify AWS services follow secure architecture design"
+  },
+  "21447": {
+    "check_name": "github_memory_protection_si_16",
+    "controls": [
+      1142
+    ],
+    "reasoning": "Corrected mapping to SI family controls: Direct mapping from GitHub repository system_information_integrity check: Verify GitHub repository protects against memory-based attacks"
+  }
+}

@@ -1,0 +1,1 @@
+id,customer_id,type,credentials.GITHUB_TOKEN,created_at,updated_at,created_by,updated_by,synced_at,sync_status,sync_error,sync_frequency.cron,sync_frequency.enabled,sync_frequency.interval,is_deleted,alias,credentials,sync_frequency,metadata,info
