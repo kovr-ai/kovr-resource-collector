@@ -82,17 +82,11 @@ class ValidateWithMockDataService(Service):
                     "output_filepath": output_filepath,
                     "fetched_value_type": str(type(fetched_value).__name__),
                     "fetched_value_sample": str(fetched_value)[:100] if fetched_value is not None else "None",
-                    "resource": {
-                        "name": input_resource.name,
-                        "field_path": input_resource.field_path,
-                        "logic": input_resource.logic,
-                    }
                 })
 
             except Exception as e:
                 trace_str = ''.join(traceback.format_exception(type(e), e, e.__traceback__))
                 if "__import__" in trace_str:
-                    from pdb import set_trace;set_trace()
                     print(trace_str)
                     print(input_resource.logic)
                 validation_results.append({
@@ -103,11 +97,6 @@ class ValidateWithMockDataService(Service):
                     "output_filepath": output_filepath,
                     "fetched_value_type": "error",
                     "fetched_value_sample": "error",
-                    "resource": {
-                        "name": input_resource.name,
-                        "field_path": input_resource.field_path,
-                        "logic": input_resource.logic,
-                    }
                 })
 
         # Collect errors from failed tests
@@ -116,4 +105,4 @@ class ValidateWithMockDataService(Service):
             if not result["success"]:
                 errors.append(result)
 
-        return self.Output(errors=errors)
+        return self.Output(resource=input_resource.model_dump(), errors=errors)

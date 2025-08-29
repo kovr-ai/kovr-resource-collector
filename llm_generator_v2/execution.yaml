@@ -138,11 +138,13 @@ checks_with_python_logic:
           field_path: string
           logic: string
     output[]:
+      resource:
+        name: string
+        check:
+          unique_id: string
+        field_path: string
+        logic: string
       errors[]:
-        resource:
-          name: string
-          field_path: string
-          logic: string
         success: bool
         result: bool
         error: string
@@ -163,13 +165,15 @@ checks_with_python_logic:
           literature: string
           field_paths[]: string
           reason: string
-          errors[]: string
     output[]:
       resource:
+        name: string
         check:
           unique_id: string
         field_path: string
         logic: string
+        prompt: string
+
 
   # [NON-LLM STEP] Step 4: Consolidate Repaired Checks
   consolidate_repaired_checks:
