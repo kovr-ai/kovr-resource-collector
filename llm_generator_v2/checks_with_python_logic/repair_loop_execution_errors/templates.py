@@ -29,7 +29,7 @@ PROMPT = """You are a cybersecurity compliance expert creating automated complia
 **Resource-Specific Literature:**
 {resource_literature}
 
-**SYSTEM Validation Information:**
+**SYSTEM Validation Exception Traceback:**
 {errors_information}
 
 **🚨 CRITICAL: FIELD PATH EXTRACTION BEHAVIOR 🚨**
@@ -226,3 +226,12 @@ Generate ONLY a JSON object with this structure:
 }}
 
 Generate the complete OUTPUT now:"""
+
+
+EXCEPTION = """
+Error Field Path: {field_path}
+Python code which failed:
+{logic}
+Exception Traceback:
+{error}
+"""

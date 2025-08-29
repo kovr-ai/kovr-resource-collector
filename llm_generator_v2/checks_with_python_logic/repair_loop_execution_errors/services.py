@@ -7,7 +7,7 @@ import re
 from typing import Any, Dict, List
 from pydantic import BaseModel
 from llm_generator_v2.services import Service as BaseService
-from .templates import PROMPT
+from .templates import PROMPT, EXCEPTION
 
 
 class RepairLoopExecutionErrorsService(BaseService):
@@ -49,19 +49,28 @@ class RepairLoopExecutionErrorsService(BaseService):
 
         return result
 
-    def get_errors_information(self, resource_errors: List[Dict]) -> str:
-        raise NotImplemented()
+    def get_errors_information(self, errors: List[BaseModel]) -> str:
+        return "\n".join([
+            self.get_error_information(error)
+            for error in errors
+        ])
+
+    def get_error_information(self, error: BaseModel) -> str:
+        return EXCEPTION.format(
+            field_path=error.field_path,
+            logic=error.logic,
+            error=error.error,
+        )
 
     def _process_input(self, input_):
         """Process a single input and generate Python logic"""
         # Format the prompt
-        from pdb import set_trace;set_trace()
         primitive_aware_field_paths = self.mark_primitives(input_.check.resource.field_paths)
         primitive_aware_field_paths_str = "\n- ".join([
             f"{field}: {type_}"
             for field, type_ in primitive_aware_field_paths.items()
         ])
-        errors_information = self.get_errors_information(input_.check.resource_errors)
+        errors_information = self.get_errors_information(input_.errors)
         prompt = PROMPT.format(
             check_unique_id=input_.check.unique_id,
             check_name=input_.check.name,

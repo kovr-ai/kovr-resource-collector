@@ -19,7 +19,7 @@ from llm_generator_v2.system_compatible_checks_literature import (
 from llm_generator_v2.checks_with_python_logic import (
     generate_python_logic as gpl,
     validate_with_mock_data as vwmd,
-    # repair_loop_execution_errors as rlee,
+    repair_loop_execution_errors as rlee,
     # consolidate_repaired_checks as crc,
 )
 
@@ -213,57 +213,36 @@ for gpl_output in gpl_outputs:
     print(f"     ✅ Prepared validation for: {resource_name}")
 
 vwmd_outputs = vwmd.service.execute(vwmd_inputs)
-#
-# # Step 8: Repair Loop Execution Errors (for failed validations)
-# print(f"\nStep 8: Repairing failed Python logic...")
-# rlee_inputs = []
-#
-# for vwmd_output in vwmd_outputs:
-#     if vwmd_output.errors:  # Only repair if there are errors
-#         check_id = vwmd_output.check.unique_id
-#         resource_name = vwmd_output.resource.name
-#         print(f"   Repairing {check_id} / {resource_name} ({len(vwmd_output.errors)} errors)")
-#
-#         # Find the corresponding gpl output to get the original logic
-#         original_logic = ""
-#         original_field_path = ""
-#         for gpl_output in gpl_outputs:
-#             if (gpl_output.check.unique_id == check_id and
-#                 gpl_output.resource.name == resource_name):
-#                 original_logic = gpl_output.resource.logic
-#                 original_field_path = gpl_output.resource.field_path
-#                 break
-#
-#         rlee_input = rlee.Input(
-#             check=rlee.InputCheck(
-#                 unique_id=check_id,
-#                 name=check_id,
-#                 literature="",  # Will be filled from enriched checks
-#                 category="",  # Will be filled from enriched checks
-#                 control_names=[],  # Will be filled from enriched checks
-#                 resource=rlee.InputResource(
-#                     name=resource_name,
-#                     field_paths=[original_field_path],  # Available field paths
-#                     reason="Repair needed due to validation errors",
-#                     literature="Repairing logic based on validation errors",
-#                     errors=vwmd_output.errors
-#                 )
-#             )
-#         )
-#
-#         # Fill in check details from enriched_checks
-#         for enriched_check in enriched_checks:
-#             if enriched_check.unique_id == check_id:
-#                 rlee_input.check.literature = enriched_check.literature
-#                 rlee_input.check.category = enriched_check.category
-#                 rlee_input.check.control_names = [ctrl.unique_id for ctrl in enriched_check.controls] if enriched_check.controls else []
-#                 break
-#
-#         rlee_inputs.append(rlee_input)
-#         print(f"     ✅ Prepared repair for: {resource_name}")
-#
-# rlee_outputs = rlee.service.execute(rlee_inputs) if rlee_inputs else []
-#
+
+# Step 8: Repair Loop Execution Errors (for failed validations)
+print(f"\nStep 8: Repairing failed Python logic...")
+rlee_inputs = []
+
+for vwmd_output in vwmd_outputs:
+    if vwmd_output.errors:
+        resource = vwmd_output.resource
+        errors = vwmd_output.errors
+
+        print(f"   Repairing {vwmd_output.resource.check.unique_id} / {resource.name} ({len(errors)} errors)")
+        for gpl_input in gpl_inputs:
+            if (
+                gpl_input.check.unique_id == vwmd_output.resource.check.unique_id
+                and gpl_input.check.resource.name == resource.name
+            ):
+                check = gpl_input.check.model_dump()
+                check['resource'] = resource.model_dump()
+                rlee_input = rlee.Input(
+                    check=check,
+                    errors=[
+                        error.model_dump()
+                        for error in errors
+                    ],
+                )
+                print(f"     ✅ Prepared repair for: {rlee_input.check.unique_id}-{rlee_input.check.resource.name}")
+                rlee_inputs.append(rlee_input)
+
+rlee_outputs = rlee.service.execute(rlee_inputs) if rlee_inputs else []
+
 # # Step 9: Consolidate Repaired Checks
 # print(f"\nStep 9: Consolidating repaired checks...")
 # crc_inputs = []

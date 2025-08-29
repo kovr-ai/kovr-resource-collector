@@ -80,6 +80,8 @@ class ValidateWithMockDataService(Service):
                     "error": "",
                     "input_filepath": input_filepath,
                     "output_filepath": output_filepath,
+                    "field_path": input_resource.field_path,
+                    "logic": input_resource.logic,
                     "fetched_value_type": str(type(fetched_value).__name__),
                     "fetched_value_sample": str(fetched_value)[:100] if fetched_value is not None else "None",
                 })
@@ -95,6 +97,8 @@ class ValidateWithMockDataService(Service):
                     "error": trace_str,
                     "input_filepath": input_filepath,
                     "output_filepath": output_filepath,
+                    "field_path": input_resource.field_path,
+                    "logic": input_resource.logic,
                     "fetched_value_type": "error",
                     "fetched_value_sample": "error",
                 })
@@ -105,4 +109,6 @@ class ValidateWithMockDataService(Service):
             if not result["success"]:
                 errors.append(result)
 
-        return self.Output(resource=input_resource.model_dump(), errors=errors)
+        resource = input_resource.model_dump()
+        resource['check'] = input_check.model_dump()
+        return self.Output(resource=resource, errors=errors)

@@ -148,6 +148,8 @@ checks_with_python_logic:
         success: bool
         result: bool
         error: string
+        field_path: string
+        logic: string
         input_filepath: string
         output_filepath: string
 
@@ -165,6 +167,15 @@ checks_with_python_logic:
           literature: string
           field_paths[]: string
           reason: string
+      errors[]:
+        success: bool
+        result: bool
+        error: string
+        field_path: string
+        logic: string
+        input_filepath: string
+        output_filepath: string
+
     output[]:
       resource:
         name: string
@@ -173,7 +184,6 @@ checks_with_python_logic:
         field_path: string
         logic: string
         prompt: string
-
 
   # [NON-LLM STEP] Step 4: Consolidate Repaired Checks
   consolidate_repaired_checks:
