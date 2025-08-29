@@ -1,0 +1,39 @@
+resource:
+  check:
+    unique_id: owasp-latest-use-secure-communication-protocols-(e.g.,-https)
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: Since the IAM resource is not directly applicable for this security
+      check, no specific fix is required. However, it is recommended to review other
+      resources that handle web traffic or network communication, such as Elastic
+      Load Balancing (ELB), API Gateway, or EC2 instances running web servers, and
+      ensure that they are configured to use secure communication protocols like HTTPS.
+    estimated_time: 1-2 hours
+    instructions:
+    - Identify resources that handle web traffic or network communication within your
+      AWS environment.
+    - Review the configuration of these resources to ensure that they are set up to
+      use secure communication protocols like HTTPS.
+    - If any resources are found to be using insecure protocols, update their configuration
+      to enforce the use of HTTPS or other secure protocols.
+  is_valid: false
+  literature: The OWASP check 'Use Secure Communication Protocols (e.g., HTTPS)' is
+    designed to ensure that web applications and services communicate over secure
+    protocols, such as HTTPS, to protect data in transit from unauthorized access,
+    interception, and tampering. This check is primarily applicable to resources that
+    handle web traffic or network communication, such as load balancers, API gateways,
+    or web servers.
+  name: IAMResource
+  output_statements:
+    failure: The IAM resource does not have any direct configuration related to secure
+      communication protocols.
+    partial: The IAM resource partially enforces secure communication protocols, but
+      some web-based services or applications may still use insecure protocols.
+    success: The IAM resource is configured to enforce secure communication protocols
+      for all web-based services and applications.
+  reason: The provided resource 'IAMResource' is an AWS Identity and Access Management
+    (IAM) resource, which is used for managing user identities, access policies, and
+    permissions within an AWS account. It does not directly handle web traffic or
+    network communication protocols. Therefore, this resource is not applicable for
+    implementing the 'Use Secure Communication Protocols (e.g., HTTPS)' security check.

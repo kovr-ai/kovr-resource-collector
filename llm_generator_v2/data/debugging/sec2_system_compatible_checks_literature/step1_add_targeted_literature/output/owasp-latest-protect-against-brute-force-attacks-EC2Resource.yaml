@@ -1,0 +1,38 @@
+resource:
+  check:
+    unique_id: owasp-latest-protect-against-brute-force-attacks
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To protect against brute force attacks, you need to implement appropriate
+      controls at the application or service level running on the EC2 instances.
+    estimated_time: Varies based on the complexity of the applications and the number
+      of instances involved.
+    instructions:
+    - Identify the applications or services that require brute force protection.
+    - Implement account lockout policies after a certain number of failed login attempts.
+    - Implement IP address blocking or rate limiting for excessive failed login attempts.
+    - Consider implementing CAPTCHA challenges or other mechanisms to prevent automated
+      brute force attacks.
+    - Monitor and review authentication logs for suspicious activity.
+  is_valid: false
+  literature: The EC2Resource in AWS does not directly provide mechanisms to protect
+    against brute force attacks on authentication systems. Brute force protection
+    typically involves implementing controls at the application or service level,
+    such as account lockouts, IP address blocking, and CAPTCHA challenges. While EC2
+    instances can host applications that require brute force protection, the EC2 resource
+    itself does not offer these capabilities.
+  name: EC2Resource
+  output_statements:
+    failure: The EC2 resource does not provide mechanisms to protect against brute
+      force attacks on authentication systems.
+    partial: The EC2 resource does not directly support brute force protection, but
+      it can host applications that implement such measures.
+    success: The EC2 resource has appropriate brute force protection mechanisms in
+      place.
+  reason: The EC2Resource in AWS is a compute service that provides virtual machines
+    (instances) for running applications and workloads. It does not have built-in
+    features or configurations specifically designed to protect against brute force
+    attacks on authentication systems. Brute force protection measures are typically
+    implemented at the application or service level, rather than at the infrastructure
+    level.

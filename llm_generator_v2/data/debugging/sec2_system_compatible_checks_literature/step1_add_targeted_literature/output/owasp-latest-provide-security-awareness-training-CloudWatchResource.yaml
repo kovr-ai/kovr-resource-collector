@@ -1,0 +1,32 @@
+resource:
+  check:
+    unique_id: owasp-latest-provide-security-awareness-training
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To implement security awareness training, you should consider using
+      other AWS services or third-party solutions specifically designed for this purpose.
+    estimated_time: Varies depending on the chosen solution and the size of your organization.
+    instructions:
+    - Evaluate AWS services like AWS Security Hub, AWS Security Training, or AWS Trusted
+      Advisor for security training and best practice recommendations.
+    - Explore third-party security awareness training platforms and solutions that
+      can be integrated with your AWS environment.
+    - Develop a comprehensive security awareness program that includes regular training
+      sessions, phishing simulations, and educational materials for employees.
+  is_valid: false
+  literature: The AWS CloudWatch resource is primarily used for monitoring and observability
+    purposes, such as setting up alarms, dashboards, and log groups. It does not directly
+    provide functionality for implementing security awareness training or educating
+    employees on security best practices.
+  name: CloudWatchResource
+  output_statements:
+    failure: The CloudWatch resource is not suitable for implementing security awareness
+      training.
+    partial: The CloudWatch resource has limited capabilities for supporting security
+      awareness training.
+    success: The CloudWatch resource is configured to support security awareness training
+      initiatives.
+  reason: The CloudWatch resource is not designed for delivering security awareness
+    training or educational content to employees. It is a monitoring and logging service
+    that collects and analyzes data from various AWS resources and applications.

@@ -1,0 +1,47 @@
+resource:
+  check:
+    unique_id: owasp-latest-establish-disaster-recovery-plans
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To establish an adequate disaster recovery plan, the organization
+      needs to undertake a comprehensive risk assessment, identify critical systems
+      and data, define recovery objectives, and develop detailed procedures for restoring
+      operations in the event of a disaster.
+    estimated_time: 2-4 weeks
+    instructions:
+    - Conduct a risk assessment to identify potential disruptive events and their
+      impact on the organization.
+    - Prioritize critical systems, data, and operations that need to be recovered
+      in the event of a disaster.
+    - Define recovery objectives, such as Recovery Time Objectives (RTOs) and Recovery
+      Point Objectives (RPOs), for each critical system and process.
+    - Develop detailed procedures for data backup, system restoration, and failover
+      to alternate sites or cloud environments.
+    - Establish communication protocols and assign roles and responsibilities for
+      disaster recovery teams.
+    - Regularly test and validate the disaster recovery plan through simulations and
+      drills.
+    - Review and update the disaster recovery plan periodically to ensure its effectiveness
+      and alignment with changing business requirements and technological landscape.
+  is_valid: false
+  literature: The AWS CloudWatch resource is primarily used for monitoring and observability
+    purposes, such as creating alarms, dashboards, and log groups. While CloudWatch
+    can be leveraged to monitor the health and availability of systems, it does not
+    directly provide disaster recovery capabilities or establish disaster recovery
+    plans. Establishing a comprehensive disaster recovery plan involves defining strategies,
+    procedures, and resources for restoring critical operations, data, and systems
+    in the event of a disaster, which goes beyond the scope of CloudWatch.
+  name: CloudWatchResource
+  output_statements:
+    failure: The organization does not have an established disaster recovery plan
+      or the existing plan is inadequate to address potential disruptive events and
+      ensure business continuity.
+    partial: The organization has a disaster recovery plan in place, but it lacks
+      critical components or has not been thoroughly tested and validated.
+    success: The organization has established and maintains a comprehensive disaster
+      recovery plan that outlines strategies, procedures, and resources for restoring
+      critical operations, data, and systems in the event of a disaster.
+  reason: The AWS CloudWatch resource is focused on monitoring and observability,
+    but does not directly address the establishment of disaster recovery plans, which
+    is the primary objective of this security check.

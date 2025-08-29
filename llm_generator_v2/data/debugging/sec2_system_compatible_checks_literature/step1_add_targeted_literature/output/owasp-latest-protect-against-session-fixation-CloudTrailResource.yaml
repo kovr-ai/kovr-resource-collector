@@ -1,0 +1,57 @@
+resource:
+  check:
+    unique_id: owasp-latest-protect-against-session-fixation
+  field_paths:
+  - event_selectors
+  - event_selectors[].data_resources
+  - event_selectors[].data_resources.type
+  - event_selectors[].data_resources.values
+  - event_selectors[].data_resources.values[]
+  - event_selectors[].include_management_events
+  - event_selectors[].read_write_type
+  - trails
+  - trails[].event_selectors
+  - trails[].event_selectors[].data_resources
+  - trails[].event_selectors[].data_resources.type
+  - trails[].event_selectors[].data_resources.values
+  - trails[].event_selectors[].data_resources.values[]
+  - trails[].event_selectors[].include_management_events
+  - trails[].event_selectors[].read_write_type
+  fix_details:
+    automation_available: false
+    description: To protect against session fixation attacks, application-level controls
+      and secure session management practices must be implemented.
+    estimated_time: Varies depending on the complexity of the application and the
+      existing security controls.
+    instructions:
+    - Review the application code and identify areas where session management is handled.
+    - Implement secure session management practices, such as generating new session
+      IDs after authentication and preventing session fixation attacks.
+    - Consider using a secure session management library or framework that provides
+      built-in protection against session fixation attacks.
+    - Regularly review and update the application's security controls to address emerging
+      threats and vulnerabilities.
+  is_valid: false
+  literature: The AWS CloudTrail resource is used for logging and monitoring API activity
+    within an AWS account. While CloudTrail can be used to detect and investigate
+    potential security incidents, it does not directly provide protection against
+    session fixation attacks. Session fixation is a type of attack that occurs at
+    the application level, where an attacker attempts to force a legitimate user to
+    use a session ID known to the attacker. To protect against session fixation, application-level
+    controls and secure session management practices must be implemented.
+  name: CloudTrailResource
+  output_statements:
+    failure: The AWS CloudTrail resource is not configured to provide direct protection
+      against session fixation attacks. Application-level controls and secure session
+      management practices must be implemented to mitigate this risk.
+    partial: The AWS CloudTrail resource is not configured to provide direct protection
+      against session fixation attacks. Application-level controls and secure session
+      management practices must be implemented to mitigate this risk.
+    success: The AWS CloudTrail resource is configured to log and monitor API activity,
+      which can aid in detecting and investigating potential security incidents, including
+      session fixation attacks.
+  reason: The AWS CloudTrail resource is primarily used for logging and monitoring
+    API activity within an AWS account. While it can be useful for detecting and investigating
+    potential security incidents, it does not directly provide protection against
+    session fixation attacks, which occur at the application level and require application-level
+    controls and secure session management practices.

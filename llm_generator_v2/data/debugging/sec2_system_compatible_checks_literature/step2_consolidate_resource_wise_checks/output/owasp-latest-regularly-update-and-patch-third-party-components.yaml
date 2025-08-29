@@ -1,0 +1,20 @@
+check:
+  invalid_resources: []
+  unique_id: owasp-latest-regularly-update-and-patch-third-party-components
+  valid_resources:
+  - field_paths:
+    - security_data.code_scanning_alerts
+    - security_data.dependency_graph
+    - security_data.security_advisories
+    - security_data.vulnerability_alerts
+    literature: The GithubResource provided contains information related to the security
+      and vulnerability management of the GitHub repository. Specifically, the security_data
+      field contains details about code scanning alerts, dependency vulnerabilities,
+      and security advisories. Regularly updating and patching third-party dependencies
+      is crucial for mitigating known vulnerabilities, and this resource can help
+      identify and track such issues.
+    name: GithubResource
+    reason: The GithubResource contains relevant information about the security posture
+      of the repository, including details about vulnerabilities in third-party dependencies
+      and any available patches or advisories. This information can be used to ensure
+      that third-party components are regularly updated and patched.

@@ -1,0 +1,35 @@
+resource:
+  check:
+    unique_id: owasp-latest-follow-security-hardening-guidelines
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To address this security check, you need to review and harden the
+      configurations of the web applications running on the EC2 instances based on
+      the OWASP guidelines.
+    estimated_time: Varies depending on the number and complexity of web applications.
+    instructions:
+    - Identify the web applications running on the EC2 instances.
+    - Review the OWASP security hardening guidelines for the specific web application
+      frameworks and technologies used.
+    - Implement the recommended security configurations and controls within the web
+      applications.
+    - Regularly review and update the web application security hardening measures
+      as new OWASP guidelines are released.
+  is_valid: false
+  literature: The OWASP security hardening guidelines provide best practices for securing
+    web applications and systems. However, the provided AWS EC2 resource is an infrastructure
+    component and does not directly relate to web application security. While following
+    security best practices for EC2 instances is important, this resource alone does
+    not implement the OWASP security hardening guidelines for web applications.
+  name: EC2Resource
+  output_statements:
+    failure: The EC2 resource does not implement the OWASP security hardening guidelines
+      for web applications.
+    partial: The EC2 resource partially follows the OWASP security hardening guidelines
+      for web applications.
+    success: The EC2 resource follows the OWASP security hardening guidelines for
+      web applications.
+  reason: The EC2 resource represents AWS virtual machine instances and related networking
+    components. It does not contain information about web application configurations
+    or security hardening measures specific to the OWASP guidelines.

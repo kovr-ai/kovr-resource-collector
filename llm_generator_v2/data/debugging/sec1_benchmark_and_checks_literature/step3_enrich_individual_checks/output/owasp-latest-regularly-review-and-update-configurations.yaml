@@ -1,0 +1,37 @@
+check:
+  benchmarks:
+  - confidence: 0.7
+    reason: Regularly reviewing and updating configurations can help prevent valid
+      accounts from being compromised or misused due to outdated or insecure configurations.
+    unique_id: MITRE-ATT&CK-T1078
+  - confidence: 0.8
+    reason: Regularly reviewing and updating configurations can help mitigate the
+      risk of adversaries exploiting misconfigurations to gain unauthorized access
+      or escalate privileges.
+    unique_id: MITRE-ATT&CK-T1190
+  category: system_integrity
+  controls:
+  - confidence: 0.9
+    reason: This control requires organizations to establish and maintain baseline
+      configurations and inventories of information systems, which includes regularly
+      reviewing and updating configurations to maintain secure baselines.
+    unique_id: NIST-800-53-CM-6
+  - confidence: 0.8
+    reason: This control requires organizations to implement procedures to control
+      the installation of software on operational systems, which includes regularly
+      reviewing and updating configurations to ensure secure and authorized configurations.
+    unique_id: ISO-27001-A.12.1.2
+  literature: The OWASP check 'owasp-latest-regularly-review-and-update-configurations'
+    is designed to ensure that system configurations are regularly reviewed and updated
+    to maintain a secure posture. As systems evolve and new vulnerabilities are discovered,
+    it is crucial to keep configurations up-to-date to mitigate potential risks. Outdated
+    configurations can introduce security vulnerabilities, expose sensitive data,
+    or enable unauthorized access. Regular reviews and updates help identify and address
+    misconfigurations, apply security patches, and align with the latest security
+    best practices.
+  severity: high
+  tags:
+  - configuration_management
+  - security_patching
+  - vulnerability_management
+  unique_id: owasp-latest-regularly-review-and-update-configurations

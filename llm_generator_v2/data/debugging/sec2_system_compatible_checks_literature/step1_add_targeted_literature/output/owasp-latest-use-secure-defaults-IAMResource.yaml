@@ -1,0 +1,43 @@
+resource:
+  check:
+    unique_id: owasp-latest-use-secure-defaults
+  field_paths:
+  - policies
+  - policies[].default_version
+  - policies[].default_version.Document
+  - policies[].default_version.Document.Statement
+  - policies[].default_version.Document.Statement[].Action
+  - policies[].default_version.Document.Statement[].Effect
+  - policies[].default_version.Document.Statement[].Resource
+  - users
+  - users[].access_keys
+  fix_details:
+    automation_available: true
+    description: Insecure default configurations in IAM policies and user access keys
+      need to be remediated.
+    estimated_time: 1-2 hours
+    instructions:
+    - Review all IAM policies and identify those with insecure default configurations
+      (e.g., excessive permissions, unnecessary services enabled).
+    - Update or replace the identified policies with secure configurations that follow
+      the principle of least privilege.
+    - Review all user access keys and rotate or disable any keys that are no longer
+      needed or have insecure configurations.
+    - Implement a process to regularly review and update IAM policies and user access
+      keys to maintain secure defaults.
+  is_valid: true
+  literature: The 'owasp-latest-use-secure-defaults' check is applicable to AWS IAM
+    resources as they control access and permissions within an AWS account. IAM policies
+    define the allowed and denied actions for users, groups, and roles. By analyzing
+    the default policies and their configurations, this check can identify insecure
+    defaults that may grant excessive permissions or enable unnecessary services,
+    increasing the attack surface.
+  name: IAMResource
+  output_statements:
+    failure: One or more IAM policies or user access keys have insecure default configurations.
+    partial: Some IAM policies and user access keys have secure defaults, but others
+      do not.
+    success: IAM policies and user access keys are configured with secure defaults.
+  reason: IAM policies and user access keys directly impact the security posture of
+    an AWS account. Analyzing their default configurations is crucial to ensure secure
+    defaults are enforced.

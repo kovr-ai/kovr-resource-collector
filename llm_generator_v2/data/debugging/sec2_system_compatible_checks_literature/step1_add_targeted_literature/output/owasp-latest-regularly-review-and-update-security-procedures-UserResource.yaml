@@ -1,0 +1,46 @@
+resource:
+  check:
+    unique_id: owasp-latest-regularly-review-and-update-security-procedures
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To address this security check, the organization should establish
+      a formal process for regularly reviewing and updating security procedures, policies,
+      and controls.
+    estimated_time: 2-3 months
+    instructions:
+    - Establish a cross-functional team responsible for security governance and risk
+      management.
+    - Define a recurring schedule (e.g., quarterly, annually) for reviewing and updating
+      security procedures.
+    - Develop a risk assessment methodology to identify and prioritize emerging threats
+      and vulnerabilities.
+    - Review industry best practices, regulatory requirements, and security advisories
+      from trusted sources.
+    - Update security policies, procedures, and controls based on the risk assessment
+      and industry guidance.
+    - Communicate and train employees on the updated security procedures.
+    - Continuously monitor and improve the review and update process based on feedback
+      and lessons learned.
+  is_valid: false
+  literature: The provided resource 'UserResource' represents user account information
+    in Google Workspace, which does not directly relate to reviewing and updating
+    security procedures. This security check focuses on the organizational process
+    of regularly assessing and updating security policies, procedures, and controls
+    to align with evolving threats and best practices. While user account data may
+    be relevant for certain security controls, it does not provide insight into the
+    overall security governance and risk management processes of the organization.
+  name: UserResource
+  output_statements:
+    failure: The organization does not have a documented process for regularly reviewing
+      and updating security procedures, leaving it vulnerable to emerging threats
+      and non-compliance with industry standards.
+    partial: The organization partially reviews and updates security procedures, but
+      the process is not comprehensive or consistent across all areas.
+    success: The organization has a well-defined process for regularly reviewing and
+      updating security procedures, aligning with evolving threats and industry best
+      practices.
+  reason: The UserResource represents user account data, which does not directly relate
+    to the organizational process of reviewing and updating security procedures as
+    recommended by OWASP. This resource lacks information about the organization's
+    security governance, risk assessment, and policy management practices.

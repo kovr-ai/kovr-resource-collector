@@ -1,0 +1,36 @@
+resource:
+  check:
+    unique_id: owasp-latest-conduct-regular-security-testing
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To address this security check, an organization should establish
+      a comprehensive security testing program that includes regular vulnerability
+      assessments, penetration testing, and code reviews.
+    estimated_time: 2-4 weeks
+    instructions:
+    - Define a security testing schedule and scope based on risk assessment and compliance
+      requirements.
+    - Engage qualified security testing personnel or third-party providers to conduct
+      the assessments.
+    - Implement a process to track and remediate identified vulnerabilities and security
+      issues.
+    - Maintain documentation and evidence of security testing activities for audit
+      and compliance purposes.
+  is_valid: false
+  literature: The UserResource in Google Cloud does not directly relate to conducting
+    regular security testing activities. This resource represents user account information
+    and settings within the Google Workspace environment. While user account management
+    is important for overall security, it does not specifically address the practice
+    of performing regular security assessments, penetration testing, or code reviews
+    as outlined in the security check.
+  name: UserResource
+  output_statements:
+    failure: No evidence of regular security testing activities could be found.
+    partial: Some security testing activities are conducted, but not on a consistent,
+      scheduled basis.
+    success: Regular security testing processes and schedules are defined and followed.
+  reason: The UserResource is focused on user account data and does not contain information
+    or configurations related to security testing processes or schedules. This resource
+    is not applicable for implementing the 'owasp-latest-conduct-regular-security-testing'
+    security check.

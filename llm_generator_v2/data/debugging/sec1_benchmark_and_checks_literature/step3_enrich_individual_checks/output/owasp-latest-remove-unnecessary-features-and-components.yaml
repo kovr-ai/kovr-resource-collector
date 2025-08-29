@@ -1,0 +1,38 @@
+check:
+  benchmarks:
+  - confidence: 0.7
+    reason: Removing unnecessary features and components can help mitigate the risk
+      of attackers exploiting exposed functionality for privilege escalation or lateral
+      movement.
+    unique_id: MITRE-ATT&CK-T1190
+  - confidence: 0.8
+    reason: Unnecessary features and components can potentially be leveraged by attackers
+      to gain a foothold or persist within the system, making their removal a defensive
+      measure.
+    unique_id: MITRE-ATT&CK-T1499
+  category: system_integrity
+  controls:
+  - confidence: 0.9
+    reason: This control requires organizations to configure systems and components
+      to provide only essential capabilities, which aligns with the goal of removing
+      unnecessary features and components.
+    unique_id: NIST-800-53-CM-7
+  - confidence: 0.8
+    reason: This control emphasizes the need to restrict software installation on
+      operational systems, which can be achieved by removing unnecessary features
+      and components.
+    unique_id: ISO-27001-A.9.4.2
+  literature: The OWASP check 'owasp-latest-remove-unnecessary-features-and-components'
+    aims to ensure that applications and systems do not expose unnecessary features,
+    components, or functionality that could potentially be exploited by attackers.
+    Unnecessary features and components can introduce security vulnerabilities, increase
+    the attack surface, and provide entry points for malicious actors. By removing
+    or disabling these unnecessary elements, the overall security posture of the application
+    or system is improved, reducing the risk of unauthorized access, data breaches,
+    or other security incidents.
+  severity: high
+  tags:
+  - hardening
+  - attack_surface_reduction
+  - vulnerability_management
+  unique_id: owasp-latest-remove-unnecessary-features-and-components

@@ -1,0 +1,28 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-multi-factor-authentication
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: To implement MFA for AWS user accounts, you need to configure it
+      at the IAM or authentication service level, not at the individual resource level.
+    estimated_time: 30 minutes
+    instructions:
+    - 1. Open the AWS Management Console and navigate to the IAM service.
+    - 2. Select the user or group for which you want to enable MFA.
+    - 3. Follow the steps to set up and enable MFA for the selected user or group.
+    - 4. Alternatively, you can use Amazon Cognito or other authentication services
+      to implement MFA for your applications.
+  is_valid: false
+  literature: The AWS S3 resource is a storage service for storing and retrieving
+    data. It does not have any direct capabilities for implementing multi-factor authentication
+    (MFA) for user accounts. MFA is typically implemented at the Identity and Access
+    Management (IAM) level or through other authentication services like Amazon Cognito.
+  name: S3Resource
+  output_statements:
+    failure: This check is not applicable to the AWS S3 resource.
+    partial: This check is not applicable to the AWS S3 resource.
+    success: This check is not applicable to the AWS S3 resource.
+  reason: The S3 resource is a storage service and does not have any direct functionality
+    related to user authentication or MFA implementation. MFA is typically implemented
+    at the IAM or authentication service level, not at the individual resource level.

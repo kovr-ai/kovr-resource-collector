@@ -1,0 +1,32 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-secure-coding-practices
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This security check is not applicable to the AWS S3 resource. To
+      implement secure coding practices, organizations should focus on resources related
+      to the software development lifecycle, such as code repositories, build pipelines,
+      and application deployment resources.
+    estimated_time: Not applicable
+    instructions: []
+  is_valid: false
+  literature: The provided security check 'owasp-latest-implement-secure-coding-practices'
+    focuses on secure coding practices during the software development lifecycle.
+    However, the AWS S3 resource is a storage service for hosting and managing data,
+    and does not directly relate to the implementation of secure coding practices
+    within an application or codebase.
+  name: S3Resource
+  output_statements:
+    failure: The organization has not implemented secure coding practices throughout
+      its software development lifecycle, leaving applications and codebases vulnerable
+      to common coding vulnerabilities.
+    partial: Not applicable for this resource.
+    success: The organization has implemented secure coding practices throughout its
+      software development lifecycle, following industry-standard guidelines and security
+      controls to prevent common coding vulnerabilities.
+  reason: The AWS S3 resource is a storage service and does not directly involve the
+    implementation of secure coding practices within an application or codebase. This
+    security check is more applicable to resources related to the software development
+    lifecycle, such as code repositories, build pipelines, or application deployment
+    resources.

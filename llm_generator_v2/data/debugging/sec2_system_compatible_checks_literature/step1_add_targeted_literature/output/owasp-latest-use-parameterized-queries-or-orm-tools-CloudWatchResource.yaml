@@ -1,0 +1,35 @@
+resource:
+  check:
+    unique_id: owasp-latest-use-parameterized-queries-or-orm-tools
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This security check is not applicable to AWS CloudWatch resources.
+      It should be implemented in application code and databases that handle user
+      input and execute SQL queries.
+    estimated_time: Varies based on the size and complexity of the application codebase.
+    instructions:
+    - Review your application code and identify areas where user input is used to
+      construct SQL queries.
+    - Implement parameterized queries or use an Object-Relational Mapping (ORM) tool
+      to separate user input from SQL statements.
+    - Follow secure coding practices and input validation techniques to prevent SQL
+      injection vulnerabilities.
+  is_valid: false
+  literature: The security check 'owasp-latest-use-parameterized-queries-or-orm-tools'
+    is focused on preventing SQL injection attacks by using parameterized queries
+    or Object-Relational Mapping (ORM) tools in application code. This check is primarily
+    applicable to application code and databases, rather than cloud resources like
+    AWS CloudWatch.
+  name: CloudWatchResource
+  output_statements:
+    failure: This resource is not applicable for the 'owasp-latest-use-parameterized-queries-or-orm-tools'
+      security check.
+    partial: This resource is not applicable for the 'owasp-latest-use-parameterized-queries-or-orm-tools'
+      security check.
+    success: This resource is not applicable for the 'owasp-latest-use-parameterized-queries-or-orm-tools'
+      security check.
+  reason: AWS CloudWatch is a monitoring and observability service that collects and
+    manages log data, metrics, and alarms. It does not directly handle application
+    code or database queries. Therefore, this resource is not applicable for implementing
+    the 'owasp-latest-use-parameterized-queries-or-orm-tools' security check.

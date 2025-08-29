@@ -1,0 +1,32 @@
+check:
+  category: authentication
+  control_names:
+  - NIST-800-53-AC-3
+  - ISO-27001-A.9.4.1
+  literature: The OWASP latest secure authentication mechanisms check validates that
+    the application implements secure authentication mechanisms to protect against
+    common authentication attacks such as brute-force, credential stuffing, and session
+    hijacking. Proper authentication is crucial for ensuring that only authorized
+    users can access sensitive data and functionality within the application. Implementing
+    secure authentication mechanisms helps mitigate the risk of unauthorized access,
+    data breaches, and other security incidents.
+  provider: google
+  resource:
+    field_paths:
+    - aliases
+    - aliases.nonEditableAliases
+    - basic_info
+    - basic_info.adminCreated
+    - basic_info.description
+    - basic_info.email
+    - basic_info.etag
+    - basic_info.id
+    - basic_info.kind
+    - basic_info.name
+    - group_id
+    - id
+    - membership_info
+    - membership_info.directMembersCount
+    - source_connector
+    name: GroupResource
+  unique_id: owasp-latest-implement-secure-authentication-mechanisms

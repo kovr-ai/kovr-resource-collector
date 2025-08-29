@@ -1,0 +1,49 @@
+check:
+  invalid_resources: []
+  unique_id: owasp-latest-implement-centralized-log-management
+  valid_resources:
+  - field_paths:
+    - trails
+    - trails[].is_logging
+    - trails[].s3_bucket_name
+    - trails[].event_selectors
+    - trails[].event_selectors[].data_resources
+    - trails[].event_selectors[].include_management_events
+    - trails[].log_file_validation_enabled
+    - trails[].is_multi_region_trail
+    literature: AWS CloudTrail is a service that enables centralized log management
+      by recording AWS API calls and related events across multiple AWS services and
+      regions. It provides a comprehensive audit trail of account activity, which
+      can be analyzed to detect potential security incidents, troubleshoot operational
+      issues, and comply with regulatory requirements. CloudTrail logs can be delivered
+      to an Amazon S3 bucket for long-term storage and analysis.
+    name: CloudTrailResource
+    reason: AWS CloudTrail is a service specifically designed for centralized log
+      management, capturing API activity across multiple AWS services and regions.
+      By configuring CloudTrail trails and event selectors, organizations can collect
+      and store logs in a centralized S3 bucket for analysis and auditing purposes.
+  - field_paths:
+    - log_groups
+    - log_groups[]
+    - log_groups[].arn
+    - log_groups[].creation_time
+    - log_groups[].id
+    - log_groups[].kms_key_id
+    - log_groups[].log_group_name
+    - log_groups[].metric_filter_count
+    - log_groups[].retention_in_days
+    - log_groups[].stored_bytes
+    literature: AWS CloudWatch is a monitoring and observability service that collects
+      and manages log data from various AWS resources and applications. It provides
+      centralized log management capabilities, allowing you to store, monitor, and
+      analyze log data from multiple sources in a unified location. CloudWatch integrates
+      with other AWS services, such as Amazon EC2, AWS Lambda, and Amazon ECS, to
+      collect and process log data. By implementing centralized log management with
+      CloudWatch, you can gain visibility into system activities, detect security
+      incidents, troubleshoot issues, and comply with regulatory requirements.
+    name: CloudWatchResource
+    reason: AWS CloudWatch provides centralized log management capabilities, allowing
+      you to collect, store, and analyze log data from various AWS resources and applications.
+      The 'log_groups' field paths are relevant for implementing this security check,
+      as they provide information about the log groups, their configurations, and
+      log data storage.

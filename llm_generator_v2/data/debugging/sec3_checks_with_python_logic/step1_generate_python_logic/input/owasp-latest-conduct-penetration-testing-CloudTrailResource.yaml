@@ -1,0 +1,55 @@
+check:
+  category: system_integrity
+  control_names:
+  - NIST-800-53-CA-8
+  - ISO-27001-A.14.2.8
+  literature: Penetration testing, also known as pen testing or ethical hacking, is
+    a simulated cyber attack against an organization's computer systems, networks,
+    and web applications to identify vulnerabilities and weaknesses that could be
+    exploited by malicious actors. It is an essential practice in cybersecurity to
+    proactively identify and mitigate potential security risks before they can be
+    exploited by real-world attackers. Conducting regular penetration testing helps
+    organizations assess the effectiveness of their security controls, identify gaps
+    in their defenses, and prioritize remediation efforts. By simulating real-world
+    attack scenarios, penetration testing provides valuable insights into an organization's
+    security posture and helps strengthen its overall cybersecurity resilience.
+  name: owasp-latest-conduct-penetration-testing
+  resource:
+    field_paths:
+    - event_selectors
+    - event_selectors[]
+    - event_selectors[].data_resources
+    - event_selectors[].data_resources.type
+    - event_selectors[].data_resources.values
+    - event_selectors[].data_resources.values[]
+    - event_selectors[].include_management_events
+    - event_selectors[].read_write_type
+    - trails
+    - trails[]
+    - trails[].event_selectors
+    - trails[].event_selectors[]
+    - trails[].event_selectors[].data_resources
+    - trails[].event_selectors[].data_resources.type
+    - trails[].event_selectors[].data_resources.values
+    - trails[].event_selectors[].data_resources.values[]
+    - trails[].event_selectors[].include_management_events
+    - trails[].event_selectors[].read_write_type
+    - trails[].is_logging
+    - trails[].is_multi_region_trail
+    - trails[].log_file_validation_enabled
+    literature: AWS CloudTrail is a service that records AWS API calls and related
+      events for your account. It provides a comprehensive audit trail of all activities
+      across your AWS infrastructure, which can be invaluable for conducting penetration
+      testing and identifying potential security vulnerabilities. By analyzing CloudTrail
+      logs, security teams can simulate attack scenarios, identify misconfigurations,
+      and assess the effectiveness of security controls. CloudTrail's event selectors
+      and data resource filters allow you to customize the types of events and resources
+      to log, enabling targeted penetration testing efforts.
+    name: CloudTrailResource
+    reason: AWS CloudTrail provides detailed logging and auditing capabilities that
+      are essential for conducting comprehensive penetration testing and identifying
+      potential security vulnerabilities across AWS resources and services. By configuring
+      CloudTrail event selectors and data resource filters, security teams can capture
+      relevant API activity and simulate various attack scenarios to assess the effectiveness
+      of security controls.
+  unique_id: owasp-latest-conduct-penetration-testing

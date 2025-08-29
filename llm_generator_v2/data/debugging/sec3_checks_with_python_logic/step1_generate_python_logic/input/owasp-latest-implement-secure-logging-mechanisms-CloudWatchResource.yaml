@@ -1,0 +1,71 @@
+check:
+  category: audit
+  control_names:
+  - NIST-800-53-AU-2
+  - NIST-800-53-AU-3
+  - ISO-27001-A.12.4.1
+  literature: Secure logging mechanisms are essential for maintaining an audit trail,
+    detecting security incidents, and troubleshooting issues in applications and systems.
+    Proper logging practices involve capturing relevant information about user activities,
+    system events, and security-related occurrences, while ensuring the confidentiality,
+    integrity, and availability of log data. Implementing secure logging mechanisms
+    helps organizations comply with regulatory requirements, forensic investigations,
+    and incident response efforts. Failure to implement secure logging can lead to
+    data breaches, unauthorized access, and an inability to reconstruct events or
+    identify the root cause of security incidents.
+  name: owasp-latest-implement-secure-logging-mechanisms
+  resource:
+    field_paths:
+    - log_groups
+    - log_groups[].arn
+    - log_groups[].creation_time
+    - log_groups[].id
+    - log_groups[].kms_key_id
+    - log_groups[].log_group_name
+    - log_groups[].metric_filter_count
+    - log_groups[].retention_in_days
+    - log_groups[].stored_bytes
+    - metrics
+    - metrics[].dimensions
+    - metrics[].dimensions[].Name
+    - metrics[].dimensions[].Value
+    - metrics[].metric_name
+    - metrics[].namespace
+    - alarms
+    - alarms[].actions_enabled
+    - alarms[].alarm_actions
+    - alarms[].alarm_actions[]
+    - alarms[].alarm_description
+    - alarms[].alarm_name
+    - alarms[].comparison_operator
+    - alarms[].dimensions
+    - alarms[].dimensions[].Name
+    - alarms[].dimensions[].Value
+    - alarms[].evaluation_periods
+    - alarms[].insufficient_data_actions
+    - alarms[].insufficient_data_actions[]
+    - alarms[].metric_name
+    - alarms[].namespace
+    - alarms[].ok_actions
+    - alarms[].ok_actions[]
+    - alarms[].period
+    - alarms[].state_reason
+    - alarms[].state_updated_timestamp
+    - alarms[].state_value
+    - alarms[].statistic
+    - alarms[].threshold
+    literature: AWS CloudWatch provides logging and monitoring capabilities that can
+      be leveraged to implement secure logging mechanisms. CloudWatch Log Groups can
+      be used to collect and store log data from various AWS services and applications.
+      Log data can be encrypted using AWS Key Management Service (KMS) keys to ensure
+      confidentiality. CloudWatch also supports log retention policies to maintain
+      an audit trail for a specified duration. Additionally, CloudWatch Metric Filters
+      can be used to analyze log data and trigger alarms or actions based on specific
+      patterns or conditions, enabling proactive monitoring and incident response.
+    name: CloudWatchResource
+    reason: AWS CloudWatch provides logging and monitoring capabilities that can be
+      used to implement secure logging mechanisms. CloudWatch Log Groups can store
+      log data, which can be encrypted and retained for a specified duration. CloudWatch
+      Metric Filters and Alarms can be used to analyze log data and trigger actions
+      based on specific conditions, enabling proactive monitoring and incident response.
+  unique_id: owasp-latest-implement-secure-logging-mechanisms

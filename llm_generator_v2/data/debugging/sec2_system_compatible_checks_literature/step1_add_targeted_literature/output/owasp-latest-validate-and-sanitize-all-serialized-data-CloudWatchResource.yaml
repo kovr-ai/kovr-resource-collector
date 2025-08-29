@@ -1,0 +1,29 @@
+resource:
+  check:
+    unique_id: owasp-latest-validate-and-sanitize-all-serialized-data
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This security check is not applicable to the CloudWatch resource
+      in AWS.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The CloudWatch resource in AWS does not directly handle serialized data
+    or deserialization operations. It is primarily used for monitoring and logging
+    purposes, such as creating alarms, dashboards, and log groups. Therefore, this
+    resource is not directly applicable for implementing the 'owasp-latest-validate-and-sanitize-all-serialized-data'
+    security check, which focuses on validating and sanitizing serialized data to
+    prevent insecure deserialization vulnerabilities.
+  name: CloudWatchResource
+  output_statements:
+    failure: The CloudWatch resource does not handle serialized data or deserialization
+      operations, so this check is not applicable.
+    partial: The CloudWatch resource does not handle serialized data or deserialization
+      operations, so this check is not applicable.
+    success: The CloudWatch resource does not handle serialized data or deserialization
+      operations, so this check is not applicable.
+  reason: The CloudWatch resource does not deal with serialized data or deserialization
+    operations, which are the primary focus of this security check. It is a monitoring
+    and logging service, and its field paths do not relate to the validation and sanitization
+    of serialized data.

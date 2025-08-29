@@ -1,0 +1,32 @@
+resource:
+  check:
+    unique_id: owasp-latest-have-a-plan-for-addressing-vulnerabilities
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This security check is not applicable to the Google UserResource.
+      It should be evaluated at the organizational level, considering the organization's
+      overall vulnerability management policies, procedures, and documentation.
+    estimated_time: Varies based on the organization's size and complexity.
+    instructions:
+    - Review the organization's vulnerability management plan and related documentation.
+    - Ensure that the plan covers the identification, assessment, prioritization,
+      and remediation of vulnerabilities across all applications and systems.
+    - Verify that the plan is regularly reviewed, updated, and communicated to relevant
+      stakeholders.
+  is_valid: false
+  literature: The 'owasp-latest-have-a-plan-for-addressing-vulnerabilities' security
+    check is designed to ensure that organizations have a documented plan for addressing
+    vulnerabilities in their applications and systems. This check is typically applicable
+    at the organizational level, rather than for a specific cloud resource like the
+    Google UserResource.
+  name: UserResource
+  output_statements:
+    failure: This resource is not applicable for this security check.
+    partial: This resource is not applicable for this security check.
+    success: This resource is not applicable for this security check.
+  reason: The Google UserResource represents information about a user account within
+    the Google Workspace environment. It does not contain any information or settings
+    related to an organization's vulnerability management plan or processes. Therefore,
+    this resource is not directly applicable for implementing the 'owasp-latest-have-a-plan-for-addressing-vulnerabilities'
+    security check.

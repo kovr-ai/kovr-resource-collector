@@ -1,0 +1,28 @@
+resource:
+  check:
+    unique_id: owasp-latest-validate-and-sanitize-all-user-input
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This resource is not applicable for this security check, so no fix
+      is required.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The IAMResource in AWS does not directly handle user input validation
+    and sanitization. This security check is focused on ensuring that all user input
+    is properly validated and sanitized before being processed or stored in an application
+    or system. The IAMResource manages Identity and Access Management (IAM) policies,
+    users, and access keys, which are not directly related to user input handling.
+  name: IAMResource
+  output_statements:
+    failure: This resource is not applicable for the 'owasp-latest-validate-and-sanitize-all-user-input'
+      security check.
+    partial: This resource is not applicable for the 'owasp-latest-validate-and-sanitize-all-user-input'
+      security check.
+    success: This resource is not applicable for the 'owasp-latest-validate-and-sanitize-all-user-input'
+      security check.
+  reason: The IAMResource is not applicable for implementing the 'owasp-latest-validate-and-sanitize-all-user-input'
+    security check because it does not handle user input validation and sanitization.
+    This check is more relevant for application resources that accept and process
+    user input.

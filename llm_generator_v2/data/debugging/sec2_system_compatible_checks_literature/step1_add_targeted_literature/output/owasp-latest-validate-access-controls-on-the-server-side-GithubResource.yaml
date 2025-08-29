@@ -1,0 +1,34 @@
+resource:
+  check:
+    unique_id: owasp-latest-validate-access-controls-on-the-server-side
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: Since the provided resource is not applicable for this security check,
+      no specific fix is required. However, to validate server-side access controls,
+      you would need to analyze the actual server-side code and configuration of the
+      application or service hosted within the GitHub repository.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The 'owasp-latest-validate-access-controls-on-the-server-side' check
+    is designed to validate that access controls are properly implemented on the server-side
+    of an application. This involves ensuring that only authorized users or entities
+    can access and perform specific actions on protected resources or data. The check
+    helps identify and mitigate risks associated with improper access control implementation,
+    such as broken authentication, broken access control, and insecure direct object
+    references.
+  name: GithubResource
+  output_statements:
+    failure: The server-side access controls for the application are not properly
+      implemented or validated, posing potential security risks.
+    partial: N/A
+    success: The server-side access controls for the application are properly implemented
+      and validated.
+  reason: The provided resource is a GithubResource, which represents a GitHub repository.
+    While GitHub repositories may contain server-side code and applications, the resource
+    itself does not provide sufficient information to validate access controls on
+    the server-side. The resource primarily contains metadata, statistics, and information
+    about the repository, its collaborators, and its security features. However, it
+    does not expose details about the server-side implementation or access control
+    mechanisms used by any applications or services hosted within the repository.

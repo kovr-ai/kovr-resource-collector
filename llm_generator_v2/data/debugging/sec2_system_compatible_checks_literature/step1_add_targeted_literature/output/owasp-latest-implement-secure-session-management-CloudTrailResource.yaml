@@ -1,0 +1,42 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-secure-session-management
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To implement secure session management, you need to configure your
+      web application and its underlying infrastructure components (e.g., load balancers,
+      web servers, application servers) to follow best practices for session management.
+    estimated_time: Varies depending on the complexity of the web application and
+      infrastructure.
+    instructions:
+    - Review the OWASP Session Management Cheat Sheet for detailed guidance on implementing
+      secure session management practices.
+    - Ensure that your web application generates unpredictable session identifiers
+      and protects session data from tampering.
+    - Configure appropriate session timeouts and automatically invalidate sessions
+      after logout or inactivity.
+    - Implement additional security measures such as session fixation protection,
+      secure cookie attributes, and cross-site request forgery (CSRF) protection.
+  is_valid: false
+  literature: The AWS CloudTrail resource is used for logging and monitoring API activity
+    within an AWS account. While it can provide valuable audit trails, it does not
+    directly implement secure session management practices for web applications. Secure
+    session management involves protecting user sessions from unauthorized access,
+    hijacking, and other attacks by generating unpredictable session identifiers,
+    protecting session data from tampering, setting appropriate session timeouts,
+    and invalidating sessions after logout or inactivity.
+  name: CloudTrailResource
+  output_statements:
+    failure: The CloudTrail resource does not implement secure session management
+      practices for web applications.
+    partial: The CloudTrail resource does not directly address secure session management,
+      but it can provide valuable audit logs for monitoring and investigating potential
+      session-related issues.
+    success: The CloudTrail resource is configured to log and monitor API activity,
+      providing an audit trail for security analysis.
+  reason: The CloudTrail resource is focused on logging and monitoring API activity,
+    rather than implementing secure session management for web applications. It does
+    not have the necessary functionality to handle session management tasks such as
+    generating session identifiers, protecting session data, or managing session timeouts
+    and invalidation.

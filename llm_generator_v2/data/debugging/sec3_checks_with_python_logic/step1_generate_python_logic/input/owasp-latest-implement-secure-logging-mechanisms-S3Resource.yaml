@@ -1,0 +1,33 @@
+check:
+  category: audit
+  control_names:
+  - NIST-800-53-AU-2
+  - NIST-800-53-AU-3
+  - ISO-27001-A.12.4.1
+  literature: Secure logging mechanisms are essential for maintaining an audit trail,
+    detecting security incidents, and troubleshooting issues in applications and systems.
+    Proper logging practices involve capturing relevant information about user activities,
+    system events, and security-related occurrences, while ensuring the confidentiality,
+    integrity, and availability of log data. Implementing secure logging mechanisms
+    helps organizations comply with regulatory requirements, forensic investigations,
+    and incident response efforts. Failure to implement secure logging can lead to
+    data breaches, unauthorized access, and an inability to reconstruct events or
+    identify the root cause of security incidents.
+  name: owasp-latest-implement-secure-logging-mechanisms
+  resource:
+    field_paths:
+    - buckets
+    - buckets[].logging_enabled
+    - buckets[].name
+    literature: The AWS S3 resource can be used to implement secure logging mechanisms
+      by enabling access logging and server access logging for S3 buckets. Access
+      logs provide detailed records of requests made to a bucket, including the requester,
+      bucket name, request time, action, response status, and error codes. Server
+      access logs provide detailed records about requests that were made to a bucket
+      and the response from the server. These logs can be used for security monitoring,
+      operational troubleshooting, and compliance purposes.
+    name: S3Resource
+    reason: The S3 resource provides the necessary configuration options to enable
+      access logging and server access logging for S3 buckets, which is a key aspect
+      of implementing secure logging mechanisms.
+  unique_id: owasp-latest-implement-secure-logging-mechanisms

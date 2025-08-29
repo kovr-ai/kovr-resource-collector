@@ -1,0 +1,35 @@
+resource:
+  check:
+    unique_id: owasp-latest-ensure-secure-configuration-of-web-servers
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: To ensure secure configuration of web servers, you need to review
+      and harden the web server settings based on industry best practices and security
+      guidelines.
+    estimated_time: 1-2 hours for initial configuration review and hardening, ongoing
+      maintenance required
+    instructions:
+    - Identify the web servers in your environment (e.g., Apache, Nginx, IIS).
+    - Review the web server configuration files and settings.
+    - Implement recommended security hardening measures, such as disabling unnecessary
+      modules, restricting access, enabling secure protocols, and configuring appropriate
+      logging.
+    - Regularly update the web server software and apply security patches.
+    - Monitor web server logs for potential security incidents.
+  is_valid: false
+  literature: The IAMResource in AWS does not directly relate to the configuration
+    of web servers. It provides information about AWS Identity and Access Management
+    (IAM) policies, users, and access keys. While IAM is crucial for managing access
+    to AWS resources, including web servers, it does not directly configure the web
+    server settings themselves.
+  name: IAMResource
+  output_statements:
+    failure: The web server configurations are insecure and do not meet the recommended
+      security standards.
+    partial: Some web server configurations are secure, but others require attention.
+    success: The web server configurations are secure and follow industry best practices.
+  reason: The security check 'owasp-latest-ensure-secure-configuration-of-web-servers'
+    specifically focuses on validating the secure configuration of web servers, such
+    as Apache or Nginx. The IAMResource does not contain any information about web
+    server configurations or settings.

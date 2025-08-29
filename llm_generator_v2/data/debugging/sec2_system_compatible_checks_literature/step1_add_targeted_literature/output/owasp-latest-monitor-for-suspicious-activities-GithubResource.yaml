@@ -1,0 +1,64 @@
+resource:
+  check:
+    unique_id: owasp-latest-monitor-for-suspicious-activities
+  field_paths:
+  - actions_data
+  - actions_data.active_workflows
+  - actions_data.recent_runs_count
+  - actions_data.total_workflows
+  - actions_data.workflows
+  - collaboration_data
+  - collaboration_data.collaborators
+  - collaboration_data.issues
+  - collaboration_data.pull_requests
+  - organization_data
+  - organization_data.members
+  - organization_data.outside_collaborators
+  - organization_data.teams
+  - repository_data
+  - repository_data.branches
+  - security_data
+  - security_data.code_scanning_alerts
+  - security_data.dependency_graph
+  - security_data.security_advisories
+  - security_data.security_analysis
+  - security_data.vulnerability_alerts
+  fix_details:
+    automation_available: true
+    description: To implement the 'owasp-latest-monitor-for-suspicious-activities'
+      check, you would need to integrate data sources that capture user behavior,
+      system logs, and network traffic across the organization's systems and applications.
+    estimated_time: Varies depending on the organization's size and complexity
+    instructions:
+    - Identify and integrate relevant data sources, such as user activity logs, system
+      logs, and network traffic logs, from the organization's systems and applications.
+    - Implement a centralized logging and monitoring solution to collect and analyze
+      the data from these sources.
+    - Define rules and patterns to detect suspicious or anomalous activities based
+      on the organization's security policies and threat intelligence.
+    - Configure alerts and notifications to be triggered when suspicious activities
+      are detected.
+    - Establish processes for incident response and investigation when alerts are
+      raised.
+  is_valid: false
+  literature: The 'owasp-latest-monitor-for-suspicious-activities' check is designed
+    to detect and alert on any suspicious or anomalous activities within an organization's
+    systems and applications. It continuously monitors user behavior, system logs,
+    network traffic, and other relevant data sources to identify potential security
+    threats or unauthorized actions. However, the provided GithubResource does not
+    contain any information related to user behavior, system logs, or network traffic.
+    It primarily contains metadata and information about the GitHub repository itself,
+    such as branches, workflows, collaborators, and security advisories.
+  name: GithubResource
+  output_statements:
+    failure: The resource does not contain the required data sources to monitor for
+      suspicious activities across the organization's systems and applications.
+    partial: N/A
+    success: The resource contains the necessary data sources to effectively monitor
+      for suspicious activities across the organization's systems and applications.
+  reason: The GithubResource does not contain the necessary data sources, such as
+    user behavior logs, system logs, or network traffic, to effectively implement
+    the 'owasp-latest-monitor-for-suspicious-activities' check. While it provides
+    information about the repository, collaborators, and security advisories, it lacks
+    the required data to monitor for suspicious activities across an organization's
+    systems and applications.

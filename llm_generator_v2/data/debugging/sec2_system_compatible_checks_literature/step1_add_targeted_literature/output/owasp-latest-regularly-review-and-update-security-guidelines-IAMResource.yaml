@@ -1,0 +1,41 @@
+resource:
+  check:
+    unique_id: owasp-latest-regularly-review-and-update-security-guidelines
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: Since the AWS IAM Resource is not directly applicable for implementing
+      this security check, the recommended approach is to focus on the web applications
+      themselves and their associated security controls.
+    estimated_time: Ongoing effort, depending on the number and complexity of web
+      applications.
+    instructions:
+    - Identify the web applications in your environment that require OWASP Top 10
+      security guidelines.
+    - Establish a process for regularly reviewing and updating the security guidelines
+      for these web applications based on the latest OWASP Top 10 recommendations.
+    - Implement appropriate security controls and configurations within the web applications
+      to address the OWASP Top 10 risks.
+    - Continuously monitor and assess the web applications for compliance with the
+      updated security guidelines.
+  is_valid: false
+  literature: The provided security check relates to regularly reviewing and updating
+    security guidelines based on the OWASP Top 10 standard for web application security.
+    However, the AWS IAM Resource is primarily focused on managing access and permissions
+    for AWS resources, rather than web application security guidelines. While IAM
+    policies can be used to restrict access to specific AWS services or actions, they
+    do not directly address the implementation of OWASP Top 10 guidelines within web
+    applications.
+  name: IAMResource
+  output_statements:
+    failure: The IAM policies do not address the regular review and update of OWASP
+      Top 10 security guidelines for web applications.
+    partial: The IAM policies partially address the regular review and update of OWASP
+      Top 10 security guidelines for web applications, but additional measures are
+      needed.
+    success: The IAM policies are regularly reviewed and updated to align with the
+      latest OWASP Top 10 security guidelines for web applications.
+  reason: The AWS IAM Resource is not directly applicable for implementing the security
+    check related to regularly reviewing and updating OWASP Top 10 security guidelines
+    for web applications. IAM policies govern access to AWS resources, but do not
+    specifically address web application security guidelines.

@@ -1,0 +1,34 @@
+resource:
+  check:
+    unique_id: owasp-latest-validate-and-sanitize-all-user-input
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: Since the GithubResource does not appear to be a user-facing application
+      or service that handles user input, there are no specific fixes required for
+      this resource in relation to the 'owasp-latest-validate-and-sanitize-all-user-input'
+      security check.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The security check 'owasp-latest-validate-and-sanitize-all-user-input'
+    focuses on ensuring that all user input is properly validated and sanitized to
+    prevent injection attacks and other input-related vulnerabilities. This is typically
+    implemented in web applications, APIs, or any system that accepts user input and
+    processes it. The GithubResource provided does not appear to be a user-facing
+    application or service that directly handles user input. Instead, it represents
+    data and metadata related to a GitHub repository, including information about
+    workflows, webhooks, collaborators, issues, pull requests, and security advisories.
+  name: GithubResource
+  output_statements:
+    failure: User input is not being properly validated and sanitized, leaving the
+      system vulnerable to injection attacks and other input-related vulnerabilities.
+    partial: Some user input is being validated and sanitized, but there are still
+      areas where input is not being properly handled, increasing the risk of injection
+      attacks and other input-related vulnerabilities.
+    success: All user input is properly validated and sanitized, mitigating the risk
+      of injection attacks and other input-related vulnerabilities.
+  reason: The GithubResource does not seem to be a suitable resource for implementing
+    this security check as it does not directly handle user input. The resource contains
+    metadata and information about a GitHub repository, but does not represent a system
+    or application that processes user-provided data.

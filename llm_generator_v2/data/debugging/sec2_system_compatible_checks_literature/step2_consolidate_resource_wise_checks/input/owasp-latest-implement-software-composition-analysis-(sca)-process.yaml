@@ -1,0 +1,21 @@
+check:
+  resources:
+  - field_paths:
+    - security_data.code_scanning_alerts
+    - security_data.dependency_graph
+    - security_data.security_advisories
+    - security_data.vulnerability_alerts
+    is_valid: true
+    literature: The GitHub resource provides information about the repository's security
+      features, including code scanning alerts, dependency vulnerabilities, and security
+      advisories. This data can be used to implement a Software Composition Analysis
+      (SCA) process by identifying and analyzing the open source and third-party components
+      used in the repository's codebase. By regularly scanning the repository for
+      known vulnerabilities and licensing issues, organizations can proactively address
+      potential risks and maintain the security and compliance of their software.
+    name: GithubResource
+    reason: The GitHub resource contains relevant security data that can be used to
+      implement an SCA process. The code_scanning_alerts, dependency_graph, security_advisories,
+      and vulnerability_alerts fields provide information about potential vulnerabilities,
+      dependencies, and security issues in the repository's codebase.
+  unique_id: owasp-latest-implement-software-composition-analysis-(sca)-process

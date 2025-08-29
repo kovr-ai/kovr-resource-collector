@@ -1,0 +1,73 @@
+check:
+  resources:
+  - field_paths:
+    - policies
+    - policies[].attachment_count
+    - policies[].create_date
+    - policies[].default_version
+    - policies[].default_version.Document
+    - policies[].default_version.Document.Statement
+    - policies[].default_version.Document.Statement[].Action
+    - policies[].default_version.Document.Statement[].Effect
+    - policies[].default_version.Document.Statement[].Resource
+    - policies[].id
+    - policies[].policy_name
+    - policies[].update_date
+    - users
+    - users[].access_keys
+    - users[].access_keys[].create_date
+    - users[].access_keys[].last_used_date
+    - users[].access_keys[].status
+    - users[].arn
+    - users[].create_date
+    - users[].id
+    - users[].mfa_devices
+    - users[].mfa_devices[].enable_date
+    is_valid: true
+    literature: The AWS IAM resource is applicable for implementing secure configuration
+      management processes. IAM policies define permissions for AWS resources and
+      services, and managing these policies through a secure change control process
+      is crucial for maintaining system integrity and security. By reviewing IAM policy
+      configurations, changes, and access, organizations can ensure that only authorized
+      and intended modifications are made, reducing the risk of introducing vulnerabilities
+      or granting excessive permissions.
+    name: IAMResource
+    reason: The IAM resource provides visibility into IAM policies, user access keys,
+      and MFA device configurations, which are essential components of secure configuration
+      management processes. By monitoring and controlling changes to these elements,
+      organizations can maintain the integrity of their AWS environment and ensure
+      compliance with security best practices.
+  - field_paths:
+    - trails
+    - trails[].enable_log_file_validation
+    - trails[].event_selectors
+    - trails[].event_selectors[].data_resources
+    - trails[].event_selectors[].data_resources.type
+    - trails[].event_selectors[].data_resources.values
+    - trails[].event_selectors[].data_resources.values[]
+    - trails[].event_selectors[].include_management_events
+    - trails[].event_selectors[].read_write_type
+    - trails[].include_global_service_events
+    - trails[].insight_selectors
+    - trails[].insight_selectors[].insight_type
+    - trails[].is_logging
+    - trails[].is_multi_region_trail
+    - trails[].log_file_validation_enabled
+    - trails[].s3_bucket_name
+    - trails[].s3_key_prefix
+    is_valid: true
+    literature: AWS CloudTrail is a service that records AWS API calls and related
+      events, providing a comprehensive audit trail of account activity. By enabling
+      CloudTrail and configuring it correctly, organizations can implement secure
+      configuration management processes by tracking and monitoring changes made to
+      their AWS resources. CloudTrail logs can be analyzed to identify unauthorized
+      or unintended changes, and the logs can be used as evidence for compliance audits
+      and investigations.
+    name: CloudTrailResource
+    reason: AWS CloudTrail provides a comprehensive audit trail of account activity,
+      including API calls and related events, which is essential for implementing
+      secure configuration management processes. By configuring CloudTrail correctly,
+      organizations can track and monitor changes made to their AWS resources, identify
+      unauthorized or unintended changes, and use the logs for compliance audits and
+      investigations.
+  unique_id: owasp-latest-implement-secure-configuration-management-processes

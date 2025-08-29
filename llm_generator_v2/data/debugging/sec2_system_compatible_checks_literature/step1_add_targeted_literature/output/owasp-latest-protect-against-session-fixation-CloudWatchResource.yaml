@@ -1,0 +1,40 @@
+resource:
+  check:
+    unique_id: owasp-latest-protect-against-session-fixation
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To protect against session fixation attacks, you should focus on
+      configuring and securing the authentication and session management mechanisms
+      in your web applications or services that handle user sessions.
+    estimated_time: Varies depending on the complexity of your application and existing
+      security measures.
+    instructions:
+    - Review your application's session management implementation and ensure that
+      it follows best practices for generating and handling session IDs securely.
+    - Implement measures to prevent session fixation attacks, such as regenerating
+      session IDs after successful authentication or using session tokens instead
+      of session IDs.
+    - Configure your web server or application server to set appropriate session cookie
+      flags (e.g., HttpOnly, Secure) and session timeout values.
+    - Regularly review and update your application's security configurations and dependencies
+      to address any newly discovered vulnerabilities or security issues related to
+      session management.
+  is_valid: false
+  literature: The CloudWatch resource in AWS is primarily used for monitoring and
+    logging purposes. It does not directly handle user sessions or authentication
+    mechanisms. Therefore, it is not applicable for implementing the 'owasp-latest-protect-against-session-fixation'
+    security check, which focuses on protecting against session fixation attacks.
+  name: CloudWatchResource
+  output_statements:
+    failure: This resource is not applicable for protecting against session fixation
+      attacks.
+    partial: This resource is not applicable for protecting against session fixation
+      attacks.
+    success: This resource is not applicable for protecting against session fixation
+      attacks.
+  reason: The CloudWatch resource is not designed to manage user sessions or authentication
+    processes. It is a monitoring and logging service that collects and analyzes metrics
+    and log data from various AWS resources and applications. As such, it does not
+    have the necessary functionality to implement protection against session fixation
+    attacks.

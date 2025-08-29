@@ -1,0 +1,39 @@
+check:
+  category: authentication
+  control_names:
+  - NIST-800-53-AT-2
+  - ISO-27001-A.7.2.2
+  literature: Security awareness training is crucial for organizations to educate
+    their employees on identifying and mitigating potential security threats. It helps
+    employees understand the importance of cybersecurity, recognize common attack
+    vectors, and learn best practices for protecting sensitive information and systems.
+    Regular security awareness training can significantly reduce the risk of human
+    error, which is often a leading cause of data breaches and cyber incidents. By
+    providing employees with the knowledge and skills to identify and respond to security
+    threats, organizations can strengthen their overall security posture and better
+    protect their assets and reputation.
+  provider: aws
+  resource:
+    field_paths:
+    - buckets
+    - buckets[]
+    - buckets[].creation_date
+    - buckets[].encryption
+    - buckets[].encryption.enabled
+    - buckets[].encryption.kms_key_id
+    - buckets[].encryption.type
+    - buckets[].id
+    - buckets[].logging_enabled
+    - buckets[].name
+    - buckets[].public_access_block
+    - buckets[].public_access_block.block_public_acls
+    - buckets[].public_access_block.block_public_policy
+    - buckets[].public_access_block.ignore_public_acls
+    - buckets[].public_access_block.restrict_public_buckets
+    - buckets[].region
+    - buckets[].versioning_status
+    - buckets[].website_enabled
+    - id
+    - source_connector
+    name: S3Resource
+  unique_id: owasp-latest-provide-security-awareness-training

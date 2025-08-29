@@ -1,0 +1,27 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-secure-session-management
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This resource is not applicable for implementing secure session management
+      practices.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The AWS CloudWatch resource is a monitoring and observability service
+    that collects and tracks metrics, logs, and events from various AWS resources
+    and applications. It does not directly handle session management or authentication
+    for web applications. Therefore, this resource is not applicable for implementing
+    the OWASP secure session management security check.
+  name: CloudWatchResource
+  output_statements:
+    failure: The CloudWatch resource does not handle session management or authentication
+      for web applications.
+    partial: The CloudWatch resource partially implements secure session management
+      practices.
+    success: The CloudWatch resource implements secure session management practices.
+  reason: The CloudWatch resource is a monitoring service and does not handle session
+    management or authentication for web applications. The security check is focused
+    on validating secure session management practices in web applications, which is
+    not a functionality provided by CloudWatch.

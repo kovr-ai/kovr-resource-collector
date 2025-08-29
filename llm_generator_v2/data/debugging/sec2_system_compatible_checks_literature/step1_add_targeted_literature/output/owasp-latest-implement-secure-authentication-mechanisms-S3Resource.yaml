@@ -1,0 +1,29 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-secure-authentication-mechanisms
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This resource is not applicable for the given security check. No
+      remediation is required.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The OWASP latest secure authentication mechanisms check focuses on validating
+    the implementation of secure authentication mechanisms within an application to
+    protect against common authentication attacks. This includes measures such as
+    proper credential handling, brute-force protection, and session management. However,
+    the provided AWS S3 resource is an object storage service and does not directly
+    handle authentication mechanisms for applications.
+  name: S3Resource
+  output_statements:
+    failure: This resource is not applicable for the OWASP latest secure authentication
+      mechanisms check.
+    partial: This resource is not applicable for the OWASP latest secure authentication
+      mechanisms check.
+    success: This resource is not applicable for the OWASP latest secure authentication
+      mechanisms check.
+  reason: The AWS S3 resource is an object storage service and does not directly implement
+    authentication mechanisms for applications. While S3 does have access control
+    mechanisms, it does not cover the specific authentication requirements outlined
+    in the OWASP secure authentication mechanisms check.

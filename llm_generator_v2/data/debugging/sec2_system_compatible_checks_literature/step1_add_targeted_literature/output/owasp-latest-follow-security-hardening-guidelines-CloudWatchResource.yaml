@@ -1,0 +1,28 @@
+resource:
+  check:
+    unique_id: owasp-latest-follow-security-hardening-guidelines
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: Since the AWS CloudWatch resource is not designed to implement the
+      OWASP security hardening guidelines, there are no specific fixes required for
+      this resource.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The OWASP security hardening guidelines provide best practices for securing
+    web applications and systems, covering areas such as authentication, access control,
+    input validation, and secure coding practices. However, the provided AWS CloudWatch
+    resource is primarily used for monitoring and logging purposes, and does not directly
+    relate to implementing security hardening guidelines for web applications.
+  name: CloudWatchResource
+  output_statements:
+    failure: The AWS CloudWatch resource is not designed to implement the OWASP security
+      hardening guidelines.
+    partial: The AWS CloudWatch resource partially follows the OWASP security hardening
+      guidelines.
+    success: The AWS CloudWatch resource follows the OWASP security hardening guidelines.
+  reason: The AWS CloudWatch resource is not directly applicable for implementing
+    the OWASP security hardening guidelines, as it is a monitoring and logging service
+    rather than a web application or system component. The provided field paths do
+    not contain any information relevant to security hardening practices.

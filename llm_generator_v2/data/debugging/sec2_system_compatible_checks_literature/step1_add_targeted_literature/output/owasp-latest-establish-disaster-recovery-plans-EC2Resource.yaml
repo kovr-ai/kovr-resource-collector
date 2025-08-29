@@ -1,0 +1,47 @@
+resource:
+  check:
+    unique_id: owasp-latest-establish-disaster-recovery-plans
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To establish and maintain adequate disaster recovery plans, the organization
+      should follow a structured approach that involves multiple steps and stakeholders.
+    estimated_time: The time required to establish and maintain disaster recovery
+      plans can vary significantly depending on the organization's size, complexity,
+      and existing infrastructure. It is a continuous process that may take several
+      months to years to fully implement and maintain.
+    instructions:
+    - 1. Conduct a risk assessment to identify potential threats and vulnerabilities
+      that could disrupt critical operations.
+    - 2. Prioritize critical systems, data, and operations based on their importance
+      and impact on the business.
+    - 3. Develop a comprehensive disaster recovery plan that outlines strategies,
+      procedures, and resources needed for recovery.
+    - 4. Implement necessary infrastructure components, such as backup systems, redundant
+      data centers, and failover mechanisms.
+    - 5. Test and validate the disaster recovery plan regularly to ensure its effectiveness.
+    - 6. Train personnel on their roles and responsibilities in the event of a disaster.
+    - 7. Review and update the disaster recovery plan periodically to account for
+      changes in the organization's IT infrastructure and business requirements.
+  is_valid: false
+  literature: The EC2Resource in AWS does not directly relate to establishing disaster
+    recovery plans. EC2 instances are virtual machines that run applications and workloads,
+    but they do not inherently provide disaster recovery capabilities. Disaster recovery
+    plans typically involve strategies, procedures, and infrastructure components
+    that enable the recovery of critical systems, data, and operations in the event
+    of a disruptive event.
+  name: EC2Resource
+  output_statements:
+    failure: The organization does not have adequate disaster recovery plans in place
+      to ensure the protection of critical systems, data, and operations in the event
+      of a disruptive event.
+    partial: The organization has partially established disaster recovery plans, but
+      they may not cover all critical systems, data, and operations, or may not be
+      regularly tested and updated.
+    success: The organization has established and maintains comprehensive disaster
+      recovery plans that cover critical systems, data, and operations.
+  reason: The EC2Resource represents individual EC2 instances, their configurations,
+    and associated resources like security groups, network interfaces, and volumes.
+    While these resources are essential components of an IT infrastructure, they do
+    not directly address the establishment of disaster recovery plans, which is a
+    broader organizational process involving multiple components and strategies.

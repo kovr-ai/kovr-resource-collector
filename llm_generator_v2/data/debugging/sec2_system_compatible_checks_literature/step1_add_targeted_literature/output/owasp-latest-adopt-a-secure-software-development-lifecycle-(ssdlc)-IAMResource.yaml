@@ -1,0 +1,52 @@
+resource:
+  check:
+    unique_id: owasp-latest-adopt-a-secure-software-development-lifecycle-(ssdlc)
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To implement a secure SSDLC, the organization should establish a
+      comprehensive set of processes, practices, and tools that address security throughout
+      the entire software development lifecycle.
+    estimated_time: The implementation of a secure SSDLC is an ongoing process that
+      may take several months or longer, depending on the size and complexity of the
+      organization and its software development practices.
+    instructions:
+    - Conduct a thorough assessment of the current software development practices
+      and identify gaps or areas for improvement in terms of security.
+    - Develop and implement a secure SSDLC framework that incorporates security best
+      practices and guidelines from industry-recognized sources, such as OWASP, NIST,
+      and ISO.
+    - Provide training and awareness programs for developers, testers, and other stakeholders
+      involved in the software development process to ensure a consistent understanding
+      and adoption of the secure SSDLC.
+    - Establish secure coding practices, security testing procedures, and secure deployment
+      processes as part of the SSDLC.
+    - Continuously monitor and review the effectiveness of the secure SSDLC implementation,
+      and make necessary adjustments or improvements as needed.
+  is_valid: false
+  literature: The OWASP Secure Software Development Lifecycle (SSDLC) is a set of
+    best practices and guidelines for building secure software from the ground up.
+    It emphasizes the importance of incorporating security considerations throughout
+    the entire software development process, from requirements gathering and design
+    to implementation, testing, and deployment. While the IAM Resource in AWS provides
+    a way to manage access to AWS services and resources, it does not directly relate
+    to the implementation of an SSDLC for software development.
+  name: IAMResource
+  output_statements:
+    failure: The organization has not adopted or does not follow a secure SSDLC, which
+      increases the risk of security vulnerabilities and threats in the software development
+      process.
+    partial: The organization has partially adopted a secure SSDLC, but there are
+      gaps or areas for improvement in the implementation.
+    success: The organization has adopted and follows a secure SSDLC, which is crucial
+      for developing secure and resilient applications that can withstand various
+      cyber threats.
+  reason: The IAM Resource in AWS is primarily used for managing access control and
+    permissions for AWS services and resources. It does not directly relate to the
+    implementation of a Secure Software Development Lifecycle (SSDLC), which is a
+    set of best practices and guidelines for building secure software from the ground
+    up. The SSDLC encompasses various phases of the software development process,
+    such as requirements gathering, design, implementation, testing, and deployment,
+    and emphasizes the importance of incorporating security considerations throughout
+    these phases. While IAM can be used to control access to development resources
+    and environments, it does not directly address the implementation of an SSDLC.

@@ -1,0 +1,26 @@
+check:
+  resources:
+  - field_paths:
+    - trails
+    - trails[].event_selectors
+    - trails[].event_selectors[].data_resources
+    - trails[].event_selectors[].data_resources.type
+    - trails[].event_selectors[].data_resources.values
+    - trails[].event_selectors[].include_management_events
+    - trails[].event_selectors[].read_write_type
+    - trails[].is_logging
+    - trails[].is_multi_region_trail
+    - trails[].log_file_validation_enabled
+    is_valid: true
+    literature: AWS CloudTrail is a service that records AWS API calls and related
+      events for your account. It provides a log of activities that can be used to
+      monitor for security advisories and potential threats. By configuring CloudTrail
+      to log relevant events and integrating it with security monitoring tools, organizations
+      can stay informed about security advisories and take appropriate actions to
+      mitigate risks.
+    name: CloudTrailResource
+    reason: AWS CloudTrail can be configured to log API calls and events related to
+      various AWS services, including those that may be affected by security advisories.
+      By enabling CloudTrail and configuring it to capture relevant events, organizations
+      can monitor for potential security issues and take appropriate actions.
+  unique_id: owasp-latest-monitor-for-security-advisories

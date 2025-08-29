@@ -1,0 +1,37 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-secure-logging-mechanisms
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: To implement secure logging mechanisms in Google Cloud Platform,
+      you need to configure logging services, log sinks, and log retention policies
+      at the project, service, or application level.
+    estimated_time: 30 minutes to 1 hour
+    instructions:
+    - 1. Enable the Cloud Logging API for your project.
+    - 2. Configure log sinks to export logs to a secure storage destination, such
+      as Cloud Storage or BigQuery.
+    - 3. Set appropriate log retention policies to ensure logs are kept for the required
+      duration.
+    - 4. Review and configure logging settings for individual services or applications
+      to capture relevant log data.
+    - 5. Implement access controls and encryption for log data to ensure confidentiality
+      and integrity.
+  is_valid: false
+  literature: The GroupResource in Google Cloud Platform represents a collection of
+    entities, such as users or service accounts, that can be managed together. It
+    does not directly relate to implementing secure logging mechanisms, which typically
+    involve configuring logging services, log sinks, and log retention policies to
+    capture and store application and system logs securely.
+  name: GroupResource
+  output_statements:
+    failure: The GroupResource does not have any direct configuration options for
+      implementing secure logging mechanisms.
+    partial: The GroupResource does not have any direct configuration options for
+      implementing secure logging mechanisms.
+    success: The GroupResource is configured to support secure logging mechanisms.
+  reason: The GroupResource is primarily used for managing access control and group
+    membership, and does not have any direct functionality or configuration options
+    related to logging mechanisms. Secure logging is typically implemented at the
+    project, service, or application level, rather than at the group resource level.

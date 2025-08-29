@@ -1,0 +1,25 @@
+resource:
+  check:
+    unique_id: owasp-latest-use-parameterized-queries-or-orm-tools
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This security check is not applicable to the AWS IAM resource.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The security check 'owasp-latest-use-parameterized-queries-or-orm-tools'
+    is focused on preventing SQL injection attacks by using parameterized queries
+    or Object-Relational Mapping (ORM) tools in application code. This check is primarily
+    applicable to application code and databases, rather than the AWS IAM resource
+    provided.
+  name: IAMResource
+  output_statements:
+    failure: This resource is not applicable for this security check.
+    partial: This resource is not applicable for this security check.
+    success: This resource is not applicable for this security check.
+  reason: The AWS IAM resource is used for managing user identities, access keys,
+    and policies within the AWS Identity and Access Management (IAM) service. It does
+    not directly relate to the implementation of parameterized queries or ORM tools
+    in application code. Therefore, this resource is not applicable for implementing
+    this specific security check.

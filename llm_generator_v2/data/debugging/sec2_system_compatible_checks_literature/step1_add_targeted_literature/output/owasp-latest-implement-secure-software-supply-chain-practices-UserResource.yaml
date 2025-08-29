@@ -1,0 +1,38 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-secure-software-supply-chain-practices
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: To implement secure software supply chain practices, you need to
+      review and configure resources related to your software development and deployment
+      processes, such as Cloud Build, Artifact Registry, Binary Authorization, and
+      Cloud Deployment Manager.
+    estimated_time: Varies based on the complexity of your software supply chain and
+      existing processes.
+    instructions:
+    - Implement secure coding practices and code reviews in your development process.
+    - Use trusted sources for third-party dependencies and components.
+    - Implement automated security testing and vulnerability scanning for your code
+      and dependencies.
+    - Sign and verify code artifacts using tools like Binary Authorization.
+    - Configure secure deployment pipelines with access controls and audit logging.
+    - Regularly monitor and update your software supply chain components for security
+      vulnerabilities.
+  is_valid: false
+  literature: The UserResource in Google Cloud does not appear to be directly applicable
+    for implementing secure software supply chain practices. This resource represents
+    user account information and does not contain details related to software development,
+    deployment, or supply chain security controls.
+  name: UserResource
+  output_statements:
+    failure: The Google Cloud UserResource does not have secure software supply chain
+      practices implemented.
+    partial: The Google Cloud UserResource partially implements secure software supply
+      chain practices.
+    success: The Google Cloud UserResource has secure software supply chain practices
+      implemented.
+  reason: The UserResource is focused on storing user account data such as names,
+    emails, and contact information. It does not contain any information or configurations
+    related to software supply chain security practices, such as code signing, vulnerability
+    scanning, or secure deployment pipelines.

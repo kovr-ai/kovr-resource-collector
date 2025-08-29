@@ -1,0 +1,26 @@
+resource:
+  check:
+    unique_id: owasp-latest-use-secure-defaults
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This check is not applicable to the EC2Resource, and no remediation
+      is required.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The 'owasp-latest-use-secure-defaults' check is focused on ensuring
+    that applications and systems are configured with secure default settings and
+    configurations. This check is primarily applicable to resources that have configurable
+    settings or options that can impact the security posture of the system or application.
+  name: EC2Resource
+  output_statements:
+    failure: This check is not applicable to the EC2Resource.
+    partial: This check is not applicable to the EC2Resource.
+    success: This check is not applicable to the EC2Resource.
+  reason: The AWS EC2Resource does not appear to have any configurable settings or
+    options that directly relate to secure default configurations. This resource represents
+    information about EC2 instances, reserved instances, elastic IPs, and other EC2-related
+    resources in an AWS account. While it provides valuable information about the
+    EC2 environment, it does not contain any settings or configurations that can be
+    checked for secure defaults.

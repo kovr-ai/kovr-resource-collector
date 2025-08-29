@@ -1,0 +1,51 @@
+resource:
+  check:
+    unique_id: owasp-latest-adopt-a-secure-software-development-lifecycle-(ssdlc)
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To implement the OWASP SSDLC security check, the organization needs
+      to establish and follow a secure software development lifecycle that incorporates
+      security practices and considerations throughout the entire software development
+      process.
+    estimated_time: The implementation time can vary depending on the size and complexity
+      of the organization's software development processes, but it typically takes
+      several months to establish and fully adopt an SSDLC framework.
+    instructions:
+    - Conduct a thorough assessment of the current software development practices
+      and identify gaps or areas for improvement in terms of security.
+    - Develop and implement a comprehensive SSDLC framework that covers all phases
+      of the software development lifecycle, including requirements gathering, design,
+      implementation, testing, and deployment.
+    - Provide training and awareness programs for software developers, testers, and
+      other relevant stakeholders on secure coding practices, security testing, and
+      the importance of incorporating security throughout the development process.
+    - Establish security review processes and checkpoints at various stages of the
+      software development lifecycle to ensure that security considerations are properly
+      addressed.
+    - Continuously monitor and update the SSDLC framework based on industry best practices,
+      emerging threats, and feedback from the development teams.
+  is_valid: false
+  literature: The Secure Software Development Lifecycle (SSDLC) is a set of practices
+    and guidelines for building secure software from the ground up. It covers various
+    phases of the software development process, including requirements gathering,
+    design, implementation, testing, and deployment. The SSDLC emphasizes incorporating
+    security considerations throughout the entire lifecycle to proactively address
+    security risks and vulnerabilities. However, the provided resource (EC2Resource)
+    is an AWS EC2 instance, which is an infrastructure component rather than a software
+    development process or artifact. Therefore, this resource is not directly applicable
+    for implementing the OWASP SSDLC security check.
+  name: EC2Resource
+  output_statements:
+    failure: The organization has not adopted or does not follow a secure Software
+      Development Lifecycle (SSDLC) that incorporates security considerations throughout
+      the entire software development process.
+    partial: The organization has partially adopted a secure Software Development
+      Lifecycle (SSDLC), but there are gaps or areas for improvement in incorporating
+      security considerations throughout the entire software development process.
+    success: The organization has adopted and follows a secure Software Development
+      Lifecycle (SSDLC) that incorporates security considerations throughout the entire
+      software development process.
+  reason: The EC2Resource represents an AWS EC2 instance, which is an infrastructure
+    component. The OWASP SSDLC security check is focused on the software development
+    lifecycle and practices, which is not directly related to the EC2 instance itself.

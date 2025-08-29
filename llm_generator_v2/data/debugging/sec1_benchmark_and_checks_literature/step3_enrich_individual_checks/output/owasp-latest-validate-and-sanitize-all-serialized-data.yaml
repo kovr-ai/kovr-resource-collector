@@ -1,0 +1,35 @@
+check:
+  benchmarks:
+  - confidence: 0.9
+    reason: Insecure deserialization vulnerabilities can be exploited to achieve code
+      execution, which is a technique used in this MITRE ATT&CK tactic.
+    unique_id: MITRE-ATT&CK-T1059
+  - confidence: 0.8
+    reason: Insecure deserialization vulnerabilities can be exploited to gain unauthorized
+      access to sensitive data, which is a technique used in this MITRE ATT&CK tactic.
+    unique_id: MITRE-ATT&CK-T1212
+  category: system_integrity
+  controls:
+  - confidence: 0.9
+    reason: This control requires the organization to validate and sanitize all input
+      data, including serialized data, to prevent the execution of malicious code
+      or unauthorized access to sensitive information.
+    unique_id: NIST-800-53-SI-10
+  - confidence: 0.8
+    reason: This control requires the implementation of measures to protect against
+      malicious code, which includes validating and sanitizing serialized data to
+      prevent code injection or execution.
+    unique_id: ISO-27001-A.13.1.3
+  literature: Serialized data, such as objects or data structures, can contain sensitive
+    information or executable code. If this data is not properly validated and sanitized,
+    it can lead to various security vulnerabilities like code injection, data tampering,
+    or unauthorized access. This check ensures that all serialized data is thoroughly
+    validated and sanitized before being processed or deserialized, mitigating the
+    risk of attacks that exploit insecure deserialization vulnerabilities.
+  severity: high
+  tags:
+  - input_validation
+  - data_sanitization
+  - deserialization
+  - code_injection
+  unique_id: owasp-latest-validate-and-sanitize-all-serialized-data

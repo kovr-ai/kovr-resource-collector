@@ -1,0 +1,41 @@
+resource:
+  check:
+    unique_id: owasp-latest-ensure-secure-configuration-of-application-servers
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: To address insecure application server configurations, a comprehensive
+      review and hardening process is required.
+    estimated_time: 1-2 weeks, depending on the number of application servers and
+      the complexity of the environment.
+    instructions:
+    - Identify all application servers in the environment and their current configuration
+      settings.
+    - Compare the configurations against industry-standard hardening guidelines and
+      best practices for the specific application server software.
+    - Remediate any insecure settings, such as disabling unnecessary services, restricting
+      network access, enabling secure protocols, and configuring appropriate logging
+      and monitoring.
+    - Implement a process for regularly reviewing and updating application server
+      configurations as new vulnerabilities and hardening recommendations are published.
+    - Consider automating the hardening process through configuration management tools
+      or immutable infrastructure practices.
+  is_valid: false
+  literature: The IAMResource in AWS is related to Identity and Access Management
+    (IAM) policies and user configurations. While secure IAM configurations are important
+    for overall system security, this resource does not directly relate to the secure
+    configuration of application servers, which is the focus of the 'owasp-latest-ensure-secure-configuration-of-application-servers'
+    check. This check is specifically concerned with the hardening and secure configuration
+    of web application servers themselves, rather than access management policies.
+  name: IAMResource
+  output_statements:
+    failure: One or more application servers have insecure configurations, potentially
+      exposing the system to vulnerabilities like unauthorized access, data breaches,
+      and remote code execution.
+    partial: Some application servers have secure configurations, but others require
+      hardening and alignment with best practices.
+    success: The application servers are configured securely, following industry best
+      practices and hardening guidelines.
+  reason: The IAMResource in AWS deals with IAM policies, user access keys, and MFA
+    devices. It does not contain information about the configuration settings or hardening
+    of application servers, which is the primary concern of the given security check.

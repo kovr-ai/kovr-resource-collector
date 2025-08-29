@@ -1,0 +1,82 @@
+check:
+  resources:
+  - field_paths:
+    - policies
+    - policies[]
+    - policies[].create_date
+    - policies[].default_version
+    - policies[].default_version.CreateDate
+    - policies[].default_version.Document
+    - policies[].default_version.Document.Statement
+    - policies[].default_version.Document.Statement[]
+    - policies[].default_version.Document.Statement[].Action
+    - policies[].default_version.Document.Statement[].Action[]
+    - policies[].default_version.Document.Statement[].Condition
+    - policies[].default_version.Document.Statement[].Effect
+    - policies[].default_version.Document.Statement[].Resource
+    - policies[].default_version.Document.Version
+    - policies[].default_version.IsDefaultVersion
+    - policies[].default_version.VersionId
+    - policies[].default_version_id
+    - policies[].id
+    - policies[].path
+    - policies[].policy_id
+    - policies[].policy_name
+    - policies[].update_date
+    is_valid: true
+    literature: The IAM resource in AWS is applicable for implementing the OWASP check
+      'owasp-latest-regularly-review-and-update-configurations'. IAM policies define
+      permissions and access controls for AWS resources, and it is crucial to regularly
+      review and update these policies to maintain a secure posture. Outdated or misconfigured
+      IAM policies can lead to excessive permissions, unauthorized access, or security
+      vulnerabilities.
+    name: IAMResource
+    reason: The IAM resource in AWS contains policies that define permissions and
+      access controls for AWS resources. Regularly reviewing and updating these policies
+      is essential to maintain a secure posture and comply with the OWASP check 'owasp-latest-regularly-review-and-update-configurations'.
+  - field_paths:
+    - buckets
+    - buckets[].encryption
+    - buckets[].encryption.enabled
+    - buckets[].encryption.type
+    - buckets[].public_access_block
+    - buckets[].public_access_block.block_public_acls
+    - buckets[].public_access_block.block_public_policy
+    - buckets[].public_access_block.ignore_public_acls
+    - buckets[].public_access_block.restrict_public_buckets
+    - buckets[].versioning_status
+    is_valid: true
+    literature: The AWS S3 resource is applicable for implementing the OWASP check
+      'owasp-latest-regularly-review-and-update-configurations'. S3 bucket configurations,
+      such as encryption settings, public access controls, and versioning status,
+      should be regularly reviewed and updated to maintain a secure posture. Outdated
+      or misconfigured S3 buckets can lead to data breaches, unauthorized access,
+      or non-compliance with security standards.
+    name: S3Resource
+    reason: The AWS S3 resource provides configurations that should be regularly reviewed
+      and updated to maintain a secure posture, aligning with the OWASP check's objective.
+  - field_paths:
+    - trails
+    - trails[].event_selectors
+    - trails[].event_selectors[].data_resources
+    - trails[].event_selectors[].include_management_events
+    - trails[].is_logging
+    - trails[].is_multi_region_trail
+    - trails[].log_file_validation_enabled
+    - trails[].s3_bucket_name
+    is_valid: true
+    literature: The AWS CloudTrail resource is applicable for implementing the OWASP
+      check 'owasp-latest-regularly-review-and-update-configurations'. CloudTrail
+      is a service that records AWS API calls and related events, providing a log
+      of account activity. By enabling CloudTrail and configuring it correctly, organizations
+      can regularly review and audit the logs to identify potential misconfigurations,
+      unauthorized access attempts, or other security-related events. This allows
+      for timely updates and remediation of any identified issues, aligning with the
+      security check's objective of maintaining an up-to-date and secure system configuration.
+    name: CloudTrailResource
+    reason: The CloudTrail resource provides a centralized logging mechanism for AWS
+      account activity, enabling regular reviews and updates to system configurations
+      based on the logged events. By configuring CloudTrail appropriately, organizations
+      can ensure that relevant API calls and events are captured, allowing for comprehensive
+      monitoring and timely remediation of any identified issues.
+  unique_id: owasp-latest-regularly-review-and-update-configurations

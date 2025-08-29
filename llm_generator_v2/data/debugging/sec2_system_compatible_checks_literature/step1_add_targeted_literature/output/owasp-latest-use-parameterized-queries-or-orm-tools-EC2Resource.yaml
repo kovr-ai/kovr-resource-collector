@@ -1,0 +1,36 @@
+resource:
+  check:
+    unique_id: owasp-latest-use-parameterized-queries-or-orm-tools
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To address this issue, the application code that interacts with databases
+      needs to be modified to use parameterized queries or ORM tools.
+    estimated_time: Depending on the size and complexity of the application, this
+      fix could take several hours to several days.
+    instructions:
+    - Identify all code sections that handle user input and interact with databases.
+    - Replace any instances of dynamic SQL queries with parameterized queries or use
+      an ORM tool.
+    - Thoroughly test the application to ensure that user input is properly sanitized
+      and validated.
+    - Implement input validation and sanitization mechanisms for all user input fields.
+  is_valid: false
+  literature: The security check 'owasp-latest-use-parameterized-queries-or-orm-tools'
+    is focused on preventing SQL injection attacks by using parameterized queries
+    or Object-Relational Mapping (ORM) tools in application code. This check is primarily
+    applicable to application-level resources that handle user input and interact
+    with databases. The provided AWS EC2Resource does not contain any information
+    related to application code or database interactions.
+  name: EC2Resource
+  output_statements:
+    failure: The application code does not use parameterized queries or ORM tools,
+      leaving it vulnerable to SQL injection attacks.
+    partial: Some parts of the application code use parameterized queries or ORM tools,
+      but other parts may be vulnerable to SQL injection attacks.
+    success: The application code uses parameterized queries or ORM tools to prevent
+      SQL injection attacks.
+  reason: The AWS EC2Resource represents Elastic Compute Cloud (EC2) instances, networking
+    resources, and related metadata. It does not contain any information about application
+    code or database interactions, which are necessary for implementing this security
+    check.

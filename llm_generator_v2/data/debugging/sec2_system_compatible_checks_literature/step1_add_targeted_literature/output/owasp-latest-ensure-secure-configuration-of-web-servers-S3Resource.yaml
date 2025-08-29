@@ -1,0 +1,27 @@
+resource:
+  check:
+    unique_id: owasp-latest-ensure-secure-configuration-of-web-servers
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This security check is not applicable to the AWS S3 resource. To
+      ensure secure web server configurations, you should assess resources specific
+      to your web server infrastructure, such as EC2 instances running web server
+      software or Elastic Load Balancers.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The provided security check 'owasp-latest-ensure-secure-configuration-of-web-servers'
+    is focused on ensuring secure configurations for web servers. However, the AWS
+    S3 (Simple Storage Service) resource is an object storage service and does not
+    directly relate to web server configurations.
+  name: S3Resource
+  output_statements:
+    failure: The web server configurations are insecure and do not meet security standards.
+    partial: Some web server configurations are secure, but others require attention.
+    success: The web server configurations are secure and follow industry best practices.
+  reason: The AWS S3 resource is a storage service and does not contain configurations
+    specific to web servers. While S3 can be used to host static websites, it does
+    not provide the same level of configuration options as a dedicated web server.
+    Therefore, this resource is not applicable for implementing the given security
+    check.

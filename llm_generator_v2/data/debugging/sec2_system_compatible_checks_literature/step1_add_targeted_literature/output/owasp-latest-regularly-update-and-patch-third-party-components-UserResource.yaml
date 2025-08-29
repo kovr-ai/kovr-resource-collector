@@ -1,0 +1,45 @@
+resource:
+  check:
+    unique_id: owasp-latest-regularly-update-and-patch-third-party-components
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: To implement this security check, you need to identify all third-party
+      components (libraries, frameworks, modules) used in your application or system
+      and establish a process to regularly monitor for updates and security patches.
+      This process should include steps for testing and deploying the updates in a
+      timely manner.
+    estimated_time: The time required will vary depending on the number of third-party
+      components and the complexity of your application or system. It may take several
+      hours or days to establish the initial process and inventory.
+    instructions:
+    - Create an inventory of all third-party components used in your application or
+      system.
+    - Subscribe to security advisories and update notifications for each third-party
+      component.
+    - Establish a regular schedule (e.g., monthly, quarterly) to review and apply
+      available updates and security patches.
+    - Test the updated components in a non-production environment before deploying
+      to production.
+    - Deploy the updated components to production following your established change
+      management process.
+    - Document and maintain records of the updates applied to third-party components.
+  is_valid: false
+  literature: The provided resource 'UserResource' appears to be related to user account
+    information in Google Workspace. It does not contain any information about third-party
+    components or libraries used in the application or system. Therefore, this resource
+    is not applicable for implementing the security check 'owasp-latest-regularly-update-and-patch-third-party-components',
+    which focuses on ensuring that third-party components are regularly updated and
+    patched to mitigate security vulnerabilities.
+  name: UserResource
+  output_statements:
+    failure: The application or system does not regularly update and patch third-party
+      components, exposing it to potential security vulnerabilities.
+    partial: Some third-party components are regularly updated and patched, but others
+      are not, leaving the application or system partially vulnerable.
+    success: The application or system regularly updates and patches all third-party
+      components to mitigate security vulnerabilities.
+  reason: The UserResource does not contain any information related to third-party
+    components or libraries used in the application or system. It is focused on user
+    account information and does not provide any relevant data for implementing this
+    security check.
