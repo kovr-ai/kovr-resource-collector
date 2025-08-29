@@ -302,6 +302,7 @@ class YamlModelMapping(BaseModel):
 
                 fields.append(yaml_field)
                 fields.extend(nested_fields)
+
         return fields, model_annotations, model_fields
 
     @classmethod
