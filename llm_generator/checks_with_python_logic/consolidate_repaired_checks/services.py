@@ -2,9 +2,9 @@
 Consolidate Repaired Checks Service Implementation
 """
 
+import yaml
 import logging
-from typing import Dict, Any, List
-from collections import defaultdict
+from typing import Dict, Any
 from pydantic import BaseModel
 from llm_generator.services import Service
 
@@ -18,13 +18,19 @@ class ConsolidateRepairedChecksService(Service):
 
     def _get_input_filename(self, input_: BaseModel) -> str:
         """Generate unique filename for input based on check unique_id."""
-        return f"{input_.check.unique_id}.yaml"
+        return f"{input_.check.unique_id}-{input_.resource.name}.yaml"
 
     def _get_output_filename(self, output_: BaseModel) -> str:
-        """Generate unique filename for output based on check unique_id."""
-        return f"{output_.checks.unique_id}.yaml"
+        """Generate unique filename for output based on check unique_id and resource name."""
+        # This is with Input
+        if hasattr(output_, "resource") and output_.resource.name:
+            return f"{output_.check.unique_id}-{output_.resource.name}.yaml"
+        # This is with Output
+        elif hasattr(output_, "check") and output_.check.resource.name:
+            return f"{output_.check.unique_id}-{output_.check.resource.name}.yaml"
+        raise self.GenerateUniqueFilepath()
 
-    def _process_input(self, input_data) -> Dict[str, Any]:
+    def _process_input(self, input_: BaseModel) -> Dict[str, Any]:
         """
         Consolidate repaired Python logic into final check format.
 
@@ -34,47 +40,24 @@ class ConsolidateRepairedChecksService(Service):
         Returns:
             Dictionary with consolidated check containing final format
         """
-        # Convert to dict if it's a Pydantic model
-        if hasattr(input_data, 'model_dump'):
-            input_dict = input_data.model_dump()
-        else:
-            input_dict = input_data
-
-        check = input_dict['check']
-        resource = input_dict['resource']
+        targeted_literature_folder = 'llm_generator/data/debugging/sec2_system_compatible_checks_literature/step1_add_targeted_literature/output'
+        check_resource_yaml_filepath = f'{targeted_literature_folder}/{input_.check.unique_id}-{input_.resource.name}.yaml'
+        with open(check_resource_yaml_filepath, 'r') as check_resource_yaml_file:
+            yaml_data = yaml.safe_load(check_resource_yaml_file)
+            yaml_resource = yaml_data.pop('resource')
+            _ = yaml_resource.pop('check')
+        input_check = input_.check
+        input_resource = input_.resource
 
         # Create consolidated check structure
         consolidated_check = {
-            'checks': {
-                'unique_id': check['unique_id'],
-                'name': f"Repaired_{check['unique_id']}",
-                'literature': f"Repaired check for {check['unique_id']} with improved logic",
-                'category': 'repaired_compliance',
-                'output_statements': {
-                    'success': f'Repaired check {check["unique_id"]} passed',
-                    'failure': f'Repaired check {check["unique_id"]} failed',
-                    'partial': f'Repaired check {check["unique_id"]} partially passed'
-                },
-                'fix_details': {
-                    'description': f'Repaired logic for {check["unique_id"]} based on error analysis',
-                    'instructions': [
-                        'Logic was repaired based on validation errors',
-                        'Field path and validation criteria were improved',
-                        'Edge cases are now properly handled'
-                    ],
-                    'estimated_time': '1 hour',
-                    'automation_available': True
-                },
-                'resource': {
-                    'name': resource['name'],
-                    'field_path': resource['field_path'],
-                    'logic': resource['logic']
-                },
-                'tags': ['repaired', 'improved', 'compliance'],
-                'severity': 'medium'
+            'check': {
+                'unique_id': input_check.unique_id,
+                'name': input_check.unique_id,
+                'resource': input_resource.model_dump(),
+                # 'tags': ['repaired', 'improved', 'compliance'],
+                # 'severity': 'medium'
             }
         }
-
-        logger.info(f"Consolidated repaired check: {check['unique_id']}")
-
+        consolidated_check['check']['resource'].update(yaml_resource)
         return consolidated_check

@@ -33,7 +33,7 @@ class Service:
 
         # Generate timestamp for this execution run
         self.execution_timestamp = datetime.now().strftime("%Y_%m_%d_%H_%M")
-        self.execution_timestamp = 'debugging'
+        self.execution_timestamp = 'debugging_BKP'
 
     @property
     def Input(self) -> Type[BaseModel]:

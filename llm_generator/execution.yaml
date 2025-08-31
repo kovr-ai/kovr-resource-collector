@@ -191,26 +191,27 @@ checks_with_python_logic:
       check:
         unique_id: string
       resource:
+        name: string
         field_path: string
         logic: string
     output[]:
-      checks:
+      check:
         unique_id: string
         name: string
-        literature: string
-        category: string
-        output_statements:
-          success: string
-          failure: string
-          partial: string
-        fix_details:
-          description: string
-          instructions[]: string
-          estimated_time: string
-          automation_available: bool
-        resource[]:
+#        literature: string
+#        category: string
+        resource:
           name: string
           field_path: string
           logic: string
-        tags[]: string
-        severity: string
+          output_statements:
+            success: string
+            failure: string
+            partial: string
+          fix_details:
+            description: string
+            instructions[]: string
+            estimated_time: string
+            automation_available: bool
+#        tags[]: string
+#        severity: string

@@ -20,7 +20,7 @@ from llm_generator.checks_with_python_logic import (
     generate_python_logic as gpl,
     validate_with_mock_data as vwmd,
     repair_loop_execution_errors as rlee,
-    # consolidate_repaired_checks as crc,
+    consolidate_repaired_checks as crc,
 )
 
 # Step 1: Generate benchmark literature
@@ -243,30 +243,34 @@ for vwmd_output in vwmd_outputs:
 
 rlee_outputs = rlee.service.execute(rlee_inputs) if rlee_inputs else []
 
-# # Step 9: Consolidate Repaired Checks
-# print(f"\nStep 9: Consolidating repaired checks...")
-# crc_inputs = []
-#
-# for rlee_output in rlee_outputs:
-#     check_id = rlee_output.resource.check.unique_id
-#     resource_name = rlee_output.resource.name
-#     print(f"   Consolidating repaired check: {check_id} / {resource_name}")
-#
-#     crc_input = crc.Input(
-#         check=crc.InputCheck(
-#             unique_id=check_id
-#         ),
-#         resource=crc.InputResource(
-#             name=resource_name,
-#             field_path=rlee_output.resource.field_path,
-#             logic=rlee_output.resource.logic
-#         )
-#     )
-#
-#     crc_inputs.append(crc_input)
-#     print(f"     ✅ Prepared consolidation for: {resource_name}")
-#
-# crc_outputs = crc.service.execute(crc_inputs) if crc_inputs else []
+# Step 9: Consolidate Repaired Checks
+print(f"\nStep 9: Consolidating repaired checks...")
+crc_inputs = []
+
+# THIS SEQUENCE OF gpl_outputs + rlee_outputs IS VERY IMPORTANT
+# WE FIRST PROCESS ALL THE GPL OUTPUTS, INCLUDING THOSE WHICH FAILED TO PASS VALIDATION
+# THEN WE PROCESS ALL THE RLEE OUTPUTS, WHICH OVERWRITE THE FAILED GPLS
+for rlee_output in gpl_outputs + rlee_outputs:
+    check_id = rlee_output.resource.check.unique_id
+    resource_name = rlee_output.resource.name
+    print(f"   Consolidating repaired check: {check_id} / {resource_name}")
+
+    crc_input = crc.Input(
+        check=crc.InputCheck(
+            unique_id=check_id
+        ),
+        resource=crc.InputResource(
+            name=resource_name,
+            field_path=rlee_output.resource.field_path,
+            logic=rlee_output.resource.logic
+        )
+    )
+
+    crc_inputs.append(crc_input)
+    print(f"     ✅ Prepared consolidation for: {resource_name}")
+
+# from pdb import set_trace;set_trace()
+crc_outputs = crc.service.execute(crc_inputs) if crc_inputs else []
 
 print(f"\n🎉 Pipeline completed successfully!")
 # Show one enriched check in detail
@@ -301,19 +305,6 @@ if vwmd_outputs:
         else:
             print(f"   No errors - validation passed!")
 
-# if rlee_outputs:
-#     sample_repair = rlee_outputs[0]
-#     print(f"\n🔧 Sample repaired logic: {sample_repair.resource.check.unique_id}")
-#     print(f"   Field path: {sample_repair.resource.field_path}")
-#     print(f"   Logic length: {len(sample_repair.resource.logic)} chars")
-#
-# if crc_outputs:
-#     sample_consolidated = crc_outputs[0]
-#     print(f"\n📋 Sample consolidated repaired check: {sample_consolidated.checks.unique_id}")
-#     print(f"   Name: {sample_consolidated.checks.name}")
-#     print(f"   Category: {sample_consolidated.checks.category}")
-#     print(f"   Severity: {sample_consolidated.checks.severity}")
-
 print(f"   Literature generated: {len(gbl_output.benchmark.literature)} chars")
 print(f"   Checks extracted: {len(ecn_output.benchmark.check_names)}")
 print(f"   Checks enriched: {len(enriched_checks)}")
@@ -322,5 +313,5 @@ print(f"   Consolidated checks: {len(crwc_outputs)}")
 print(f"   Python logic generated: {len(gpl_outputs)}")
 print(f"   Mock validations: {len(vwmd_outputs)}")
 print(f"   Failed checks: {total_failed_checks}")
-# print(f"   Logic repairs: {len(rlee_outputs)}")
-# print(f"   Repaired checks consolidated: {len(crc_outputs)}")
+print(f"   Logic repairs: {len(rlee_outputs)}")
+print(f"   Repaired checks consolidated: {len(crc_outputs)}")

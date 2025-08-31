@@ -73,8 +73,10 @@ class AddTargetedLiteratureService(BaseService):
         # Parse LLM response with robust error handling
         try:
             analysis = self._parse_llm_response(llm_response)
+            fallback_analysis = self._create_fallback_analysis(check)
+            fallback_analysis.update(analysis)
             resource = check.pop('resource')
-            resource.update(analysis)
+            resource.update(fallback_analysis)
             resource.update(dict(check=check))
             return {"resource": resource}
         except self.CannotParseLLMResponse as e:
@@ -97,6 +99,7 @@ class AddTargetedLiteratureService(BaseService):
         Raises:
             CannotParseLLMResponse: If all parsing attempts fail
         """
+        response = response.replace('\n', '').strip()
         parsing_methods = [
             self._parse_json_direct,
             self._parse_json_with_markdown_removal,
@@ -180,21 +183,9 @@ class AddTargetedLiteratureService(BaseService):
             Basic analysis structure with fallback values
         """
         resource_name = check['resource']['name']
-        check_name = check['name']
+        check_name = check['unique_id']
 
         return {
-            'name': resource_name,
-            'check': {
-                'unique_id': check['unique_id']
-            },
-            'is_valid': False,  # Always boolean - partial cases should be classified as False for safety
-            'literature': f'Analysis needed for {resource_name} implementation of {check_name}. '
-                          f'This resource may be applicable but requires manual review to determine '
-                          f'specific implementation details and field path relevance.',
-            'field_paths': check['resource']['field_paths'] if check['resource']['field_paths'] else [],
-            # Limit to first 3 paths
-            'reason': 'Automated analysis was unable to complete. Manual review required to '
-                      'determine resource applicability and implementation approach.',
             'output_statements': {
                 'success': f'{check_name} check passed for {resource_name}',
                 'failure': f'{check_name} check failed for {resource_name}',
