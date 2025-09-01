@@ -70,13 +70,13 @@ jobs:
           ref: dev
             # ${{ github.event.inputs.branch || github.ref_name }}
 
-      # - name: Checkout external Helm charts repo
-      #   uses: actions/checkout@v4
-      #   with:
-      #     repository: ${{ env.HELM_CHARTS_REPO }}
-      #     path: helm-charts
-      #     token: ${{ secrets.GIT_HUB_TOKEN }}
-      #     ref: main
+      - name: Checkout external Helm charts repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.HELM_CHARTS_REPO }}
+          path: helm-charts
+          token: ${{ secrets.GIT_HUB_TOKEN }}
+          ref: main
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
