@@ -1,0 +1,25 @@
+api:
+  enabled: false
+
+service:
+  name: kovr-resource-collector
+  port: 80
+  image: 650251729525.dkr.ecr.us-west-2.amazonaws.com/kovr-resource-collector
+  roleArn: arn:aws:iam::650251729525:role/DevopsCICDRole
+  memory: 4096
+  cpu: 2048
+  limits:
+    memory: 6144
+    cpu: 4096
+  # healthCheckPath: /api/v1/health
+  # healthCheckTimeout: 5
+  terminationGracePeriodSeconds: 30
+  ingressClassName: nginx
+  minReplicas: 3
+  maxReplicas: 3
+  affinity: {}
+  tolerations: []
+# secrets:
+labels:
+  app: kovr-resource-collector
+  environment: qa

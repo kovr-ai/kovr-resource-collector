@@ -1,0 +1,46 @@
+api:
+  enabled: false
+  # host: askai.dev.kovrai.com
+  # path:
+  #   - /(.*)
+  # additionalAnnotations:
+  #   nginx.ingress.kubernetes.io/rewrite-target: /$1
+
+service:
+  name: ds
+  port: 80
+  image: 296062557786.dkr.ecr.us-west-2.amazonaws.com/kovr-ds
+  roleArn: arn:aws:iam::296062557786:role/DevopsCICDRole
+  memory: 1536
+  cpu: 1280
+  limits:
+    memory: 2048
+    cpu: 2048
+  # healthCheckPath: /api/v1/health
+  # healthCheckTimeout: 5
+  terminationGracePeriodSeconds: 30
+  ingressClassName: nginx
+  minReplicas: 1
+  maxReplicas: 1
+  affinity: {}
+  tolerations: []
+  # Volume configuration
+  volumes:                          # List of volumes to mount
+  - name: temp-volume
+    emptyDir: {}
+  - name: logs-volume
+    emptyDir: {}
+  - name: static-volume
+    emptyDir: {}  
+  # Volume mounts configuration
+  volumeMounts:                       # List of volume mounts for the container
+  - name: temp-volume
+    mountPath: /temp
+  - name: logs-volume
+    mountPath: /logs
+  - name: static-volume
+    mountPath: /static
+# secrets:
+labels:
+  app: ds
+  environment: dev

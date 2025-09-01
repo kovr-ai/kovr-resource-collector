@@ -1,0 +1,300 @@
+name: EKS Deploy Dev
+
+# Environment variables for making the workflow generic
+env:
+  # AWS Configuration
+  AWS_ACCOUNT_ID: "296062557786"
+  AWS_REGION: "us-west-2"
+  AWS_ROLE_ARN: "arn:aws:iam::296062557786:role/DevopsCICDRole"
+  
+  # EKS Configuration
+  EKS_CLUSTER_NAME: "dev-kovr-app-cluster"
+  EKS_NAMESPACE: "dev"
+  
+  # Docker/ECR Configuration
+  ECR_REPOSITORY_NAME: "kovr-resource-collector"
+  DOCKER_PLATFORM: "linux/amd64"
+  
+  # Helm Configuration
+  HELM_CHARTS_REPO: "kovr-ai/helm-charts"
+  HELM_CHART_PATH: "kovr/kovr-resource-collector/charts"
+  HELM_VALUES_PATH: "./helm-values/dev.yaml"
+  HELM_RELEASE_NAME: "kovr-resource-collector"
+  HELM_VERSION: "v3.12.0"
+  HELM_TIMEOUT: "10m"
+  
+  # Secret Configuration
+  CHAINGUARD_SECRET_ID: "global/Chainguard/Credentials"
+  APP_SECRETS_ID: "kovr-resource-collector-secret-local"
+  
+  # SSH Tunneling Configuration
+  SSH_TUNNEL_CIDR: "0.0.0.0/0"
+  
+  # Trivy Configuration
+  TRIVY_EXIT_CODE: "0"
+  TRIVY_PKG_TYPES: "os,library"
+  TRIVY_CACHE: "false"
+  TRIVY_SEVERITY: "CRITICAL,HIGH,MEDIUM,LOW,UNKNOWN"
+  TRIVY_FORMAT: "table"
+  
+  # Cache Configuration
+  CACHE_RETENTION_DAYS: "1"
+  CACHE_PATH: "/tmp/.buildx-cache"
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to deploy'
+        required: true
+        type: string
+  push:
+    branches:
+      - dev
+      - workflows
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  build-dev:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout application code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch || github.ref_name }}
+
+      - name: Checkout external Helm charts repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.HELM_CHARTS_REPO }}
+          path: helm-charts
+          token: ${{ secrets.GIT_HUB_TOKEN }}
+          ref: main
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # - name: Get Chainguard credentials
+      #   id: chainguard-creds
+      #   run: |
+      #     CREDS=$(aws secretsmanager get-secret-value --secret-id ${{ env.CHAINGUARD_SECRET_ID }} --query SecretString --output text)
+      #     USERNAME=$(echo $CREDS | jq -r '.username')
+      #     PASSWORD=$(echo $CREDS | jq -r '.password')
+      #     echo "::add-mask::$USERNAME"
+      #     echo "::add-mask::$PASSWORD"
+      #     echo "username=$USERNAME" >> $GITHUB_ENV
+      #     echo "password=$PASSWORD" >> $GITHUB_ENV
+
+      # - name: Login to Chainguard registry
+      #   uses: docker/login-action@v3
+      #   with:
+      #     registry: cgr.dev
+      #     username: ${{ env.username }}
+      #     password: ${{ env.password }}
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_NAME }}
+          tags: |
+            # type=raw,value=k8s-test-svc
+            type=sha,format=short
+
+      # - name: Docker cache layers
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: ${{ env.CACHE_PATH }}
+      #     key: ${{ runner.os }}-buildx-${{ github.sha }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-buildx-
+
+      # # Create cache directory if it doesn't exist
+      # - name: Ensure cache directory exists
+      #   run: mkdir -p ${{ env.CACHE_PATH }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.service
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          # cache-from: type=local,src=${{ env.CACHE_PATH }}
+          # cache-to: type=local,dest=${{ env.CACHE_PATH }}-new,mode=max
+          platforms: ${{ env.DOCKER_PLATFORM }}
+          # build-args: |
+          #   NODE_ENV=${{ env.NODE_ENV }}
+
+      # Temp cache workaround for buildx
+      # https://github.com/docker/build-push-action/issues/252
+      # - name: Move cache
+      #   run: |
+      #     rm -rf ${{ env.CACHE_PATH }}
+      #     mv ${{ env.CACHE_PATH }}-new ${{ env.CACHE_PATH }}
+
+      - name: Save image tags
+        run: |
+          echo "${{ steps.meta.outputs.tags }}" > image-tags.txt
+          # echo "-svc" > k8s-test-tag.txt
+
+      - name: Set image tag
+        id: set-image-tag
+        run: |
+          echo "IMAGE_TAG=$(cat image-tags.txt)" >> $GITHUB_ENV
+          echo "IMAGE_TAG_SAFE=$(cat image-tags.txt | sed 's|/|_|g')" >> $GITHUB_ENV
+
+      - name: Upload image tags
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-tags
+          path: |
+            image-tags.txt
+            # k8s-test-tag.txt
+          retention-days: ${{ env.CACHE_RETENTION_DAYS }}
+
+      # - name: Run Trivy vulnerability scan
+      #   uses: aquasecurity/trivy-action@0.29.0
+      #   with:
+      #     image-ref: ${{ env.IMAGE_TAG }}
+      #     output: ${{ env.IMAGE_TAG_SAFE }}-report.txt
+      #     format: ${{ env.TRIVY_FORMAT }}
+      #     # template: "@$HOME/.local/bin/trivy-bin/contrib/html.tpl"
+      #     exit-code: ${{ env.TRIVY_EXIT_CODE }}
+      #     pkg-types: ${{ env.TRIVY_PKG_TYPES }}
+      #     cache: ${{ env.TRIVY_CACHE }}
+      #     severity: ${{ env.TRIVY_SEVERITY }}
+      #   continue-on-error: true
+
+      # - name: Print Trivy report
+      #   run: cat ${{ env.IMAGE_TAG_SAFE }}-report.txt
+
+      # - name: Prepare Trivy report for comment
+      #   if: github.event_name == 'pull_request'
+      #   run: |
+      #     echo '### Trivy Scan Report' > trivy-comment.md
+      #     echo '```\n' >> trivy-comment.md
+      #     head -n 50 ${{ env.IMAGE_TAG_SAFE }}-report.txt >> trivy-comment.md
+      #     echo '\n```' >> trivy-comment.md
+      
+      # - name: Comment on PR with Trivy scan results
+      #   if: github.event_name == 'pull_request'
+      #   uses: peter-evans/create-or-update-comment@v4
+      #   with:
+      #     token: ${{ secrets.GIT_HUB_TOKEN }}
+      #     issue-number: ${{ github.event.pull_request.number }}
+      #     body-file: trivy-comment.md
+
+  deploy-dev:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    needs: build-dev
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch || github.ref_name }}
+
+      - name: Checkout external Helm charts repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.HELM_CHARTS_REPO }}
+          path: helm-charts
+          token: ${{ secrets.GIT_HUB_TOKEN }}
+          ref: main
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set GitHub tag or ref as VERSION
+        id: set-version
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+              echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          else
+              echo "VERSION=${GITHUB_SHA::7}" >> $GITHUB_ENV
+          fi
+
+      - name: Set ENVIRONMENT
+        id: set-environment
+        run: |
+          echo "ENVIRONMENT=dev" >> $GITHUB_ENV
+
+      - name: Set up SSH tunneling to EKS VPC (sshuttle)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y sshuttle
+          echo "${{ secrets.DEV_SSH_KEY }}" > ssh_key
+          chmod 600 ssh_key
+          nohup sshuttle -r ${{ secrets.DEV_SSH_USER }}@${{ secrets.DEV_SSH_IP }}:${{ secrets.DEV_SSH_PORT }} ${{ env.SSH_TUNNEL_CIDR }} --ssh-cmd "ssh -i ssh_key -o StrictHostKeyChecking=no -p ${{ secrets.DEV_SSH_PORT }}" --daemon
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name ${{ env.EKS_CLUSTER_NAME }}
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Download image tags
+        uses: actions/download-artifact@v4
+        with:
+          name: image-tags
+
+      - name: Set image tag
+        run: echo "IMAGE_TAG=$(cat image-tags.txt)" >> $GITHUB_ENV
+
+      # - name: Fetch AWS secrets and set as Helm values
+      #   id: fetch-secrets
+      #   run: |
+      #     # Fetch secrets from AWS Secrets Manager
+      #     SECRETS_JSON=$(aws secretsmanager get-secret-value --secret-id ${{ env.APP_SECRETS_ID }} --query SecretString --output text)
+          
+      #     # Create a values file with secrets
+      #     echo "$SECRETS_JSON" | jq '{secrets: .}' > temp-secrets-values.yaml
+          
+      #     # Debug: show the file was created
+      #     echo "Secrets values file created:"
+      #     ls -la temp-secrets-values.yaml
+
+
+      - name: Deploy service to EKS
+        run: |
+          # echo "temp-secrets-values.yaml"
+          # cat temp-secrets-values.yaml
+          echo "Deploying service to EKS..."
+          helm upgrade --install ${{ env.HELM_RELEASE_NAME }} helm-charts/${{ env.HELM_CHART_PATH }} \
+            --values ${{ env.HELM_VALUES_PATH }} \
+            --set service.image=${{ env.IMAGE_TAG }} \
+            --namespace ${{ env.EKS_NAMESPACE }} \
+            --create-namespace \
+            --wait \
+            --timeout ${{ env.HELM_TIMEOUT }}
+
+      - name: Kill sshuttle tunnel
+        if: always()
+        run: |
+          pkill -f sshuttle || true
+
