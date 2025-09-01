@@ -15,8 +15,8 @@ service:
   # healthCheckTimeout: 5
   terminationGracePeriodSeconds: 30
   ingressClassName: nginx
-  minReplicas: 3
-  maxReplicas: 3
+  minReplicas: 1
+  maxReplicas: 1
   affinity: {}
   tolerations: []
 # secrets:

@@ -1,15 +1,10 @@
 api:
   enabled: false
-  # host: askai.dev.kovrai.com
-  # path:
-  #   - /(.*)
-  # additionalAnnotations:
-  #   nginx.ingress.kubernetes.io/rewrite-target: /$1
 
 service:
-  name: ds
+  name: kovr-resource-collector
   port: 80
-  image: 296062557786.dkr.ecr.us-west-2.amazonaws.com/kovr-ds
+  image: 296062557786.dkr.ecr.us-west-2.amazonaws.com/kovr-resource-collector
   roleArn: arn:aws:iam::296062557786:role/DevopsCICDRole
   memory: 1536
   cpu: 1280
@@ -24,23 +19,7 @@ service:
   maxReplicas: 1
   affinity: {}
   tolerations: []
-  # Volume configuration
-  volumes:                          # List of volumes to mount
-  - name: temp-volume
-    emptyDir: {}
-  - name: logs-volume
-    emptyDir: {}
-  - name: static-volume
-    emptyDir: {}  
-  # Volume mounts configuration
-  volumeMounts:                       # List of volume mounts for the container
-  - name: temp-volume
-    mountPath: /temp
-  - name: logs-volume
-    mountPath: /logs
-  - name: static-volume
-    mountPath: /static
 # secrets:
 labels:
-  app: ds
+  app: kovr-resource-collector
   environment: dev
