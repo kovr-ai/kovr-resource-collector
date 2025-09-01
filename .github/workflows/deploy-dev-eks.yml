@@ -67,7 +67,7 @@ jobs:
       - name: Checkout application code
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: dev
             # ${{ github.event.inputs.branch || github.ref_name }}
 
       # - name: Checkout external Helm charts repo
@@ -244,13 +244,13 @@ jobs:
         run: |
           echo "ENVIRONMENT=dev" >> $GITHUB_ENV
 
-      - name: Set up SSH tunneling to EKS VPC (sshuttle)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y sshuttle
-          echo "${{ secrets.DEV_SSH_KEY }}" > ssh_key
-          chmod 600 ssh_key
-          nohup sshuttle -r ${{ secrets.DEV_SSH_USER }}@${{ secrets.DEV_SSH_IP }}:${{ secrets.DEV_SSH_PORT }} ${{ env.SSH_TUNNEL_CIDR }} --ssh-cmd "ssh -i ssh_key -o StrictHostKeyChecking=no -p ${{ secrets.DEV_SSH_PORT }}" --daemon
+      # - name: Set up SSH tunneling to EKS VPC (sshuttle)
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install -y sshuttle
+      #     echo "${{ secrets.DEV_SSH_KEY }}" > ssh_key
+      #     chmod 600 ssh_key
+      #     nohup sshuttle -r ${{ secrets.DEV_SSH_USER }}@${{ secrets.DEV_SSH_IP }}:${{ secrets.DEV_SSH_PORT }} ${{ env.SSH_TUNNEL_CIDR }} --ssh-cmd "ssh -i ssh_key -o StrictHostKeyChecking=no -p ${{ secrets.DEV_SSH_PORT }}" --daemon
 
       - name: Update kubeconfig
         run: aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name ${{ env.EKS_CLUSTER_NAME }}
@@ -295,8 +295,8 @@ jobs:
             --wait \
             --timeout ${{ env.HELM_TIMEOUT }}
 
-      - name: Kill sshuttle tunnel
-        if: always()
-        run: |
-          pkill -f sshuttle || true
+      # - name: Kill sshuttle tunnel
+      #   if: always()
+      #   run: |
+      #     pkill -f sshuttle || true
 

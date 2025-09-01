@@ -68,7 +68,7 @@ jobs:
       - name: Checkout application code
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: dev
             # ${{ github.event.inputs.branch || github.ref_name }}
 
       # - name: Checkout external Helm charts repo
