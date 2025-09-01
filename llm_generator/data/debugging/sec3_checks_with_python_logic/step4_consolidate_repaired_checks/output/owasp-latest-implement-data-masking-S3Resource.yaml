@@ -1,0 +1,30 @@
+check:
+  name: owasp-latest-implement-data-masking
+  resource:
+    field_path: buckets[*].encryption.enabled
+    fix_details:
+      automation_available: true
+      description: To fully implement data masking for S3 buckets, encryption must
+        be enabled, and public access must be restricted.
+      estimated_time: 30 minutes to 1 hour
+      instructions:
+      - 1. Enable server-side encryption (SSE-S3 or SSE-KMS) for all S3 buckets containing
+        sensitive data.
+      - 2. Configure bucket policies and access controls to restrict public access
+        to authorized users and applications only.
+      - 3. Enable the S3 Block Public Access settings to prevent future public access
+        grants.
+      - 4. Regularly review and audit S3 bucket configurations to ensure data masking
+        controls remain in place.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for encryption_enabled in fetched_value:\n        if encryption_enabled:\n\
+      \            result = True\n            break"
+    name: S3Resource
+    output_statements:
+      failure: The S3 bucket(s) do not have encryption enabled or have public access
+        allowed, failing to implement data masking for sensitive data.
+      partial: Some S3 buckets have encryption enabled and restricted public access,
+        while others do not, partially implementing data masking.
+      success: The S3 bucket(s) have encryption enabled and public access is appropriately
+        restricted, implementing data masking for sensitive data.
+  unique_id: owasp-latest-implement-data-masking

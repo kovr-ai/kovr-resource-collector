@@ -1,0 +1,38 @@
+check:
+  name: owasp-latest-implement-comprehensive-monitoring-mechanisms
+  resource:
+    field_path: policies[].default_version.Document.Statement
+    fix_details:
+      automation_available: true
+      description: 'If the monitoring mechanisms for IAM policies, user access keys,
+        and MFA devices are found to be inadequate, the following steps can be taken
+        to improve the monitoring coverage:'
+      estimated_time: 1-2 hours for initial setup, ongoing monitoring and maintenance
+      instructions:
+      - Implement centralized logging and monitoring for all IAM policy changes, including
+        policy creation, modification, and deletion.
+      - Monitor user access key usage, including last used date, region, and service,
+        and rotate or disable inactive or unused access keys.
+      - Monitor MFA device assignments and usage, and enforce MFA for all privileged
+        user accounts.
+      - Integrate IAM monitoring with a Security Information and Event Management
+        (SIEM) solution for centralized analysis and correlation of security events.
+      - Establish alerting and notification mechanisms for suspicious or unauthorized
+        activities related to IAM policies, user access keys, and MFA devices.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for statement in fetched_value:\n        if hasattr(statement, 'Effect')\
+      \ and statement.Effect == 'Allow':\n            if hasattr(statement, 'Action')\
+      \ and 'iam:*' in statement.Action:\n                if hasattr(statement, 'Resource')\
+      \ and '*' in statement.Resource:\n                    result = True\n      \
+      \              break"
+    name: IAMResource
+    output_statements:
+      failure: IAM policies, user access keys, and MFA devices are not being monitored
+        effectively, leaving the organization vulnerable to unauthorized access and
+        potential security incidents.
+      partial: Some aspects of IAM policies, user access keys, and MFA devices are
+        being monitored, but there are gaps in the monitoring coverage, potentially
+        leaving the organization exposed to certain types of security incidents.
+      success: IAM policies, user access keys, and MFA devices are being monitored
+        effectively for unauthorized access attempts and potential security incidents.
+  unique_id: owasp-latest-implement-comprehensive-monitoring-mechanisms

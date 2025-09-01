@@ -1,0 +1,74 @@
+check:
+  category: authentication
+  control_names:
+  - NIST-800-53-AC-12
+  - NIST-800-53-SC-23
+  - ISO-27001-A.9.4.1
+  literature: Session hijacking is a type of attack where an attacker takes control
+    of an authenticated user's session by stealing or guessing the session token or
+    session ID. This can allow the attacker to impersonate the legitimate user and
+    gain unauthorized access to sensitive data or perform actions on their behalf.
+    Protecting against session hijacking is crucial for maintaining the confidentiality,
+    integrity, and availability of web applications and preventing unauthorized access.
+    This check validates that appropriate measures are in place to mitigate the risk
+    of session hijacking attacks, such as using secure session management practices,
+    implementing session timeouts, and protecting session tokens from being exposed
+    or guessed.
+  provider: google
+  resource:
+    field_paths:
+    - admin_info
+    - admin_info.isAdmin
+    - admin_info.isDelegatedAdmin
+    - aliases
+    - aliases.nonEditableAliases
+    - aliases.nonEditableAliases[]
+    - basic_info
+    - basic_info.agreedToTerms
+    - basic_info.archived
+    - basic_info.changePasswordAtNextLogin
+    - basic_info.creationTime
+    - basic_info.customerId
+    - basic_info.etag
+    - basic_info.id
+    - basic_info.includeInGlobalAddressList
+    - basic_info.ipWhitelisted
+    - basic_info.isMailboxSetup
+    - basic_info.kind
+    - basic_info.lastLoginTime
+    - basic_info.primaryEmail
+    - basic_info.suspended
+    - contact_info
+    - contact_info.emails
+    - contact_info.emails[]
+    - contact_info.emails[].address
+    - contact_info.emails[].customType
+    - contact_info.emails[].primary
+    - contact_info.emails[].type
+    - contact_info.phones
+    - contact_info.phones[]
+    - contact_info.phones[].type
+    - contact_info.phones[].value
+    - contact_info.recoveryEmail
+    - contact_info.recoveryPhone
+    - id
+    - name
+    - name.familyName
+    - name.fullName
+    - name.givenName
+    - organizational_info
+    - organizational_info.orgUnitPath
+    - profile_info
+    - profile_info.languages
+    - profile_info.languages[]
+    - profile_info.languages[].languageCode
+    - profile_info.languages[].preference
+    - profile_info.thumbnailPhotoEtag
+    - profile_info.thumbnailPhotoUrl
+    - security_info
+    - security_info.isEnforcedIn2Sv
+    - security_info.isEnrolledIn2Sv
+    - source_connector
+    - user_id
+    name: UserResource
+  unique_id: owasp-latest-protect-against-session-hijacking

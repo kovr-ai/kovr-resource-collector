@@ -1,0 +1,33 @@
+check:
+  name: owasp-latest-regularly-review-and-update-configurations
+  resource:
+    field_path: trails[*].is_logging
+    fix_details:
+      automation_available: true
+      description: 'If CloudTrail is not configured correctly, the following steps
+        can be taken to remediate the issue:'
+      estimated_time: 30 minutes to 1 hour
+      instructions:
+      - 1. Enable CloudTrail logging for all regions and ensure it is capturing all
+        management events.
+      - 2. Configure CloudTrail to capture data events for relevant AWS services and
+        resources.
+      - 3. Enable log file validation to ensure the integrity of CloudTrail logs.
+      - 4. Configure CloudTrail to deliver logs to a secure and centralized S3 bucket
+        for long-term storage and analysis.
+      - 5. Regularly review CloudTrail logs for any potential misconfigurations, unauthorized
+        access attempts, or other security-related events, and take appropriate actions
+        to update system configurations as needed.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for is_logging in fetched_value:\n        if is_logging:\n            result\
+      \ = True\n            break"
+    name: CloudTrailResource
+    output_statements:
+      failure: CloudTrail is not configured correctly to capture relevant API calls
+        and events, hindering the ability to regularly review and update system configurations.
+      partial: CloudTrail is partially configured to capture API calls and events,
+        but additional configuration changes are required to fully enable regular
+        reviews and updates of system configurations.
+      success: CloudTrail is configured correctly to capture relevant API calls and
+        events, enabling regular reviews and updates of system configurations.
+  unique_id: owasp-latest-regularly-review-and-update-configurations

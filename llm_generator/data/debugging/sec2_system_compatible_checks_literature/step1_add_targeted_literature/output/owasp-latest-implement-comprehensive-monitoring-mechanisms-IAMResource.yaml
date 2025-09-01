@@ -1,0 +1,52 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-comprehensive-monitoring-mechanisms
+  field_paths:
+  - policies
+  - policies[].default_version.Document.Statement
+  - policies[].default_version.Document.Statement[].Action
+  - policies[].default_version.Document.Statement[].Effect
+  - policies[].default_version.Document.Statement[].Resource
+  - users
+  - users[].access_keys
+  - users[].access_keys[].create_date
+  - users[].access_keys[].last_used_date
+  - users[].access_keys[].last_used_region
+  - users[].access_keys[].last_used_service
+  - users[].access_keys[].status
+  fix_details:
+    automation_available: true
+    description: 'If IAM policy and user access key monitoring is not implemented
+      or is incomplete, the following steps should be taken:'
+    estimated_time: 1-2 hours for initial setup, ongoing monitoring and analysis
+    instructions:
+    - Enable AWS CloudTrail for logging IAM events and policy changes.
+    - Configure CloudWatch Logs and Metrics to monitor and alert on IAM policy changes
+      and user access key activities.
+    - Implement automated processes to review and analyze IAM logs regularly for anomalies
+      and suspicious activities.
+    - Establish incident response procedures to investigate and mitigate detected
+      security incidents promptly.
+  is_valid: true
+  literature: The IAMResource in AWS is a critical component for implementing comprehensive
+    monitoring mechanisms as outlined in the OWASP security check. IAM (Identity and
+    Access Management) policies and user access keys play a crucial role in controlling
+    and auditing access to AWS resources and services. By monitoring IAM policies,
+    their changes, and user activities, organizations can detect unauthorized access
+    attempts, policy modifications, and potential misuse of privileges. This resource
+    provides the necessary information to track and log IAM-related events, enabling
+    organizations to identify and respond to security incidents promptly.
+  name: IAMResource
+  output_statements:
+    failure: IAM policies and user access keys are not being effectively monitored,
+      leaving the organization vulnerable to undetected security incidents and unauthorized
+      access attempts.
+    partial: Some aspects of IAM policy and user access key monitoring are in place,
+      but additional measures are needed to achieve comprehensive monitoring mechanisms.
+    success: IAM policies and user access keys are being effectively monitored, enabling
+      comprehensive monitoring mechanisms for detecting security incidents and unauthorized
+      access attempts.
+  reason: The IAMResource provides essential information for monitoring IAM policies,
+    their changes, and user access key activities, which are critical components of
+    a comprehensive monitoring mechanism for detecting unauthorized access attempts
+    and potential security incidents.

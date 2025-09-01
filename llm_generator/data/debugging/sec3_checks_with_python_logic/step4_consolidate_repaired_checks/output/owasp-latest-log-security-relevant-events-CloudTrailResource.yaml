@@ -1,0 +1,35 @@
+check:
+  name: owasp-latest-log-security-relevant-events
+  resource:
+    field_path: trails[*].event_selectors[*].data_resources.values[*]
+    fix_details:
+      automation_available: true
+      description: If CloudTrail is not properly configured to log security-relevant
+        events, you need to review and update your trail and event selector settings.
+      estimated_time: 30 minutes to 1 hour
+      instructions:
+      - 1. Ensure that CloudTrail is enabled and configured to log events across all
+        regions and services relevant to your environment.
+      - 2. Review the event selectors for your CloudTrail trails and ensure that they
+        include data resources and event types related to security-relevant events,
+        such as authentication, authorization, and access management events.
+      - 3. Enable 'include_management_events' and set 'read_write_type' to 'All' for
+        your event selectors to capture both read and write events.
+      - 4. Verify that your CloudTrail logs are being delivered to a secure and centralized
+        location, such as an S3 bucket or CloudWatch Logs, for long-term retention
+        and analysis.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for values_list in fetched_value:\n        if 'AWS::CloudTrail::Event'\
+      \ in values_list:\n            result = True\n            break"
+    name: CloudTrailResource
+    output_statements:
+      failure: CloudTrail is not configured to log security-relevant events across
+        your AWS environment, failing the 'owasp-latest-log-security-relevant-events'
+        check.
+      partial: CloudTrail is partially configured to log security-relevant events
+        across your AWS environment, partially meeting the requirements of the 'owasp-latest-log-security-relevant-events'
+        check.
+      success: CloudTrail is configured to log security-relevant events across your
+        AWS environment, meeting the requirements of the 'owasp-latest-log-security-relevant-events'
+        check.
+  unique_id: owasp-latest-log-security-relevant-events

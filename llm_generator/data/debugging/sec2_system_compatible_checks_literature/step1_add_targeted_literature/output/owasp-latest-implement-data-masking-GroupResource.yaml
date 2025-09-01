@@ -1,0 +1,26 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-data-masking
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: Since the GroupResource is not intended for storing sensitive data,
+      no specific fix is required for this security check.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The GroupResource in Google Cloud does not appear to be directly related
+    to data masking or sensitive data handling. This resource represents a group of
+    users or entities within an organization, and the provided field paths do not
+    indicate any fields for storing or processing sensitive data that would require
+    masking.
+  name: GroupResource
+  output_statements:
+    failure: The GroupResource does not contain any sensitive data fields that require
+      data masking.
+    partial: Some fields in the GroupResource are properly masked, but others may
+      contain unmasked sensitive data.
+    success: The GroupResource is configured to properly mask sensitive data fields.
+  reason: The GroupResource is primarily used for managing user groups and memberships
+    within an organization. It does not seem to be designed for storing or processing
+    sensitive data that would require data masking techniques.

@@ -1,0 +1,40 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-encryption-for-data-in-transit
+  field_paths:
+  - instances
+  - network_interfaces
+  - security_groups
+  fix_details:
+    automation_available: false
+    description: To ensure encryption for data in transit, you need to configure encryption
+      at the network level (e.g., VPN, load balancer) or within the applications/services
+      running on the EC2 instances.
+    estimated_time: 1-2 hours for initial assessment, potentially longer for implementation
+      depending on the complexity of your environment.
+    instructions:
+    - Review the network configurations (VPNs, load balancers, etc.) and ensure that
+      encryption is enabled and using strong protocols/ciphers.
+    - Review the applications/services running on the EC2 instances and configure
+      them to use encryption for data transmissions (e.g., HTTPS, TLS, etc.).
+    - Implement centralized encryption policies and standards for all data transmissions
+      within your organization.
+  is_valid: false
+  literature: The EC2Resource in AWS does not directly handle encryption for data
+    in transit. Data encryption in transit is typically handled at the network level
+    or by the applications/services running on the EC2 instances. The EC2Resource
+    provides information about EC2 instances, networking components like security
+    groups and network interfaces, but does not directly configure or manage encryption
+    for data transmissions.
+  name: EC2Resource
+  output_statements:
+    failure: One or more data transmissions to and from the EC2 instances are not
+      encrypted or are using weak encryption protocols/ciphers.
+    partial: Some data transmissions to and from the EC2 instances are encrypted,
+      but others are not or are using weak encryption.
+    success: All data transmissions to and from the EC2 instances are encrypted using
+      strong encryption protocols and ciphers.
+  reason: While the EC2Resource provides details about EC2 instances, network interfaces,
+    and security groups, it does not directly manage or configure encryption for data
+    in transit. This security check is more applicable to network resources like VPNs,
+    load balancers, or application-level configurations.

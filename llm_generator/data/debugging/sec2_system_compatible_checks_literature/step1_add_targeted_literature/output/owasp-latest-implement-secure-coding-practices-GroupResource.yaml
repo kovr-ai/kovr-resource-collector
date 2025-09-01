@@ -1,0 +1,47 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-secure-coding-practices
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: To implement secure coding practices, the organization needs to establish
+      and enforce secure coding guidelines, provide training to developers, and implement
+      security controls throughout the software development lifecycle.
+    estimated_time: Implementing secure coding practices is an ongoing process that
+      requires continuous effort and commitment. The initial setup and training may
+      take several weeks or months, depending on the size and complexity of the organization.
+    instructions:
+    - Adopt industry-standard secure coding guidelines, such as the OWASP Secure Coding
+      Practices or the CERT Secure Coding Standards.
+    - Provide training and resources to developers on secure coding practices, including
+      input validation, authentication and authorization, data protection, and secure
+      communication.
+    - Implement security controls and tools, such as static code analysis, dynamic
+      application security testing (DAST), and software composition analysis (SCA),
+      to identify and remediate coding vulnerabilities.
+    - Establish secure coding review processes and code review practices to ensure
+      that secure coding practices are followed consistently.
+    - Continuously monitor and update secure coding practices to address emerging
+      threats and vulnerabilities.
+  is_valid: false
+  literature: The GroupResource in Google Cloud Platform represents a collection of
+    entities, such as users or service accounts, that can be managed together. While
+    this resource is useful for managing access and permissions, it does not directly
+    relate to implementing secure coding practices for software development.
+  name: GroupResource
+  output_statements:
+    failure: The organization has not implemented secure coding practices throughout
+      the software development lifecycle, leaving their applications vulnerable to
+      common coding vulnerabilities.
+    partial: The organization has partially implemented secure coding practices, but
+      there are still gaps or areas that need improvement.
+    success: The organization has implemented secure coding practices throughout the
+      software development lifecycle, following industry-standard guidelines and implementing
+      security controls to prevent common coding vulnerabilities.
+  reason: The security check 'owasp-latest-implement-secure-coding-practices' focuses
+    on adopting secure coding practices throughout the software development lifecycle,
+    which involves following industry-standard guidelines, using secure coding techniques,
+    and implementing security controls to prevent common coding vulnerabilities. The
+    GroupResource in Google Cloud Platform is primarily used for managing access and
+    permissions, and does not directly address secure coding practices for software
+    development.

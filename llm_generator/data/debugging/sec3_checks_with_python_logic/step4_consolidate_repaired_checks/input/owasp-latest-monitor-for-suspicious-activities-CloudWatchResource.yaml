@@ -1,0 +1,9 @@
+check:
+  unique_id: owasp-latest-monitor-for-suspicious-activities
+resource:
+  field_path: alarms[*].alarm_actions
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    for alarm_actions in fetched_value:\n        for action in alarm_actions:\n\
+    \            if action.startswith('arn:aws:sns:'):\n                result = True\n\
+    \                break"
+  name: CloudWatchResource

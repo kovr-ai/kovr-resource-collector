@@ -1,0 +1,9 @@
+check:
+  unique_id: owasp-latest-enforce-least-privilege-principles
+resource:
+  field_path: buckets[].public_access_block.block_public_acls
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    for block_public_acls in fetched_value:\n        if block_public_acls:\n\
+    \            result = True\n        else:\n            result = False\n      \
+    \      break"
+  name: S3Resource

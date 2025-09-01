@@ -1,0 +1,8 @@
+check:
+  unique_id: owasp-latest-implement-encryption-for-data-at-rest
+resource:
+  field_path: buckets[*].encryption.enabled
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    for bucket_encryption in fetched_value:\n        if bucket_encryption:\n\
+    \            result = True\n            break"
+  name: S3Resource

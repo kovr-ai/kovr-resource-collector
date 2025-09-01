@@ -1,0 +1,35 @@
+check:
+  name: owasp-latest-enforce-least-privileges
+  resource:
+    field_path: event_selectors[*].data_resources.values[*]
+    fix_details:
+      automation_available: true
+      description: If CloudTrail is not properly configured to enforce least privilege,
+        you need to review and update the event selectors and data resource filters
+        for your CloudTrail trails.
+      estimated_time: 30 minutes to 1 hour
+      instructions:
+      - 1. Review the existing CloudTrail trails and their event selectors and data
+        resource filters.
+      - 2. Identify any unnecessary or excessive resource access being logged.
+      - 3. Update the event selectors and data resource filters to include only the
+        necessary resources and actions required for specific roles and entities.
+      - 4. Test and validate the updated configurations to ensure least privilege
+        is enforced.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for values_list in fetched_value:\n        if not values_list:\n      \
+      \      continue\n        for value in values_list:\n            if value ==\
+      \ '?':\n                result = False\n                break\n        else:\n\
+      \            result = True\n            break"
+    name: CloudTrailResource
+    output_statements:
+      failure: CloudTrail is not configured with appropriate event selectors and data
+        resource filters to enforce least privilege. Excessive or unnecessary resource
+        access is being logged.
+      partial: CloudTrail is partially configured with event selectors and data resource
+        filters to enforce least privilege, but some unnecessary resource access is
+        still being logged.
+      success: CloudTrail is configured with appropriate event selectors and data
+        resource filters to enforce least privilege by logging and monitoring access
+        to only the necessary resources and actions.
+  unique_id: owasp-latest-enforce-least-privileges

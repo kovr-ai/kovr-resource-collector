@@ -1,0 +1,27 @@
+resource:
+  check:
+    unique_id: owasp-latest-use-industry-standard-authentication-protocols
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: Since the CloudWatch resource is not applicable for this security
+      check, no fix is required.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The CloudWatch resource in AWS is primarily used for monitoring and
+    logging purposes. It does not directly handle authentication protocols or mechanisms
+    for user authentication. Therefore, this resource is not applicable for implementing
+    the 'owasp-latest-use-industry-standard-authentication-protocols' security check.
+  name: CloudWatchResource
+  output_statements:
+    failure: The CloudWatch resource does not support configuring authentication protocols
+      for user authentication.
+    partial: The CloudWatch resource does not directly handle authentication protocols,
+      but related resources may be configured to use industry-standard authentication
+      protocols.
+    success: The CloudWatch resource is configured to use industry-standard authentication
+      protocols for user authentication.
+  reason: The CloudWatch resource is not designed to handle authentication protocols
+    or user authentication mechanisms. It is a monitoring and logging service, and
+    does not have any direct relevance to the given security check.

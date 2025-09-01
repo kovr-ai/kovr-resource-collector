@@ -1,0 +1,35 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-secure-logging-mechanisms
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: To implement secure logging mechanisms in AWS, you should review
+      and configure other resources such as CloudWatch Logs, CloudTrail, and VPC Flow
+      Logs.
+    estimated_time: 1-2 hours
+    instructions:
+    - 1. Configure CloudWatch Logs to collect and store log data from various AWS
+      services and applications.
+    - 2. Enable and configure AWS CloudTrail to capture API activity logs for your
+      AWS account.
+    - 3. Enable VPC Flow Logs to capture network traffic information for your VPC.
+    - 4. Review and configure log retention policies, encryption, and access controls
+      for your log data.
+    - 5. Set up log monitoring and alerting mechanisms to detect and respond to security
+      incidents.
+  is_valid: false
+  literature: The IAMResource in AWS does not directly relate to implementing secure
+    logging mechanisms. This resource represents Identity and Access Management (IAM)
+    policies, users, and access keys, which are used for managing authentication and
+    authorization within AWS. While IAM policies can grant or deny permissions for
+    logging-related actions, the IAMResource itself does not contain information about
+    the configuration or implementation of logging mechanisms.
+  name: IAMResource
+  output_statements:
+    failure: The IAMResource is not applicable for implementing secure logging mechanisms.
+    partial: The IAMResource is not applicable for implementing secure logging mechanisms.
+    success: The IAMResource is not applicable for implementing secure logging mechanisms.
+  reason: The IAMResource does not contain any information or configurations related
+    to logging mechanisms. It focuses on managing IAM policies, users, and access
+    keys, which are used for authentication and authorization purposes within AWS.

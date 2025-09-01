@@ -1,0 +1,29 @@
+check:
+  name: owasp-latest-implement-secure-authentication-mechanisms
+  resource:
+    field_path: users[].mfa_devices[].type
+    fix_details:
+      automation_available: true
+      description: If IAM is not configured with secure authentication mechanisms,
+        you need to enable MFA for all IAM users, enforce strong password policies,
+        and rotate access keys regularly.
+      estimated_time: 1-2 hours
+      instructions:
+      - Enable MFA for all IAM users by configuring virtual or hardware MFA devices.
+      - Set a strong password policy for IAM users, including minimum length, complexity
+        requirements, and periodic rotation.
+      - Rotate access keys for all IAM users on a regular basis (e.g., every 90 days).
+      - Review and update IAM policies to enforce least privilege access and restrict
+        sensitive actions.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for mfa_device_type in fetched_value:\n        if mfa_device_type and mfa_device_type.lower()\
+      \ in ['virtual', 'u2f']:\n            result = True\n            break"
+    name: IAMResource
+    output_statements:
+      failure: IAM is not configured with secure authentication mechanisms, leaving
+        the AWS account vulnerable to authentication attacks.
+      partial: IAM has some secure authentication mechanisms configured, but additional
+        measures are recommended for comprehensive protection.
+      success: IAM is configured with secure authentication mechanisms, including
+        MFA, strong password policies, and access key rotation.
+  unique_id: owasp-latest-implement-secure-authentication-mechanisms

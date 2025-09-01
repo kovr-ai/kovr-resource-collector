@@ -1,0 +1,30 @@
+resource:
+  check:
+    unique_id: owasp-latest-disable-xml-external-entity-processing
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: Since the provided resource is not applicable for this security check,
+      no remediation steps are necessary.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The security check 'owasp-latest-disable-xml-external-entity-processing'
+    is focused on preventing XML External Entity (XXE) attacks by disabling external
+    entity processing in applications that parse XML input. This check is typically
+    applicable to web applications, APIs, or services that handle XML data and need
+    to ensure that external references and entities are not resolved, which could
+    lead to sensitive data exposure, remote code execution, or denial of service attacks.
+  name: GithubResource
+  output_statements:
+    failure: The resource handles XML parsing or processing, and external entity processing
+      is not disabled, leaving it vulnerable to XXE attacks.
+    partial: N/A
+    success: The resource does not handle XML parsing or processing, and therefore,
+      the risk of XXE attacks is not applicable.
+  reason: The provided resource 'GithubResource' appears to be related to GitHub repositories
+    and their associated data, such as actions, collaborators, organizations, and
+    security information. Based on the available field paths, there is no indication
+    that this resource handles XML parsing or processing. Therefore, this resource
+    is not directly applicable for implementing the 'owasp-latest-disable-xml-external-entity-processing'
+    security check.

@@ -1,0 +1,45 @@
+resource:
+  check:
+    unique_id: owasp-latest-use-secure-apis
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: To address this issue, the application codebase needs to be reviewed,
+      and any outdated or insecure APIs and libraries need to be updated to their
+      latest, secure versions.
+    estimated_time: The estimated time can vary significantly depending on the size
+      and complexity of the application codebase, as well as the number of outdated
+      APIs and libraries that need to be updated. For a small to medium-sized application,
+      the process may take several hours to a few days. For larger, more complex applications,
+      it could take weeks or even months.
+    instructions:
+    - 1. Conduct a comprehensive inventory of all APIs and libraries used in the application
+      codebase.
+    - 2. Identify any outdated or insecure versions of APIs and libraries.
+    - 3. Research and obtain the latest, secure versions of the identified APIs and
+      libraries.
+    - 4. Update the application codebase to use the latest, secure versions of the
+      APIs and libraries.
+    - 5. Thoroughly test the application to ensure compatibility and functionality
+      after the updates.
+    - 6. Implement a process for regularly monitoring and updating APIs and libraries
+      to maintain security.
+  is_valid: false
+  literature: The OWASP latest use secure APIs check is focused on ensuring that applications
+    use the latest, secure versions of APIs and libraries to prevent vulnerabilities
+    introduced by outdated or insecure code. This check is primarily applicable to
+    application code and the libraries/APIs used within the application codebase.
+  name: CloudWatchResource
+  output_statements:
+    failure: The application codebase uses outdated or insecure versions of APIs and
+      libraries, increasing the risk of vulnerabilities and potential security incidents.
+    partial: Some components of the application codebase use outdated or insecure
+      versions of APIs and libraries, while others are up-to-date and secure.
+    success: The application codebase uses the latest, secure versions of all APIs
+      and libraries, mitigating the risk of vulnerabilities introduced by outdated
+      or insecure code.
+  reason: The AWS CloudWatch resource is a monitoring and observability service that
+    collects and tracks metrics, logs, and alarms for AWS resources and applications.
+    It does not directly relate to the use of APIs or libraries within application
+    code. Therefore, this resource is not applicable for implementing the OWASP latest
+    use secure APIs security check.

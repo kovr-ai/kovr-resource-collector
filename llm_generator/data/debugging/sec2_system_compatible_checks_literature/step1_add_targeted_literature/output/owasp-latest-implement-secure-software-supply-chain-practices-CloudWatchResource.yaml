@@ -1,0 +1,43 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-secure-software-supply-chain-practices
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: To implement secure software supply chain practices in AWS, you should
+      consider other services and controls, such as AWS CodePipeline, AWS CodeBuild,
+      AWS CodeCommit, AWS CodeArtifact, and AWS CodeDeploy, along with appropriate
+      security configurations and policies.
+    estimated_time: Varies depending on the complexity of the software supply chain
+      and existing infrastructure.
+    instructions:
+    - Review the OWASP Software Supply Chain Security guidelines and NIST/ISO controls
+      for secure software supply chain practices.
+    - Implement appropriate AWS services and configurations to establish a secure
+      software development lifecycle (SDLC) and continuous integration/continuous
+      deployment (CI/CD) pipeline.
+    - Implement access controls, code signing, and integrity checks for software artifacts
+      and components.
+    - Implement security scanning and testing at various stages of the software supply
+      chain.
+    - Establish monitoring and logging mechanisms to detect and respond to potential
+      supply chain threats or compromises.
+  is_valid: false
+  literature: The CloudWatchResource in AWS does not directly relate to implementing
+    secure software supply chain practices. CloudWatch is a monitoring and observability
+    service that collects and tracks metrics, logs, and events from various AWS resources
+    and applications. While CloudWatch can be used to monitor the performance and
+    health of software components, it does not provide specific controls or mechanisms
+    for securing the software supply chain.
+  name: CloudWatchResource
+  output_statements:
+    failure: The CloudWatchResource is not applicable for implementing secure software
+      supply chain practices.
+    partial: The CloudWatchResource is not applicable for implementing secure software
+      supply chain practices.
+    success: The CloudWatchResource is not applicable for implementing secure software
+      supply chain practices.
+  reason: The CloudWatchResource is primarily used for monitoring and observability
+    purposes, and does not directly address the security requirements for implementing
+    secure software supply chain practices as outlined in the OWASP guidelines and
+    NIST/ISO controls.

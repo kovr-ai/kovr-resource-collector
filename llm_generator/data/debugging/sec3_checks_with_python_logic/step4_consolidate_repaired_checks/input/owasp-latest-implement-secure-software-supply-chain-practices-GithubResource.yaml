@@ -1,0 +1,7 @@
+check:
+  unique_id: owasp-latest-implement-secure-software-supply-chain-practices
+resource:
+  field_path: security_data.security_features_enabled
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    # Check if security features are enabled\n    result = fetched_value"
+  name: GithubResource

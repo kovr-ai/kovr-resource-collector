@@ -1,0 +1,41 @@
+check:
+  benchmarks:
+  - confidence: 0.7
+    reason: Security awareness training can help mitigate the risk of valid accounts
+      being compromised and misused by threat actors.
+    unique_id: MITRE-ATT&CK-T1078
+  - confidence: 0.8
+    reason: Security awareness training can educate employees on recognizing and responding
+      to phishing attacks, which are often used to gain initial access to systems
+      and data.
+    unique_id: MITRE-ATT&CK-T1598
+  category: authentication
+  controls:
+  - confidence: 0.9
+    reason: This control requires organizations to provide security awareness training
+      to personnel, including contractors and third-party stakeholders, to ensure
+      they understand their cybersecurity responsibilities and the potential consequences
+      of failing to fulfill them.
+    unique_id: NIST-800-53-AT-2
+  - confidence: 0.8
+    reason: This control requires organizations to provide awareness, education, and
+      training programs for personnel to ensure they understand their information
+      security responsibilities and the potential consequences of failing to fulfill
+      them.
+    unique_id: ISO-27001-A.7.2.2
+  literature: Security awareness training is crucial for organizations to educate
+    their employees on identifying and mitigating potential security threats. It helps
+    employees understand the importance of cybersecurity, recognize common attack
+    vectors, and learn best practices for protecting sensitive information and systems.
+    Regular security awareness training can significantly reduce the risk of human
+    error, which is often a leading cause of data breaches and cyber incidents. By
+    providing employees with the knowledge and skills to identify and respond to security
+    threats, organizations can strengthen their overall security posture and better
+    protect their assets and reputation.
+  severity: high
+  tags:
+  - security_awareness
+  - training
+  - education
+  - human_risk
+  unique_id: owasp-latest-provide-security-awareness-training

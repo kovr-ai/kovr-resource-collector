@@ -1,0 +1,41 @@
+check:
+  name: owasp-latest-enforce-least-privilege-principles
+  resource:
+    field_path: policies[].default_version.Document.Statement
+    fix_details:
+      automation_available: true
+      description: If the check fails or partially passes, it indicates that IAM policies
+        or user access keys grant excessive permissions beyond the required scope.
+        This increases the attack surface and potential for unauthorized access or
+        misuse.
+      estimated_time: 1-2 hours for initial review and remediation, ongoing maintenance
+        required
+      instructions:
+      - Review all IAM policies and identify statements granting overly permissive
+        actions or resource access.
+      - Modify or create new policies with more restrictive permissions, following
+        the principle of least privilege.
+      - Review user access keys and remove or disable keys with unnecessary permissions.
+      - Implement regular audits and reviews to ensure ongoing compliance with least
+        privilege principles.
+    logic: "result = True\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for statement in fetched_value:\n        if hasattr(statement, 'Effect')\
+      \ and statement.Effect == 'Allow':\n            if hasattr(statement, 'Action')\
+      \ and '*' in statement.Action:\n                result = False\n           \
+      \     break\n            if hasattr(statement, 'Resource') and '*' in statement.Resource:\n\
+      \                result = False\n                break\n        elif isinstance(statement,\
+      \ dict):\n            if statement.get('Effect') == 'Allow':\n             \
+      \   if statement.get('Action') and '*' in statement.get('Action'):\n       \
+      \             result = False\n                    break\n                if\
+      \ statement.get('Resource') and '*' in statement.get('Resource'):\n        \
+      \            result = False\n                    break"
+    name: IAMResource
+    output_statements:
+      failure: One or more IAM policies or user access keys violate the principle
+        of least privilege by granting excessive permissions beyond the required scope.
+      partial: Some IAM policies and user access keys adhere to the principle of least
+        privilege, while others grant excessive permissions.
+      success: All IAM policies and user access keys adhere to the principle of least
+        privilege, granting only the necessary permissions required for their intended
+        functions.
+  unique_id: owasp-latest-enforce-least-privilege-principles

@@ -1,0 +1,31 @@
+check:
+  name: owasp-latest-regularly-review-and-update-security-procedures
+  resource:
+    field_path: trails[*].is_logging
+    fix_details:
+      automation_available: true
+      description: If CloudTrail is not configured correctly, it may not capture all
+        relevant events or store logs securely, making it difficult to regularly review
+        and update security procedures.
+      estimated_time: 1 hour
+      instructions:
+      - Review the CloudTrail event selectors and ensure they capture all relevant
+        API calls and events for your organization.
+      - Configure CloudTrail to store logs in a secure S3 bucket with appropriate
+        access controls and encryption.
+      - Enable log file validation to ensure log integrity and detect tampering.
+      - Set up automated log analysis and alerting to facilitate regular reviews and
+        identify potential security issues.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for is_logging in fetched_value:\n        if is_logging:\n            result\
+      \ = True\n            break"
+    name: CloudTrailResource
+    output_statements:
+      failure: CloudTrail is not configured to capture relevant events or store logs
+        securely, hindering the ability to regularly review and update security procedures.
+      partial: CloudTrail is partially configured to capture events and store logs,
+        but additional configuration may be needed to enable comprehensive regular
+        reviews and updates to security procedures.
+      success: CloudTrail is configured to capture relevant events and store logs
+        in a secure location, enabling regular review and updates to security procedures.
+  unique_id: owasp-latest-regularly-review-and-update-security-procedures

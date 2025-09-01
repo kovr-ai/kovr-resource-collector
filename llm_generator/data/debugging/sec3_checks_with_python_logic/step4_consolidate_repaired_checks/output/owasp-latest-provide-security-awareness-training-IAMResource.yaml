@@ -1,0 +1,38 @@
+check:
+  name: owasp-latest-provide-security-awareness-training
+  resource:
+    field_path: policies[].default_version.Document.Statement
+    fix_details:
+      automation_available: true
+      description: If IAM users are found to have incomplete or missing security awareness
+        training, their access should be restricted until they complete the required
+        training.
+      estimated_time: 1-2 hours
+      instructions:
+      - 1. Identify IAM users who have not completed the required security awareness
+        training.
+      - 2. Create or update an IAM policy that restricts access for users who have
+        not completed the training.
+      - 3. Attach the policy to the non-compliant users or groups.
+      - 4. Provide the necessary training resources and instructions to the non-compliant
+        users.
+      - 5. Monitor and update user access as they complete the training.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for statement in fetched_value:\n        if hasattr(statement, 'Effect')\
+      \ and statement.Effect == 'Allow':\n            condition = getattr(statement,\
+      \ 'Condition', None)\n            if condition:\n                for condition_key,\
+      \ condition_value in condition.items():\n                    if condition_key\
+      \ == 'Bool' and 'aws:MultiFactorAuthPresent' in condition_value.values():\n\
+      \                        result = True\n                        break\n    \
+      \        else:\n                result = True\n                break"
+    name: IAMResource
+    output_statements:
+      failure: One or more IAM users have not completed the required security awareness
+        training, and their access is not properly restricted based on training completion
+        status.
+      partial: Some IAM users have completed the required security awareness training,
+        but others have not, and access restrictions based on training completion
+        status are inconsistent.
+      success: All IAM users have completed the required security awareness training,
+        and their access is properly restricted based on training completion status.
+  unique_id: owasp-latest-provide-security-awareness-training

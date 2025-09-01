@@ -1,0 +1,40 @@
+resource:
+  check:
+    unique_id: owasp-latest-provide-security-awareness-training
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To address this security check, the organization should implement
+      a security awareness training program for all employees.
+    estimated_time: 2-4 weeks for initial implementation, ongoing maintenance
+    instructions:
+    - Identify the training needs and objectives based on the organization's security
+      requirements and potential threats.
+    - Develop or procure a comprehensive security awareness training program covering
+      various topics such as phishing, social engineering, password management, data
+      handling, and incident reporting.
+    - Establish a schedule for regular training sessions, including initial onboarding
+      and periodic refresher courses.
+    - Track and monitor employee participation and completion of the training program.
+    - Continuously update and improve the training content based on emerging threats
+      and best practices.
+  is_valid: false
+  literature: The provided security check 'owasp-latest-provide-security-awareness-training'
+    is related to providing security awareness training to employees within an organization.
+    This check is focused on educating employees about identifying and mitigating
+    potential security threats, recognizing common attack vectors, and learning best
+    practices for protecting sensitive information and systems. However, the provided
+    AWS S3 resource is a storage service and does not directly relate to employee
+    training or awareness.
+  name: S3Resource
+  output_statements:
+    failure: The organization does not have a security awareness training program
+      in place for employees.
+    partial: The organization has a security awareness training program, but it is
+      not comprehensive or regularly updated.
+    success: The organization has implemented a comprehensive security awareness training
+      program for all employees.
+  reason: The AWS S3 resource is a storage service and does not have any direct relation
+    to providing security awareness training to employees within an organization.
+    This security check is more applicable to resources or services related to employee
+    training, education, and awareness programs.

@@ -1,0 +1,40 @@
+resource:
+  check:
+    unique_id: owasp-latest-use-secure-deserialization-mechanisms
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To address this security check, you need to review the applications
+      running on the EC2 instances and ensure they use secure deserialization mechanisms.
+    estimated_time: The time required to address this issue can vary significantly
+      depending on the number of applications, their complexity, and the level of
+      remediation needed. It could take anywhere from a few hours to several weeks
+      or months.
+    instructions:
+    - Identify all applications running on the EC2 instances that perform deserialization
+      operations.
+    - Review the deserialization mechanisms used by each application and ensure they
+      follow secure coding practices, such as input validation, whitelisting, and
+      strict type constraints.
+    - Update or replace any applications that use insecure deserialization mechanisms
+      with secure alternatives.
+    - Implement regular code reviews and security testing to identify and address
+      any new deserialization vulnerabilities.
+  is_valid: false
+  literature: The EC2Resource in AWS does not directly relate to secure deserialization
+    mechanisms. Deserialization is a process that occurs within applications or services
+    when converting serialized data into objects. This security check is focused on
+    ensuring that applications use secure deserialization mechanisms to prevent code
+    execution and data tampering attacks.
+  name: EC2Resource
+  output_statements:
+    failure: One or more applications running on the EC2 instances do not use secure
+      deserialization mechanisms, leaving them vulnerable to code execution and data
+      tampering attacks.
+    partial: Some applications running on the EC2 instances use secure deserialization
+      mechanisms, but others do not, leaving parts of the system vulnerable.
+    success: The applications running on the EC2 instances use secure deserialization
+      mechanisms to prevent code execution and data tampering attacks.
+  reason: The EC2Resource represents Elastic Compute Cloud (EC2) instances, networking
+    components, and related resources. It does not contain information about the application
+    code or deserialization mechanisms used within applications running on the instances.

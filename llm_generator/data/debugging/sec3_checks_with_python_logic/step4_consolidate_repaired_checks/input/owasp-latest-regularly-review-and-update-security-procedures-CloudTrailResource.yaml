@@ -1,0 +1,8 @@
+check:
+  unique_id: owasp-latest-regularly-review-and-update-security-procedures
+resource:
+  field_path: trails[*].is_logging
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    for is_logging in fetched_value:\n        if is_logging:\n            result\
+    \ = True\n            break"
+  name: CloudTrailResource

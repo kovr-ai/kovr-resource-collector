@@ -1,0 +1,38 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-secure-configuration-management-processes
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This resource is not applicable for implementing this security check.
+      To address this check, the organization should review its configuration management
+      processes and ensure that they align with industry best practices and relevant
+      compliance standards.
+    estimated_time: Varies depending on the organization's size and complexity.
+    instructions:
+    - Establish a formal process for tracking and documenting configuration changes
+      to systems and applications.
+    - Implement a testing and approval process for configuration changes before deployment.
+    - Ensure that configuration changes are deployed in a controlled manner, with
+      proper monitoring and rollback procedures in place.
+    - Regularly review and update configuration management processes to address emerging
+      threats and evolving best practices.
+  is_valid: false
+  literature: The provided resource 'UserResource' from Google Cloud Platform appears
+    to be related to user account management and does not directly address secure
+    configuration management processes. This security check is focused on validating
+    that organizations have implemented robust processes for managing configuration
+    changes to systems and applications, including tracking, testing, approving, and
+    deploying changes in a controlled manner. The UserResource does not contain information
+    about configuration management processes or controls.
+  name: UserResource
+  output_statements:
+    failure: The organization has not implemented secure configuration management
+      processes for tracking, testing, approving, and deploying changes in a controlled
+      manner.
+    partial: Not applicable for this resource.
+    success: The organization has implemented secure configuration management processes
+      for tracking, testing, approving, and deploying changes in a controlled manner.
+  reason: The UserResource is focused on user account information and does not contain
+    details about configuration management processes or controls for systems and applications.
+    Therefore, it is not applicable for implementing this security check.

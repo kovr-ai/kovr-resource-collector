@@ -1,0 +1,34 @@
+check:
+  name: owasp-latest-implement-secure-configuration-management-processes
+  resource:
+    field_path: trails[*].log_file_validation_enabled
+    fix_details:
+      automation_available: true
+      description: To fully implement secure configuration management processes using
+        CloudTrail, ensure that CloudTrail is enabled, configured to log all management
+        events, and integrated with appropriate monitoring and alerting systems.
+      estimated_time: 1-2 hours
+      instructions:
+      - 1. Enable CloudTrail for all regions and configure it to log all management
+        events.
+      - 2. Configure CloudTrail to log data events for specific resource types that
+        are critical to your organization.
+      - 3. Configure CloudTrail to deliver logs to a secure and centralized S3 bucket.
+      - 4. Enable log file validation to ensure log integrity.
+      - 5. Configure CloudTrail to send logs to a monitoring and alerting system (e.g.,
+        CloudWatch) to detect and respond to unauthorized or unintended changes.
+      - 6. Implement processes to review CloudTrail logs regularly and investigate
+        any suspicious activity.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for log_file_validation_enabled in fetched_value:\n        if log_file_validation_enabled:\n\
+      \            result = True\n            break"
+    name: CloudTrailResource
+    output_statements:
+      failure: CloudTrail is not configured correctly, which may lead to unauthorized
+        or unintended changes going undetected, compromising system integrity and
+        security.
+      partial: CloudTrail is partially configured, but some settings may need to be
+        adjusted to fully support secure configuration management processes.
+      success: CloudTrail is configured correctly to track and monitor changes made
+        to AWS resources, supporting secure configuration management processes.
+  unique_id: owasp-latest-implement-secure-configuration-management-processes

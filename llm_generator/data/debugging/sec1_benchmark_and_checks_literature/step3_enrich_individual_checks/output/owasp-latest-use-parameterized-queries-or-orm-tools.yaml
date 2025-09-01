@@ -1,0 +1,33 @@
+check:
+  benchmarks:
+  - confidence: 0.9
+    reason: SQL injection is a technique used in the 'Exploit Public-Facing Application'
+      tactic, and using parameterized queries or ORM tools helps mitigate this attack
+      vector.
+    unique_id: MITRE-ATT&CK-T1190
+  category: system_integrity
+  controls:
+  - confidence: 0.9
+    reason: This control requires the use of input validation techniques to prevent
+      malicious code from being processed by the system, which aligns with the use
+      of parameterized queries or ORM tools to prevent SQL injection.
+    unique_id: NIST-800-53-SI-10
+  - confidence: 0.8
+    reason: This control requires the implementation of secure coding practices, including
+      input validation and output encoding, which aligns with the use of parameterized
+      queries or ORM tools to prevent SQL injection.
+    unique_id: ISO-27001-A.14.2.7
+  literature: SQL injection is a code injection technique that exploits vulnerabilities
+    in the way user input is handled by an application. By injecting malicious SQL
+    statements into application entry points, attackers can gain unauthorized access
+    to data, execute administrative operations, and potentially compromise the entire
+    application. Using parameterized queries or Object-Relational Mapping (ORM) tools
+    is a secure coding practice that helps prevent SQL injection attacks by separating
+    user input from the SQL statement. This ensures that user input is treated as
+    data and not as part of the SQL command, mitigating the risk of injection attacks.
+  severity: high
+  tags:
+  - sql_injection
+  - input_validation
+  - secure_coding
+  unique_id: owasp-latest-use-parameterized-queries-or-orm-tools

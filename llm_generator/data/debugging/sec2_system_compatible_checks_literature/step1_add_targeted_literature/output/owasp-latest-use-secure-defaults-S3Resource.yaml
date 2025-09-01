@@ -1,0 +1,47 @@
+resource:
+  check:
+    unique_id: owasp-latest-use-secure-defaults
+  field_paths:
+  - buckets
+  - buckets[].encryption
+  - buckets[].encryption.enabled
+  - buckets[].encryption.type
+  - buckets[].public_access_block
+  - buckets[].public_access_block.block_public_acls
+  - buckets[].public_access_block.block_public_policy
+  - buckets[].public_access_block.ignore_public_acls
+  - buckets[].public_access_block.restrict_public_buckets
+  - buckets[].logging_enabled
+  - buckets[].versioning_status
+  fix_details:
+    automation_available: true
+    description: If an S3 bucket is not configured with secure defaults, it needs
+      to be remediated to mitigate the risk of unauthorized access and data breaches.
+    estimated_time: 15-30 minutes
+    instructions:
+    - Enable encryption for the S3 bucket using AWS-managed keys or customer-managed
+      keys.
+    - Configure the public access block settings to block public access to the bucket
+      and its objects.
+    - Enable access logging for the bucket to monitor and audit access patterns.
+    - Enable versioning for the bucket to protect against accidental deletion or overwrites.
+  is_valid: true
+  literature: The 'owasp-latest-use-secure-defaults' check is applicable to AWS S3
+    buckets as they have various configuration options that can impact their security
+    posture. By default, S3 buckets are created with public access enabled, which
+    can expose sensitive data to unauthorized parties. This check ensures that S3
+    buckets are configured with secure defaults, such as encryption, access control,
+    and logging, to mitigate the risk of data breaches and unauthorized access.
+  name: S3Resource
+  output_statements:
+    failure: The S3 bucket is not configured with secure defaults, leaving it vulnerable
+      to unauthorized access and data breaches.
+    partial: Some aspects of the S3 bucket are configured with secure defaults, but
+      there are still areas that need improvement.
+    success: The S3 bucket is configured with secure defaults, including encryption,
+      access control, and logging.
+  reason: AWS S3 buckets have various configuration options that can impact their
+    security posture, making them applicable for the 'owasp-latest-use-secure-defaults'
+    check. By ensuring that S3 buckets are configured with secure defaults, such as
+    encryption, access control, and logging, this check helps mitigate the risk of
+    data breaches and unauthorized access.

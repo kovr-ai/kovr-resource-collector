@@ -1,0 +1,33 @@
+check:
+  category: authentication
+  control_names:
+  - NIST-800-53-AC-3
+  - ISO-27001-A.9.4.1
+  literature: The OWASP latest secure authentication mechanisms check validates that
+    the application implements secure authentication mechanisms to protect against
+    common authentication attacks such as brute-force, credential stuffing, and session
+    hijacking. Proper authentication is crucial for ensuring that only authorized
+    users can access sensitive data and functionality within the application. Implementing
+    secure authentication mechanisms helps mitigate the risk of unauthorized access,
+    data breaches, and other security incidents.
+  name: owasp-latest-implement-secure-authentication-mechanisms
+  resource:
+    field_paths:
+    - users
+    - users[].mfa_devices
+    - users[].mfa_devices[].type
+    - policies
+    - policies[].default_version.Document.Statement
+    - policies[].default_version.Document.Statement[].Effect
+    - policies[].default_version.Document.Statement[].Action
+    literature: The IAMResource in AWS is applicable for implementing secure authentication
+      mechanisms as per the OWASP latest guidelines. IAM (Identity and Access Management)
+      is the core authentication and authorization service in AWS that allows you
+      to manage users, groups, roles, and their associated permissions. By properly
+      configuring IAM policies, you can enforce secure authentication practices such
+      as multi-factor authentication (MFA), password policies, and access controls.
+    name: IAMResource
+    reason: The IAMResource provides the necessary configuration options and settings
+      to implement secure authentication mechanisms as recommended by OWASP. It allows
+      you to enforce MFA, manage user credentials, and define granular access policies.
+  unique_id: owasp-latest-implement-secure-authentication-mechanisms

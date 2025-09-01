@@ -1,0 +1,10 @@
+check:
+  unique_id: owasp-latest-follow-data-protection-regulations
+resource:
+  field_path: trails[*].event_selectors[*].data_resources.values[*]
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    sensitive_data_types = ['AWS::S3Object', 'AWS::Lambda::Function', 'AWS::DynamoDB::Table']\n\
+    \    for data_resource_values in fetched_value:\n        if any(value in sensitive_data_types\
+    \ for value in data_resource_values):\n            result = True\n           \
+    \ break"
+  name: CloudTrailResource

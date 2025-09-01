@@ -1,0 +1,44 @@
+resource:
+  check:
+    unique_id: owasp-latest-conduct-penetration-testing
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To implement the 'owasp-latest-conduct-penetration-testing' security
+      check, you need to engage with a team of experienced penetration testers or
+      utilize specialized penetration testing tools and services provided by your
+      cloud provider or third-party vendors.
+    estimated_time: The duration of a penetration testing engagement can vary significantly
+      depending on the scope and complexity of the cloud environment, but it typically
+      takes several weeks to several months.
+    instructions:
+    - Identify the scope of the penetration testing engagement, including the cloud
+      resources, applications, and services to be tested.
+    - Engage with a reputable penetration testing team or vendor and provide them
+      with the necessary access and documentation.
+    - Collaborate with the penetration testing team to define the testing methodology,
+      rules of engagement, and reporting requirements.
+    - Conduct the penetration testing activities and review the findings and recommendations
+      provided by the testing team.
+    - Prioritize and remediate any identified vulnerabilities or weaknesses based
+      on their severity and potential impact.
+  is_valid: false
+  literature: The provided resource 'UserResource' from Google Cloud Platform does
+    not appear to be directly applicable for implementing the security check 'owasp-latest-conduct-penetration-testing'.
+    This resource represents user account information and does not contain any details
+    related to conducting penetration testing or assessing the security posture of
+    the cloud environment.
+  name: UserResource
+  output_statements:
+    failure: Penetration testing has identified critical vulnerabilities in the cloud
+      environment that need to be addressed immediately.
+    partial: Penetration testing has identified some vulnerabilities in the cloud
+      environment that should be addressed to improve the overall security posture.
+    success: The cloud environment has been successfully tested for vulnerabilities
+      through penetration testing, and no critical issues were found.
+  reason: The UserResource is a data structure representing user account details and
+    does not contain any information or functionality related to conducting penetration
+    testing or assessing the security posture of the cloud environment. Penetration
+    testing typically involves simulating real-world attack scenarios against the
+    cloud infrastructure, applications, and services to identify vulnerabilities and
+    weaknesses.

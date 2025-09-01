@@ -1,0 +1,74 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-secure-coding-practices
+  field_paths:
+  - event_selectors
+  - event_selectors[]
+  - event_selectors[].data_resources
+  - event_selectors[].data_resources.type
+  - event_selectors[].data_resources.values
+  - event_selectors[].data_resources.values[]
+  - event_selectors[].include_management_events
+  - event_selectors[].read_write_type
+  - trails
+  - trails[]
+  - trails[].event_selectors
+  - trails[].event_selectors[]
+  - trails[].event_selectors[].data_resources
+  - trails[].event_selectors[].data_resources.type
+  - trails[].event_selectors[].data_resources.values
+  - trails[].event_selectors[].data_resources.values[]
+  - trails[].event_selectors[].include_management_events
+  - trails[].event_selectors[].read_write_type
+  - trails[].is_logging
+  - trails[].is_multi_region_trail
+  - trails[].log_file_validation_enabled
+  - trails[].s3_bucket_name
+  - trails[].s3_key_prefix
+  fix_details:
+    automation_available: true
+    description: To implement secure coding practices, organizations should adopt
+      secure coding guidelines, use secure coding techniques, and implement security
+      controls during the software development lifecycle. This may involve training
+      developers, implementing code review processes, using static code analysis tools,
+      and integrating security testing into the development pipeline.
+    estimated_time: Implementing secure coding practices is an ongoing process that
+      requires continuous effort and commitment from the organization. The initial
+      setup and training may take several weeks or months, depending on the size and
+      complexity of the organization and its software development processes.
+    instructions:
+    - Establish secure coding standards and guidelines based on industry best practices
+      (e.g., OWASP Secure Coding Practices, CERT Secure Coding Standards).
+    - Provide training and resources to developers on secure coding techniques, such
+      as input validation, output encoding, secure authentication and authorization
+      mechanisms, and protection against common vulnerabilities.
+    - Implement code review processes to identify and remediate security vulnerabilities
+      early in the development cycle.
+    - Integrate static code analysis tools into the development pipeline to automatically
+      detect and flag potential security issues.
+    - Incorporate security testing (e.g., penetration testing, vulnerability scanning)
+      into the software development lifecycle to identify and address vulnerabilities
+      before production deployment.
+    - Continuously monitor and update secure coding practices to align with evolving
+      security threats and industry best practices.
+  is_valid: false
+  literature: The AWS CloudTrail resource is primarily used for logging and monitoring
+    API activity within an AWS account. While it can provide valuable audit trails
+    and insights into user actions, it does not directly implement secure coding practices
+    or enforce security controls during the software development lifecycle. Secure
+    coding practices involve techniques and guidelines applied during the coding and
+    development phases, such as input validation, output encoding, secure authentication
+    and authorization mechanisms, and protection against common vulnerabilities like
+    injection flaws, broken authentication, and sensitive data exposure.
+  name: CloudTrailResource
+  output_statements:
+    failure: The CloudTrail resource does not directly implement secure coding practices
+      or enforce security controls during the software development lifecycle.
+    partial: The CloudTrail resource does not directly implement secure coding practices
+      or enforce security controls during the software development lifecycle.
+    success: The CloudTrail resource is configured to log and monitor API activity,
+      providing valuable audit trails and insights into user actions.
+  reason: The CloudTrail resource is primarily focused on logging and monitoring API
+    activity within an AWS account. While it can provide valuable audit trails and
+    insights into user actions, it does not directly implement secure coding practices
+    or enforce security controls during the software development lifecycle.

@@ -1,0 +1,24 @@
+resource:
+  check:
+    unique_id: owasp-latest-validate-and-sanitize-all-serialized-data
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: No fix is required as this resource is not applicable for this security
+      check.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The EC2Resource in AWS does not appear to contain any serialized data
+    that needs to be validated and sanitized. This resource primarily deals with EC2
+    instances, networking components like VPCs and security groups, and related metadata.
+    It does not handle serialized objects or data structures that could potentially
+    contain malicious code or sensitive information.
+  name: EC2Resource
+  output_statements:
+    failure: This resource does not handle serialized data, so the check is not applicable.
+    partial: This resource does not handle serialized data, so the check is not applicable.
+    success: This resource does not handle serialized data, so the check is not applicable.
+  reason: The EC2Resource does not involve processing or deserializing serialized
+    data, which is the focus of this security check. Therefore, it is not applicable
+    for implementing this specific check.

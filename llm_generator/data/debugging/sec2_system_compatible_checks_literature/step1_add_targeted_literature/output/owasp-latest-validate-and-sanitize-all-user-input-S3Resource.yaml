@@ -1,0 +1,28 @@
+resource:
+  check:
+    unique_id: owasp-latest-validate-and-sanitize-all-user-input
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This security check is not applicable to the AWS S3 resource.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The security check 'owasp-latest-validate-and-sanitize-all-user-input'
+    focuses on ensuring that all user input is properly validated and sanitized to
+    prevent injection attacks and other input-related vulnerabilities. However, the
+    AWS S3 resource provided is a storage service for hosting static files and does
+    not directly handle user input or application logic. Therefore, this resource
+    is not directly applicable for implementing this security check.
+  name: S3Resource
+  output_statements:
+    failure: This resource is not applicable for the 'owasp-latest-validate-and-sanitize-all-user-input'
+      security check.
+    partial: This resource is not applicable for the 'owasp-latest-validate-and-sanitize-all-user-input'
+      security check.
+    success: This resource is not applicable for the 'owasp-latest-validate-and-sanitize-all-user-input'
+      security check.
+  reason: The AWS S3 resource is a storage service for hosting static files and does
+    not directly handle user input or application logic. The security check is focused
+    on validating and sanitizing user input in applications or services that process
+    user-provided data.

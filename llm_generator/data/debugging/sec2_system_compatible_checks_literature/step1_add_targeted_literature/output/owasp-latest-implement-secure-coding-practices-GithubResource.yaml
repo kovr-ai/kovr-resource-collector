@@ -1,0 +1,51 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-secure-coding-practices
+  field_paths:
+  - actions_data
+  - actions_data.active_workflows
+  - actions_data.recent_runs_count
+  - actions_data.total_workflows
+  - actions_data.workflows
+  - security_data
+  - security_data.code_scanning_alerts
+  - security_data.dependency_graph
+  - security_data.security_advisories
+  - security_data.security_analysis
+  - security_data.security_features_enabled
+  - security_data.vulnerability_alerts
+  fix_details:
+    automation_available: true
+    description: 'To ensure the implementation of secure coding practices, the following
+      steps should be taken:'
+    estimated_time: Varies based on the size and complexity of the codebase and development
+      processes.
+    instructions:
+    - Establish and document secure coding guidelines and best practices for the organization.
+    - Implement secure coding practices throughout the software development lifecycle,
+      including code reviews, static code analysis, and security testing.
+    - Provide training and awareness programs for developers on secure coding practices
+      and common vulnerabilities.
+    - Integrate security tools and processes into the development pipeline, such as
+      static code analysis, dynamic code analysis, and dependency scanning.
+    - Regularly review and update secure coding practices based on industry standards
+      and emerging threats.
+  is_valid: false
+  literature: The provided resource is a GitHub repository, which contains information
+    about the repository itself, its branches, collaborators, actions, security data,
+    and more. While this resource provides some insights into the development practices
+    and security posture of the repository, it does not directly address the implementation
+    of secure coding practices within the codebase or the software development lifecycle
+    (SDLC).
+  name: GithubResource
+  output_statements:
+    failure: The repository does not implement secure coding practices, and the codebase
+      contains potential vulnerabilities or does not follow secure coding guidelines.
+    partial: N/A
+    success: The repository adheres to secure coding practices, and the codebase follows
+      industry-standard guidelines for secure software development.
+  reason: The GitHub repository resource provides information about the repository's
+    security features, such as code scanning alerts, dependency graph, security advisories,
+    and vulnerability alerts. However, it does not provide direct insights into the
+    secure coding practices implemented during the development process or the adherence
+    to secure coding guidelines within the codebase itself.

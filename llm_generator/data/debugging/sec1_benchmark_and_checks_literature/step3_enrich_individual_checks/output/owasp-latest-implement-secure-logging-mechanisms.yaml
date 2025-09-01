@@ -1,0 +1,55 @@
+check:
+  benchmarks:
+  - confidence: 0.7
+    reason: Implementing secure logging mechanisms can help detect and mitigate user
+      execution techniques, such as malicious scripts or commands executed by adversaries
+      to achieve their objectives.
+    unique_id: MITRE-ATT&CK-T1204
+  - confidence: 0.8
+    reason: Secure logging mechanisms can help detect and investigate the use of valid
+      accounts by adversaries to gain initial access or maintain persistence within
+      a compromised environment.
+    unique_id: MITRE-ATT&CK-T1078
+  - confidence: 0.9
+    reason: Secure logging mechanisms can help detect and investigate techniques used
+      by adversaries to inhibit system logging or clear existing logs to cover their
+      tracks and impede incident response efforts.
+    unique_id: MITRE-ATT&CK-T1490
+  category: audit
+  controls:
+  - confidence: 0.9
+    reason: This control requires organizations to implement audit logging mechanisms
+      to capture and maintain audit records for security-relevant events, including
+      successful and unsuccessful account logon events, account management events,
+      object access, policy change, privilege functions, and other events as defined
+      by the organization.
+    unique_id: NIST-800-53-AU-2
+  - confidence: 0.8
+    reason: This control requires organizations to ensure the confidentiality, integrity,
+      and availability of audit information and audit logging facilities, including
+      protecting audit information and audit logging tools from unauthorized access,
+      modification, and deletion.
+    unique_id: NIST-800-53-AU-3
+  - confidence: 0.9
+    reason: This control requires organizations to establish event logging mechanisms
+      to record user activities, exceptions, faults, and information security events,
+      and to ensure that log information is protected against tampering and unauthorized
+      access.
+    unique_id: ISO-27001-A.12.4.1
+  literature: Secure logging mechanisms are essential for maintaining an audit trail,
+    detecting security incidents, and troubleshooting issues in applications and systems.
+    Proper logging practices involve capturing relevant information about user activities,
+    system events, and security-related occurrences, while ensuring the confidentiality,
+    integrity, and availability of log data. Implementing secure logging mechanisms
+    helps organizations comply with regulatory requirements, forensic investigations,
+    and incident response efforts. Failure to implement secure logging can lead to
+    data breaches, unauthorized access, and an inability to reconstruct events or
+    identify the root cause of security incidents.
+  severity: high
+  tags:
+  - logging
+  - auditing
+  - security_monitoring
+  - incident_response
+  - compliance
+  unique_id: owasp-latest-implement-secure-logging-mechanisms

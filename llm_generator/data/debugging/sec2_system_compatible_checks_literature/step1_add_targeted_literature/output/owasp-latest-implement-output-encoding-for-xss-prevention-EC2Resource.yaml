@@ -1,0 +1,28 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-output-encoding-for-xss-prevention
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This resource is not applicable for implementing output encoding
+      for XSS prevention.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The EC2Resource in AWS does not directly relate to implementing output
+    encoding for XSS prevention. This security check is primarily applicable to web
+    applications and services that render user input on web pages. EC2 instances can
+    host web applications, but the resource itself does not provide functionality
+    for output encoding or XSS prevention.
+  name: EC2Resource
+  output_statements:
+    failure: This resource is not applicable for the 'owasp-latest-implement-output-encoding-for-xss-prevention'
+      security check.
+    partial: This resource is not applicable for the 'owasp-latest-implement-output-encoding-for-xss-prevention'
+      security check.
+    success: This resource is not applicable for the 'owasp-latest-implement-output-encoding-for-xss-prevention'
+      security check.
+  reason: The EC2Resource represents Elastic Compute Cloud (EC2) instances, networking
+    components, and related resources in an AWS account. It does not contain any fields
+    or configurations specific to web application security or output encoding mechanisms
+    for preventing XSS vulnerabilities.

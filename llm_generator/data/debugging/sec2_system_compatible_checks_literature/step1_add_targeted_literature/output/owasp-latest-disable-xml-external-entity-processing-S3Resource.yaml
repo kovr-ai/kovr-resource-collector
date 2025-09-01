@@ -1,0 +1,28 @@
+resource:
+  check:
+    unique_id: owasp-latest-disable-xml-external-entity-processing
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: No fix is required for the AWS S3 resource, as this security check
+      is not applicable.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The security check 'owasp-latest-disable-xml-external-entity-processing'
+    is focused on preventing XML External Entity (XXE) attacks by disabling external
+    entity processing in applications that parse XML input. This check is primarily
+    applicable to web applications, application servers, or services that handle XML
+    data processing. The AWS S3 resource provided is a storage service for hosting
+    objects and files, and it does not directly handle XML parsing or processing.
+    Therefore, this security check is not directly applicable to the S3 resource.
+  name: S3Resource
+  output_statements:
+    failure: This check is not applicable to the AWS S3 resource.
+    partial: This check is not applicable to the AWS S3 resource.
+    success: This check is not applicable to the AWS S3 resource.
+  reason: The AWS S3 resource is a storage service for hosting objects and files,
+    and it does not directly handle XML parsing or processing. The security check
+    'owasp-latest-disable-xml-external-entity-processing' is focused on preventing
+    XXE attacks in applications that parse XML input, which is not a primary function
+    of the S3 service.

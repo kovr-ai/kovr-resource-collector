@@ -1,0 +1,38 @@
+resource:
+  check:
+    unique_id: owasp-latest-log-security-relevant-events
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: To implement the 'owasp-latest-log-security-relevant-events' check,
+      you need to configure and review the appropriate logging and auditing mechanisms
+      within the Google Cloud environment.
+    estimated_time: 1-2 hours
+    instructions:
+    - 1. Enable and configure Cloud Audit Logs for your Google Cloud project to capture
+      administrative activity and data access logs.
+    - 2. Review and customize the log sinks and log filters to capture security-relevant
+      events based on your organization's requirements.
+    - 3. Integrate the audit logs with a centralized logging and monitoring solution,
+      such as Cloud Logging or a third-party SIEM, for analysis and incident response.
+    - 4. Establish processes and procedures for regularly reviewing and analyzing
+      the security-relevant logs to identify potential threats or unauthorized activities.
+  is_valid: false
+  literature: The 'owasp-latest-log-security-relevant-events' check is designed to
+    validate that the system is properly logging security-relevant events, which is
+    crucial for maintaining an audit trail and enabling effective incident response
+    and forensic analysis. However, the provided Google UserResource does not appear
+    to be directly related to logging or auditing security events. This resource represents
+    user account information and metadata within the Google Workspace environment.
+  name: UserResource
+  output_statements:
+    failure: The system is not logging security-relevant events, which could hinder
+      incident response and forensic analysis capabilities.
+    partial: N/A
+    success: The system is properly logging security-relevant events, enabling effective
+      incident response and forensic analysis.
+  reason: The UserResource does not contain any fields or properties related to logging,
+    auditing, or capturing security-relevant events. It is primarily focused on storing
+    user account details, contact information, and organizational data. Therefore,
+    this resource is not applicable for implementing the 'owasp-latest-log-security-relevant-events'
+    security check.

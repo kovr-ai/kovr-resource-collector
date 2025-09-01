@@ -1,0 +1,43 @@
+resource:
+  check:
+    unique_id: owasp-latest-conduct-regular-security-testing
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To address this issue, the organization should establish a comprehensive
+      security testing program that includes regular penetration testing, vulnerability
+      assessments, and code reviews.
+    estimated_time: The time required to implement a comprehensive security testing
+      program can vary depending on the size and complexity of the organization, but
+      it typically takes several months to establish the necessary processes, policies,
+      and resources.
+    instructions:
+    - Develop a security testing policy and schedule that aligns with industry best
+      practices and regulatory requirements.
+    - Engage qualified security professionals or third-party vendors to perform penetration
+      testing and vulnerability assessments on a regular basis.
+    - Implement secure coding practices and conduct code reviews to identify and remediate
+      vulnerabilities in software applications.
+    - Document and track the findings from security testing activities, and prioritize
+      the remediation of identified vulnerabilities.
+    - Continuously monitor and update the security testing program to address evolving
+      threats and changes in the organization's technology landscape.
+  is_valid: false
+  literature: The provided AWS EC2Resource does not contain any information related
+    to security testing practices or procedures. This resource primarily deals with
+    EC2 instance configurations, networking components like VPCs and security groups,
+    and other infrastructure-level details. It does not provide insights into an organization's
+    security testing processes, such as penetration testing, vulnerability assessments,
+    or code reviews.
+  name: EC2Resource
+  output_statements:
+    failure: The organization does not conduct regular security testing, leaving it
+      vulnerable to cyber threats, data breaches, and compliance violations.
+    partial: Not applicable
+    success: The organization conducts regular security testing, including penetration
+      testing, vulnerability assessments, and code reviews, to identify and mitigate
+      potential security risks.
+  reason: The EC2Resource does not contain any relevant data points or attributes
+    that can be used to determine if an organization conducts regular security testing.
+    This resource is focused on the infrastructure and configuration aspects of EC2,
+    rather than security testing processes.

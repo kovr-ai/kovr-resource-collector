@@ -1,0 +1,34 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-secure-key-management
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: Since the UserResource is not applicable for this security check,
+      no specific remediation steps are provided. To implement secure key management,
+      you would need to review the relevant resources and services in your cloud environment
+      that handle encryption keys and cryptographic operations.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The provided resource 'UserResource' from Google Cloud Platform does
+    not appear to be directly related to secure key management practices. This resource
+    represents user account information and does not contain any fields related to
+    encryption keys, key management, or cryptographic operations. Secure key management
+    typically involves managing encryption keys used for data protection, authentication,
+    and secure communication. The UserResource does not seem to have any direct relevance
+    to this security check.
+  name: UserResource
+  output_statements:
+    failure: The application or system does not implement secure key management practices,
+      putting sensitive data at risk of unauthorized access, data breaches, and other
+      security incidents.
+    partial: N/A
+    success: The application or system implements secure key management practices,
+      such as using strong encryption algorithms, properly generating and storing
+      keys, regularly rotating keys, and securely distributing keys to authorized
+      parties.
+  reason: The UserResource represents user account details and does not contain any
+    information or functionality related to encryption keys or key management practices.
+    This resource is not applicable for implementing the 'owasp-latest-implement-secure-key-management'
+    security check.

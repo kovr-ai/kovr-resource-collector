@@ -1,0 +1,36 @@
+check:
+  name: owasp-latest-follow-data-protection-regulations
+  resource:
+    field_path: buckets[*].encryption.enabled
+    fix_details:
+      automation_available: true
+      description: Ensure that all S3 buckets have appropriate encryption and public
+        access controls enabled to protect sensitive data and comply with data protection
+        regulations.
+      estimated_time: 30 minutes to 1 hour per S3 bucket (depending on complexity)
+      instructions:
+      - Enable server-side encryption for all S3 buckets using a secure encryption
+        algorithm (e.g., AES-256) and a customer-managed or AWS-managed KMS key.
+      - Configure public access block settings to block public access to buckets and
+        objects, including disabling public ACLs, public bucket policies, and cross-account
+        access.
+      - Review and update bucket policies and ACLs to restrict access to only authorized
+        users and services.
+      - Implement logging and monitoring for S3 bucket access and configuration changes.
+      - Regularly review and update S3 bucket configurations to ensure ongoing compliance
+        with data protection regulations and industry standards.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for bucket_encryption_enabled in fetched_value:\n        if bucket_encryption_enabled:\n\
+      \            result = True\n        else:\n            result = False\n    \
+      \        break"
+    name: S3Resource
+    output_statements:
+      failure: One or more S3 buckets are not configured in compliance with data protection
+        regulations and industry standards. Review the bucket configurations and implement
+        the recommended fixes.
+      partial: Some S3 buckets are configured in compliance with data protection regulations
+        and industry standards, but others require attention. Review the bucket configurations
+        and implement the recommended fixes.
+      success: All S3 buckets are configured in compliance with data protection regulations
+        and industry standards.
+  unique_id: owasp-latest-follow-data-protection-regulations

@@ -1,0 +1,84 @@
+check:
+  resources:
+  - field_paths:
+    - policies
+    - policies[].default_version.Document.Statement
+    - policies[].default_version.Document.Statement[].Action
+    - policies[].default_version.Document.Statement[].Resource
+    - policies[].default_version.Document.Statement[].Condition
+    - users
+    - users[].access_keys
+    - users[].mfa_devices
+    is_valid: true
+    literature: The 'owasp-latest-validate-access-controls-on-the-server-side' check
+      is designed to validate that access controls are properly implemented on the
+      server-side of an application. In the context of AWS IAM resources, this check
+      can be implemented by analyzing the IAM policies and their statements to ensure
+      that access controls are properly defined and enforced. The IAM policies define
+      the permissions granted to users, groups, and roles, and their statements specify
+      the actions, resources, and conditions under which those permissions are granted.
+    name: IAMResource
+    reason: The IAM resource is valid for implementing the 'owasp-latest-validate-access-controls-on-the-server-side'
+      check because it provides access to the IAM policies and their statements, which
+      define the access controls for users, groups, and roles. Additionally, the resource
+      includes information about user access keys and multi-factor authentication
+      (MFA) devices, which are relevant for validating access controls.
+  - field_paths:
+    - event_selectors
+    - event_selectors[]
+    - event_selectors[].data_resources
+    - event_selectors[].data_resources.type
+    - event_selectors[].data_resources.values
+    - event_selectors[].data_resources.values[]
+    - event_selectors[].include_management_events
+    - event_selectors[].read_write_type
+    - trails
+    - trails[]
+    - trails[].event_selectors
+    - trails[].event_selectors[]
+    - trails[].event_selectors[].data_resources
+    - trails[].event_selectors[].data_resources.type
+    - trails[].event_selectors[].data_resources.values
+    - trails[].event_selectors[].data_resources.values[]
+    - trails[].event_selectors[].include_management_events
+    - trails[].event_selectors[].read_write_type
+    is_valid: true
+    literature: The 'owasp-latest-validate-access-controls-on-the-server-side' check
+      is designed to validate that access controls are properly implemented on the
+      server-side of an application. AWS CloudTrail is a service that records AWS
+      API calls and related events, which can be used to monitor and audit access
+      to AWS resources. By configuring CloudTrail trails and event selectors, you
+      can capture and analyze API activity to ensure that access controls are properly
+      enforced and that only authorized entities can perform specific actions on protected
+      resources.
+    name: CloudTrailResource
+    reason: The CloudTrail resource is applicable for implementing the 'owasp-latest-validate-access-controls-on-the-server-side'
+      check because it allows you to capture and analyze API activity, including access
+      control-related events, across AWS resources. By configuring CloudTrail trails
+      and event selectors, you can monitor and audit access to ensure that access
+      controls are properly enforced.
+  - field_paths:
+    - admin_info.isAdmin
+    - admin_info.isDelegatedAdmin
+    - basic_info.customerId
+    - basic_info.id
+    - basic_info.primaryEmail
+    - contact_info.emails
+    - contact_info.phones
+    - organizational_info.orgUnitPath
+    - security_info.isEnforcedIn2Sv
+    - security_info.isEnrolledIn2Sv
+    is_valid: true
+    literature: The 'owasp-latest-validate-access-controls-on-the-server-side' check
+      is designed to validate that access controls are properly implemented on the
+      server-side for the Google UserResource. This resource contains information
+      about a user's account, including administrative privileges, contact details,
+      and security settings. Proper access controls are crucial to ensure that only
+      authorized users or entities can access and modify sensitive user data.
+    name: UserResource
+    reason: The UserResource contains fields related to user privileges, identities,
+      and security settings, which are essential for implementing proper access controls
+      on the server-side. By validating these fields, the security check can ensure
+      that only authorized users can access and modify user data based on their assigned
+      roles and permissions.
+  unique_id: owasp-latest-validate-access-controls-on-the-server-side

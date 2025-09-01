@@ -1,0 +1,40 @@
+check:
+  category: system_integrity
+  control_names:
+  - NIST-800-53-CM-2
+  - NIST-800-53-CM-3
+  - ISO-27001-A.12.1.2
+  literature: Secure configuration management processes are essential for maintaining
+    the integrity and security of systems and applications. This check validates that
+    organizations have implemented robust processes for managing configuration changes,
+    including tracking, testing, approving, and deploying changes in a controlled
+    manner. Failure to implement secure configuration management processes can lead
+    to unauthorized or unintended changes, which can introduce vulnerabilities, system
+    instability, and compliance issues. Secure configuration management processes
+    help ensure that changes are properly reviewed, tested, and approved before deployment,
+    reducing the risk of security incidents and system outages.
+  provider: aws
+  resource:
+    field_paths:
+    - buckets
+    - buckets[]
+    - buckets[].creation_date
+    - buckets[].encryption
+    - buckets[].encryption.enabled
+    - buckets[].encryption.kms_key_id
+    - buckets[].encryption.type
+    - buckets[].id
+    - buckets[].logging_enabled
+    - buckets[].name
+    - buckets[].public_access_block
+    - buckets[].public_access_block.block_public_acls
+    - buckets[].public_access_block.block_public_policy
+    - buckets[].public_access_block.ignore_public_acls
+    - buckets[].public_access_block.restrict_public_buckets
+    - buckets[].region
+    - buckets[].versioning_status
+    - buckets[].website_enabled
+    - id
+    - source_connector
+    name: S3Resource
+  unique_id: owasp-latest-implement-secure-configuration-management-processes

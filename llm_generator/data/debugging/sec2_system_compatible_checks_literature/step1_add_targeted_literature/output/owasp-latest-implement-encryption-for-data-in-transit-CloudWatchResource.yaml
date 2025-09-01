@@ -1,0 +1,34 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-encryption-for-data-in-transit
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: This resource is not applicable for implementing encryption for data
+      in transit. To address this security check, you should focus on other AWS resources
+      and services that handle data transmission, such as load balancers, API gateways,
+      or VPC configurations.
+    estimated_time: The time required to implement encryption for data in transit
+      can vary depending on the complexity of your environment and the number of resources
+      involved.
+    instructions:
+    - Identify the AWS resources and services that handle data transmission in your
+      environment.
+    - Review the encryption configurations and settings for those resources to ensure
+      that appropriate encryption mechanisms are in place for data in transit.
+    - Implement encryption for data in transit using AWS services like AWS Certificate
+      Manager, AWS CloudFront, AWS API Gateway, or AWS Load Balancers, depending on
+      your specific use case.
+  is_valid: false
+  literature: The CloudWatch resource in AWS is primarily used for monitoring and
+    logging purposes. It does not directly handle data transmission or encryption
+    of data in transit. Therefore, this resource is not applicable for implementing
+    the security check 'owasp-latest-implement-encryption-for-data-in-transit'.
+  name: CloudWatchResource
+  output_statements:
+    failure: This resource is not applicable for this security check.
+    partial: This resource is not applicable for this security check.
+    success: This resource is not applicable for this security check.
+  reason: The CloudWatch resource is not responsible for transmitting data or implementing
+    encryption mechanisms for data in transit. It is a monitoring and logging service
+    that collects and stores log data and metrics from various AWS resources and applications.

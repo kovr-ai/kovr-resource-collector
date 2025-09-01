@@ -1,0 +1,31 @@
+resource:
+  check:
+    unique_id: owasp-latest-ensure-secure-configuration-of-web-servers
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: Since the provided resource is not applicable for this security check,
+      no specific fix details can be provided. However, to ensure secure configuration
+      of web servers, it is recommended to review and implement industry best practices
+      and hardening guidelines for the specific web server software and versions in
+      use.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The provided resource 'UserResource' appears to be related to user account
+    information in Google Workspace, and does not contain any details about web server
+    configurations. This resource is not applicable for implementing the 'owasp-latest-ensure-secure-configuration-of-web-servers'
+    security check, which is focused on validating secure configurations of web servers.
+  name: UserResource
+  output_statements:
+    failure: The web server configurations are insecure and do not comply with industry
+      best practices and hardening guidelines. Vulnerabilities and potential attack
+      vectors have been identified.
+    partial: N/A
+    success: The web server configurations are secure and comply with industry best
+      practices and hardening guidelines.
+  reason: The 'UserResource' resource does not contain any information related to
+    web server configurations, which is the focus of the 'owasp-latest-ensure-secure-configuration-of-web-servers'
+    security check. This resource is primarily used for managing user account information
+    in Google Workspace and does not provide the necessary data to validate web server
+    security configurations.

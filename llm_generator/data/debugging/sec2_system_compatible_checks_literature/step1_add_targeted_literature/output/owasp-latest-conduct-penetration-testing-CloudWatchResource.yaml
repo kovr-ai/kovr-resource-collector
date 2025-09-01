@@ -1,0 +1,40 @@
+resource:
+  check:
+    unique_id: owasp-latest-conduct-penetration-testing
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To conduct penetration testing, you will need to use specialized
+      tools and techniques designed for that purpose. CloudWatch can be used to monitor
+      and analyze the results of penetration testing activities, but it does not directly
+      facilitate the testing itself.
+    estimated_time: Varies depending on the scope and complexity of the penetration
+      testing activities.
+    instructions:
+    - 1. Identify the systems, applications, and infrastructure components that need
+      to be tested.
+    - 2. Obtain the necessary permissions and approvals to conduct penetration testing
+      activities.
+    - 3. Utilize specialized penetration testing tools and techniques to simulate
+      real-world attack scenarios and identify vulnerabilities.
+    - 4. Use CloudWatch to monitor and analyze the results of the penetration testing
+      activities, such as logs, metrics, and events generated during the testing process.
+  is_valid: false
+  literature: The CloudWatch resource in AWS is primarily used for monitoring and
+    observability purposes, such as collecting and analyzing metrics, logs, and events
+    from various AWS services and applications. While CloudWatch can provide valuable
+    insights into the security posture of an environment, it does not directly facilitate
+    penetration testing activities. Penetration testing typically involves actively
+    simulating real-world attack scenarios against an organization's systems and applications
+    to identify vulnerabilities and weaknesses.
+  name: CloudWatchResource
+  output_statements:
+    failure: This resource is not applicable for conducting penetration testing.
+    partial: This resource is not applicable for conducting penetration testing.
+    success: This resource is not applicable for conducting penetration testing.
+  reason: The CloudWatch resource is not directly applicable for conducting penetration
+    testing as described in the security check. Penetration testing requires specialized
+    tools and techniques to actively test and exploit potential vulnerabilities in
+    an organization's systems and applications. CloudWatch, on the other hand, is
+    a monitoring and observability service that collects and analyzes data from various
+    sources but does not actively perform security testing.

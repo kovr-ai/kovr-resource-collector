@@ -1,0 +1,37 @@
+check:
+  name: owasp-latest-implement-comprehensive-monitoring-mechanisms
+  resource:
+    field_path: trails[*].is_logging
+    fix_details:
+      automation_available: true
+      description: To fully implement comprehensive monitoring mechanisms using CloudTrail,
+        ensure that all relevant event selectors are configured, log file validation
+        is enabled, and CloudTrail trails are set up to capture API activities across
+        all required AWS services and resources.
+      estimated_time: 1-2 hours
+      instructions:
+      - Review the existing CloudTrail trails and event selectors to identify any
+        gaps in monitoring coverage.
+      - Configure event selectors to capture API activities for all critical AWS services
+        and resources, including management events and read/write operations.
+      - Enable log file validation for CloudTrail trails to ensure the integrity and
+        completeness of log files.
+      - Set up CloudTrail trails to capture API activities across all required AWS
+        regions, if applicable.
+      - Configure CloudTrail to deliver log files to a secure and centralized S3 bucket
+        for long-term storage and analysis.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for is_logging in fetched_value:\n        if is_logging:\n            result\
+      \ = True\n            break"
+    name: CloudTrailResource
+    output_statements:
+      failure: CloudTrail is not configured properly to capture and log API activities,
+        leaving the organization vulnerable to undetected security incidents and unauthorized
+        access attempts.
+      partial: CloudTrail is partially configured to capture and log API activities,
+        but some critical events or services may not be monitored, potentially leaving
+        gaps in the organization's security monitoring capabilities.
+      success: CloudTrail is configured to capture and log API activities across AWS
+        services, enabling comprehensive monitoring and detection of potential security
+        incidents.
+  unique_id: owasp-latest-implement-comprehensive-monitoring-mechanisms

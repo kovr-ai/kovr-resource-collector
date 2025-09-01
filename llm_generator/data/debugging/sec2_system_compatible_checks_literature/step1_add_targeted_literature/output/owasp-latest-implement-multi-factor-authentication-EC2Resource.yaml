@@ -1,0 +1,35 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-multi-factor-authentication
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: To implement MFA for user accounts in AWS, you need to configure
+      it through the AWS Identity and Access Management (IAM) service.
+    estimated_time: 30 minutes to 1 hour (depending on the number of user accounts)
+    instructions:
+    - 1. Sign in to the AWS Management Console and navigate to the IAM service.
+    - 2. For each IAM user that requires MFA, navigate to the user's details page
+      and enable MFA.
+    - 3. Follow the prompts to set up an MFA device (virtual or hardware) for the
+      user.
+    - 4. After enabling MFA, update any policies or configurations that require MFA
+      for specific actions or resources.
+    - 5. Consider enabling MFA for the root user account as well.
+  is_valid: false
+  literature: The EC2Resource in AWS does not directly relate to implementing multi-factor
+    authentication (MFA) for user accounts. MFA is typically configured at the AWS
+    account level or through Identity and Access Management (IAM) services. The EC2Resource
+    provides information about EC2 instances, networking components, and related resources,
+    but does not contain details about user authentication mechanisms.
+  name: EC2Resource
+  output_statements:
+    failure: Multi-factor authentication is not enabled or enforced for one or more
+      user accounts in the AWS account.
+    partial: Multi-factor authentication is enabled for some user accounts, but not
+      enforced consistently across the AWS account.
+    success: Multi-factor authentication is enabled and enforced for all user accounts
+      in the AWS account.
+  reason: The EC2Resource does not contain any information or configuration settings
+    related to user authentication or MFA. This resource is focused on managing EC2
+    instances, networking components, and related resources within an AWS account.

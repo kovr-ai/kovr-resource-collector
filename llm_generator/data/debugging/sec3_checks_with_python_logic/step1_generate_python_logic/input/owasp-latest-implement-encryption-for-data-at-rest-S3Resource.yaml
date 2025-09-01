@@ -1,0 +1,35 @@
+check:
+  category: encryption
+  control_names:
+  - NIST-800-53-SC-28
+  - ISO-27001-A.10.1.1
+  literature: Data at rest refers to inactive data stored on any digital medium, such
+    as hard drives, databases, cloud storage, or backup tapes. Implementing encryption
+    for data at rest is a crucial security measure to protect sensitive information
+    from unauthorized access, data breaches, and cyber threats. Unencrypted data at
+    rest is vulnerable to theft, misuse, or exposure, which can lead to severe consequences
+    like identity theft, financial loss, and regulatory non-compliance. Encrypting
+    data at rest ensures that even if an attacker gains physical access to the storage
+    medium, the data remains unintelligible and unusable without the proper decryption
+    keys. This check validates that encryption is implemented for all data at rest,
+    following industry-standard encryption algorithms and key management practices.
+  name: owasp-latest-implement-encryption-for-data-at-rest
+  resource:
+    field_paths:
+    - buckets
+    - buckets[].encryption
+    - buckets[].encryption.enabled
+    - buckets[].encryption.kms_key_id
+    - buckets[].encryption.type
+    literature: The AWS S3 resource is applicable for implementing encryption for
+      data at rest. S3 buckets can be configured to use server-side encryption to
+      protect data stored in the bucket. AWS provides several encryption options,
+      including AWS-managed keys (SSE-S3), AWS Key Management Service (SSE-KMS) managed
+      keys, and customer-provided keys (SSE-C). Enabling encryption for S3 buckets
+      ensures that data is encrypted before it is written to disks, and decrypted
+      after it is accessed, providing protection for data at rest.
+    name: S3Resource
+    reason: The S3 resource provides fields to configure and manage encryption for
+      data stored in S3 buckets, which aligns with the security check's requirement
+      of implementing encryption for data at rest.
+  unique_id: owasp-latest-implement-encryption-for-data-at-rest

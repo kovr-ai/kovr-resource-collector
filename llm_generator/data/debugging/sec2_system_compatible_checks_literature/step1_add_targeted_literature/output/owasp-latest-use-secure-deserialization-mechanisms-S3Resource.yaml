@@ -1,0 +1,23 @@
+resource:
+  check:
+    unique_id: owasp-latest-use-secure-deserialization-mechanisms
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This security check is not applicable to the AWS S3 resource.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The security check 'owasp-latest-use-secure-deserialization-mechanisms'
+    is focused on ensuring that applications use secure deserialization mechanisms
+    to prevent code execution and data tampering attacks. However, the provided AWS
+    S3 resource is a storage service and does not directly handle deserialization
+    mechanisms or application code execution.
+  name: S3Resource
+  output_statements:
+    failure: This resource is not applicable for this security check.
+    partial: This resource is not applicable for this security check.
+    success: This resource is not applicable for this security check.
+  reason: The AWS S3 resource is a storage service and does not directly handle application
+    code or deserialization mechanisms. This security check is more applicable to
+    application resources that handle data deserialization and code execution.

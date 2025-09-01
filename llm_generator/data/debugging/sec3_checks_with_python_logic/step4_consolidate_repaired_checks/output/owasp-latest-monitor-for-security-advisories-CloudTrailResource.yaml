@@ -1,0 +1,35 @@
+check:
+  name: owasp-latest-monitor-for-security-advisories
+  resource:
+    field_path: trails[*].is_logging
+    fix_details:
+      automation_available: true
+      description: To address this security check, you need to establish a process
+        for monitoring security advisories from software vendors, security researchers,
+        and other relevant sources.
+      estimated_time: 1-2 hours for initial setup, ongoing effort for monitoring and
+        addressing advisories
+      instructions:
+      - Identify the software and services used within your organization and their
+        respective vendors or sources for security advisories.
+      - Subscribe to mailing lists, RSS feeds, or other notification channels provided
+        by these vendors or sources.
+      - Implement a process for reviewing and acting upon received security advisories,
+        such as patching or mitigating identified vulnerabilities.
+      - Consider using a centralized vulnerability management solution to streamline
+        the process of monitoring and addressing security advisories.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for is_logging in fetched_value:\n        if is_logging:\n            result\
+      \ = True\n            break"
+    name: CloudTrailResource
+    output_statements:
+      failure: CloudTrail is not configured to log relevant events and data resources,
+        and no process is in place to monitor for security advisories from external
+        sources.
+      partial: CloudTrail is partially configured to log relevant events and data
+        resources, but a comprehensive process for monitoring security advisories
+        from external sources is missing.
+      success: CloudTrail is configured to log relevant events and data resources,
+        and a process is in place to monitor for security advisories from external
+        sources.
+  unique_id: owasp-latest-monitor-for-security-advisories

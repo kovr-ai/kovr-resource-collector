@@ -1,0 +1,53 @@
+resource:
+  check:
+    unique_id: owasp-latest-follow-data-protection-regulations
+  field_paths:
+  - buckets
+  - buckets[].encryption
+  - buckets[].encryption.enabled
+  - buckets[].encryption.type
+  - buckets[].public_access_block
+  - buckets[].public_access_block.block_public_acls
+  - buckets[].public_access_block.block_public_policy
+  - buckets[].public_access_block.ignore_public_acls
+  - buckets[].public_access_block.restrict_public_buckets
+  fix_details:
+    automation_available: true
+    description: To ensure compliance with data protection regulations and industry
+      standards, S3 bucket configurations may need to be updated to enable encryption,
+      restrict public access, and implement other necessary controls.
+    estimated_time: 30 minutes to 2 hours, depending on the number of buckets and
+      the extent of configuration changes required.
+    instructions:
+    - Review the S3 bucket configurations and identify any buckets that do not have
+      encryption enabled or have public access allowed.
+    - For buckets without encryption, enable server-side encryption using AWS-managed
+      keys (SSE-S3) or customer-managed keys (SSE-KMS).
+    - For buckets with public access allowed, enable the public access block settings
+      to restrict public access.
+    - Implement additional controls as required by specific data protection regulations
+      or industry standards, such as access logging, versioning, and lifecycle policies.
+    - Monitor and regularly review S3 bucket configurations to ensure ongoing compliance.
+  is_valid: true
+  literature: The 'owasp-latest-follow-data-protection-regulations' check is designed
+    to ensure that AWS S3 buckets comply with data protection regulations and industry
+    standards when handling sensitive information. S3 buckets can store various types
+    of data, including personal or sensitive information, which may be subject to
+    regulations such as GDPR and CCPA. This check helps organizations identify potential
+    areas of non-compliance in their S3 bucket configurations and take appropriate
+    measures to protect sensitive data and maintain regulatory compliance.
+  name: S3Resource
+  output_statements:
+    failure: The S3 bucket configurations do not comply with data protection regulations
+      and industry standards for handling sensitive information. Sensitive data may
+      be at risk of unauthorized access or mishandling.
+    partial: Some S3 bucket configurations comply with data protection regulations
+      and industry standards for handling sensitive information, but others do not.
+      Sensitive data may be at risk of unauthorized access or mishandling in non-compliant
+      buckets.
+    success: The S3 bucket configurations comply with data protection regulations
+      and industry standards for handling sensitive information.
+  reason: AWS S3 buckets can store sensitive data, and their configurations directly
+    impact data protection and compliance with regulations. The provided field paths
+    allow for checking encryption settings, public access controls, and other relevant
+    configurations that determine compliance with data protection regulations.

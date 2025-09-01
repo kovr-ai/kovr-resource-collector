@@ -1,0 +1,9 @@
+check:
+  unique_id: owasp-latest-enforce-least-privilege-principles
+resource:
+  field_path: admin_info.isAdmin
+  logic: "result = False\n\nif fetched_value is not None:\n    is_admin = fetched_value\n\
+    \    security_info = getattr(fetched_value, 'security_info', {})\n    is_enrolled_in_2sv\
+    \ = security_info.get('isEnrolledIn2Sv', False)\n    \n    if not is_admin and\
+    \ is_enrolled_in_2sv:\n        result = True"
+  name: UserResource

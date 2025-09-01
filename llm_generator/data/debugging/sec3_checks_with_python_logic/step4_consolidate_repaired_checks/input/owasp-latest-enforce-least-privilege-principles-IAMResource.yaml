@@ -1,0 +1,16 @@
+check:
+  unique_id: owasp-latest-enforce-least-privilege-principles
+resource:
+  field_path: policies[].default_version.Document.Statement
+  logic: "result = True\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    for statement in fetched_value:\n        if hasattr(statement, 'Effect')\
+    \ and statement.Effect == 'Allow':\n            if hasattr(statement, 'Action')\
+    \ and '*' in statement.Action:\n                result = False\n             \
+    \   break\n            if hasattr(statement, 'Resource') and '*' in statement.Resource:\n\
+    \                result = False\n                break\n        elif isinstance(statement,\
+    \ dict):\n            if statement.get('Effect') == 'Allow':\n               \
+    \ if statement.get('Action') and '*' in statement.get('Action'):\n           \
+    \         result = False\n                    break\n                if statement.get('Resource')\
+    \ and '*' in statement.get('Resource'):\n                    result = False\n\
+    \                    break"
+  name: IAMResource

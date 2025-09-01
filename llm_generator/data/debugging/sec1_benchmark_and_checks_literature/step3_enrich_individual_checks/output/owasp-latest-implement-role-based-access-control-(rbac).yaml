@@ -1,0 +1,42 @@
+check:
+  benchmarks:
+  - confidence: 0.9
+    reason: MITRE ATT&CK technique T1078 (Valid Accounts) involves adversaries using
+      valid accounts to gain initial access or elevate privileges. Implementing RBAC
+      mitigates this technique by restricting access to authorized users and their
+      assigned roles.
+    unique_id: MITRE-ATT&CK-T1078
+  - confidence: 0.7
+    reason: MITRE ATT&CK technique T1530 (Data from Cloud Storage Object) involves
+      adversaries accessing sensitive data stored in cloud storage. Implementing RBAC
+      can help prevent unauthorized access to cloud storage by restricting access
+      based on defined roles and permissions.
+    unique_id: MITRE-ATT&CK-T1530
+  category: access_control
+  controls:
+  - confidence: 0.9
+    reason: NIST 800-53 AC-3 (Access Control) requires organizations to enforce approved
+      authorizations for logical access to information and system resources in accordance
+      with applicable access control policies. Implementing RBAC aligns with this
+      control by ensuring that access is granted based on defined roles and permissions.
+    unique_id: NIST-800-53-AC-3
+  - confidence: 0.8
+    reason: ISO 27001 control A.9.2.3 (Management of Privileged Access Rights) requires
+      the restriction and control of privileged access rights. Implementing RBAC helps
+      manage and restrict access rights based on defined roles and responsibilities.
+    unique_id: ISO-27001-A.9.2.3
+  literature: Role-Based Access Control (RBAC) is a security principle that restricts
+    system access to authorized users based on their assigned roles and permissions.
+    It is a fundamental security measure that helps prevent unauthorized access, data
+    breaches, and misuse of system resources. By implementing RBAC, organizations
+    can ensure that users only have access to the information and functionality they
+    need to perform their job duties, adhering to the principle of least privilege.
+    This check validates that the application or system has implemented RBAC effectively,
+    reducing the risk of unauthorized access and potential security incidents.
+  severity: high
+  tags:
+  - access_control
+  - authorization
+  - least_privilege
+  - data_protection
+  unique_id: owasp-latest-implement-role-based-access-control-(rbac)

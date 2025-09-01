@@ -1,0 +1,35 @@
+check:
+  name: owasp-latest-implement-comprehensive-logging-mechanisms
+  resource:
+    field_path: log_groups[*].retention_in_days
+    fix_details:
+      automation_available: true
+      description: If CloudWatch is not properly configured for comprehensive logging,
+        you need to set up Log Groups, Metric Filters, and Alarms to capture and analyze
+        log data from relevant AWS services and applications.
+      estimated_time: 1-2 hours
+      instructions:
+      - Identify the AWS services and applications that require logging and monitoring.
+      - Create CloudWatch Log Groups to collect log data from these services and applications.
+      - Configure Metric Filters to define custom metrics based on log patterns and
+        events of interest.
+      - Set up CloudWatch Alarms to receive notifications and trigger actions based
+        on specific metric thresholds or conditions.
+      - Review and adjust the log retention period for each Log Group based on your
+        organization's requirements.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for retention_days in fetched_value:\n        if retention_days is not\
+      \ None and retention_days >= 365:\n            result = True\n            break"
+    name: CloudWatchResource
+    output_statements:
+      failure: CloudWatch is not configured to collect and analyze logs from relevant
+        AWS services and applications, hindering comprehensive logging and monitoring
+        of system activities and security events.
+      partial: CloudWatch is partially configured to collect and analyze logs from
+        some AWS services and applications, but additional configuration is required
+        to achieve comprehensive logging and monitoring of system activities and security
+        events.
+      success: CloudWatch is configured to collect and analyze logs from relevant
+        AWS services and applications, enabling comprehensive logging and monitoring
+        of system activities and security events.
+  unique_id: owasp-latest-implement-comprehensive-logging-mechanisms

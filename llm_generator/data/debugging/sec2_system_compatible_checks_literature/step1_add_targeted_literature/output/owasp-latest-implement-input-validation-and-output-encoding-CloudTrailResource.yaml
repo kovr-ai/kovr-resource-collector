@@ -1,0 +1,38 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-input-validation-and-output-encoding
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To address this security check, application developers need to implement
+      input validation and output encoding within the application code.
+    estimated_time: Highly variable, depending on the size and complexity of the application.
+    instructions:
+    - Review all user input sources (forms, APIs, etc.) and implement validation to
+      sanitize and validate user-supplied data before processing.
+    - Implement output encoding to ensure user-supplied data is properly encoded before
+      rendering in web pages, API responses, etc.
+    - Follow secure coding practices and use appropriate libraries/frameworks for
+      input validation and output encoding.
+    - Regularly test and review the application for code injection vulnerabilities
+      (e.g., XSS, SQLi, CMDi).
+  is_valid: false
+  literature: The AWS CloudTrail resource is used for logging and monitoring API activity
+    within an AWS account. It does not directly implement input validation or output
+    encoding for applications. These security measures need to be implemented within
+    the application code itself to prevent code injection attacks.
+  name: CloudTrailResource
+  output_statements:
+    failure: CloudTrail is not configured to log all relevant API activity, and/or
+      the application does not implement proper input validation and output encoding,
+      leaving it vulnerable to code injection attacks.
+    partial: CloudTrail is partially configured to log relevant API activity, but
+      the application may still be vulnerable to code injection attacks due to lack
+      of input validation and output encoding.
+    success: CloudTrail is configured to log all relevant API activity, and the application
+      implements proper input validation and output encoding to prevent code injection
+      attacks.
+  reason: CloudTrail is a logging and monitoring service that records API calls made
+    within an AWS account. It does not handle application input/output validation
+    or encoding, which are code-level controls that must be implemented by the application
+    developers.

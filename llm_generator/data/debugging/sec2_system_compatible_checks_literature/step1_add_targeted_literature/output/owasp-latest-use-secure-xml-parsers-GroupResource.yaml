@@ -1,0 +1,28 @@
+resource:
+  check:
+    unique_id: owasp-latest-use-secure-xml-parsers
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: Since the provided resource is not applicable for this security check,
+      no specific fix is required.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The security check 'owasp-latest-use-secure-xml-parsers' is focused
+    on ensuring that XML parsers used in applications or systems are secure and properly
+    configured to mitigate risks such as XML External Entity (XXE) attacks, XML Injection,
+    and Denial of Service (DoS) attacks. This check is primarily applicable to resources
+    that handle XML data processing or parsing.
+  name: GroupResource
+  output_statements:
+    failure: The resource uses insecure or misconfigured XML parsers, which can lead
+      to vulnerabilities like XXE, XML Injection, or DoS attacks.
+    partial: N/A
+    success: The resource uses secure and properly configured XML parsers to handle
+      XML data.
+  reason: The provided resource 'GroupResource' from Google Cloud Platform appears
+    to be related to managing groups and group memberships. Based on the resource
+    description and field paths, there is no indication that this resource is involved
+    in XML data processing or parsing. Therefore, this resource is not directly applicable
+    for implementing the 'owasp-latest-use-secure-xml-parsers' security check.

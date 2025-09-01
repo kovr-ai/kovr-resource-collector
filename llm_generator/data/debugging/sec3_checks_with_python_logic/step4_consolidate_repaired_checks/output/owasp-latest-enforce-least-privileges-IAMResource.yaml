@@ -1,0 +1,32 @@
+check:
+  name: owasp-latest-enforce-least-privileges
+  resource:
+    field_path: policies[].default_version.Document.Statement
+    fix_details:
+      automation_available: true
+      description: If excessive privileges are identified, the affected IAM policies
+        and user permissions need to be reviewed and updated to follow the principle
+        of least privilege.
+      estimated_time: 1-2 hours for initial review and remediation, ongoing maintenance
+        required
+      instructions:
+      - Identify the IAM policies and user permissions that grant excessive privileges.
+      - Review the policy documents and user access rights to determine the minimum
+        required permissions.
+      - Update the affected policies and user permissions to remove unnecessary privileges.
+      - Implement a regular review process to ensure least privilege is maintained.
+    logic: "result = True\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for statement in fetched_value:\n        if hasattr(statement, 'Effect')\
+      \ and statement.Effect == 'Allow':\n            if hasattr(statement, 'Action')\
+      \ and '*' in statement.Action:\n                result = False\n           \
+      \     break\n            if hasattr(statement, 'Resource') and '*' in statement.Resource:\n\
+      \                result = False\n                break"
+    name: IAMResource
+    output_statements:
+      failure: One or more IAM policies or user permissions violate the principle
+        of least privilege by granting excessive privileges.
+      partial: Some IAM policies and user permissions follow the principle of least
+        privilege, but others grant excessive privileges.
+      success: All IAM policies and user permissions adhere to the principle of least
+        privilege, granting only the necessary access rights.
+  unique_id: owasp-latest-enforce-least-privileges

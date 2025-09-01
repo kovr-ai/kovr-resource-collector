@@ -1,0 +1,45 @@
+resource:
+  check:
+    unique_id: owasp-latest-conduct-dynamic-application-security-testing-(dast)
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: To implement this security check, you would need to have information
+      about the deployed web application, such as its URL, authentication credentials,
+      and any specific configurations required for running DAST tools against it.
+      Additionally, you would need to have access to DAST tools and the ability to
+      configure and run them against the target application.
+    estimated_time: 1-2 hours for initial setup, plus additional time for testing
+      and remediation
+    instructions:
+    - Identify the web application deployed from this repository and its accessible
+      URL.
+    - Obtain any necessary authentication credentials or configurations required for
+      DAST testing.
+    - Select and configure a DAST tool compatible with the target application.
+    - Define the scope and testing scenarios for the DAST tool.
+    - Run the DAST tool against the deployed application and analyze the results for
+      vulnerabilities.
+    - Remediate any identified vulnerabilities and retest until satisfactory results
+      are achieved.
+  is_valid: false
+  literature: The GitHub resource provided contains information about the repository,
+    its collaborators, actions workflows, security advisories, and other metadata.
+    However, it does not appear to contain any information related to conducting Dynamic
+    Application Security Testing (DAST) on a web application hosted or deployed from
+    this repository.
+  name: GithubResource
+  output_statements:
+    failure: The GitHub repository does not have any configuration or information
+      related to conducting DAST testing on the deployed web application.
+    partial: The GitHub repository contains some information related to security testing,
+      but it does not specifically address DAST testing for the deployed web application.
+    success: The GitHub repository is configured to conduct regular DAST testing on
+      the deployed web application, and no critical vulnerabilities were found.
+  reason: The GitHub resource represents a code repository and its associated metadata,
+    but it does not contain any information about running or configuring DAST tools
+    against a deployed web application. DAST is a technique that involves actively
+    testing a running application from the outside, simulating real-world attacks,
+    and analyzing the application's behavior and responses. The provided resource
+    does not seem to have the necessary information or capabilities to implement this
+    security check.

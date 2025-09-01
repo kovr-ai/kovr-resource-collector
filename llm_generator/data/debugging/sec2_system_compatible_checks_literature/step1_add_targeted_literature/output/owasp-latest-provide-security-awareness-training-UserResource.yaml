@@ -1,0 +1,38 @@
+resource:
+  check:
+    unique_id: owasp-latest-provide-security-awareness-training
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To address the lack of security awareness training, the organization
+      should implement a formal training program covering various security topics
+      and best practices.
+    estimated_time: 2-4 weeks for initial implementation, ongoing maintenance
+    instructions:
+    - Identify relevant security topics and training materials based on industry standards
+      and organizational needs.
+    - Develop or procure a security awareness training curriculum, including interactive
+      modules, videos, and assessments.
+    - Establish a schedule for regular training sessions, such as annual or quarterly
+      refreshers.
+    - Track employee participation and completion rates to ensure compliance.
+    - Continuously update and improve the training program based on feedback and emerging
+      security threats.
+  is_valid: false
+  literature: The UserResource in Google Cloud does not directly relate to providing
+    security awareness training to employees. This resource represents user account
+    information and settings within the Google Workspace environment. While user accounts
+    are important for access control and security, this resource does not contain
+    any information or functionality specifically related to security awareness training
+    programs or materials.
+  name: UserResource
+  output_statements:
+    failure: The organization does not have a security awareness training program
+      in place for employees.
+    partial: The organization has a partial or incomplete security awareness training
+      program for employees.
+    success: The organization has implemented a comprehensive security awareness training
+      program for all employees.
+  reason: The UserResource is focused on storing and managing user account data, such
+    as contact information, profile details, and security settings. It does not have
+    any direct connection to security awareness training content or delivery mechanisms.

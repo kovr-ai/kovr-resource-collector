@@ -1,0 +1,38 @@
+check:
+  name: owasp-latest-protect-against-brute-force-attacks
+  resource:
+    field_path: policies[].default_version.Document.Statement[].Action
+    fix_details:
+      automation_available: true
+      description: To properly protect against brute force attacks, IAM user accounts
+        should be configured with strong password policies, MFA enforcement, and regular
+        access key rotation.
+      estimated_time: 1-2 hours
+      instructions:
+      - Review and update the IAM password policy to enforce strong password requirements
+        (e.g., minimum length, complexity, expiration)
+      - Enable MFA for all IAM user accounts and enforce its use for all AWS management
+        operations
+      - Configure automatic access key rotation for all IAM user accounts to regularly
+        invalidate and replace access keys
+      - Monitor and respond to any potential brute force attack attempts through CloudTrail
+        logs and AWS Security Hub findings
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for statement in fetched_value:\n        if hasattr(statement, 'Action'):\n\
+      \            actions = statement.Action\n        elif isinstance(statement,\
+      \ dict):\n            actions = statement.get('Action')\n        else:\n   \
+      \         actions = getattr(statement, 'Action', [])\n\n        if isinstance(actions,\
+      \ list):\n            if 'iam:ChangePassword' in actions and 'iam:CreateAccessKey'\
+      \ in actions:\n                result = True\n                break\n      \
+      \  elif actions == '*':\n            result = True\n            break"
+    name: IAMResource
+    output_statements:
+      failure: IAM user accounts are not properly configured to protect against brute
+        force attacks. Weak password policies, lack of MFA enforcement, and/or stale
+        access keys increase the risk of successful brute force attacks.
+      partial: Some IAM user accounts are properly configured to protect against brute
+        force attacks, but others may be vulnerable due to weak password policies,
+        lack of MFA enforcement, and/or stale access keys.
+      success: IAM user accounts are properly configured with strong password policies,
+        MFA requirements, and access key rotation to protect against brute force attacks.
+  unique_id: owasp-latest-protect-against-brute-force-attacks

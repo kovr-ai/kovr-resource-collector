@@ -1,0 +1,47 @@
+resource:
+  check:
+    unique_id: owasp-latest-remove-unnecessary-features-and-components
+  field_paths:
+  - policies
+  - policies[]
+  - policies[].default_version
+  - policies[].default_version.Document
+  - policies[].default_version.Document.Statement
+  - policies[].default_version.Document.Statement[]
+  - policies[].default_version.Document.Statement[].Action
+  - policies[].default_version.Document.Statement[].Action[]
+  - policies[].default_version.Document.Statement[].Resource
+  fix_details:
+    automation_available: true
+    description: Review all IAM policies and policy statements to identify and remove
+      unnecessary or overly permissive permissions.
+    estimated_time: 1-2 hours
+    instructions:
+    - Analyze each IAM policy and its policy statements to understand the granted
+      permissions.
+    - Identify policies or statements that grant unnecessary or excessive permissions
+      based on the principle of least privilege.
+    - Remove or modify the identified policies or statements to restrict permissions
+      to only what is required.
+    - Regularly review and update IAM policies to ensure they remain aligned with
+      the principle of least privilege.
+  is_valid: true
+  literature: The OWASP check 'owasp-latest-remove-unnecessary-features-and-components'
+    is applicable to AWS IAM resources. IAM policies define permissions and access
+    levels for AWS resources and services. Unnecessary or overly permissive policies
+    can grant excessive privileges, increasing the attack surface and potential for
+    unauthorized access or misuse. By reviewing and removing unnecessary policies
+    or policy statements, the overall security posture of the AWS account can be improved.
+  name: IAMResource
+  output_statements:
+    failure: Unnecessary or overly permissive IAM policies or policy statements were
+      identified and should be reviewed and removed.
+    partial: Some IAM policies or policy statements may be unnecessary or overly permissive
+      and should be reviewed.
+    success: No unnecessary or overly permissive IAM policies or policy statements
+      were found.
+  reason: The IAM resource contains policies and policy statements that define permissions
+    and access levels. By analyzing these policies and statements, unnecessary or
+    overly permissive access can be identified and removed, aligning with the OWASP
+    check's goal of reducing the attack surface by removing unnecessary features and
+    components.

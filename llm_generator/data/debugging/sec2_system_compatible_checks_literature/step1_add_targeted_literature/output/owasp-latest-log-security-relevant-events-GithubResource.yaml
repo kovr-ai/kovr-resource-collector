@@ -1,0 +1,38 @@
+resource:
+  check:
+    unique_id: owasp-latest-log-security-relevant-events
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: Since the GitHub resource does not contain any logging or auditing
+      capabilities, it cannot be used to implement this security check. To address
+      this issue, you would need to identify and configure a separate logging solution
+      that can capture security-relevant events.
+    estimated_time: Varies depending on the complexity of your environment and the
+      logging solution chosen.
+    instructions:
+    - Evaluate and select a logging solution that meets your organization's requirements
+      for security event logging.
+    - Configure the logging solution to capture security-relevant events from your
+      systems and applications.
+    - Establish processes for monitoring and reviewing the log data for potential
+      security incidents.
+    - Implement retention policies and procedures for log data to support incident
+      response and forensic analysis.
+  is_valid: false
+  literature: The 'owasp-latest-log-security-relevant-events' check is designed to
+    validate that the system is properly logging security-relevant events, which is
+    crucial for maintaining an audit trail and enabling effective incident response
+    and forensic analysis. However, the provided GitHub resource does not appear to
+    contain any information related to logging or audit trails.
+  name: GithubResource
+  output_statements:
+    failure: The system is not logging security-relevant events, which could hinder
+      incident response and forensic analysis.
+    partial: N/A
+    success: The system is properly logging security-relevant events, enabling effective
+      incident response and forensic analysis.
+  reason: The GitHub resource provided contains information about repositories, collaborators,
+    actions, security advisories, and other GitHub-specific data, but does not include
+    any logging or auditing capabilities. Therefore, this resource is not applicable
+    for implementing the 'owasp-latest-log-security-relevant-events' security check.

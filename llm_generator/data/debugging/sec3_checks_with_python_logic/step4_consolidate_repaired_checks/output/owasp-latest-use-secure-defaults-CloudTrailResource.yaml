@@ -1,0 +1,29 @@
+check:
+  name: owasp-latest-use-secure-defaults
+  resource:
+    field_path: trails[*].log_file_validation_enabled
+    fix_details:
+      automation_available: true
+      description: If CloudTrail is not configured with secure defaults, several settings
+        need to be adjusted to ensure comprehensive event logging and secure storage.
+      estimated_time: 30 minutes
+      instructions:
+      - Enable log file validation to ensure log file integrity
+      - Configure event selectors to capture all relevant API events, including management
+        events and read/write operations
+      - Include global service events to capture activities across all AWS services
+      - Set up a secure S3 bucket and prefix for log storage, with appropriate access
+        controls and encryption
+      - Enable multi-region trail if operating across multiple AWS regions
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for log_file_validation_enabled in fetched_value:\n        if log_file_validation_enabled:\n\
+      \            result = True\n            break"
+    name: CloudTrailResource
+    output_statements:
+      failure: CloudTrail is not configured with secure defaults, potentially missing
+        critical API events or logging to an insecure location.
+      partial: CloudTrail is partially configured with secure defaults, but some settings
+        may need to be adjusted to ensure comprehensive event logging and secure storage.
+      success: CloudTrail is configured with secure defaults, capturing all relevant
+        API events and logging them to a secure S3 bucket.
+  unique_id: owasp-latest-use-secure-defaults

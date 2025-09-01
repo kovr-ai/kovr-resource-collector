@@ -1,5 +1,0 @@
-benchmark:
-  check_names:
-    - "Branch protection enabled"
-    - "Encryption at rest enabled" 
-    - "Multi-factor authentication required"

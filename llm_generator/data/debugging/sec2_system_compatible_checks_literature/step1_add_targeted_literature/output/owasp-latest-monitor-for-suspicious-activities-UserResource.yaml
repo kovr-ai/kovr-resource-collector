@@ -1,0 +1,55 @@
+resource:
+  check:
+    unique_id: owasp-latest-monitor-for-suspicious-activities
+  field_paths:
+  - admin_info
+  - admin_info.isAdmin
+  - admin_info.isDelegatedAdmin
+  - basic_info
+  - basic_info.creationTime
+  - basic_info.lastLoginTime
+  - contact_info
+  - contact_info.emails
+  - contact_info.phones
+  - name
+  - security_info
+  - security_info.isEnforcedIn2Sv
+  - security_info.isEnrolledIn2Sv
+  fix_details:
+    automation_available: true
+    description: To implement the 'owasp-latest-monitor-for-suspicious-activities'
+      check, you need to identify and utilize resources that provide access to system
+      logs, network traffic data, and user activity monitoring capabilities.
+    estimated_time: 1-2 weeks
+    instructions:
+    - Identify the appropriate Google Cloud Platform resources that provide access
+      to system logs, network traffic data, and user activity monitoring capabilities.
+    - Configure the necessary permissions and access controls to retrieve and analyze
+      the required data sources.
+    - Implement a monitoring solution that can ingest and analyze the data sources
+      to detect suspicious or anomalous activities.
+    - Define rules and alerts to notify the appropriate personnel or trigger automated
+      responses when suspicious activities are detected.
+  is_valid: false
+  literature: The 'owasp-latest-monitor-for-suspicious-activities' check is designed
+    to detect and alert on any suspicious or anomalous activities within an organization's
+    systems and applications. It continuously monitors user behavior, system logs,
+    network traffic, and other relevant data sources to identify potential security
+    threats or unauthorized actions. However, the provided UserResource from Google
+    Cloud Platform does not contain any information related to monitoring system logs,
+    network traffic, or user activities. This resource appears to be focused on storing
+    user profile information and account details.
+  name: UserResource
+  output_statements:
+    failure: The resource does not contain the necessary information to monitor for
+      suspicious activities and implement the 'owasp-latest-monitor-for-suspicious-activities'
+      check.
+    partial: N/A
+    success: The resource contains the necessary information to monitor for suspicious
+      activities and implement the 'owasp-latest-monitor-for-suspicious-activities'
+      check.
+  reason: The UserResource does not contain any information related to monitoring
+    system logs, network traffic, or user activities, which are essential for implementing
+    the 'owasp-latest-monitor-for-suspicious-activities' check. This resource is focused
+    on storing user profile information and account details, and does not provide
+    the necessary data sources for detecting suspicious activities.

@@ -1,0 +1,40 @@
+check:
+  benchmarks:
+  - confidence: 0.9
+    reason: Cross-Site Scripting (XSS) is a technique used by adversaries to inject
+      malicious scripts into web applications, which aligns with the goal of preventing
+      XSS attacks through input validation.
+    unique_id: MITRE-ATT&CK-T1059
+  - confidence: 0.9
+    reason: This specific technique, Cross-Site Scripting (XSS) in Email and Web Traffic,
+      directly relates to the prevention of XSS attacks through input validation in
+      web applications.
+    unique_id: MITRE-ATT&CK-T1059.007
+  category: system_integrity
+  controls:
+  - confidence: 0.9
+    reason: This control requires organizations to implement input validation checks
+      to prevent malicious code from being executed in web applications, which directly
+      aligns with the goal of preventing XSS attacks.
+    unique_id: NIST-800-53-SI-10
+  - confidence: 0.8
+    reason: This control requires organizations to implement input validation and
+      data sanitization measures to protect against malicious code injection, which
+      includes XSS attacks.
+    unique_id: ISO-27001-A.12.2.1
+  literature: Cross-Site Scripting (XSS) is a type of web application vulnerability
+    that allows an attacker to inject malicious code into a web page. This code is
+    executed by the victim's web browser, potentially allowing the attacker to hijack
+    user sessions, deface websites, or redirect users to malicious sites. Implementing
+    input validation for XSS prevention is a crucial security measure that helps protect
+    web applications from XSS attacks. Input validation involves sanitizing and validating
+    user input to ensure that it does not contain any malicious code or scripts. By
+    properly validating and sanitizing user input, web applications can prevent XSS
+    attacks and protect sensitive data from being compromised.
+  severity: high
+  tags:
+  - web_security
+  - input_validation
+  - xss
+  - cross-site_scripting
+  unique_id: owasp-latest-implement-input-validation-for-xss-prevention

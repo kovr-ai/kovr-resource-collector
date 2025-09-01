@@ -1,0 +1,31 @@
+check:
+  name: owasp-latest-use-secure-defaults
+  resource:
+    field_path: policies[].default_version.Document.Statement
+    fix_details:
+      automation_available: true
+      description: Insecure default IAM policy configurations must be updated to follow
+        the principle of least privilege and disable unnecessary services.
+      estimated_time: 1-2 hours
+      instructions:
+      - Review all IAM policies and their default versions.
+      - Identify policy statements granting overly permissive actions or resources.
+      - Update the policy documents to restrict permissions to only the required actions
+        and resources.
+      - Ensure all unnecessary services are explicitly denied in the policies.
+      - Apply the updated policies and validate the changes.
+    logic: "result = True\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for statement in fetched_value:\n        if hasattr(statement, 'Effect')\
+      \ and statement.Effect == 'Allow':\n            if hasattr(statement, 'Action')\
+      \ and '*' in statement.Action:\n                result = False\n           \
+      \     break\n            elif hasattr(statement, 'Resource') and '*' in statement.Resource:\n\
+      \                result = False\n                break"
+    name: IAMResource
+    output_statements:
+      failure: One or more IAM policies have insecure default configurations, granting
+        excessive permissions or enabling unnecessary services.
+      partial: Some IAM policies have secure defaults, but others require review and
+        remediation.
+      success: IAM policies are configured with secure default settings, granting
+        only the necessary permissions and denying all other actions.
+  unique_id: owasp-latest-use-secure-defaults

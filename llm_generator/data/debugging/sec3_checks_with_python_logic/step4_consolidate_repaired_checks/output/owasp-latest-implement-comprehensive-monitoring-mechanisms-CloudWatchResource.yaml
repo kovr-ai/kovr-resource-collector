@@ -1,0 +1,37 @@
+check:
+  name: owasp-latest-implement-comprehensive-monitoring-mechanisms
+  resource:
+    field_path: log_groups[*].metric_filter_count
+    fix_details:
+      automation_available: true
+      description: 'If the AWS CloudWatch resource is not configured with comprehensive
+        monitoring mechanisms, the following steps can be taken to remediate the issue:'
+      estimated_time: 1-2 hours
+      instructions:
+      - 1. Review the existing CloudWatch alarms and ensure they cover critical metrics
+        and resources relevant to security monitoring.
+      - 2. Create additional alarms for monitoring security-related metrics, such
+        as unauthorized access attempts, suspicious user activities, and potential
+        data breaches.
+      - 3. Configure CloudWatch Logs to collect and analyze log data from relevant
+        AWS services and applications for security-related events.
+      - 4. Create CloudWatch Dashboards to visualize and monitor security-related
+        metrics and log data in a centralized view.
+      - 5. Integrate CloudWatch with other security monitoring tools or services for
+        advanced threat detection and incident response capabilities.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for metric_filter_count in fetched_value:\n        if metric_filter_count\
+      \ >= 1:\n            result = True\n            break"
+    name: CloudWatchResource
+    output_statements:
+      failure: The AWS CloudWatch resource is not configured with comprehensive monitoring
+        mechanisms, leaving the organization vulnerable to undetected security incidents,
+        unauthorized access attempts, and potential data breaches.
+      partial: The AWS CloudWatch resource has some monitoring mechanisms in place,
+        but additional configurations or enhancements are required to achieve comprehensive
+        monitoring for effective detection and response to security incidents and
+        unauthorized access attempts.
+      success: The AWS CloudWatch resource is configured with comprehensive monitoring
+        mechanisms, including alarms, dashboards, and log analysis, enabling effective
+        detection and response to security incidents and unauthorized access attempts.
+  unique_id: owasp-latest-implement-comprehensive-monitoring-mechanisms

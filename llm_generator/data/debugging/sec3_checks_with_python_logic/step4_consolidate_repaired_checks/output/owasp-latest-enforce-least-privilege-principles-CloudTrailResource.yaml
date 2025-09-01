@@ -1,0 +1,39 @@
+check:
+  name: owasp-latest-enforce-least-privilege-principles
+  resource:
+    field_path: trails[*].event_selectors[*].data_resources.values[*]
+    fix_details:
+      automation_available: true
+      description: To fully implement the 'owasp-latest-enforce-least-privilege-principles'
+        security check using CloudTrail, you need to configure appropriate event selectors
+        and data resource filters to log and monitor access to specific AWS resources
+        and services.
+      estimated_time: 1-2 hours
+      instructions:
+      - 1. Review your AWS environment and identify the resources and services that
+        require access monitoring and auditing.
+      - 2. Create or modify CloudTrail trails with event selectors that include the
+        relevant data resources and services.
+      - 3. Configure the event selectors to log both read and write events, as well
+        as management events if applicable.
+      - 4. Ensure that the CloudTrail trails are configured to log to a secure and
+        centralized location, such as an S3 bucket with appropriate access controls.
+      - 5. Regularly review the CloudTrail logs to identify and remediate any excessive
+        permissions or unauthorized access attempts.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for values_list in fetched_value:\n        if not values_list:\n      \
+      \      continue\n        for value in values_list:\n            if value ==\
+      \ 'arn:aws:s3:::':\n                result = True\n                break\n \
+      \       if result:\n            break"
+    name: CloudTrailResource
+    output_statements:
+      failure: CloudTrail is not configured with appropriate event selectors and data
+        resource filters to enforce least privilege. Excessive permissions or unauthorized
+        access attempts may go undetected.
+      partial: CloudTrail is partially configured with event selectors and data resource
+        filters to enforce least privilege, but some resources or services may not
+        be adequately monitored.
+      success: CloudTrail is configured with appropriate event selectors and data
+        resource filters to enforce least privilege by logging and auditing access
+        to specific AWS resources and services.
+  unique_id: owasp-latest-enforce-least-privilege-principles

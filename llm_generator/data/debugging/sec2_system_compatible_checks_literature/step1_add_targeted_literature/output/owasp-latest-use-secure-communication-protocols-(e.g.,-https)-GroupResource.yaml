@@ -1,0 +1,30 @@
+resource:
+  check:
+    unique_id: owasp-latest-use-secure-communication-protocols-(e.g.,-https)
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This resource is not applicable for the given security check, so
+      no remediation is required.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The OWASP check 'Use Secure Communication Protocols (e.g., HTTPS)' is
+    designed to ensure that web applications and services communicate over secure
+    protocols, such as HTTPS, to protect data in transit from unauthorized access,
+    interception, and tampering. However, the provided Google Cloud resource 'GroupResource'
+    appears to be related to managing Google Groups, which are user collections for
+    collaboration and access control purposes. This resource does not seem to be directly
+    related to configuring communication protocols or web application security.
+  name: GroupResource
+  output_statements:
+    failure: This resource is not applicable for the 'Use Secure Communication Protocols
+      (e.g., HTTPS)' check.
+    partial: This resource is not applicable for the 'Use Secure Communication Protocols
+      (e.g., HTTPS)' check.
+    success: This resource is not applicable for the 'Use Secure Communication Protocols
+      (e.g., HTTPS)' check.
+  reason: The 'GroupResource' is not a resource that handles communication protocols
+    or web application security configurations. It is primarily used for managing
+    user groups and their membership details, which is not directly relevant to the
+    OWASP check for secure communication protocols.

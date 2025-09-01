@@ -1,0 +1,42 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-secure-logging-mechanisms
+  field_paths:
+  - buckets
+  - buckets[].logging_enabled
+  - buckets[].name
+  fix_details:
+    automation_available: true
+    description: For S3 buckets without logging enabled, access logging and server
+      access logging should be configured to capture detailed request and response
+      information.
+    estimated_time: 10 minutes
+    instructions:
+    - 1. Open the AWS Management Console and navigate to the S3 service.
+    - 2. Select the bucket for which you want to enable logging.
+    - 3. Click on the 'Properties' tab and then click on the 'Server access logging'
+      section.
+    - 4. Enable server access logging and specify a target bucket and prefix for the
+      log files.
+    - 5. Click on the 'Access logging' section and enable access logging.
+    - 6. Specify a target bucket and prefix for the access log files.
+    - 7. Save the changes to apply the logging configuration.
+  is_valid: true
+  literature: The AWS S3 resource can be used to implement secure logging mechanisms
+    by enabling access logging and server access logging for S3 buckets. Access logs
+    provide detailed records of requests made to a bucket, including the requester,
+    bucket name, request time, action, response status, and error codes. Server access
+    logs provide detailed records about requests that were made to a bucket and the
+    response from the server. These logs can be used for security monitoring, operational
+    troubleshooting, and compliance purposes.
+  name: S3Resource
+  output_statements:
+    failure: S3 bucket {bucket_name} does not have logging enabled, which violates
+      the secure logging mechanisms requirement.
+    partial: Some S3 buckets have logging enabled, while others do not. Secure logging
+      mechanisms are partially implemented.
+    success: S3 bucket {bucket_name} has logging enabled, ensuring secure logging
+      mechanisms are implemented.
+  reason: The S3 resource provides the necessary configuration options to enable access
+    logging and server access logging for S3 buckets, which is a key aspect of implementing
+    secure logging mechanisms.

@@ -1,0 +1,30 @@
+check:
+  name: owasp-latest-implement-secure-deployment-processes
+  resource:
+    field_path: policies[].default_version.Document.Statement[].Action
+    fix_details:
+      automation_available: true
+      description: Ensure IAM policies follow least privilege principles and segregate
+        duties for deployment roles. Enforce MFA for IAM users involved in deployments.
+        Rotate access keys regularly.
+      estimated_time: 2-4 hours
+      instructions:
+      - Review all IAM policies and remove any overly permissive statements
+      - Create separate IAM roles for different deployment stages/environments
+      - Configure IAM password policies to enforce strong credentials
+      - Enable MFA for all IAM users with deployment permissions
+      - Set an expiration period for all IAM user access keys
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    secure_deployment_actions = ['iam:PassRole', 'iam:AddUserToGroup', 'iam:CreateAccessKey',\
+      \ 'iam:UpdateAccessKey', 'iam:DeleteAccessKey', 'iam:EnableMFADevice', 'iam:ResyncMFADevice']\n\
+      \    for action in fetched_value:\n        if isinstance(action, str) and action\
+      \ in secure_deployment_actions:\n            result = True\n            break"
+    name: IAMResource
+    output_statements:
+      failure: IAM policies and/or user access controls are not properly configured,
+        increasing the risk of insecure deployments.
+      partial: Some aspects of IAM policies and user access controls support secure
+        deployments, but other areas need improvement.
+      success: IAM policies and user access controls are properly configured to support
+        secure deployment processes.
+  unique_id: owasp-latest-implement-secure-deployment-processes

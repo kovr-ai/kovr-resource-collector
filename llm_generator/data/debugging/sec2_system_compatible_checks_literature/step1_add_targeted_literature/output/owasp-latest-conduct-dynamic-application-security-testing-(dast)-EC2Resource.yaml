@@ -1,0 +1,44 @@
+resource:
+  check:
+    unique_id: owasp-latest-conduct-dynamic-application-security-testing-(dast)
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: This security check is not applicable to the EC2Resource, as it is
+      not a web application. To implement DAST, you need to identify and test the
+      web applications running on your cloud infrastructure.
+    estimated_time: The time required will vary depending on the number and complexity
+      of web applications, as well as the chosen DAST tool and its configuration.
+    instructions:
+    - 1. Identify the web applications running on your cloud infrastructure, either
+      on EC2 instances or other services like AWS Elastic Beanstalk, AWS Lambda, or
+      AWS Fargate.
+    - 2. Evaluate the available DAST tools and select the one that best fits your
+      requirements and application architecture.
+    - 3. Configure the DAST tool to scan and test the identified web applications
+      for security vulnerabilities.
+    - 4. Schedule regular DAST scans and review the results to identify and mitigate
+      any vulnerabilities found.
+  is_valid: false
+  literature: Dynamic Application Security Testing (DAST) is a technique used to identify
+    security vulnerabilities in web applications by simulating real-world attacks
+    and analyzing the application's behavior and responses. It involves interacting
+    with the running application from the outside, mimicking the actions of a malicious
+    user or attacker. DAST tools can detect vulnerabilities such as injection flaws,
+    broken authentication, sensitive data exposure, XML external entities (XXE), and
+    other security weaknesses that could be exploited by attackers.
+  name: EC2Resource
+  output_statements:
+    failure: The DAST security check is not applicable to the resource, as it is not
+      a web application.
+    partial: The DAST security check is not applicable to the resource, as it is not
+      a web application.
+    success: The DAST security check is applicable to the resource, and the web application
+      has been successfully tested for vulnerabilities.
+  reason: The provided resource 'EC2Resource' is an Amazon Elastic Compute Cloud (EC2)
+    resource, which represents virtual machines or instances running in the AWS cloud.
+    This resource does not directly relate to web applications or application security
+    testing. DAST is a technique specifically designed to test web applications for
+    security vulnerabilities by simulating attacks against the running application.
+    Therefore, the EC2Resource is not applicable for implementing the 'owasp-latest-conduct-dynamic-application-security-testing-(dast)'
+    security check.

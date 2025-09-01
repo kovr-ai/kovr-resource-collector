@@ -1,0 +1,46 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-proper-access-control-mechanisms
+  field_paths:
+  - buckets[].public_access_block
+  - buckets[].public_access_block.block_public_acls
+  - buckets[].public_access_block.block_public_policy
+  - buckets[].public_access_block.ignore_public_acls
+  - buckets[].public_access_block.restrict_public_buckets
+  fix_details:
+    automation_available: true
+    description: 'If any S3 buckets are found to have improper access control configurations,
+      the following steps can be taken to remediate the issue:'
+    estimated_time: 30 minutes to 1 hour
+    instructions:
+    - Review the public access block settings for each S3 bucket and ensure that all
+      four settings (block_public_acls, block_public_policy, ignore_public_acls, restrict_public_buckets)
+      are enabled to prevent public access.
+    - Review and update the bucket policies to restrict access to only authorized
+      IAM users, groups, or roles.
+    - Review and update the Access Control Lists (ACLs) for each bucket and object
+      to ensure that only authorized entities have appropriate permissions.
+    - Implement IAM role-based access control by creating IAM roles with specific
+      permissions and assigning them to authorized users or services.
+    - Enable S3 bucket logging and monitoring to detect and investigate any unauthorized
+      access attempts.
+  is_valid: true
+  literature: The AWS S3 service provides various access control mechanisms to ensure
+    that only authorized users or entities can access and perform operations on S3
+    buckets and objects. S3 supports resource-based access policies, bucket policies,
+    Access Control Lists (ACLs), and integration with AWS Identity and Access Management
+    (IAM) for role-based access control. These mechanisms allow you to define granular
+    permissions for different actions, resources, and conditions, enabling proper
+    access control implementation.
+  name: S3Resource
+  output_statements:
+    failure: One or more S3 buckets do not have proper access control mechanisms implemented,
+      potentially allowing unauthorized access to sensitive data or resources.
+    partial: Some S3 buckets have proper access control mechanisms implemented, while
+      others may have issues or lack appropriate access control configurations.
+    success: The S3 buckets have proper access control mechanisms implemented, such
+      as public access block settings, bucket policies, and IAM role-based access
+      control.
+  reason: The S3 resource is valid for implementing proper access control mechanisms
+    because it provides various access control features and configurations that can
+    be used to restrict unauthorized access to S3 buckets and objects.

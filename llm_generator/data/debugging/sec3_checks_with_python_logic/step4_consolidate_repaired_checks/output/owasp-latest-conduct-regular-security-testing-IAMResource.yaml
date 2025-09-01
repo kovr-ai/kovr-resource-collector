@@ -1,0 +1,35 @@
+check:
+  name: owasp-latest-conduct-regular-security-testing
+  resource:
+    field_path: policies[].default_version.Document.Statement[].Action
+    fix_details:
+      automation_available: true
+      description: If security risks or misconfigurations are identified in IAM policies,
+        user access keys, or MFA device configurations, remediation steps should be
+        taken to address these issues.
+      estimated_time: 1-2 hours
+      instructions:
+      - Review IAM policies and remove any unnecessary or overly permissive permissions.
+      - Rotate or deactivate any inactive or insecure user access keys.
+      - Ensure that MFA devices are properly configured and enabled for all IAM users
+        with privileged access.
+      - Implement regular security testing and monitoring to identify and address
+        any new vulnerabilities or misconfigurations.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for statement in fetched_value:\n        if hasattr(statement, 'Action'):\n\
+      \            actions = statement.Action\n        elif isinstance(statement,\
+      \ dict):\n            actions = statement.get('Action')\n        else:\n   \
+      \         actions = getattr(statement, 'Action', None)\n\n        if actions:\n\
+      \            if isinstance(actions, str):\n                actions = [actions]\n\
+      \n            if any(action.startswith('iam:') for action in actions):\n   \
+      \             result = True\n                break"
+    name: IAMResource
+    output_statements:
+      failure: One or more IAM policies have been found to be overly permissive, user
+        access keys are inactive or insecure, or MFA devices are not properly configured,
+        posing potential security risks.
+      partial: While some IAM policies and user configurations are secure, there are
+        areas that require attention to mitigate potential security risks.
+      success: IAM policies, user access keys, and MFA devices have been reviewed,
+        and no security risks or misconfigurations were identified.
+  unique_id: owasp-latest-conduct-regular-security-testing

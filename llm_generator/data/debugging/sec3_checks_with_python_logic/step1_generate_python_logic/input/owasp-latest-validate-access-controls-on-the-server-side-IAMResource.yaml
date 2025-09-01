@@ -1,0 +1,39 @@
+check:
+  category: access_control
+  control_names:
+  - NIST-800-53-AC-3
+  - ISO-27001-A.9.4.1
+  literature: The 'owasp-latest-validate-access-controls-on-the-server-side' check
+    is designed to validate that access controls are properly implemented on the server-side
+    of an application. Access controls are essential security mechanisms that ensure
+    only authorized users or entities can access and perform specific actions on protected
+    resources or data. Failing to implement proper access controls on the server-side
+    can lead to unauthorized access, data breaches, and other security vulnerabilities.
+    This check helps identify and mitigate risks associated with improper access control
+    implementation, such as broken authentication, broken access control, and insecure
+    direct object references.
+  name: owasp-latest-validate-access-controls-on-the-server-side
+  resource:
+    field_paths:
+    - policies
+    - policies[].default_version.Document.Statement
+    - policies[].default_version.Document.Statement[].Action
+    - policies[].default_version.Document.Statement[].Resource
+    - policies[].default_version.Document.Statement[].Condition
+    - users
+    - users[].access_keys
+    - users[].mfa_devices
+    literature: The 'owasp-latest-validate-access-controls-on-the-server-side' check
+      is designed to validate that access controls are properly implemented on the
+      server-side of an application. In the context of AWS IAM resources, this check
+      can be implemented by analyzing the IAM policies and their statements to ensure
+      that access controls are properly defined and enforced. The IAM policies define
+      the permissions granted to users, groups, and roles, and their statements specify
+      the actions, resources, and conditions under which those permissions are granted.
+    name: IAMResource
+    reason: The IAM resource is valid for implementing the 'owasp-latest-validate-access-controls-on-the-server-side'
+      check because it provides access to the IAM policies and their statements, which
+      define the access controls for users, groups, and roles. Additionally, the resource
+      includes information about user access keys and multi-factor authentication
+      (MFA) devices, which are relevant for validating access controls.
+  unique_id: owasp-latest-validate-access-controls-on-the-server-side

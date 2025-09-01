@@ -1,0 +1,8 @@
+check:
+  unique_id: owasp-latest-use-secure-defaults
+resource:
+  field_path: trails[*].log_file_validation_enabled
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    for log_file_validation_enabled in fetched_value:\n        if log_file_validation_enabled:\n\
+    \            result = True\n            break"
+  name: CloudTrailResource

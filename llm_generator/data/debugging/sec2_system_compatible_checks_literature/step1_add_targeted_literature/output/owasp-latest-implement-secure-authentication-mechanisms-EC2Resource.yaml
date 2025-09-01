@@ -1,0 +1,40 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-secure-authentication-mechanisms
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To address this security check, you need to review and potentially
+      update the authentication mechanisms implemented within the application code
+      or configuration.
+    estimated_time: Highly variable, depending on the complexity of the application
+      and the extent of changes required.
+    instructions:
+    - Identify the authentication mechanisms currently used by the application (e.g.,
+      password-based, multi-factor, federated, etc.)
+    - Evaluate the security of these mechanisms against industry best practices and
+      guidelines (e.g., OWASP Authentication Cheat Sheet)
+    - Implement necessary updates or replacements to strengthen the authentication
+      mechanisms, such as using strong password policies, multi-factor authentication,
+      secure session management, and protection against common attacks like brute-force
+      and credential stuffing.
+    - Test and validate the updated authentication mechanisms to ensure they are functioning
+      as intended and providing the desired level of security.
+  is_valid: false
+  literature: The EC2 resource in AWS provides details about Elastic Compute Cloud
+    (EC2) instances, security groups, network interfaces, and other related resources.
+    However, it does not directly provide information about authentication mechanisms
+    implemented within applications running on those instances. The authentication
+    mechanisms are typically implemented within the application code or configuration.
+  name: EC2Resource
+  output_statements:
+    failure: The application does not implement secure authentication mechanisms,
+      leaving it vulnerable to common authentication attacks.
+    partial: N/A
+    success: The application implements secure authentication mechanisms to protect
+      against common attacks such as brute-force, credential stuffing, and session
+      hijacking.
+  reason: The EC2 resource does not contain information relevant to implementing secure
+    authentication mechanisms within applications. This security check is focused
+    on validating the authentication mechanisms used by the application itself, rather
+    than the underlying infrastructure resources.

@@ -1,0 +1,13 @@
+check:
+  unique_id: owasp-latest-provide-security-awareness-training
+resource:
+  field_path: policies[].default_version.Document.Statement
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    for statement in fetched_value:\n        if hasattr(statement, 'Effect')\
+    \ and statement.Effect == 'Allow':\n            condition = getattr(statement,\
+    \ 'Condition', None)\n            if condition:\n                for condition_key,\
+    \ condition_value in condition.items():\n                    if condition_key\
+    \ == 'Bool' and 'aws:MultiFactorAuthPresent' in condition_value.values():\n  \
+    \                      result = True\n                        break\n        \
+    \    else:\n                result = True\n                break"
+  name: IAMResource
