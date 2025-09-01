@@ -12,21 +12,21 @@ env:
   EKS_NAMESPACE: "qa"
   
   # Docker/ECR Configuration
-  ECR_REPOSITORY_NAME: "kovr-ds"
+  ECR_REPOSITORY_NAME: "kovr-resource-collector"
   DOCKER_PLATFORM: "linux/amd64"
 
   
   # Helm Configuration
   HELM_CHARTS_REPO: "kovr-ai/helm-charts"
-  HELM_CHART_PATH: "kovr/ds/charts"
+  HELM_CHART_PATH: "kovr/kovr-resource-collector/charts"
   HELM_VALUES_PATH: "./helm-values/qa.yaml"
-  HELM_RELEASE_NAME: "ds"
+  HELM_RELEASE_NAME: "kovr-resource-collector"
   HELM_VERSION: "v3.12.0"
   HELM_TIMEOUT: "10m"
   
   # Secret Configuration
   CHAINGUARD_SECRET_ID: "global/Chainguard/Credentials"
-  APP_SECRETS_ID: "kovr-ds-secret-local"
+  APP_SECRETS_ID: "kovr-resource-collector-secret-local"
   
   # SSH Tunneling Configuration
   SSH_TUNNEL_CIDR: "0.0.0.0/0"
@@ -52,6 +52,7 @@ on:
   push:
     branches:
       - qa
+      - workflows
 
 permissions:
   contents: read
@@ -67,15 +68,16 @@ jobs:
       - name: Checkout application code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.branch || github.ref_name }}
-
-      - name: Checkout external Helm charts repo
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ env.HELM_CHARTS_REPO }}
-          path: helm-charts
-          token: ${{ secrets.GIT_HUB_TOKEN }}
           ref: main
+            # ${{ github.event.inputs.branch || github.ref_name }}
+
+      # - name: Checkout external Helm charts repo
+      #   uses: actions/checkout@v4
+      #   with:
+      #     repository: ${{ env.HELM_CHARTS_REPO }}
+      #     path: helm-charts
+      #     token: ${{ secrets.GIT_HUB_TOKEN }}
+      #     ref: main
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -83,23 +85,23 @@ jobs:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Get Chainguard credentials
-        id: chainguard-creds
-        run: |
-          CREDS=$(aws secretsmanager get-secret-value --secret-id ${{ env.CHAINGUARD_SECRET_ID }} --query SecretString --output text)
-          USERNAME=$(echo $CREDS | jq -r '.username')
-          PASSWORD=$(echo $CREDS | jq -r '.password')
-          echo "::add-mask::$USERNAME"
-          echo "::add-mask::$PASSWORD"
-          echo "username=$USERNAME" >> $GITHUB_ENV
-          echo "password=$PASSWORD" >> $GITHUB_ENV
+      # - name: Get Chainguard credentials
+      #   id: chainguard-creds
+      #   run: |
+      #     CREDS=$(aws secretsmanager get-secret-value --secret-id ${{ env.CHAINGUARD_SECRET_ID }} --query SecretString --output text)
+      #     USERNAME=$(echo $CREDS | jq -r '.username')
+      #     PASSWORD=$(echo $CREDS | jq -r '.password')
+      #     echo "::add-mask::$USERNAME"
+      #     echo "::add-mask::$PASSWORD"
+      #     echo "username=$USERNAME" >> $GITHUB_ENV
+      #     echo "password=$PASSWORD" >> $GITHUB_ENV
 
-      - name: Login to Chainguard registry
-        uses: docker/login-action@v3
-        with:
-          registry: cgr.dev
-          username: ${{ env.username }}
-          password: ${{ env.password }}
+      # - name: Login to Chainguard registry
+      #   uses: docker/login-action@v3
+      #   with:
+      #     registry: cgr.dev
+      #     username: ${{ env.username }}
+      #     password: ${{ env.password }}
 
       - name: Log in to Amazon ECR
         id: login-ecr
@@ -166,37 +168,37 @@ jobs:
             # k8s-test-tag.txt
           retention-days: ${{ env.CACHE_RETENTION_DAYS }}
 
-      - name: Run Trivy vulnerability scan
-        uses: aquasecurity/trivy-action@0.29.0
-        with:
-          image-ref: ${{ env.IMAGE_TAG }}
-          output: ${{ env.IMAGE_TAG_SAFE }}-report.txt
-          format: ${{ env.TRIVY_FORMAT }}
-          # template: "@$HOME/.local/bin/trivy-bin/contrib/html.tpl"
-          exit-code: ${{ env.TRIVY_EXIT_CODE }}
-          pkg-types: ${{ env.TRIVY_PKG_TYPES }}
-          cache: ${{ env.TRIVY_CACHE }}
-          severity: ${{ env.TRIVY_SEVERITY }}
-        continue-on-error: true
+      # - name: Run Trivy vulnerability scan
+      #   uses: aquasecurity/trivy-action@0.29.0
+      #   with:
+      #     image-ref: ${{ env.IMAGE_TAG }}
+      #     output: ${{ env.IMAGE_TAG_SAFE }}-report.txt
+      #     format: ${{ env.TRIVY_FORMAT }}
+      #     # template: "@$HOME/.local/bin/trivy-bin/contrib/html.tpl"
+      #     exit-code: ${{ env.TRIVY_EXIT_CODE }}
+      #     pkg-types: ${{ env.TRIVY_PKG_TYPES }}
+      #     cache: ${{ env.TRIVY_CACHE }}
+      #     severity: ${{ env.TRIVY_SEVERITY }}
+      #   continue-on-error: true
 
-      - name: Print Trivy report
-        run: cat ${{ env.IMAGE_TAG_SAFE }}-report.txt
+      # - name: Print Trivy report
+      #   run: cat ${{ env.IMAGE_TAG_SAFE }}-report.txt
 
-      - name: Prepare Trivy report for comment
-        if: github.event_name == 'pull_request'
-        run: |
-          echo '### Trivy Scan Report' > trivy-comment.md
-          echo '```\n' >> trivy-comment.md
-          head -n 50 ${{ env.IMAGE_TAG_SAFE }}-report.txt >> trivy-comment.md
-          echo '\n```' >> trivy-comment.md
+      # - name: Prepare Trivy report for comment
+      #   if: github.event_name == 'pull_request'
+      #   run: |
+      #     echo '### Trivy Scan Report' > trivy-comment.md
+      #     echo '```\n' >> trivy-comment.md
+      #     head -n 50 ${{ env.IMAGE_TAG_SAFE }}-report.txt >> trivy-comment.md
+      #     echo '\n```' >> trivy-comment.md
       
-      - name: Comment on PR with Trivy scan results
-        if: github.event_name == 'pull_request'
-        uses: peter-evans/create-or-update-comment@v4
-        with:
-          token: ${{ secrets.GIT_HUB_TOKEN }}
-          issue-number: ${{ github.event.pull_request.number }}
-          body-file: trivy-comment.md
+      # - name: Comment on PR with Trivy scan results
+      #   if: github.event_name == 'pull_request'
+      #   uses: peter-evans/create-or-update-comment@v4
+      #   with:
+      #     token: ${{ secrets.GIT_HUB_TOKEN }}
+      #     issue-number: ${{ github.event.pull_request.number }}
+      #     body-file: trivy-comment.md
 
   deploy-qa:
     if: github.event_name != 'pull_request'
@@ -209,7 +211,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.branch || github.ref_name }}
+          ref: workflows 
+            # ${{ github.event.inputs.branch || github.ref_name }}
 
       - name: Checkout external Helm charts repo
         uses: actions/checkout@v4
@@ -263,24 +266,23 @@ jobs:
       - name: Set image tag
         run: echo "IMAGE_TAG=$(cat image-tags.txt)" >> $GITHUB_ENV
 
-      - name: Fetch AWS secrets and set as Helm values
-        id: fetch-secrets
-        run: |
-          # Fetch secrets from AWS Secrets Manager
-          SECRETS_JSON=$(aws secretsmanager get-secret-value --secret-id ${{ env.APP_SECRETS_ID }} --query SecretString --output text)
+      # - name: Fetch AWS secrets and set as Helm values
+      #   id: fetch-secrets
+      #   run: |
+      #     # Fetch secrets from AWS Secrets Manager
+      #     SECRETS_JSON=$(aws secretsmanager get-secret-value --secret-id ${{ env.APP_SECRETS_ID }} --query SecretString --output text)
           
-          # Create a values file with secrets
-          echo "$SECRETS_JSON" | jq '{secrets: .}' > temp-secrets-values.yaml
+      #     # Create a values file with secrets
+      #     echo "$SECRETS_JSON" | jq '{secrets: .}' > temp-secrets-values.yaml
           
-          # Debug: show the file was created
-          echo "Secrets values file created:"
-          ls -la temp-secrets-values.yaml
+      #     # Debug: show the file was created
+      #     echo "Secrets values file created:"
+      #     ls -la temp-secrets-values.yaml
 
       - name: Deploy service to EKS
         run: |
           echo "Deploying service to EKS..."
           helm upgrade --install ${{ env.HELM_RELEASE_NAME }} helm-charts/${{ env.HELM_CHART_PATH }} \
-            --values temp-secrets-values.yaml \
             --values ${{ env.HELM_VALUES_PATH }} \
             --set service.image=${{ env.IMAGE_TAG }} \
             --namespace ${{ env.EKS_NAMESPACE }} \
