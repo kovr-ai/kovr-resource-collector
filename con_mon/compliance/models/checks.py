@@ -177,6 +177,9 @@ class CheckOperation(PydanticBaseModel):
     name: ComparisonOperationEnum = Field(..., description="Operation name (e.g., 'custom', 'equals')")
     logic: Optional[str] = Field(None, description="Custom logic code for operation")
 
+    class Config:
+        use_enum_values = True
+
 
 class CheckMetadata(PydanticBaseModel):
     """
@@ -253,7 +256,7 @@ class Check(TableModel):
     # Database fields (exact 1:1 mapping)
     id: str = Field(..., description="Check ID (string primary key)")
     name: str = Field(..., description="Check name")
-    description: str = Field(..., description="Check description")
+    description: str | None = Field(None, description="Check description")
 
     # JSONB fields with full nested structure
     output_statements: OutputStatements = Field(..., description="Output statements JSONB field")
