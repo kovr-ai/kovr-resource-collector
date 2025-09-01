@@ -1,0 +1,9 @@
+check:
+  unique_id: owasp-latest-implement-multi-factor-authentication
+resource:
+  field_path: users[*].mfa_devices[*]
+  logic: "result = True\n\nif fetched_value is None or not fetched_value:\n    result\
+    \ = False\nelse:\n    mfa_enabled_users = []\n    for user in fetched_value:\n\
+    \        if user and hasattr(user, 'enable_date'):\n            mfa_enabled_users.append(user)\n\
+    \    if not mfa_enabled_users:\n        result = False"
+  name: IAMResource

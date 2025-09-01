@@ -1,0 +1,39 @@
+check:
+  name: owasp-latest-implement-secure-key-management
+  resource:
+    field_path: users[].access_keys[].status
+    fix_details:
+      automation_available: true
+      description: If secure key management practices are not properly implemented,
+        remediation steps should be taken to address the identified issues.
+      estimated_time: 1-2 hours
+      instructions:
+      - Review and update IAM access key rotation policies to ensure regular rotation
+        (e.g., every 90 days).
+      - Enable MFA for all privileged IAM users and enforce its use.
+      - Review and update IAM policies to follow the principle of least privilege,
+        granting only the necessary permissions required for specific roles and tasks.
+      - Implement centralized logging and monitoring for IAM activities to detect
+        and respond to potential security incidents.
+    logic: "result = True\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for access_key_status in fetched_value:\n        if access_key_status ==\
+      \ 'Active':\n            # Check if the access key is older than 90 days\n \
+      \                       now = datetime.datetime.utcnow()\n            for user\
+      \ in fetched_value:\n                for access_key in user.access_keys:\n \
+      \                   if access_key.status == 'Active':\n                    \
+      \    create_date = access_key.create_date\n                        age = now\
+      \ - create_date\n                        if age.days > 90:\n               \
+      \             result = False\n                            break\n        else:\n\
+      \            result = False\n            break"
+    name: IAMResource
+    output_statements:
+      failure: IAM access keys are not regularly rotated, MFA is not enabled for privileged
+        users, or overly permissive access policies are in place, increasing the risk
+        of unauthorized access and data breaches.
+      partial: IAM access keys are regularly rotated, MFA is enabled for privileged
+        users, and least-privilege access policies are implemented, ensuring secure
+        key management practices.
+      success: IAM access keys are regularly rotated, MFA is enabled for privileged
+        users, and least-privilege access policies are implemented, ensuring secure
+        key management practices.
+  unique_id: owasp-latest-implement-secure-key-management

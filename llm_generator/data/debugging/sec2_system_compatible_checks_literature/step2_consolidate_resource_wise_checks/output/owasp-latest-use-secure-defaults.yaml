@@ -1,0 +1,76 @@
+check:
+  invalid_resources: []
+  unique_id: owasp-latest-use-secure-defaults
+  valid_resources:
+  - field_paths:
+    - policies
+    - policies[].default_version
+    - policies[].default_version.Document
+    - policies[].default_version.Document.Statement
+    - policies[].default_version.Document.Statement[].Action
+    - policies[].default_version.Document.Statement[].Effect
+    - policies[].default_version.Document.Statement[].Resource
+    - users
+    - users[].access_keys
+    literature: The 'owasp-latest-use-secure-defaults' check is applicable to AWS
+      IAM resources as they control access and permissions within an AWS account.
+      IAM policies define the allowed and denied actions for users, groups, and roles.
+      By analyzing the default policies and their configurations, this check can identify
+      insecure defaults that may grant excessive permissions or enable unnecessary
+      services, increasing the attack surface.
+    name: IAMResource
+    reason: IAM policies and user access keys directly impact the security posture
+      of an AWS account. Analyzing their default configurations is crucial to ensure
+      secure defaults are enforced.
+  - field_paths:
+    - buckets
+    - buckets[].encryption
+    - buckets[].encryption.enabled
+    - buckets[].encryption.type
+    - buckets[].public_access_block
+    - buckets[].public_access_block.block_public_acls
+    - buckets[].public_access_block.block_public_policy
+    - buckets[].public_access_block.ignore_public_acls
+    - buckets[].public_access_block.restrict_public_buckets
+    - buckets[].logging_enabled
+    - buckets[].versioning_status
+    literature: The 'owasp-latest-use-secure-defaults' check is applicable to AWS
+      S3 buckets as they have various configuration options that can impact their
+      security posture. By default, S3 buckets are created with public access enabled,
+      which can expose sensitive data to unauthorized parties. This check ensures
+      that S3 buckets are configured with secure defaults, such as encryption, access
+      control, and logging, to mitigate the risk of data breaches and unauthorized
+      access.
+    name: S3Resource
+    reason: AWS S3 buckets have various configuration options that can impact their
+      security posture, making them applicable for the 'owasp-latest-use-secure-defaults'
+      check. By ensuring that S3 buckets are configured with secure defaults, such
+      as encryption, access control, and logging, this check helps mitigate the risk
+      of data breaches and unauthorized access.
+  - field_paths:
+    - trails[].enable_log_file_validation
+    - trails[].event_selectors
+    - trails[].event_selectors[].data_resources
+    - trails[].event_selectors[].include_management_events
+    - trails[].event_selectors[].read_write_type
+    - trails[].include_global_service_events
+    - trails[].insight_selectors
+    - trails[].is_logging
+    - trails[].is_multi_region_trail
+    - trails[].log_file_validation_enabled
+    - trails[].s3_bucket_name
+    - trails[].s3_key_prefix
+    literature: The CloudTrail resource in AWS is applicable for implementing the
+      'owasp-latest-use-secure-defaults' security check. CloudTrail is a service that
+      records AWS API calls and related events, providing a log of account activity.
+      By configuring CloudTrail with secure defaults, organizations can ensure that
+      all relevant events are captured, logged, and monitored for potential security
+      incidents or unauthorized activities. This helps maintain system integrity and
+      supports compliance with security standards like NIST 800-53 and ISO 27001.
+    name: CloudTrailResource
+    reason: The CloudTrail resource provides various configuration options that align
+      with the 'owasp-latest-use-secure-defaults' check. By enabling log file validation,
+      configuring event selectors, including management events, and setting up secure
+      S3 bucket and prefix settings, organizations can ensure that CloudTrail captures
+      and logs all relevant API activities, supporting system integrity and secure
+      defaults.

@@ -1,0 +1,10 @@
+check:
+  unique_id: owasp-latest-implement-proper-access-control-mechanisms
+resource:
+  field_path: admin_info.isAdmin
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    if isinstance(fetched_value, bool):\n        if fetched_value:\n        \
+    \    result = True\n        else:\n            # Non-admin users should not have\
+    \ isAdmin set to False\n            result = False\n    else:\n        # Invalid\
+    \ data type for isAdmin field\n        result = False"
+  name: UserResource

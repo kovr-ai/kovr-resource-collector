@@ -1,0 +1,203 @@
+check:
+  category: access_control
+  control_names:
+  - NIST-800-53-AC-6
+  - ISO-27001-A.9.1.2
+  literature: The principle of least privilege is a fundamental security concept that
+    restricts access rights for users, accounts, and processes to only those permissions
+    required to perform authorized tasks. By enforcing least privilege, organizations
+    can reduce their attack surface, limit potential damage from malicious actors,
+    and mitigate the risks associated with excessive permissions. This check validates
+    that systems and applications adhere to the least privilege principle, ensuring
+    that users, processes, and services operate with the minimum necessary privileges
+    to accomplish their intended functions, and no more. Implementing least privilege
+    is crucial for maintaining a robust security posture and protecting sensitive
+    data and systems from unauthorized access or misuse.
+  name: owasp-latest-enforce-least-privilege-principles
+  resource:
+    field_paths: []
+    literature: null
+    name: UserResource
+    reason: null
+  unique_id: owasp-latest-enforce-least-privilege-principles
+errors:
+- error: "Traceback (most recent call last):\n  File \"/Users/aetoskia/Workspace/code/kovr-resource-collector/llm_generator/checks_with_python_logic/validate_with_mock_data/services.py\"\
+    , line 73, in _process_input\n    result = comparison_operation(fetched_value,\
+    \ None)\n  File \"/Users/aetoskia/Workspace/code/kovr-resource-collector/con_mon/compliance/models/checks.py\"\
+    , line 39, in __call__\n    response = self.function(fetched_value, config_value)\n\
+    \  File \"<string>\", line 24, in custom\n  File \"<string>\", line 15, in custom\n\
+    AttributeError: 'bool' object has no attribute 'get'\n"
+  field_path: admin_info.isAdmin
+  input_filepath: llm_generator_v2/data/debugging/sec3_checks_with_python_logic/step1_generate_python_logic/input/owasp-latest-enforce-least-privilege-principles-UserResource.yaml
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    # Check if the user is an admin\n    is_admin = fetched_value\n    \n   \
+    \ # Check if the user is enrolled in 2-step verification\n    is_enrolled_in_2sv\
+    \ = fetched_value.get('security_info', {}).get('isEnrolledIn2Sv', False)\n   \
+    \ \n    # Enforce least privilege by ensuring non-admin users are enrolled in\
+    \ 2-step verification\n    if not is_admin and is_enrolled_in_2sv:\n        result\
+    \ = True"
+  output_filepath: llm_generator_v2/data/debugging/sec3_checks_with_python_logic/step1_generate_python_logic/output/owasp-latest-enforce-least-privilege-principles-UserResource.yaml
+  result: null
+  success: false
+- error: "Traceback (most recent call last):\n  File \"/Users/aetoskia/Workspace/code/kovr-resource-collector/llm_generator/checks_with_python_logic/validate_with_mock_data/services.py\"\
+    , line 73, in _process_input\n    result = comparison_operation(fetched_value,\
+    \ None)\n  File \"/Users/aetoskia/Workspace/code/kovr-resource-collector/con_mon/compliance/models/checks.py\"\
+    , line 39, in __call__\n    response = self.function(fetched_value, config_value)\n\
+    \  File \"<string>\", line 24, in custom\n  File \"<string>\", line 15, in custom\n\
+    AttributeError: 'bool' object has no attribute 'get'\n"
+  field_path: admin_info.isAdmin
+  input_filepath: llm_generator_v2/data/debugging/sec3_checks_with_python_logic/step1_generate_python_logic/input/owasp-latest-enforce-least-privilege-principles-UserResource.yaml
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    # Check if the user is an admin\n    is_admin = fetched_value\n    \n   \
+    \ # Check if the user is enrolled in 2-step verification\n    is_enrolled_in_2sv\
+    \ = fetched_value.get('security_info', {}).get('isEnrolledIn2Sv', False)\n   \
+    \ \n    # Enforce least privilege by ensuring non-admin users are enrolled in\
+    \ 2-step verification\n    if not is_admin and is_enrolled_in_2sv:\n        result\
+    \ = True"
+  output_filepath: llm_generator_v2/data/debugging/sec3_checks_with_python_logic/step1_generate_python_logic/output/owasp-latest-enforce-least-privilege-principles-UserResource.yaml
+  result: null
+  success: false
+- error: "Traceback (most recent call last):\n  File \"/Users/aetoskia/Workspace/code/kovr-resource-collector/llm_generator/checks_with_python_logic/validate_with_mock_data/services.py\"\
+    , line 73, in _process_input\n    result = comparison_operation(fetched_value,\
+    \ None)\n  File \"/Users/aetoskia/Workspace/code/kovr-resource-collector/con_mon/compliance/models/checks.py\"\
+    , line 39, in __call__\n    response = self.function(fetched_value, config_value)\n\
+    \  File \"<string>\", line 24, in custom\n  File \"<string>\", line 15, in custom\n\
+    AttributeError: 'bool' object has no attribute 'get'\n"
+  field_path: admin_info.isAdmin
+  input_filepath: llm_generator_v2/data/debugging/sec3_checks_with_python_logic/step1_generate_python_logic/input/owasp-latest-enforce-least-privilege-principles-UserResource.yaml
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    # Check if the user is an admin\n    is_admin = fetched_value\n    \n   \
+    \ # Check if the user is enrolled in 2-step verification\n    is_enrolled_in_2sv\
+    \ = fetched_value.get('security_info', {}).get('isEnrolledIn2Sv', False)\n   \
+    \ \n    # Enforce least privilege by ensuring non-admin users are enrolled in\
+    \ 2-step verification\n    if not is_admin and is_enrolled_in_2sv:\n        result\
+    \ = True"
+  output_filepath: llm_generator_v2/data/debugging/sec3_checks_with_python_logic/step1_generate_python_logic/output/owasp-latest-enforce-least-privilege-principles-UserResource.yaml
+  result: null
+  success: false
+- error: "Traceback (most recent call last):\n  File \"/Users/aetoskia/Workspace/code/kovr-resource-collector/llm_generator/checks_with_python_logic/validate_with_mock_data/services.py\"\
+    , line 73, in _process_input\n    result = comparison_operation(fetched_value,\
+    \ None)\n  File \"/Users/aetoskia/Workspace/code/kovr-resource-collector/con_mon/compliance/models/checks.py\"\
+    , line 39, in __call__\n    response = self.function(fetched_value, config_value)\n\
+    \  File \"<string>\", line 24, in custom\n  File \"<string>\", line 15, in custom\n\
+    AttributeError: 'bool' object has no attribute 'get'\n"
+  field_path: admin_info.isAdmin
+  input_filepath: llm_generator_v2/data/debugging/sec3_checks_with_python_logic/step1_generate_python_logic/input/owasp-latest-enforce-least-privilege-principles-UserResource.yaml
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    # Check if the user is an admin\n    is_admin = fetched_value\n    \n   \
+    \ # Check if the user is enrolled in 2-step verification\n    is_enrolled_in_2sv\
+    \ = fetched_value.get('security_info', {}).get('isEnrolledIn2Sv', False)\n   \
+    \ \n    # Enforce least privilege by ensuring non-admin users are enrolled in\
+    \ 2-step verification\n    if not is_admin and is_enrolled_in_2sv:\n        result\
+    \ = True"
+  output_filepath: llm_generator_v2/data/debugging/sec3_checks_with_python_logic/step1_generate_python_logic/output/owasp-latest-enforce-least-privilege-principles-UserResource.yaml
+  result: null
+  success: false
+- error: "Traceback (most recent call last):\n  File \"/Users/aetoskia/Workspace/code/kovr-resource-collector/llm_generator/checks_with_python_logic/validate_with_mock_data/services.py\"\
+    , line 73, in _process_input\n    result = comparison_operation(fetched_value,\
+    \ None)\n  File \"/Users/aetoskia/Workspace/code/kovr-resource-collector/con_mon/compliance/models/checks.py\"\
+    , line 39, in __call__\n    response = self.function(fetched_value, config_value)\n\
+    \  File \"<string>\", line 24, in custom\n  File \"<string>\", line 15, in custom\n\
+    AttributeError: 'bool' object has no attribute 'get'\n"
+  field_path: admin_info.isAdmin
+  input_filepath: llm_generator_v2/data/debugging/sec3_checks_with_python_logic/step1_generate_python_logic/input/owasp-latest-enforce-least-privilege-principles-UserResource.yaml
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    # Check if the user is an admin\n    is_admin = fetched_value\n    \n   \
+    \ # Check if the user is enrolled in 2-step verification\n    is_enrolled_in_2sv\
+    \ = fetched_value.get('security_info', {}).get('isEnrolledIn2Sv', False)\n   \
+    \ \n    # Enforce least privilege by ensuring non-admin users are enrolled in\
+    \ 2-step verification\n    if not is_admin and is_enrolled_in_2sv:\n        result\
+    \ = True"
+  output_filepath: llm_generator_v2/data/debugging/sec3_checks_with_python_logic/step1_generate_python_logic/output/owasp-latest-enforce-least-privilege-principles-UserResource.yaml
+  result: null
+  success: false
+- error: "Traceback (most recent call last):\n  File \"/Users/aetoskia/Workspace/code/kovr-resource-collector/llm_generator/checks_with_python_logic/validate_with_mock_data/services.py\"\
+    , line 73, in _process_input\n    result = comparison_operation(fetched_value,\
+    \ None)\n  File \"/Users/aetoskia/Workspace/code/kovr-resource-collector/con_mon/compliance/models/checks.py\"\
+    , line 39, in __call__\n    response = self.function(fetched_value, config_value)\n\
+    \  File \"<string>\", line 24, in custom\n  File \"<string>\", line 15, in custom\n\
+    AttributeError: 'bool' object has no attribute 'get'\n"
+  field_path: admin_info.isAdmin
+  input_filepath: llm_generator_v2/data/debugging/sec3_checks_with_python_logic/step1_generate_python_logic/input/owasp-latest-enforce-least-privilege-principles-UserResource.yaml
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    # Check if the user is an admin\n    is_admin = fetched_value\n    \n   \
+    \ # Check if the user is enrolled in 2-step verification\n    is_enrolled_in_2sv\
+    \ = fetched_value.get('security_info', {}).get('isEnrolledIn2Sv', False)\n   \
+    \ \n    # Enforce least privilege by ensuring non-admin users are enrolled in\
+    \ 2-step verification\n    if not is_admin and is_enrolled_in_2sv:\n        result\
+    \ = True"
+  output_filepath: llm_generator_v2/data/debugging/sec3_checks_with_python_logic/step1_generate_python_logic/output/owasp-latest-enforce-least-privilege-principles-UserResource.yaml
+  result: null
+  success: false
+- error: "Traceback (most recent call last):\n  File \"/Users/aetoskia/Workspace/code/kovr-resource-collector/llm_generator/checks_with_python_logic/validate_with_mock_data/services.py\"\
+    , line 73, in _process_input\n    result = comparison_operation(fetched_value,\
+    \ None)\n  File \"/Users/aetoskia/Workspace/code/kovr-resource-collector/con_mon/compliance/models/checks.py\"\
+    , line 39, in __call__\n    response = self.function(fetched_value, config_value)\n\
+    \  File \"<string>\", line 24, in custom\n  File \"<string>\", line 15, in custom\n\
+    AttributeError: 'bool' object has no attribute 'get'\n"
+  field_path: admin_info.isAdmin
+  input_filepath: llm_generator_v2/data/debugging/sec3_checks_with_python_logic/step1_generate_python_logic/input/owasp-latest-enforce-least-privilege-principles-UserResource.yaml
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    # Check if the user is an admin\n    is_admin = fetched_value\n    \n   \
+    \ # Check if the user is enrolled in 2-step verification\n    is_enrolled_in_2sv\
+    \ = fetched_value.get('security_info', {}).get('isEnrolledIn2Sv', False)\n   \
+    \ \n    # Enforce least privilege by ensuring non-admin users are enrolled in\
+    \ 2-step verification\n    if not is_admin and is_enrolled_in_2sv:\n        result\
+    \ = True"
+  output_filepath: llm_generator_v2/data/debugging/sec3_checks_with_python_logic/step1_generate_python_logic/output/owasp-latest-enforce-least-privilege-principles-UserResource.yaml
+  result: null
+  success: false
+- error: "Traceback (most recent call last):\n  File \"/Users/aetoskia/Workspace/code/kovr-resource-collector/llm_generator/checks_with_python_logic/validate_with_mock_data/services.py\"\
+    , line 73, in _process_input\n    result = comparison_operation(fetched_value,\
+    \ None)\n  File \"/Users/aetoskia/Workspace/code/kovr-resource-collector/con_mon/compliance/models/checks.py\"\
+    , line 39, in __call__\n    response = self.function(fetched_value, config_value)\n\
+    \  File \"<string>\", line 24, in custom\n  File \"<string>\", line 15, in custom\n\
+    AttributeError: 'bool' object has no attribute 'get'\n"
+  field_path: admin_info.isAdmin
+  input_filepath: llm_generator_v2/data/debugging/sec3_checks_with_python_logic/step1_generate_python_logic/input/owasp-latest-enforce-least-privilege-principles-UserResource.yaml
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    # Check if the user is an admin\n    is_admin = fetched_value\n    \n   \
+    \ # Check if the user is enrolled in 2-step verification\n    is_enrolled_in_2sv\
+    \ = fetched_value.get('security_info', {}).get('isEnrolledIn2Sv', False)\n   \
+    \ \n    # Enforce least privilege by ensuring non-admin users are enrolled in\
+    \ 2-step verification\n    if not is_admin and is_enrolled_in_2sv:\n        result\
+    \ = True"
+  output_filepath: llm_generator_v2/data/debugging/sec3_checks_with_python_logic/step1_generate_python_logic/output/owasp-latest-enforce-least-privilege-principles-UserResource.yaml
+  result: null
+  success: false
+- error: "Traceback (most recent call last):\n  File \"/Users/aetoskia/Workspace/code/kovr-resource-collector/llm_generator/checks_with_python_logic/validate_with_mock_data/services.py\"\
+    , line 73, in _process_input\n    result = comparison_operation(fetched_value,\
+    \ None)\n  File \"/Users/aetoskia/Workspace/code/kovr-resource-collector/con_mon/compliance/models/checks.py\"\
+    , line 39, in __call__\n    response = self.function(fetched_value, config_value)\n\
+    \  File \"<string>\", line 24, in custom\n  File \"<string>\", line 15, in custom\n\
+    AttributeError: 'bool' object has no attribute 'get'\n"
+  field_path: admin_info.isAdmin
+  input_filepath: llm_generator_v2/data/debugging/sec3_checks_with_python_logic/step1_generate_python_logic/input/owasp-latest-enforce-least-privilege-principles-UserResource.yaml
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    # Check if the user is an admin\n    is_admin = fetched_value\n    \n   \
+    \ # Check if the user is enrolled in 2-step verification\n    is_enrolled_in_2sv\
+    \ = fetched_value.get('security_info', {}).get('isEnrolledIn2Sv', False)\n   \
+    \ \n    # Enforce least privilege by ensuring non-admin users are enrolled in\
+    \ 2-step verification\n    if not is_admin and is_enrolled_in_2sv:\n        result\
+    \ = True"
+  output_filepath: llm_generator_v2/data/debugging/sec3_checks_with_python_logic/step1_generate_python_logic/output/owasp-latest-enforce-least-privilege-principles-UserResource.yaml
+  result: null
+  success: false
+- error: "Traceback (most recent call last):\n  File \"/Users/aetoskia/Workspace/code/kovr-resource-collector/llm_generator/checks_with_python_logic/validate_with_mock_data/services.py\"\
+    , line 73, in _process_input\n    result = comparison_operation(fetched_value,\
+    \ None)\n  File \"/Users/aetoskia/Workspace/code/kovr-resource-collector/con_mon/compliance/models/checks.py\"\
+    , line 39, in __call__\n    response = self.function(fetched_value, config_value)\n\
+    \  File \"<string>\", line 24, in custom\n  File \"<string>\", line 15, in custom\n\
+    AttributeError: 'bool' object has no attribute 'get'\n"
+  field_path: admin_info.isAdmin
+  input_filepath: llm_generator_v2/data/debugging/sec3_checks_with_python_logic/step1_generate_python_logic/input/owasp-latest-enforce-least-privilege-principles-UserResource.yaml
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    # Check if the user is an admin\n    is_admin = fetched_value\n    \n   \
+    \ # Check if the user is enrolled in 2-step verification\n    is_enrolled_in_2sv\
+    \ = fetched_value.get('security_info', {}).get('isEnrolledIn2Sv', False)\n   \
+    \ \n    # Enforce least privilege by ensuring non-admin users are enrolled in\
+    \ 2-step verification\n    if not is_admin and is_enrolled_in_2sv:\n        result\
+    \ = True"
+  output_filepath: llm_generator_v2/data/debugging/sec3_checks_with_python_logic/step1_generate_python_logic/output/owasp-latest-enforce-least-privilege-principles-UserResource.yaml
+  result: null
+  success: false

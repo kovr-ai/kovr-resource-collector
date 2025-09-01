@@ -1,0 +1,30 @@
+resource:
+  check:
+    unique_id: owasp-latest-ensure-secure-configuration-of-application-servers
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This security check is not applicable to the provided AWS S3 bucket
+      resource.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The security check 'owasp-latest-ensure-secure-configuration-of-application-servers'
+    is focused on ensuring secure configuration of application servers, which are
+    critical components of web applications responsible for handling requests, executing
+    business logic, and serving content. This check aims to validate that application
+    servers are configured securely, following industry best practices and hardening
+    guidelines to prevent unauthorized access, data breaches, and other security incidents.
+  name: S3Resource
+  output_statements:
+    failure: One or more application servers are not configured securely, posing a
+      risk of unauthorized access, data breaches, or other security incidents.
+    partial: Some application servers are configured securely, but others require
+      further hardening.
+    success: The application servers are configured securely, following industry best
+      practices and hardening guidelines.
+  reason: The provided resource 'S3Resource' is an AWS S3 bucket, which is an object
+    storage service used for storing and retrieving data. S3 buckets are not application
+    servers and do not handle requests, execute business logic, or serve content directly.
+    Therefore, this resource is not applicable for implementing the 'owasp-latest-ensure-secure-configuration-of-application-servers'
+    security check.

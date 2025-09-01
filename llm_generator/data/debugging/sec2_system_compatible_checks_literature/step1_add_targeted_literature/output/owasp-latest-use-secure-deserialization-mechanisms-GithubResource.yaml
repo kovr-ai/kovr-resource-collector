@@ -1,0 +1,33 @@
+resource:
+  check:
+    unique_id: owasp-latest-use-secure-deserialization-mechanisms
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: Since the provided resource is not applicable for this security check,
+      no fix details are provided.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The security check 'owasp-latest-use-secure-deserialization-mechanisms'
+    is focused on ensuring that applications use secure deserialization mechanisms
+    to prevent code execution and data tampering attacks. Deserialization is the process
+    of converting serialized data into an object, which can be exploited if not properly
+    validated. This check aims to validate that applications implement secure deserialization
+    mechanisms to mitigate risks such as remote code execution, injection attacks,
+    and data tampering.
+  name: GithubResource
+  output_statements:
+    failure: The application does not use secure deserialization mechanisms, leaving
+      it vulnerable to code execution and data tampering attacks.
+    partial: N/A
+    success: The application uses secure deserialization mechanisms to prevent code
+      execution and data tampering attacks.
+  reason: The provided resource 'GithubResource' does not appear to be directly related
+    to application code or deserialization mechanisms. GitHub is a platform for hosting
+    and collaborating on code repositories, and the provided field paths primarily
+    contain metadata about the repository, collaboration data, security advisories,
+    and GitHub Actions workflows. There is no evident information about the application
+    code itself or the deserialization mechanisms used within the application. Therefore,
+    this resource is not applicable for implementing the 'owasp-latest-use-secure-deserialization-mechanisms'
+    security check.

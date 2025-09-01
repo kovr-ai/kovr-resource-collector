@@ -1,0 +1,40 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-role-based-access-control-(rbac)
+  field_paths:
+  - alarms[].alarm_actions
+  - alarms[].insufficient_data_actions
+  - alarms[].ok_actions
+  - log_groups[].kms_key_id
+  fix_details:
+    automation_available: true
+    description: While CloudWatch does not directly implement RBAC, it can be configured
+      to monitor and track RBAC-related events and activities in other AWS services
+      and resources.
+    estimated_time: 1-2 hours
+    instructions:
+    - Identify the AWS services and resources where RBAC is implemented and needs
+      to be monitored.
+    - Configure CloudWatch alarms, log groups, and metrics to capture relevant RBAC-related
+      events and activities from those services and resources.
+    - Set up CloudWatch dashboards and alerts to visualize and notify on RBAC-related
+      events and activities.
+    - Integrate CloudWatch with other AWS services like AWS Config, AWS Security Hub,
+      and AWS Lambda for automated monitoring and remediation of RBAC-related issues.
+  is_valid: false
+  literature: The CloudWatch resource in AWS is a monitoring and observability service
+    that collects and tracks metrics, logs, and events from various AWS resources
+    and applications. While CloudWatch itself does not directly implement Role-Based
+    Access Control (RBAC), it can be used in conjunction with other AWS services and
+    features to support RBAC implementation and monitoring.
+  name: CloudWatchResource
+  output_statements:
+    failure: CloudWatch is not configured to monitor and track RBAC-related events
+      and activities.
+    partial: CloudWatch is partially configured to monitor and track RBAC-related
+      events and activities, but some improvements are needed.
+    success: CloudWatch is configured to monitor and track RBAC-related events and
+      activities effectively.
+  reason: The CloudWatch resource itself does not directly implement RBAC functionality.
+    However, it can be used to monitor and track access control events and activities
+    related to RBAC implementation in other AWS services and resources.

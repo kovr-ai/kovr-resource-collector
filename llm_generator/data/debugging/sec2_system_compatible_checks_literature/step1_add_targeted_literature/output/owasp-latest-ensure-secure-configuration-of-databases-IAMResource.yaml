@@ -1,0 +1,38 @@
+resource:
+  check:
+    unique_id: owasp-latest-ensure-secure-configuration-of-databases
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: To implement this security check, you need to analyze the configuration
+      of the specific database resources in your AWS environment.
+    estimated_time: The time required will vary depending on the number of database
+      resources and the complexity of their configurations.
+    instructions:
+    - Identify the database resources (e.g., RDS instances, Aurora clusters) in your
+      AWS environment.
+    - Review the configuration settings of these database resources, including authentication
+      mechanisms, access controls, encryption settings, auditing, and logging.
+    - Ensure that the database configurations align with industry best practices and
+      security guidelines.
+    - Implement any necessary changes to the database configurations to meet the security
+      requirements.
+  is_valid: false
+  literature: The IAMResource in AWS does not directly relate to the configuration
+    of databases. It provides information about AWS Identity and Access Management
+    (IAM) policies and user access keys, which are used for controlling access to
+    AWS resources, including databases. However, it does not contain specific details
+    about the configuration settings of databases themselves.
+  name: IAMResource
+  output_statements:
+    failure: The IAMResource does not directly relate to database configuration, so
+      this check is not applicable.
+    partial: The IAMResource does not directly relate to database configuration, so
+      this check is not applicable.
+    success: The IAMResource does not directly relate to database configuration, so
+      this check is not applicable.
+  reason: The security check 'owasp-latest-ensure-secure-configuration-of-databases'
+    focuses on validating the secure configuration of databases, such as authentication
+    mechanisms, access controls, encryption settings, auditing, and logging. The IAMResource
+    in AWS does not provide information about these specific database configuration
+    settings.

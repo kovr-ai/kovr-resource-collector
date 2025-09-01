@@ -1,0 +1,37 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-input-validation-and-output-encoding
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To implement input validation and output encoding, you need to focus
+      on the application code running on the EC2 instances or other services that
+      handle user input and generate output.
+    estimated_time: Varies based on the complexity of the application and the number
+      of input/output vectors.
+    instructions:
+    - Review the application code for proper input validation and sanitization mechanisms.
+    - Implement output encoding for all user-supplied data rendered in the application's
+      output.
+    - Consider using a web application firewall (WAF) to provide additional input
+      validation and output encoding controls.
+    - Regularly update and patch the application and its dependencies to address known
+      vulnerabilities related to input validation and output encoding.
+  is_valid: false
+  literature: The EC2 resource in AWS primarily deals with virtual machine instances,
+    networking components like VPCs, subnets, security groups, and related resources.
+    It does not directly handle application code or user input/output. Therefore,
+    this resource is not directly applicable for implementing input validation and
+    output encoding controls.
+  name: EC2Resource
+  output_statements:
+    failure: The EC2 resource does not have mechanisms to validate user input or encode
+      output data.
+    partial: The EC2 resource does not directly handle input validation or output
+      encoding, but related security controls may be in place.
+    success: The EC2 resource is configured to properly validate user input and encode
+      output data.
+  reason: The EC2 resource manages infrastructure components and does not contain
+    application logic or user input handling mechanisms. Input validation and output
+    encoding are typically implemented within application code or web application
+    firewalls.

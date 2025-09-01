@@ -1,0 +1,42 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-input-validation-and-output-encoding
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: While S3 itself does not handle input validation and output encoding,
+      it is important to ensure that any applications or services that interact with
+      S3 implement these security controls. This includes properly sanitizing and
+      validating user input before storing data in S3, and properly encoding any user-supplied
+      data before rendering it in the application's output.
+    estimated_time: Varies depending on the complexity of the applications and services
+      involved.
+    instructions:
+    - Review the applications and services that interact with the S3 bucket to identify
+      potential entry points for user input.
+    - Implement input validation and sanitization mechanisms to ensure that user input
+      is properly validated and sanitized before being processed or stored in S3.
+    - Implement output encoding mechanisms to ensure that any user-supplied data is
+      properly encoded before being rendered in the application's output.
+    - Regularly review and update input validation and output encoding mechanisms
+      to address new threats and vulnerabilities.
+  is_valid: false
+  literature: The security check 'owasp-latest-implement-input-validation-and-output-encoding'
+    focuses on ensuring that user input is properly validated and sanitized before
+    being processed by an application, and that any user-supplied data is properly
+    encoded before being rendered in the application's output. This is a critical
+    security measure to prevent various types of code injection attacks, such as Cross-Site
+    Scripting (XSS), SQL Injection, and Command Injection.
+  name: S3Resource
+  output_statements:
+    failure: The S3 bucket configuration does not directly address input validation
+      and output encoding requirements.
+    partial: The S3 bucket configuration does not directly address input validation
+      and output encoding requirements.
+    success: The S3 bucket configuration meets the requirements for input validation
+      and output encoding.
+  reason: The AWS S3 resource is a storage service for hosting and serving static
+    files and objects. It does not directly handle user input or output rendering,
+    which is typically done by applications or services that interact with S3. Therefore,
+    this resource is not directly applicable for implementing input validation and
+    output encoding controls.

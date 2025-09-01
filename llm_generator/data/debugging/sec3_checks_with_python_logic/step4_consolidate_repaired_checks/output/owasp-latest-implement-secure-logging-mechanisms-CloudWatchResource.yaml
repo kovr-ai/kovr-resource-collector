@@ -1,0 +1,39 @@
+check:
+  name: owasp-latest-implement-secure-logging-mechanisms
+  resource:
+    field_path: log_groups[*].retention_in_days
+    fix_details:
+      automation_available: true
+      description: To fully implement secure logging mechanisms using AWS CloudWatch,
+        ensure that Log Groups are configured with appropriate log retention policies,
+        encryption using AWS KMS keys, and Metric Filters/Alarms to monitor and respond
+        to specific log patterns or conditions.
+      estimated_time: 1-2 hours
+      instructions:
+      - 1. Review existing CloudWatch Log Groups and ensure they have appropriate
+        log retention policies set based on organizational requirements and regulatory
+        compliance.
+      - 2. Enable encryption for Log Groups using AWS KMS keys to protect the confidentiality
+        of log data.
+      - 3. Configure CloudWatch Metric Filters to analyze log data and identify specific
+        patterns or conditions of interest.
+      - 4. Create CloudWatch Alarms based on the Metric Filters to trigger actions
+        (e.g., notifications, automated responses) when specific conditions are met.
+      - 5. Review and test the configured Metric Filters and Alarms to ensure they
+        are functioning as expected and providing the desired monitoring and incident
+        response capabilities.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for retention_days in fetched_value:\n        if retention_days is not\
+      \ None and retention_days >= 365:\n            result = True\n            break"
+    name: CloudWatchResource
+    output_statements:
+      failure: CloudWatch Log Groups are not configured with appropriate log retention
+        policies, encryption, or metric filters/alarms to implement secure logging
+        mechanisms.
+      partial: CloudWatch Log Groups are partially configured with appropriate log
+        retention policies, encryption, and metric filters/alarms to implement secure
+        logging mechanisms, but some aspects are missing or misconfigured.
+      success: CloudWatch Log Groups are configured with appropriate log retention
+        policies, encryption, and metric filters/alarms to implement secure logging
+        mechanisms.
+  unique_id: owasp-latest-implement-secure-logging-mechanisms

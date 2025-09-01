@@ -1,0 +1,41 @@
+resource:
+  check:
+    unique_id: owasp-latest-provide-security-awareness-training
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: Security awareness training is an organizational process that requires
+      dedicated efforts from the organization's security team, human resources department,
+      and management. It involves developing training materials, scheduling training
+      sessions, tracking employee participation, and continuously updating the training
+      content to address emerging threats and best practices.
+    estimated_time: Ongoing effort
+    instructions:
+    - Establish a security awareness training program within the organization.
+    - Develop training materials covering various security topics, such as phishing,
+      social engineering, password management, and data protection.
+    - Schedule regular training sessions for all employees, including new hires and
+      contractors.
+    - Track employee participation and completion of training modules.
+    - Continuously update the training content to address new threats and security
+      best practices.
+  is_valid: false
+  literature: The EC2Resource in AWS does not directly relate to providing security
+    awareness training for employees. Security awareness training is an organizational
+    process that involves educating employees on identifying and mitigating potential
+    security threats, recognizing common attack vectors, and learning best practices
+    for protecting sensitive information and systems. This resource represents various
+    aspects of Amazon Elastic Compute Cloud (EC2) instances, such as instance details,
+    networking configurations, and storage volumes, but does not contain information
+    or functionality related to employee training or awareness programs.
+  name: EC2Resource
+  output_statements:
+    failure: This resource is not applicable for the 'owasp-latest-provide-security-awareness-training'
+      security check.
+    partial: This resource is not applicable for the 'owasp-latest-provide-security-awareness-training'
+      security check.
+    success: This resource is not applicable for the 'owasp-latest-provide-security-awareness-training'
+      security check.
+  reason: The EC2Resource is focused on managing and monitoring EC2 instances and
+    related resources, but does not have any direct relevance to implementing security
+    awareness training programs within an organization.

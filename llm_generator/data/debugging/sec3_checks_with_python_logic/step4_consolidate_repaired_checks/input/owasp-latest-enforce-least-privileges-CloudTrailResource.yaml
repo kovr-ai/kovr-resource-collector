@@ -1,0 +1,10 @@
+check:
+  unique_id: owasp-latest-enforce-least-privileges
+resource:
+  field_path: event_selectors[*].data_resources.values[*]
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    for values_list in fetched_value:\n        if not values_list:\n        \
+    \    continue\n        for value in values_list:\n            if value == '?':\n\
+    \                result = False\n                break\n        else:\n      \
+    \      result = True\n            break"
+  name: CloudTrailResource

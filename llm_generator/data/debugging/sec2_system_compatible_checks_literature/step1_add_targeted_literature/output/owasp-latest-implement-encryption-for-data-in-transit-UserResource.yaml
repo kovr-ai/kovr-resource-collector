@@ -1,0 +1,42 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-encryption-for-data-in-transit
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: This resource is not applicable for implementing the 'owasp-latest-implement-encryption-for-data-in-transit'
+      security check. To address this check, you need to identify and configure resources
+      related to network communication and data transmission, such as load balancers,
+      virtual private clouds (VPCs), or other networking components.
+    estimated_time: The time required to implement this fix will vary depending on
+      the complexity of your cloud environment and the number of resources involved
+      in data transmission.
+    instructions:
+    - Identify the resources responsible for handling network communication and data
+      transmission in your cloud environment.
+    - Review the configuration of these resources to ensure that appropriate encryption
+      mechanisms (e.g., TLS, IPsec) are enabled for all data transmissions.
+    - Implement encryption for any unencrypted data transmissions, following best
+      practices and industry standards.
+    - Regularly review and update encryption configurations to ensure they remain
+      secure and compliant with the latest security recommendations.
+  is_valid: false
+  literature: The provided resource 'UserResource' appears to be related to user account
+    information and does not contain any details about network communication or data
+    transmission. Therefore, it is not applicable for implementing the security check
+    'owasp-latest-implement-encryption-for-data-in-transit', which focuses on ensuring
+    encryption for data in transit over networks.
+  name: UserResource
+  output_statements:
+    failure: The resource does not implement encryption for data in transit, leaving
+      sensitive information vulnerable to interception and unauthorized access during
+      transmission.
+    partial: The resource partially implements encryption for data in transit, but
+      some transmissions may still be unencrypted, potentially exposing sensitive
+      information.
+    success: The resource implements appropriate encryption mechanisms for all data
+      transmissions, ensuring the confidentiality and integrity of sensitive information
+      during transit.
+  reason: The UserResource does not contain any information related to network communication,
+    data transmission, or encryption mechanisms. It is focused on user account details
+    and does not have any relevance to the security check for encrypting data in transit.

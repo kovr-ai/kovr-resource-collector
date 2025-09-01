@@ -1,0 +1,33 @@
+check:
+  name: owasp-latest-implement-comprehensive-logging-mechanisms
+  resource:
+    field_path: security_info.isEnrolledIn2Sv
+    fix_details:
+      automation_available: true
+      description: To fully implement comprehensive logging mechanisms for the UserResource,
+        audit logging must be enabled and configured to capture relevant user account
+        activities.
+      estimated_time: 30 minutes
+      instructions:
+      - 1. Navigate to the Google Cloud Console and select the appropriate project.
+      - 2. Enable the Cloud Audit Logs API for the project.
+      - 3. Configure audit logging for the UserResource by selecting the appropriate
+        log types and log sinks.
+      - 4. Review and customize the log retention policy to ensure logs are retained
+        for the desired period.
+      - 5. Set up log monitoring and alerting to detect and respond to potential security
+        incidents or policy violations.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    # Implement comprehensive logging for user security events\n    if fetched_value:\n\
+      \        result = True\n    else:\n        result = False"
+    name: UserResource
+    output_statements:
+      failure: Comprehensive logging mechanisms for the UserResource have not been
+        implemented, leaving user account activities unmonitored and increasing the
+        risk of security incidents going undetected.
+      partial: Comprehensive logging mechanisms for the UserResource have been partially
+        implemented, but some critical fields or activities may not be logged, potentially
+        leading to gaps in visibility and incident response capabilities.
+      success: Comprehensive logging mechanisms for the UserResource have been implemented
+        successfully, enabling effective monitoring and incident response.
+  unique_id: owasp-latest-implement-comprehensive-logging-mechanisms

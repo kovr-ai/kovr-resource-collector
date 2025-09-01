@@ -1,0 +1,13 @@
+check:
+  unique_id: owasp-latest-protect-against-brute-force-attacks
+resource:
+  field_path: policies[].default_version.Document.Statement[].Action
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    for statement in fetched_value:\n        if hasattr(statement, 'Action'):\n\
+    \            actions = statement.Action\n        elif isinstance(statement, dict):\n\
+    \            actions = statement.get('Action')\n        else:\n            actions\
+    \ = getattr(statement, 'Action', [])\n\n        if isinstance(actions, list):\n\
+    \            if 'iam:ChangePassword' in actions and 'iam:CreateAccessKey' in actions:\n\
+    \                result = True\n                break\n        elif actions ==\
+    \ '*':\n            result = True\n            break"
+  name: IAMResource

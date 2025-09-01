@@ -1,0 +1,65 @@
+check:
+  category: system_integrity
+  control_names:
+  - NIST-800-53-SI-10
+  - ISO-27001-A.12.2.1
+  literature: Input validation and output encoding are critical security measures
+    to prevent various types of code injection attacks, such as Cross-Site Scripting
+    (XSS), SQL Injection, and Command Injection. Input validation ensures that user-supplied
+    data is properly sanitized and validated before being processed by the application,
+    while output encoding ensures that any user-supplied data is properly encoded
+    before being rendered in the application's output (e.g., web pages, API responses).
+    Failure to implement these measures can lead to severe security vulnerabilities
+    that allow attackers to execute malicious code, access or modify sensitive data,
+    or perform other unauthorized actions.
+  provider: aws
+  resource:
+    field_paths:
+    - id
+    - policies
+    - policies[]
+    - policies[].attachment_count
+    - policies[].create_date
+    - policies[].default_version
+    - policies[].default_version.CreateDate
+    - policies[].default_version.Document
+    - policies[].default_version.Document.Statement
+    - policies[].default_version.Document.Statement[]
+    - policies[].default_version.Document.Statement[].Action
+    - policies[].default_version.Document.Statement[].Action[]
+    - policies[].default_version.Document.Statement[].Condition
+    - policies[].default_version.Document.Statement[].Effect
+    - policies[].default_version.Document.Statement[].Resource
+    - policies[].default_version.Document.Version
+    - policies[].default_version.IsDefaultVersion
+    - policies[].default_version.VersionId
+    - policies[].default_version_id
+    - policies[].id
+    - policies[].path
+    - policies[].policy_id
+    - policies[].policy_name
+    - policies[].update_date
+    - source_connector
+    - users
+    - users[]
+    - users[].access_keys
+    - users[].access_keys[]
+    - users[].access_keys[].create_date
+    - users[].access_keys[].id
+    - users[].access_keys[].last_used_date
+    - users[].access_keys[].last_used_region
+    - users[].access_keys[].last_used_service
+    - users[].access_keys[].status
+    - users[].arn
+    - users[].create_date
+    - users[].id
+    - users[].mfa_devices
+    - users[].mfa_devices[]
+    - users[].mfa_devices[].enable_date
+    - users[].mfa_devices[].serial_number
+    - users[].mfa_devices[].type
+    - users[].mfa_devices[].virtual_mfa_token
+    - users[].path
+    - users[].user_id
+    name: IAMResource
+  unique_id: owasp-latest-implement-input-validation-and-output-encoding

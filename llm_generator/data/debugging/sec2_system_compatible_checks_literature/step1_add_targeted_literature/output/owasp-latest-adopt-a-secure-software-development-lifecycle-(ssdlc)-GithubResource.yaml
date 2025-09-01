@@ -1,0 +1,48 @@
+resource:
+  check:
+    unique_id: owasp-latest-adopt-a-secure-software-development-lifecycle-(ssdlc)
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: To address this issue, the organization needs to establish and implement
+      a comprehensive SSDLC that covers all stages of the software development process,
+      from requirements gathering to deployment.
+    estimated_time: Implementing a comprehensive SSDLC is a significant undertaking
+      and may take several months or longer, depending on the size and complexity
+      of the organization and its software development processes.
+    instructions:
+    - Conduct a thorough assessment of the current software development practices
+      and identify gaps related to security.
+    - Develop an SSDLC framework that incorporates security practices such as threat
+      modeling, secure coding practices, security testing, and secure deployment procedures.
+    - Provide training and awareness programs to ensure that all development teams
+      understand and follow the SSDLC practices.
+    - Implement tools and processes to automate and enforce SSDLC practices, such
+      as static code analysis, dynamic testing, and secure deployment pipelines.
+    - Continuously monitor and improve the SSDLC practices based on feedback and lessons
+      learned.
+  is_valid: false
+  literature: The Secure Software Development Lifecycle (SSDLC) is a set of practices
+    and guidelines for incorporating security throughout the software development
+    process, from requirements gathering to deployment. It involves activities such
+    as threat modeling, secure coding practices, security testing, and secure deployment
+    procedures. While the GitHub resource provides information about the repository,
+    workflows, collaborators, and security features, it does not directly address
+    the adoption and implementation of an SSDLC within an organization.
+  name: GithubResource
+  output_statements:
+    failure: The organization has not adopted or does not follow a Secure Software
+      Development Lifecycle (SSDLC) that incorporates security practices throughout
+      the software development process.
+    partial: The organization has partially adopted a Secure Software Development
+      Lifecycle (SSDLC), but there are gaps or inconsistencies in incorporating security
+      practices throughout the software development process.
+    success: The organization has adopted and follows a comprehensive Secure Software
+      Development Lifecycle (SSDLC) that incorporates security practices throughout
+      the software development process.
+  reason: The GitHub resource primarily contains information about the repository
+    itself, such as code, collaborators, and security features. However, it does not
+    provide insights into the organization's software development processes, policies,
+    and practices related to the adoption of an SSDLC. Implementing an SSDLC involves
+    organizational-level processes and procedures that span multiple teams and stages
+    of the development lifecycle, which is not directly captured by the GitHub resource.

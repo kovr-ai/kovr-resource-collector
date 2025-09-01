@@ -1,0 +1,74 @@
+check:
+  resources:
+  - field_paths:
+    - actions_data
+    - actions_data.active_workflows
+    - actions_data.recent_runs_count
+    - actions_data.total_workflows
+    - actions_data.workflows
+    - security_data
+    - security_data.code_scanning_alerts
+    - security_data.dependency_graph
+    - security_data.security_advisories
+    - security_data.security_analysis
+    - security_data.security_features_enabled
+    - security_data.total_code_scanning_alerts
+    - security_data.total_dependabot_alerts
+    - security_data.vulnerability_alerts
+    is_valid: true
+    literature: The GitHub resource contains information related to the security practices
+      and controls implemented for the software supply chain of the repository. This
+      includes details about the workflows and actions used for continuous integration
+      and deployment, as well as security features like code scanning, dependency
+      analysis, and vulnerability alerts. By analyzing this data, organizations can
+      assess their adherence to secure software supply chain practices and identify
+      potential gaps or areas for improvement.
+    name: GithubResource
+    reason: The GitHub resource provides valuable information about the security practices
+      and controls implemented for the software supply chain of the repository. This
+      includes details about the workflows and actions used for continuous integration
+      and deployment, as well as security features like code scanning, dependency
+      analysis, and vulnerability alerts. By analyzing this data, organizations can
+      assess their adherence to secure software supply chain practices and identify
+      potential gaps or areas for improvement.
+  - field_paths:
+    - trails
+    - trails[].enable_log_file_validation
+    - trails[].event_selectors
+    - trails[].event_selectors[].data_resources
+    - trails[].event_selectors[].data_resources.type
+    - trails[].event_selectors[].data_resources.values
+    - trails[].event_selectors[].data_resources.values[]
+    - trails[].event_selectors[].include_management_events
+    - trails[].event_selectors[].read_write_type
+    - trails[].id
+    - trails[].include_global_service_events
+    - trails[].insight_selectors
+    - trails[].insight_selectors[].insight_type
+    - trails[].is_logging
+    - trails[].is_multi_region_trail
+    - trails[].kms_key_id
+    - trails[].log_file_validation_enabled
+    - trails[].name
+    - trails[].s3_bucket_name
+    - trails[].s3_key_prefix
+    - trails[].tags
+    - trails[].tags[].key
+    - trails[].tags[].value
+    is_valid: true
+    literature: AWS CloudTrail is a service that records AWS API calls and related
+      events, providing a comprehensive audit trail of activities across your AWS
+      account. By configuring CloudTrail to log relevant events and storing the logs
+      in a secure and immutable location, organizations can implement secure software
+      supply chain practices by monitoring and auditing activities related to their
+      software deployments and infrastructure changes. This allows for the detection
+      of unauthorized or malicious actions, enabling organizations to respond promptly
+      and mitigate potential threats to their software supply chain.
+    name: CloudTrailResource
+    reason: AWS CloudTrail provides comprehensive logging and monitoring capabilities
+      that can be leveraged to implement secure software supply chain practices. By
+      configuring CloudTrail to log relevant events, organizations can audit and monitor
+      activities related to their software deployments, infrastructure changes, and
+      other critical operations, enabling them to detect and respond to potential
+      threats or unauthorized actions.
+  unique_id: owasp-latest-implement-secure-software-supply-chain-practices

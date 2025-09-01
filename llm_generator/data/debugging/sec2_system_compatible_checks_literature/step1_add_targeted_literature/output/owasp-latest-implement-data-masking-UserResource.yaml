@@ -1,0 +1,29 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-data-masking
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: Since the UserResource does not contain sensitive data, no remediation
+      steps are required for implementing data masking or obfuscation techniques.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The provided resource 'UserResource' from Google Cloud Platform does
+    not appear to be directly applicable for implementing data masking or obfuscation
+    techniques. This resource represents user account information and does not contain
+    any sensitive data fields that would require masking or obfuscation. Data masking
+    is typically applied to databases, data warehouses, or other storage systems that
+    contain sensitive information such as personally identifiable information (PII),
+    financial data, or intellectual property.
+  name: UserResource
+  output_statements:
+    failure: The UserResource contains sensitive data fields that require data masking
+      or obfuscation, but no masking techniques have been implemented.
+    partial: Some sensitive data fields in the UserResource have been masked or obfuscated,
+      but others remain unprotected.
+    success: The UserResource does not contain any sensitive data fields that require
+      data masking or obfuscation.
+  reason: The UserResource does not contain any sensitive data fields that would require
+    data masking or obfuscation. It primarily stores user account information and
+    metadata.

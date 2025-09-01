@@ -1,0 +1,33 @@
+check:
+  category: audit
+  control_names:
+  - NIST-800-53-AU-6
+  - ISO-27001-A.12.4.1
+  literature: The 'owasp-latest-monitor-for-suspicious-activities' check is designed
+    to detect and alert on any suspicious or anomalous activities within an organization's
+    systems and applications. It continuously monitors user behavior, system logs,
+    network traffic, and other relevant data sources to identify potential security
+    threats or unauthorized actions. This check is crucial because it helps organizations
+    proactively identify and respond to potential security incidents, such as unauthorized
+    access attempts, data exfiltration, or malicious insider activities. By monitoring
+    for suspicious activities, organizations can take timely action to mitigate risks,
+    investigate incidents, and prevent further damage or data breaches.
+  name: owasp-latest-monitor-for-suspicious-activities
+  resource:
+    field_paths:
+    - policies
+    - policies[].default_version.Document.Statement
+    - users[].access_keys
+    - users[].mfa_devices
+    literature: The IAMResource in AWS can be used to implement the 'owasp-latest-monitor-for-suspicious-activities'
+      security check. By analyzing the IAM policies, user access keys, and MFA device
+      information, you can monitor for suspicious activities such as unauthorized
+      access attempts, privilege escalation, or misuse of credentials. The policies
+      field can be inspected for overly permissive statements, while the user access
+      keys and MFA devices can be checked for unusual activity patterns or disabled
+      MFA.
+    name: IAMResource
+    reason: The IAMResource contains relevant information about IAM policies, user
+      access keys, and MFA devices, which can be used to detect suspicious activities
+      related to authentication, authorization, and access control.
+  unique_id: owasp-latest-monitor-for-suspicious-activities

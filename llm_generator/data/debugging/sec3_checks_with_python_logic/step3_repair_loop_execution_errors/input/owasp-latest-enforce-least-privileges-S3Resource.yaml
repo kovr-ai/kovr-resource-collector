@@ -1,0 +1,37 @@
+check:
+  category: access_control
+  control_names:
+  - NIST-800-53-AC-6
+  - ISO-27001-A.9.1.1
+  literature: The 'owasp-latest-enforce-least-privileges' check validates that applications
+    and systems follow the principle of least privilege, which is a fundamental security
+    concept that restricts access rights for users, accounts, and processes to only
+    those permissions that are essential for performing their intended functions.
+    Granting excessive privileges increases the potential attack surface and risk
+    of unauthorized access or misuse. This check helps mitigate threats like privilege
+    escalation, unauthorized data access, and malicious code execution by ensuring
+    that entities operate with the minimum necessary permissions.
+  name: owasp-latest-enforce-least-privileges
+  resource:
+    field_paths: []
+    literature: null
+    name: S3Resource
+    reason: null
+  unique_id: owasp-latest-enforce-least-privileges
+errors:
+- error: "Traceback (most recent call last):\n  File \"/Users/aetoskia/Workspace/code/kovr-resource-collector/llm_generator/checks_with_python_logic/validate_with_mock_data/services.py\"\
+    , line 73, in _process_input\n    result = comparison_operation(fetched_value,\
+    \ None)\n  File \"/Users/aetoskia/Workspace/code/kovr-resource-collector/con_mon/compliance/models/checks.py\"\
+    , line 39, in __call__\n    response = self.function(fetched_value, config_value)\n\
+    \  File \"<string>\", line 22, in custom\n  File \"<string>\", line 12, in custom\n\
+    AttributeError: 'NoneType' object has no attribute 'block_public_acls'\n"
+  field_path: buckets[*].public_access_block
+  input_filepath: llm_generator_v2/data/debugging/sec3_checks_with_python_logic/step1_generate_python_logic/input/owasp-latest-enforce-least-privileges-S3Resource.yaml
+  logic: "result = True\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    for public_access_block in fetched_value:\n        if not (public_access_block.block_public_acls\
+    \ and\n                public_access_block.block_public_policy and\n         \
+    \       public_access_block.ignore_public_acls and\n                public_access_block.restrict_public_buckets):\n\
+    \            result = False\n            break"
+  output_filepath: llm_generator_v2/data/debugging/sec3_checks_with_python_logic/step1_generate_python_logic/output/owasp-latest-enforce-least-privileges-S3Resource.yaml
+  result: null
+  success: false

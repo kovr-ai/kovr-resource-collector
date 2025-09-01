@@ -1,0 +1,41 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-secure-key-management
+  field_paths:
+  - trails[].kms_key_id
+  - trails[].log_file_validation_enabled
+  fix_details:
+    automation_available: true
+    description: To ensure CloudTrail is properly configured to support secure key
+      management practices, you should enable logging for key management services
+      and enable log file validation.
+    estimated_time: 30 minutes
+    instructions:
+    - 1. Identify the key management services you want to log events for (e.g., AWS
+      KMS).
+    - 2. Update the CloudTrail trail configuration to include the relevant data resources
+      for the key management services.
+    - 3. Enable log file validation for the CloudTrail trail to ensure the integrity
+      of the logs.
+    - 4. Review the CloudTrail logs regularly to monitor key management activities
+      and ensure compliance with your organization's security policies.
+  is_valid: false
+  literature: The CloudTrail resource in AWS is used for logging and monitoring API
+    activity across AWS services and resources. While CloudTrail can be configured
+    to log data events related to key management services like AWS Key Management
+    Service (KMS), it does not directly implement secure key management practices.
+    Secure key management involves practices such as using strong encryption algorithms,
+    properly generating and storing keys, regularly rotating keys, and securely distributing
+    keys to authorized parties.
+  name: CloudTrailResource
+  output_statements:
+    failure: The CloudTrail resource is not configured to log events related to key
+      management services, or log file validation is not enabled.
+    partial: The CloudTrail resource is partially configured to log events related
+      to key management services, but log file validation is not enabled.
+    success: The CloudTrail resource is configured to log events related to key management
+      services, and log file validation is enabled to ensure integrity of the logs.
+  reason: The CloudTrail resource is primarily used for logging and monitoring purposes,
+    and does not directly implement secure key management practices. While it can
+    be configured to log events related to key management services, it does not handle
+    the actual key management operations.

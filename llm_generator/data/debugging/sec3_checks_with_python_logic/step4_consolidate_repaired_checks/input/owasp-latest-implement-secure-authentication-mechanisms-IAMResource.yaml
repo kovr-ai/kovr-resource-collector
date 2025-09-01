@@ -1,0 +1,8 @@
+check:
+  unique_id: owasp-latest-implement-secure-authentication-mechanisms
+resource:
+  field_path: users[].mfa_devices[].type
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    for mfa_device_type in fetched_value:\n        if mfa_device_type and mfa_device_type.lower()\
+    \ in ['virtual', 'u2f']:\n            result = True\n            break"
+  name: IAMResource

@@ -1,0 +1,39 @@
+resource:
+  check:
+    unique_id: owasp-latest-protect-against-session-hijacking
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This resource is not applicable for implementing protection against
+      session hijacking attacks. To address this security check, you should review
+      and configure session management settings at the application or service level.
+    estimated_time: Varies depending on the number of applications and services involved.
+    instructions:
+    - Identify the applications or services that handle user sessions and authentication.
+    - Review the session management mechanisms and configurations in those applications
+      or services.
+    - Implement appropriate measures to protect against session hijacking, such as
+      using secure session management practices, implementing session timeouts, and
+      protecting session tokens from being exposed or guessed.
+    - Consult the application or service documentation for specific guidance on configuring
+      session security.
+  is_valid: false
+  literature: The GroupResource in Google Cloud Platform represents a group of users,
+    which is primarily used for managing access control and permissions. While groups
+    can be used to assign roles and permissions to users, this resource does not directly
+    relate to session management or protection against session hijacking attacks.
+    Session management and protection mechanisms are typically implemented at the
+    application or service level, rather than at the group or user management level.
+  name: GroupResource
+  output_statements:
+    failure: The GroupResource does not provide functionality to protect against session
+      hijacking attacks. This check is not applicable to this resource.
+    partial: The GroupResource does not provide functionality to protect against session
+      hijacking attacks. This check is not applicable to this resource.
+    success: The GroupResource is configured to protect against session hijacking
+      attacks.
+  reason: The GroupResource in Google Cloud Platform is not directly applicable for
+    implementing the 'owasp-latest-protect-against-session-hijacking' security check.
+    This resource is used for managing groups of users and their access permissions,
+    but it does not provide functionality or configurations related to session management
+    or protection against session hijacking attacks.

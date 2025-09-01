@@ -1,0 +1,33 @@
+check:
+  name: owasp-latest-use-secure-communication-protocols-(e.g.,-https)
+  resource:
+    field_path: buckets[*].encryption.enabled
+    fix_details:
+      automation_available: true
+      description: 'For S3 buckets that do not have encryption enabled or have public
+        access allowed, the following steps should be taken to align with the OWASP
+        recommendation:'
+      estimated_time: 15-30 minutes per bucket
+      instructions:
+      - Enable server-side encryption for the S3 bucket using AWS-managed keys (SSE-S3)
+        or customer-managed keys (SSE-KMS).
+      - Configure the S3 bucket's public access block settings to block public access
+        control lists (ACLs), block public bucket policies, ignore public ACLs, and
+        restrict public bucket access.
+      - Review and remove any existing public access policies or ACLs that grant public
+        access to the bucket or its objects.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for encryption_enabled in fetched_value:\n        if encryption_enabled:\n\
+      \            result = True\n            break"
+    name: S3Resource
+    output_statements:
+      failure: One or more S3 buckets do not have encryption enabled or have public
+        access allowed, which increases the risk of unauthorized access and data tampering,
+        violating the OWASP recommendation to use secure communication protocols.
+      partial: Some S3 buckets have encryption enabled and public access restricted,
+        while others do not, partially aligning with the OWASP recommendation to use
+        secure communication protocols.
+      success: The S3 bucket(s) have encryption enabled, and public access is appropriately
+        restricted, aligning with the OWASP recommendation to use secure communication
+        protocols.
+  unique_id: owasp-latest-use-secure-communication-protocols-(e.g.,-https)

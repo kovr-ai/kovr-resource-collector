@@ -1,0 +1,25 @@
+resource:
+  check:
+    unique_id: owasp-latest-validate-and-sanitize-all-serialized-data
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This security check is not applicable to the IAMResource in AWS.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The IAMResource in AWS does not directly handle serialized data or deserialization
+    processes. It represents Identity and Access Management (IAM) resources such as
+    users, policies, and access keys. While IAM policies can contain JSON data structures,
+    they are not serialized data in the context of this security check. This check
+    is more applicable to resources that handle serialized objects or data structures,
+    such as web applications, messaging systems, or data storage services.
+  name: IAMResource
+  output_statements:
+    failure: This resource does not handle serialized data, so the check is not applicable.
+    partial: This resource does not handle serialized data, so the check is not applicable.
+    success: This resource does not handle serialized data, so the check is not applicable.
+  reason: The IAMResource does not deal with serialized data or deserialization processes
+    directly. It manages IAM entities like users, policies, and access keys, which
+    do not involve serialization or deserialization in the context of this security
+    check.

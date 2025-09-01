@@ -1,0 +1,27 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-output-encoding-for-xss-prevention
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This check is not applicable to the CloudWatch resource.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The CloudWatch resource in AWS is a monitoring and observability service
+    that collects and tracks metrics, logs, and events from various AWS resources
+    and applications. It does not directly handle user input or output rendering,
+    which is the primary focus of the 'owasp-latest-implement-output-encoding-for-xss-prevention'
+    security check. This check is specifically designed to ensure that web applications
+    properly encode and sanitize user input to prevent Cross-Site Scripting (XSS)
+    vulnerabilities.
+  name: CloudWatchResource
+  output_statements:
+    failure: This check is not applicable to the CloudWatch resource.
+    partial: This check is not applicable to the CloudWatch resource.
+    success: This check is not applicable to the CloudWatch resource.
+  reason: The CloudWatch resource is a monitoring and observability service that does
+    not directly handle user input or output rendering, which is the primary focus
+    of the 'owasp-latest-implement-output-encoding-for-xss-prevention' security check.
+    This check is specifically designed for web applications to ensure proper encoding
+    and sanitization of user input to prevent XSS vulnerabilities.

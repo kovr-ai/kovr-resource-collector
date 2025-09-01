@@ -1,0 +1,8 @@
+check:
+  unique_id: owasp-latest-implement-comprehensive-monitoring-mechanisms
+resource:
+  field_path: log_groups[*].metric_filter_count
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    for metric_filter_count in fetched_value:\n        if metric_filter_count\
+    \ >= 1:\n            result = True\n            break"
+  name: CloudWatchResource

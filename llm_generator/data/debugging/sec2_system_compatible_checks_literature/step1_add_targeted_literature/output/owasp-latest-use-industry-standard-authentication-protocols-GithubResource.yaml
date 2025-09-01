@@ -1,0 +1,31 @@
+resource:
+  check:
+    unique_id: owasp-latest-use-industry-standard-authentication-protocols
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: Since the GithubResource does not contain any information related
+      to authentication protocols or mechanisms, it is not possible to provide remediation
+      steps for this security check.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The OWASP latest use industry standard authentication protocols check
+    validates that the application uses industry-standard authentication protocols
+    and mechanisms to authenticate users and protect their credentials. This is important
+    because using weak or outdated authentication protocols can make the application
+    vulnerable to various attacks, such as brute-force attacks, credential stuffing,
+    and man-in-the-middle attacks.
+  name: GithubResource
+  output_statements:
+    failure: The application does not use industry-standard authentication protocols
+      and mechanisms to authenticate users and protect their credentials.
+    partial: N/A
+    success: The application uses industry-standard authentication protocols and mechanisms
+      to authenticate users and protect their credentials.
+  reason: The provided GithubResource does not contain any information related to
+    authentication protocols or mechanisms used by the application. The resource fields
+    primarily contain metadata about the GitHub repository, such as branches, collaborators,
+    issues, pull requests, and security advisories. There is no information about
+    the application's authentication implementation or the protocols used for user
+    authentication.

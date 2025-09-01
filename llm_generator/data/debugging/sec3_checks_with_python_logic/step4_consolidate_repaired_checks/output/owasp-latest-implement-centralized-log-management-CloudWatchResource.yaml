@@ -1,0 +1,39 @@
+check:
+  name: owasp-latest-implement-centralized-log-management
+  resource:
+    field_path: log_groups[*].log_group_name
+    fix_details:
+      automation_available: true
+      description: If CloudWatch Log Groups and Log Streams are not configured or
+        are missing critical log sources, you need to set them up or update them to
+        enable centralized log management.
+      estimated_time: 30 minutes to 2 hours, depending on the number of log sources
+        and complexity
+      instructions:
+      - 1. Identify the AWS resources, applications, and custom log sources that need
+        to be centralized.
+      - 2. Create or update CloudWatch Log Groups to organize and store log data from
+        different sources.
+      - 3. Configure Log Streams within each Log Group to ingest log data from the
+        identified sources.
+      - 4. Set appropriate log retention periods and encryption settings for the Log
+        Groups based on your requirements.
+      - 5. Configure CloudWatch Metric Filters and Alarms to monitor and alert on
+        specific log patterns or events.
+      - 6. Integrate CloudWatch Logs with other AWS services or third-party tools
+        for advanced log analysis, visualization, and security monitoring.
+    logic: "result = False\n\n# Check if any log group name starts with '/aws/lambda/'\n\
+      if fetched_value is not None:\n    for log_group_name in fetched_value:\n  \
+      \      if log_group_name.startswith('/aws/lambda/'):\n            result = True\n\
+      \            break"
+    name: CloudWatchResource
+    output_statements:
+      failure: No CloudWatch Log Groups or Log Streams are configured, preventing
+        centralized log management and hindering security monitoring capabilities.
+      partial: Some CloudWatch Log Groups and Log Streams are configured, but log
+        data from critical sources may be missing, limiting the effectiveness of centralized
+        log management.
+      success: CloudWatch Log Groups and Log Streams are configured to centralize
+        log data from multiple sources, enabling effective log management and security
+        monitoring.
+  unique_id: owasp-latest-implement-centralized-log-management

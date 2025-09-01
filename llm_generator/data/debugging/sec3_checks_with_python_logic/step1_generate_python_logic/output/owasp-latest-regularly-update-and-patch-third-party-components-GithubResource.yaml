@@ -1,0 +1,119 @@
+resource:
+  check:
+    unique_id: owasp-latest-regularly-update-and-patch-third-party-components
+  field_path: security_data.dependency_graph
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    has_vulnerabilities = False\n    for dependency in fetched_value:\n     \
+    \   if dependency.vulnerabilities:\n            has_vulnerabilities = True\n \
+    \           break\n    result = not has_vulnerabilities"
+  name: GithubResource
+  prompt: "You are a cybersecurity compliance expert creating automated compliance\
+    \ checks for NIST 800-53 controls.\n\n**CRITICAL UNDERSTANDING: CHECKS ARE PER\
+    \ INDIVIDUAL RESOURCE**\n- Each check validates ONE resource instance at a time\n\
+    - The fetched_value contains data from a SINGLE resource\n- Logic should determine\
+    \ if THIS ONE resource is compliant\n- Do NOT try to aggregate or compare across\
+    \ multiple resources\n\n**Check Information:**\n- Check ID: owasp-latest-regularly-update-and-patch-third-party-components\n\
+    - Check Name: owasp-latest-regularly-update-and-patch-third-party-components\n\
+    - Category: system_integrity\n- Control Names:\n- NIST-800-53-SA-11\n- ISO-27001-A.12.6.1\n\
+    \n**Check Literature:**\nThird-party components, such as libraries, frameworks,\
+    \ and modules, are widely used in software development to leverage existing functionality\
+    \ and accelerate the development process. However, these components can introduce\
+    \ security vulnerabilities if they are not regularly updated and patched. Outdated\
+    \ or unpatched third-party components can expose applications to known vulnerabilities,\
+    \ which can be exploited by attackers to gain unauthorized access, execute malicious\
+    \ code, or compromise sensitive data. Regularly updating and patching third-party\
+    \ components is a critical security practice that helps mitigate the risk of vulnerabilities\
+    \ and ensures that applications remain secure.\n\n**Resource Information:**\n\
+    - Resource Name: GithubResource\n- Field Paths Available:\n- security_data.code_scanning_alerts:\
+    \ primitive\n- security_data.dependency_graph: primitive\n- security_data.security_advisories:\
+    \ primitive\n- security_data.vulnerability_alerts: primitive\n- Reason for Applicability:\
+    \ The GithubResource contains relevant information about the security posture\
+    \ of the repository, including details about vulnerabilities in third-party dependencies\
+    \ and any available patches or advisories. This information can be used to ensure\
+    \ that third-party components are regularly updated and patched.\n\n**Resource-Specific\
+    \ Literature:**\nThe GithubResource provided contains information related to the\
+    \ security and vulnerability management of the GitHub repository. Specifically,\
+    \ the security_data field contains details about code scanning alerts, dependency\
+    \ vulnerabilities, and security advisories. Regularly updating and patching third-party\
+    \ dependencies is crucial for mitigating known vulnerabilities, and this resource\
+    \ can help identify and track such issues.\n\n**\U0001F6A8 CRITICAL: FIELD PATH\
+    \ EXTRACTION BEHAVIOR \U0001F6A8**\n\n**IMPORTANT:** The field_path extracts ONLY\
+    \ specific data from the resource, NOT the full resource object!\n\n**Example\
+    \ for CloudWatchResource:**\n\nFull Resource Object:\n```json\n{\n  \"id\": \"\
+    cloudwatch-us-west-2\",\n  \"alarms\": [\n    {\"alarm_name\": \"HighCPU\", \"\
+    alarm_actions\": [\"arn:aws:sns:us-west-2:123:alert\"]},\n    {\"alarm_name\"\
+    : \"LowMemory\", \"alarm_actions\": [\"arn:aws:autoscaling:us-west-2:123:policy\"\
+    ]}\n  ],\n  \"log_groups\": [\n    {\"log_group_name\": \"/aws/lambda/func\",\
+    \ \"metric_filter_count\": 2}\n  ]\n}\n```\n\n**Field Path Examples and What fetched_value\
+    \ Contains:**\n\n1. `field_path: \"alarms[*].alarm_actions\"` \n   \u2192 `fetched_value\
+    \ = [[\"arn:aws:sns:us-west-2:123:alert\"], [\"arn:aws:autoscaling:us-west-2:123:policy\"\
+    ]]`\n   \u2192 Logic should iterate through this list of alarm_actions arrays\n\
+    \n2. `field_path: \"alarms[*].alarm_name\"`\n   \u2192 `fetched_value = [\"HighCPU\"\
+    , \"LowMemory\"]`\n   \u2192 Logic should check this list of alarm names\n\n3.\
+    \ `field_path: \"log_groups[*].metric_filter_count\"`\n   \u2192 `fetched_value\
+    \ = [2]`\n   \u2192 Logic should check this list of counts\n\n4. `field_path:\
+    \ \"alarms\"`\n   \u2192 `fetched_value = [{\"alarm_name\": \"HighCPU\", \"alarm_actions\"\
+    : [...]}, {\"alarm_name\": \"LowMemory\", \"alarm_actions\": [...]}]`\n   \u2192\
+    \ Logic should iterate through this list of alarm objects\n\n**\U0001F6A8 CRITICAL:\
+    \ PYDANTIC MODEL ACCESS \U0001F6A8**\n\n**IMPORTANT:** When field_path extracts\
+    \ nested data, the results may be **Pydantic model objects**, NOT Python dictionaries!\n\
+    \n**\u274C WRONG - Using dict methods on Pydantic objects:**\n```python\n# This\
+    \ will FAIL with AttributeError\nfor statement in fetched_value:\n    if statement.get('Effect')\
+    \ == 'Allow':  # ERROR: Pydantic models don't have .get()\n        condition =\
+    \ statement.get('Condition')  # ERROR: Use attribute access instead\n```\n\n**\u2705\
+    \ CORRECT - Using attribute access on Pydantic objects:**\n```python\n# This works\
+    \ with both dicts AND Pydantic models\nfor statement in fetched_value:\n    if\
+    \ hasattr(statement, 'Effect'):\n        effect = statement.Effect\n    elif isinstance(statement,\
+    \ dict):\n        effect = statement.get('Effect')\n    else:\n        effect\
+    \ = getattr(statement, 'Effect', None)\n\n    if effect == 'Allow':\n        #\
+    \ Access nested attributes safely\n        condition = getattr(statement, 'Condition',\
+    \ None)\n        if condition:\n            # Handle condition logic...\n```\n\
+    \n**\u274C WRONG LOGIC (assumes full resource):**\n```python\n# This will FAIL\
+    \ because fetched_value is NOT the full resource\nfor alarm in fetched_value.get('alarms',\
+    \ []):  # ERROR: fetched_value has no 'alarms' key\n    if alarm.get('alarm_actions'):\n\
+    \        # ...\n```\n\n**\u2705 CORRECT LOGIC (works with extracted data):**\n\
+    ```python\n# For field_path \"alarms[*].alarm_actions\"\n# fetched_value = [[\"\
+    arn:aws:sns:...\"], [\"arn:aws:autoscaling:...\"]]\nif isinstance(fetched_value,\
+    \ list):\n    for alarm_actions_list in fetched_value:\n        if alarm_actions_list:\n\
+    \            for action in alarm_actions_list:\n                if action.startswith('arn:aws:sns:'):\n\
+    \                    result = True\n                    break\n```\n\n**FIELD_PATH\
+    \ GUIDANCE:**\n- fetched_value will contain ONLY the data extracted by this path\n\
+    - Do NOT assume fetched_value has the full resource structure\n- Write logic that\
+    \ works with the specific data format returned by this field path\n- Do not assume\
+    \ fetched_value will be always be pydantic object, some might be primitive\n-\
+    \ Use the hit for type attached to field_path to understand what will be the type\
+    \ of fetched_value\n\n**\U0001F6A8 CRITICAL: VARIABLE SCOPE IN CUSTOM LOGIC \U0001F6A8\
+    **\n\n**IMPORTANT:** In your custom logic, you can ONLY use these variables:\n\
+    - `fetched_value` - the data extracted by the field_path\n- `result` - the variable\
+    \ to set (True/False for compliance)\n\n**\u274C DO NOT use these variables (they\
+    \ don't exist):**\n- `resource` - This variable is NOT available in custom logic\
+    \ scope\n- Any other variable names not listed above\n\n**\u274C WRONG - Using\
+    \ undefined variables:**\n```python\n# These field paths will cause NameError\
+    \ - 'resource' is not defined\nresource.policies[].default_version.Document.Statement\n\
+    resource.log_groups\n```\n\n**\u2705 CORRECT - Only use fetched_value:**\n```python\n\
+    # Only use the data extracted by your field_path\nif isinstance(fetched_value,\
+    \ list):\n    for item in fetched_value:\n        # Process the extracted data\n\
+    \        if item and hasattr(item, 'some_attribute'):\n            result = True\n\
+    \            break\n```\n\n**\U0001F6A8 CRITICAL: FIELD PATH RESTRICTION \U0001F6A8\
+    **\n\n**MANDATORY:** You MUST choose your field_path from the list above. DO NOT\
+    \ create custom field paths!\n\n**\u2705 VALID - Choose from the provided list:**\n\
+    - Pick ONE field path from the GithubResource list above\n- Use the EXACT spelling\
+    \ and format shown\n- The path must exist in the list above\n\n**\u274C INVALID\
+    \ - Do NOT create custom paths:**\n- Do NOT invent new field paths\n- Do NOT modify\
+    \ the provided paths\n- Do NOT combine multiple paths\n- Do NOT use paths not\
+    \ in the list\n\n**Example:**\nIf the list contains `alarms[*].alarm_actions`,\
+    \ use exactly:\n```yaml\nfield_path: \"alarms[*].alarm_actions\"\n```\n\n**VALIDATION\
+    \ LOGIC REQUIREMENTS:**\n1. Validate THIS ONE resource instance (not multiple\
+    \ resources)\n2. Handle edge cases: None, empty lists, missing fields\n3. Set\
+    \ result = True for compliance, result = False for non-compliance\n4. Use fetched_value\
+    \ variable to access field data\n5. Implement meaningful compliance checks (not\
+    \ just existence checks)\n7. **CRITICAL:** Write logic that works with the extracted\
+    \ data format, NOT the full resource\n\n**REQUIREMENTS:**\n- Generate ONLY the\
+    \ YAML check entry\n- No explanations, no markdown code blocks, no additional\
+    \ text\n- Implement complete custom logic (no TODO comments)\n- **CRITICAL:**\
+    \ Write logic that works with extracted data, NOT full resource\n- Follow the\
+    \ enhanced guidance provided above\n\n**OUTPUT FORMAT:**\nGenerate ONLY a JSON\
+    \ object with this structure:\n{\n  \"field_path\": \"chosen_field_path_from_available_list\"\
+    , \n  \"logic\": \"result = False\n\n# Your Python logic here\nif fetched_value\
+    \ is None:\n    result = False\nelse:\n    # Implement compliance logic based\
+    \ on literature\n    pass\"\n}\n\nGenerate the complete OUTPUT now:"

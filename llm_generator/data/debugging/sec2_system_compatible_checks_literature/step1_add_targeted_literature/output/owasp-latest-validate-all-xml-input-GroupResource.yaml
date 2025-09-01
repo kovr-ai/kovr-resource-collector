@@ -1,0 +1,29 @@
+resource:
+  check:
+    unique_id: owasp-latest-validate-all-xml-input
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: Since the provided resource is not applicable for this security check,
+      no specific fix is required.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The 'owasp-latest-validate-all-xml-input' security check is designed
+    to validate XML input received by an application to prevent XML-based attacks
+    such as XXE, XML injection, and other vulnerabilities. This check is typically
+    implemented within the application code or through a web application firewall
+    (WAF) that inspects incoming XML payloads.
+  name: GroupResource
+  output_statements:
+    failure: The application or WAF does not properly validate XML input, leaving
+      it vulnerable to potential XML-based attacks.
+    partial: N/A
+    success: The application or WAF successfully validates all incoming XML input
+      to prevent XML-based attacks.
+  reason: The provided resource 'GroupResource' from Google Cloud Platform appears
+    to be related to managing groups and group memberships within an organization.
+    Based on the available information, this resource does not seem to handle XML
+    input or have any direct relation to validating XML data. Therefore, it is not
+    applicable for implementing the 'owasp-latest-validate-all-xml-input' security
+    check.

@@ -1,0 +1,31 @@
+resource:
+  check:
+    unique_id: owasp-latest-disable-xml-external-entity-processing
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This security check is not applicable to the CloudWatchResource,
+      as it does not handle XML input or processing.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The security check 'owasp-latest-disable-xml-external-entity-processing'
+    is focused on preventing XML External Entity (XXE) attacks by disabling external
+    entity processing in applications that parse XML input. This check is primarily
+    applicable to web applications, APIs, or services that handle XML data and need
+    to ensure that external entities are not resolved, which could lead to sensitive
+    data exposure, remote code execution, or denial of service attacks.
+  name: CloudWatchResource
+  output_statements:
+    failure: This resource does not handle XML input or processing, so the check is
+      not applicable.
+    partial: This resource does not handle XML input or processing, so the check is
+      not applicable.
+    success: This resource does not handle XML input or processing, so the check is
+      not applicable.
+  reason: The provided resource 'CloudWatchResource' from AWS does not appear to be
+    directly related to handling XML input or processing XML data. CloudWatch is a
+    monitoring and observability service that collects and analyzes metrics, logs,
+    and other data from various AWS resources and applications. It does not inherently
+    deal with XML parsing or external entity processing. Therefore, this security
+    check is not directly applicable to the CloudWatchResource.

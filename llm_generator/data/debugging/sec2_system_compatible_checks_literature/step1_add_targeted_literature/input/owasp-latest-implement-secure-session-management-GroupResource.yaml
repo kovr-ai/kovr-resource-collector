@@ -1,0 +1,33 @@
+check:
+  category: access_control
+  control_names:
+  - NIST-800-53-AC-12
+  - NIST-800-53-SC-23
+  - ISO-27001-A.9.4.1
+  literature: Secure session management is a critical aspect of web application security.
+    It involves protecting user sessions from unauthorized access, hijacking, and
+    other attacks. This check validates that the application implements secure session
+    management practices, such as generating unpredictable session identifiers, protecting
+    session data from tampering, setting appropriate session timeouts, and invalidating
+    sessions after logout or inactivity. Failure to implement secure session management
+    can lead to session hijacking, unauthorized access, and other security vulnerabilities.
+  provider: google
+  resource:
+    field_paths:
+    - aliases
+    - aliases.nonEditableAliases
+    - basic_info
+    - basic_info.adminCreated
+    - basic_info.description
+    - basic_info.email
+    - basic_info.etag
+    - basic_info.id
+    - basic_info.kind
+    - basic_info.name
+    - group_id
+    - id
+    - membership_info
+    - membership_info.directMembersCount
+    - source_connector
+    name: GroupResource
+  unique_id: owasp-latest-implement-secure-session-management

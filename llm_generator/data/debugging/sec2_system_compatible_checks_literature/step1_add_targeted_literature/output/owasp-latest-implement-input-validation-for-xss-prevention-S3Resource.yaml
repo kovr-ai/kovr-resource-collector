@@ -1,0 +1,31 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-input-validation-for-xss-prevention
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This resource is not applicable for the given security check, and
+      therefore no fix is required.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The security check 'owasp-latest-implement-input-validation-for-xss-prevention'
+    is focused on preventing Cross-Site Scripting (XSS) vulnerabilities in web applications
+    by implementing input validation. This involves sanitizing and validating user
+    input to ensure that it does not contain any malicious code or scripts before
+    rendering it on the web page. However, the provided resource 'S3Resource' is an
+    AWS S3 bucket, which is an object storage service and not a web application. S3
+    buckets are used for storing and retrieving data, and do not directly handle user
+    input or render web pages.
+  name: S3Resource
+  output_statements:
+    failure: This resource is not applicable for the 'owasp-latest-implement-input-validation-for-xss-prevention'
+      security check.
+    partial: This resource is not applicable for the 'owasp-latest-implement-input-validation-for-xss-prevention'
+      security check.
+    success: This resource is not applicable for the 'owasp-latest-implement-input-validation-for-xss-prevention'
+      security check.
+  reason: The S3Resource is not a web application and does not handle user input or
+    render web pages, which is the primary focus of the 'owasp-latest-implement-input-validation-for-xss-prevention'
+    security check. Therefore, this resource is not applicable for implementing this
+    specific security check.

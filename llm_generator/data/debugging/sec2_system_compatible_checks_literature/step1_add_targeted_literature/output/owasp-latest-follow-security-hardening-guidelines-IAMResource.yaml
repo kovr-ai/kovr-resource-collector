@@ -1,0 +1,43 @@
+resource:
+  check:
+    unique_id: owasp-latest-follow-security-hardening-guidelines
+  field_paths:
+  - policies
+  - policies[].default_version.Document.Statement
+  - policies[].default_version.Document.Statement[].Action
+  - users
+  - users[].access_keys
+  fix_details:
+    automation_available: true
+    description: While the IAMResource does not directly implement the OWASP security
+      hardening guidelines, it is still important to follow best practices for IAM
+      configurations to ensure proper access control and authentication.
+    estimated_time: 1-2 hours
+    instructions:
+    - Review IAM policies and ensure they follow the principle of least privilege,
+      granting only the necessary permissions.
+    - Regularly rotate and manage access keys for IAM users.
+    - Enable multi-factor authentication (MFA) for IAM users with privileged access.
+    - Implement centralized identity management and single sign-on (SSO) for better
+      user access control.
+  is_valid: false
+  literature: The OWASP security hardening guidelines provide best practices for securing
+    web applications and systems, covering areas such as authentication, access control,
+    input validation, and secure coding practices. However, the IAMResource in AWS
+    is primarily focused on managing Identity and Access Management (IAM) policies,
+    users, and access keys. While following security best practices is important for
+    IAM configurations, this resource does not directly implement or validate adherence
+    to the OWASP security hardening guidelines, which are more applicable to web application
+    and system configurations.
+  name: IAMResource
+  output_statements:
+    failure: The IAM policies, users, and access keys do not follow the OWASP security
+      hardening guidelines.
+    partial: The IAM policies, users, and access keys partially follow the OWASP security
+      hardening guidelines.
+    success: The IAM policies, users, and access keys follow the OWASP security hardening
+      guidelines.
+  reason: The IAMResource in AWS is focused on managing IAM policies, users, and access
+    keys, which are important for access control and authentication, but do not directly
+    implement or validate adherence to the comprehensive OWASP security hardening
+    guidelines for web applications and systems.

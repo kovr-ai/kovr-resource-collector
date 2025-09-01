@@ -1,0 +1,30 @@
+resource:
+  check:
+    unique_id: owasp-latest-use-secure-xml-parsers
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: No fix is required for this resource, as it is not applicable for
+      the 'owasp-latest-use-secure-xml-parsers' security check.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The security check 'owasp-latest-use-secure-xml-parsers' is focused
+    on ensuring that secure XML parsers are used when processing XML data to mitigate
+    risks such as XML External Entity (XXE) attacks, XML Injection, and Denial of
+    Service (DoS) attacks. However, the provided AWS CloudWatch resource does not
+    appear to be directly related to XML parsing or handling XML data. CloudWatch
+    is a monitoring and observability service that collects and processes metrics,
+    logs, and other data from various AWS resources and applications.
+  name: CloudWatchResource
+  output_statements:
+    failure: This resource is not applicable for the 'owasp-latest-use-secure-xml-parsers'
+      security check.
+    partial: This resource is not applicable for the 'owasp-latest-use-secure-xml-parsers'
+      security check.
+    success: This resource is not applicable for the 'owasp-latest-use-secure-xml-parsers'
+      security check.
+  reason: The AWS CloudWatch resource is primarily used for monitoring and observability
+    purposes, and does not directly handle or process XML data. Therefore, it is not
+    applicable for implementing the 'owasp-latest-use-secure-xml-parsers' security
+    check, which is focused on ensuring the use of secure XML parsers.

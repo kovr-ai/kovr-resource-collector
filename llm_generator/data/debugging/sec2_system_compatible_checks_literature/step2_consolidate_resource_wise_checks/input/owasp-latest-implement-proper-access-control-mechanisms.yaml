@@ -1,0 +1,90 @@
+check:
+  resources:
+  - field_paths:
+    - policies
+    - policies[].default_version.Document.Statement
+    - policies[].default_version.Document.Statement[].Action
+    - policies[].default_version.Document.Statement[].Effect
+    - policies[].default_version.Document.Statement[].Resource
+    - users
+    - users[].access_keys
+    - users[].mfa_devices
+    is_valid: true
+    literature: The AWS IAM resource is a critical component for implementing proper
+      access control mechanisms in the AWS cloud environment. IAM allows you to create
+      users, groups, and roles, and assign them specific permissions through IAM policies.
+      These policies define what actions are allowed or denied for which AWS resources.
+      By carefully crafting IAM policies and assigning them to the appropriate users,
+      groups, or roles, you can enforce role-based access control (RBAC) and ensure
+      that only authorized entities can access and perform operations on sensitive
+      resources.
+    name: IAMResource
+    reason: The IAM resource provides the necessary components to implement and manage
+      access control mechanisms in AWS. The policies field contains the IAM policies
+      that define permissions, and the users field contains information about IAM
+      users and their access keys and MFA devices, which are crucial for authentication
+      and authorization.
+  - field_paths:
+    - buckets[].public_access_block
+    - buckets[].public_access_block.block_public_acls
+    - buckets[].public_access_block.block_public_policy
+    - buckets[].public_access_block.ignore_public_acls
+    - buckets[].public_access_block.restrict_public_buckets
+    is_valid: true
+    literature: The AWS S3 service provides various access control mechanisms to ensure
+      that only authorized users or entities can access and perform operations on
+      S3 buckets and objects. S3 supports resource-based access policies, bucket policies,
+      Access Control Lists (ACLs), and integration with AWS Identity and Access Management
+      (IAM) for role-based access control. These mechanisms allow you to define granular
+      permissions for different actions, resources, and conditions, enabling proper
+      access control implementation.
+    name: S3Resource
+    reason: The S3 resource is valid for implementing proper access control mechanisms
+      because it provides various access control features and configurations that
+      can be used to restrict unauthorized access to S3 buckets and objects.
+  - field_paths:
+    - trails[].event_selectors
+    - trails[].event_selectors[].data_resources
+    - trails[].event_selectors[].data_resources.type
+    - trails[].event_selectors[].data_resources.values
+    - trails[].event_selectors[].data_resources.values[]
+    - trails[].event_selectors[].include_management_events
+    - trails[].event_selectors[].read_write_type
+    - trails[].is_logging
+    - trails[].is_multi_region_trail
+    - trails[].log_file_validation_enabled
+    is_valid: true
+    literature: AWS CloudTrail is a service that records AWS API calls and related
+      events for your account. It provides a log of activities that can be used to
+      implement proper access control mechanisms by monitoring and auditing user actions
+      and API calls. CloudTrail logs can be analyzed to identify unauthorized access
+      attempts, policy violations, or suspicious activities, enabling organizations
+      to take appropriate actions to enforce access control policies and protect sensitive
+      resources.
+    name: CloudTrailResource
+    reason: CloudTrail logs can be used to monitor and audit user activities, API
+      calls, and resource access, which is essential for implementing proper access
+      control mechanisms. By analyzing CloudTrail logs, organizations can identify
+      unauthorized access attempts, policy violations, or suspicious activities, and
+      take appropriate actions to enforce access control policies and protect sensitive
+      resources.
+  - field_paths:
+    - admin_info
+    - admin_info.isAdmin
+    - admin_info.isDelegatedAdmin
+    - security_info.isEnforcedIn2Sv
+    - security_info.isEnrolledIn2Sv
+    - organizational_info.orgUnitPath
+    is_valid: true
+    literature: The Google UserResource contains information related to user accounts
+      and their access privileges within the Google Workspace environment. Proper
+      access control mechanisms can be implemented by leveraging the admin_info fields
+      to define administrative roles and permissions, as well as the security_info
+      fields to enforce multi-factor authentication requirements. Additionally, the
+      organizational_info.orgUnitPath field can be used to structure organizational
+      units and apply access control policies based on the hierarchical structure.
+    name: UserResource
+    reason: The UserResource provides fields and attributes that can be used to implement
+      role-based access control (RBAC) and enforce multi-factor authentication requirements,
+      which are essential components of proper access control mechanisms.
+  unique_id: owasp-latest-implement-proper-access-control-mechanisms

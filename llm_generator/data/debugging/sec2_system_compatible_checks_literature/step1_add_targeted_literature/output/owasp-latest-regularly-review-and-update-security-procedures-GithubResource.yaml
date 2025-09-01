@@ -1,0 +1,42 @@
+resource:
+  check:
+    unique_id: owasp-latest-regularly-review-and-update-security-procedures
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To address this issue, the organization should establish a formal
+      process for regularly reviewing and updating its security procedures.
+    estimated_time: 3-6 months
+    instructions:
+    - Develop a security governance framework that outlines roles, responsibilities,
+      and processes for security risk management.
+    - Define a schedule for periodic reviews of security procedures, policies, and
+      controls (e.g., annually, bi-annually).
+    - Establish a cross-functional team or committee responsible for conducting the
+      reviews and proposing updates.
+    - Implement a risk assessment methodology to identify and evaluate emerging threats,
+      vulnerabilities, and industry best practices.
+    - Document and communicate updated security procedures to all relevant stakeholders
+      and ensure proper training and implementation.
+  is_valid: false
+  literature: The security check 'owasp-latest-regularly-review-and-update-security-procedures'
+    recommends regularly reviewing and updating security procedures to maintain an
+    effective and up-to-date security posture. This involves assessing and adapting
+    security measures to address evolving threats, vulnerabilities, and industry best
+    practices. However, the provided GithubResource does not appear to contain information
+    directly related to an organization's security procedures or review processes.
+    The resource primarily contains data about GitHub repositories, workflows, collaborators,
+    and security advisories, but lacks details on the organization's overall security
+    governance and risk management practices.
+  name: GithubResource
+  output_statements:
+    failure: The organization does not have a defined process for regularly reviewing
+      and updating its security procedures.
+    partial: The organization partially reviews and updates its security procedures,
+      but the process is not comprehensive or consistent.
+    success: The organization regularly reviews and updates its security procedures
+      to address evolving threats and align with industry best practices.
+  reason: The GithubResource does not contain information relevant to an organization's
+    security procedures review and update processes. It lacks data about the organization's
+    security governance, risk assessment methodologies, and procedures for regularly
+    evaluating and updating security controls.

@@ -1,0 +1,28 @@
+resource:
+  check:
+    unique_id: owasp-latest-use-secure-defaults
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This resource is not applicable for the 'owasp-latest-use-secure-defaults'
+      check.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The 'owasp-latest-use-secure-defaults' check is focused on ensuring
+    that applications and systems are configured with secure default settings and
+    configurations. This includes disabling unnecessary services, enforcing strong
+    security controls, and mitigating known vulnerabilities in default configurations.
+    The UserResource in Google Cloud does not appear to be directly related to application
+    or system configurations. Instead, it represents user account information and
+    settings within the Google Workspace environment.
+  name: UserResource
+  output_statements:
+    failure: The UserResource does not have secure default settings and configurations.
+    partial: Some aspects of the UserResource are configured with secure default settings
+      and configurations, but others are not.
+    success: The UserResource is configured with secure default settings and configurations.
+  reason: The UserResource in Google Cloud represents user account details and settings,
+    which do not directly relate to application or system configurations that are
+    the focus of the 'owasp-latest-use-secure-defaults' check. This resource is not
+    applicable for implementing this specific security check.

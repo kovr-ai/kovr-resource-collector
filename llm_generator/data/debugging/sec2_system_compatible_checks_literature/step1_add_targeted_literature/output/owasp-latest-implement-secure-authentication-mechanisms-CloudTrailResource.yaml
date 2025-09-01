@@ -1,0 +1,43 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-secure-authentication-mechanisms
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To implement secure authentication mechanisms as per the OWASP security
+      check, you should review and configure the authentication mechanisms within
+      the applications, services, or identity providers that handle user authentication
+      and authorization.
+    estimated_time: The time required for implementing secure authentication mechanisms
+      can vary significantly depending on the complexity of your environment and the
+      existing authentication mechanisms in place. It may take several hours to several
+      weeks or months, depending on the scope and level of effort required.
+    instructions:
+    - Identify the applications, services, or identity providers that handle user
+      authentication in your environment.
+    - Review the authentication mechanisms implemented by these components and assess
+      their compliance with the OWASP security check.
+    - Implement or configure appropriate authentication controls, such as brute-force
+      protection, credential stuffing prevention, and secure session management.
+    - Regularly review and update the authentication mechanisms to address emerging
+      threats and best practices.
+  is_valid: false
+  literature: The CloudTrail resource in AWS is primarily used for logging and monitoring
+    API activity across AWS services and resources. While it can provide valuable
+    audit trails and insights into user actions, it does not directly implement secure
+    authentication mechanisms as described in the OWASP security check. Secure authentication
+    mechanisms are typically implemented within applications, services, or identity
+    providers that handle user authentication and authorization.
+  name: CloudTrailResource
+  output_statements:
+    failure: The CloudTrail resource does not implement secure authentication mechanisms
+      as described in the OWASP security check.
+    partial: The CloudTrail resource does not directly implement secure authentication
+      mechanisms, but it can provide valuable audit logs for monitoring and investigating
+      potential authentication-related incidents.
+    success: The CloudTrail resource is configured to log and monitor API activity,
+      providing valuable audit trails for security analysis.
+  reason: The CloudTrail resource is focused on logging and auditing API activity,
+    rather than implementing secure authentication mechanisms. It does not directly
+    handle user authentication or implement authentication controls such as brute-force
+    protection, credential stuffing prevention, or session management.

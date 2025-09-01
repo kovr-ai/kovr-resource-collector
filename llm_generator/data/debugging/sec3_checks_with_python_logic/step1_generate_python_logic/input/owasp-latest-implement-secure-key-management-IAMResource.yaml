@@ -1,0 +1,39 @@
+check:
+  category: encryption
+  control_names:
+  - NIST-800-53-SC-12
+  - NIST-800-53-SC-13
+  - ISO-27001-A.10.1.2
+  literature: Secure key management is a critical aspect of ensuring the confidentiality,
+    integrity, and availability of sensitive data. Keys are used to encrypt and decrypt
+    data, authenticate users and systems, and ensure the integrity of data transmissions.
+    Improper key management can lead to unauthorized access, data breaches, and other
+    security incidents. This check validates that an application or system implements
+    secure key management practices, such as using strong encryption algorithms, properly
+    generating and storing keys, regularly rotating keys, and securely distributing
+    keys to authorized parties. Failure to implement secure key management can result
+    in data exposure, unauthorized access, and other security risks.
+  name: owasp-latest-implement-secure-key-management
+  resource:
+    field_paths:
+    - users
+    - users[].access_keys
+    - users[].access_keys[].create_date
+    - users[].access_keys[].last_used_date
+    - users[].access_keys[].status
+    - policies
+    - policies[].default_version.Document.Statement
+    - policies[].default_version.Document.Statement[].Action
+    - policies[].default_version.Document.Statement[].Resource
+    literature: The IAM resource in AWS is relevant for implementing secure key management
+      practices. IAM allows you to create and manage access keys, which are used to
+      securely authenticate requests to AWS services. Proper management of these access
+      keys is crucial for maintaining data confidentiality and preventing unauthorized
+      access. This resource provides the necessary controls to enforce secure key
+      management practices, such as key rotation, key revocation, and access restrictions.
+    name: IAMResource
+    reason: The IAM resource provides access keys for authenticating requests to AWS
+      services, and policies for controlling access permissions. These elements are
+      essential for implementing secure key management practices, such as key rotation,
+      revocation, and access restrictions.
+  unique_id: owasp-latest-implement-secure-key-management

@@ -1,0 +1,34 @@
+resource:
+  check:
+    unique_id: owasp-latest-validate-access-controls-on-the-server-side
+  field_paths:
+  - buckets[].public_access_block.block_public_acls
+  - buckets[].public_access_block.block_public_policy
+  - buckets[].public_access_block.ignore_public_acls
+  - buckets[].public_access_block.restrict_public_buckets
+  fix_details:
+    automation_available: false
+    description: This check is not directly applicable to the AWS S3 resource, as
+      it focuses on server-side application code and logic rather than storage services.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The 'owasp-latest-validate-access-controls-on-the-server-side' check
+    is designed to validate that access controls are properly implemented on the server-side
+    of an application. This check is primarily focused on ensuring that server-side
+    code and logic correctly enforce access controls and authorization mechanisms
+    for protected resources and data.
+  name: S3Resource
+  output_statements:
+    failure: The server-side application code does not properly implement access controls
+      and authorization mechanisms, potentially allowing unauthorized access to protected
+      resources and data.
+    partial: N/A
+    success: The server-side application code correctly implements access controls
+      and authorization mechanisms for protected resources and data.
+  reason: The AWS S3 resource is a storage service and does not directly implement
+    server-side application logic or access controls. While S3 provides access control
+    mechanisms through bucket policies and access control lists (ACLs), these are
+    not the primary focus of the 'owasp-latest-validate-access-controls-on-the-server-side'
+    check, which is more concerned with the server-side application code and logic
+    that enforces access controls.

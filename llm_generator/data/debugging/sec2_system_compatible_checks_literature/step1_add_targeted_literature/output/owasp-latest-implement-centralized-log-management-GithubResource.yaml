@@ -1,0 +1,39 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-centralized-log-management
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: To implement centralized log management, you need to use a dedicated
+      log management solution or service that can collect, store, and analyze logs
+      from various sources within your organization.
+    estimated_time: The implementation time can vary depending on the size and complexity
+      of your organization, but it typically takes several weeks to several months.
+    instructions:
+    - Evaluate and select a centralized log management solution that meets your organization's
+      requirements.
+    - Configure the log management solution to collect logs from different sources,
+      such as servers, applications, network devices, and security tools.
+    - Set up log forwarding or agents on the sources to send logs to the centralized
+      log management system.
+    - Define log retention policies and storage requirements based on your organization's
+      needs and compliance requirements.
+    - Implement log analysis and monitoring capabilities to detect security incidents,
+      troubleshoot issues, and generate reports.
+    - Integrate the log management solution with other security tools and processes
+      for incident response and forensic investigations.
+  is_valid: false
+  literature: The GitHub resource provided does not contain any information related
+    to centralized log management. This resource primarily contains data about the
+    GitHub repository itself, such as its metadata, branches, collaborators, actions
+    workflows, security advisories, and vulnerability alerts. However, it does not
+    provide any information about log collection, storage, or analysis from various
+    sources within the organization.
+  name: GithubResource
+  output_statements:
+    failure: The GitHub resource does not support centralized log management.
+    partial: The GitHub resource partially supports centralized log management.
+    success: The GitHub resource supports centralized log management.
+  reason: The GitHub resource does not contain any relevant information or capabilities
+    for implementing centralized log management. It lacks data related to log collection,
+    storage, and analysis from different sources across the organization.

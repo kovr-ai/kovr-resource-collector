@@ -1,0 +1,32 @@
+check:
+  name: owasp-latest-remove-unnecessary-features-and-components
+  resource:
+    field_path: buckets[*].public_access_block
+    fix_details:
+      automation_available: true
+      description: If an S3 bucket has unnecessary features or public access enabled,
+        these configurations should be reviewed and adjusted to align with the OWASP
+        check.
+      estimated_time: 15-30 minutes
+      instructions:
+      - Review the public access block settings for the S3 bucket and ensure that
+        'block_public_acls', 'block_public_policy', 'ignore_public_acls', and 'restrict_public_buckets'
+        are all set to true.
+      - Disable website hosting for the S3 bucket if it is not required by setting
+        'website_enabled' to false.
+      - Review any other bucket configurations or settings that may enable unnecessary
+        features or public access and disable or remove them as appropriate.
+    logic: "result = True\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for public_access_block in fetched_value:\n        if not (public_access_block.block_public_acls\
+      \ and\n                public_access_block.block_public_policy and\n       \
+      \         public_access_block.ignore_public_acls and\n                public_access_block.restrict_public_buckets):\n\
+      \            result = False\n            break"
+    name: S3Resource
+    output_statements:
+      failure: The S3 bucket has unnecessary features or public access enabled, increasing
+        the attack surface and potential security risks.
+      partial: Some S3 bucket configurations align with the OWASP check, but others
+        may still expose unnecessary features or public access.
+      success: The S3 bucket has unnecessary features and public access properly disabled
+        or removed.
+  unique_id: owasp-latest-remove-unnecessary-features-and-components

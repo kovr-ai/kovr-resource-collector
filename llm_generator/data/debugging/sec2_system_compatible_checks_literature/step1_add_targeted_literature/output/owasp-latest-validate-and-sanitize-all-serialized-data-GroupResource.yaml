@@ -1,0 +1,28 @@
+resource:
+  check:
+    unique_id: owasp-latest-validate-and-sanitize-all-serialized-data
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This security check is not applicable to the GroupResource, as it
+      does not handle serialized data or deserialization operations.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The GroupResource in Google Cloud does not appear to handle any serialized
+    data or deserialization operations. This resource represents a group of entities,
+    such as users or service accounts, and contains metadata about the group, its
+    members, and related information. It does not seem to involve processing or deserializing
+    serialized data structures, which is the focus of this security check.
+  name: GroupResource
+  output_statements:
+    failure: The GroupResource does not handle serialized data, so this check is not
+      applicable.
+    partial: The GroupResource does not handle serialized data, so this check is not
+      applicable.
+    success: The GroupResource does not handle serialized data, so this check is not
+      applicable.
+  reason: The GroupResource does not handle serialized data or deserialization operations,
+    which is the primary concern of this security check. The resource's fields contain
+    metadata about the group and its members, but do not appear to involve processing
+    serialized data structures.

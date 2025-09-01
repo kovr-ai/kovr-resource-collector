@@ -1,0 +1,33 @@
+check:
+  name: owasp-latest-enforce-least-privilege-principles
+  resource:
+    field_path: buckets[].public_access_block.block_public_acls
+    fix_details:
+      automation_available: true
+      description: If any S3 buckets are found to have excessive permissions, lack
+        encryption, or allow public access, these issues need to be addressed to comply
+        with the principle of least privilege.
+      estimated_time: 30 minutes to 1 hour
+      instructions:
+      - Review the bucket policies and access control lists (ACLs) for each S3 bucket
+        and remove any unnecessary permissions or public access grants.
+      - Enable server-side encryption for all S3 buckets using AWS-managed keys (SSE-S3)
+        or customer-managed keys (SSE-KMS).
+      - Configure the public access block settings for each S3 bucket to block public
+        access, public ACLs, and public bucket policies.
+      - Regularly review and audit S3 bucket configurations to ensure they remain
+        compliant with the principle of least privilege.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for block_public_acls in fetched_value:\n        if block_public_acls:\n\
+      \            result = True\n        else:\n            result = False\n    \
+      \        break"
+    name: S3Resource
+    output_statements:
+      failure: One or more S3 buckets have excessive permissions, lack encryption,
+        or allow public access, violating the principle of least privilege.
+      partial: Some S3 buckets are configured correctly, while others have issues
+        with access controls, encryption, or public access settings, partially violating
+        the principle of least privilege.
+      success: The S3 buckets are configured with appropriate access controls, encryption,
+        and public access restrictions, adhering to the principle of least privilege.
+  unique_id: owasp-latest-enforce-least-privilege-principles

@@ -1,0 +1,67 @@
+check:
+  resources:
+  - field_paths:
+    - trails
+    - trails[].event_selectors
+    - trails[].event_selectors[].data_resources
+    - trails[].event_selectors[].include_management_events
+    - trails[].is_logging
+    - trails[].is_multi_region_trail
+    - trails[].log_file_validation_enabled
+    - trails[].s3_bucket_name
+    is_valid: true
+    literature: AWS CloudTrail is a service that records AWS API calls and related
+      events, providing a comprehensive audit trail of activities across your AWS
+      account. By configuring CloudTrail appropriately, you can capture and analyze
+      logs to detect and respond to security incidents effectively. This resource
+      is applicable for implementing the 'owasp-latest-establish-incident-response-plans'
+      security check as it allows you to set up logging and monitoring mechanisms,
+      which are crucial components of an incident response plan.
+    name: CloudTrailResource
+    reason: The CloudTrail resource allows you to configure and manage trails, which
+      capture API activity logs across your AWS account. By enabling appropriate event
+      selectors, data resource types, and management event logging, you can ensure
+      comprehensive logging of relevant activities. Additionally, enabling log file
+      validation, multi-region trails, and configuring an S3 bucket for log storage
+      are essential for maintaining an audit trail and supporting incident response
+      efforts.
+  - field_paths:
+    - alarms
+    - alarms[].alarm_actions
+    - alarms[].alarm_description
+    - alarms[].alarm_name
+    - alarms[].dimensions
+    - alarms[].dimensions[].Name
+    - alarms[].dimensions[].Value
+    - alarms[].metric_name
+    - alarms[].namespace
+    - alarms[].ok_actions
+    - log_groups
+    - log_groups[].arn
+    - log_groups[].log_group_name
+    - log_groups[].metric_filter_count
+    - log_groups[].retention_in_days
+    - metrics
+    - metrics[].dimensions
+    - metrics[].dimensions[].Name
+    - metrics[].dimensions[].Value
+    - metrics[].metric_name
+    - metrics[].namespace
+    is_valid: true
+    literature: CloudWatch is a monitoring and observability service provided by AWS
+      that can play a crucial role in establishing incident response plans. It allows
+      you to collect and analyze logs, metrics, and events from various AWS resources
+      and applications. This data can be used to detect and respond to security incidents,
+      such as unauthorized access attempts, system failures, or performance issues.
+      By setting up CloudWatch alarms and integrating them with other AWS services
+      like AWS Lambda or Amazon SNS, you can automate incident response actions, such
+      as triggering notifications, executing remediation scripts, or invoking incident
+      response workflows.
+    name: CloudWatchResource
+    reason: CloudWatch provides essential monitoring and logging capabilities that
+      can be leveraged to detect security incidents and trigger appropriate response
+      actions. By setting up alarms, metric filters, and log groups, you can monitor
+      various aspects of your AWS resources and applications, and define automated
+      actions to be taken when specific conditions are met, such as sending notifications
+      or invoking incident response workflows.
+  unique_id: owasp-latest-establish-incident-response-plans

@@ -1,0 +1,40 @@
+check:
+  category: network_security
+  control_names:
+  - NIST-800-53-CM-6
+  - NIST-800-53-SI-2
+  - ISO-27001-A.12.1.2
+  literature: Web servers are a critical component of modern web applications and
+    services, acting as the gateway between clients and the application logic. Ensuring
+    secure configuration of web servers is crucial to prevent unauthorized access,
+    data breaches, and other security incidents. This check validates that web servers
+    are configured securely, following industry best practices and hardening guidelines.
+    Insecure web server configurations can lead to various vulnerabilities, such as
+    information disclosure, remote code execution, and denial of service attacks.
+    By enforcing secure configurations, this check helps mitigate risks associated
+    with web server misconfigurations and reduces the attack surface.
+  provider: aws
+  resource:
+    field_paths:
+    - buckets
+    - buckets[]
+    - buckets[].creation_date
+    - buckets[].encryption
+    - buckets[].encryption.enabled
+    - buckets[].encryption.kms_key_id
+    - buckets[].encryption.type
+    - buckets[].id
+    - buckets[].logging_enabled
+    - buckets[].name
+    - buckets[].public_access_block
+    - buckets[].public_access_block.block_public_acls
+    - buckets[].public_access_block.block_public_policy
+    - buckets[].public_access_block.ignore_public_acls
+    - buckets[].public_access_block.restrict_public_buckets
+    - buckets[].region
+    - buckets[].versioning_status
+    - buckets[].website_enabled
+    - id
+    - source_connector
+    name: S3Resource
+  unique_id: owasp-latest-ensure-secure-configuration-of-web-servers

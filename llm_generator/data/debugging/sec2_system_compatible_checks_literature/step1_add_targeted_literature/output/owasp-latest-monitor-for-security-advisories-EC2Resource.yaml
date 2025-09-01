@@ -1,0 +1,43 @@
+resource:
+  check:
+    unique_id: owasp-latest-monitor-for-security-advisories
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To address this security check, the organization needs to establish
+      processes and procedures for monitoring security advisories from relevant sources,
+      such as software vendors, security researchers, and industry organizations.
+    estimated_time: 2-4 weeks
+    instructions:
+    - Identify relevant sources of security advisories for the software and systems
+      used within the organization.
+    - Subscribe to security advisory mailing lists or RSS feeds from these sources.
+    - Assign personnel or teams responsible for regularly reviewing and triaging incoming
+      security advisories.
+    - Develop procedures for assessing the impact and risk of reported vulnerabilities
+      on the organization's systems and applications.
+    - Implement processes for testing and deploying security updates or mitigations
+      in a timely manner.
+    - Establish communication channels and procedures for notifying relevant stakeholders
+      and teams about critical security advisories and required actions.
+  is_valid: false
+  literature: The EC2Resource in AWS does not directly provide information about security
+    advisories or mechanisms to monitor for them. Security advisories are typically
+    issued by software vendors, security researchers, or other organizations, and
+    are not directly related to the configuration or state of EC2 instances or other
+    AWS resources.
+  name: EC2Resource
+  output_statements:
+    failure: The organization does not have processes or procedures in place to monitor
+      for and respond to security advisories, leaving systems and applications potentially
+      vulnerable to known threats.
+    partial: The organization has partially implemented processes and procedures to
+      monitor for security advisories, but there are gaps or inconsistencies that
+      need to be addressed.
+    success: The organization has implemented processes and procedures to effectively
+      monitor for and respond to security advisories.
+  reason: The EC2Resource does not contain any information or functionality related
+    to monitoring for security advisories. This security check is focused on processes
+    and procedures for staying informed about potential vulnerabilities and threats,
+    which is not directly related to the configuration or state of EC2 instances or
+    other AWS resources.

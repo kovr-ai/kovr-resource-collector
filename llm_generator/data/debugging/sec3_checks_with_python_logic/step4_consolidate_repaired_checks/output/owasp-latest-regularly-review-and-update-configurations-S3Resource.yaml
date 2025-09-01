@@ -1,0 +1,32 @@
+check:
+  name: owasp-latest-regularly-review-and-update-configurations
+  resource:
+    field_path: buckets[*].encryption.enabled
+    fix_details:
+      automation_available: true
+      description: Review and update S3 bucket configurations to align with security
+        best practices and address any identified issues.
+      estimated_time: 30 minutes to 2 hours, depending on the number of S3 buckets
+        and configurations to review and update.
+      instructions:
+      - Identify S3 buckets with outdated or insecure configurations based on the
+        security check findings.
+      - Update encryption settings to use the latest and most secure encryption algorithms
+        and key management practices.
+      - Configure public access blocks to restrict public access and prevent accidental
+        data exposure.
+      - Enable logging and versioning for auditing and data recovery purposes.
+      - Review and update any other relevant S3 bucket configurations based on the
+        latest security guidelines.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for encryption_enabled in fetched_value:\n        if encryption_enabled:\n\
+      \            result = True\n            break"
+    name: S3Resource
+    output_statements:
+      failure: One or more S3 bucket configurations are outdated or insecure, posing
+        potential risks.
+      partial: Some S3 bucket configurations are up-to-date, but others require review
+        and updates.
+      success: All S3 bucket configurations are up-to-date and aligned with security
+        best practices.
+  unique_id: owasp-latest-regularly-review-and-update-configurations

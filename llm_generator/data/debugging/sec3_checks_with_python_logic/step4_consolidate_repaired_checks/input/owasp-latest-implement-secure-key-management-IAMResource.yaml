@@ -1,0 +1,16 @@
+check:
+  unique_id: owasp-latest-implement-secure-key-management
+resource:
+  field_path: users[].access_keys[].status
+  logic: "result = True\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    import datetime\n    now = datetime.datetime.utcnow()\n    for access_key_status\
+    \ in fetched_value:\n        if access_key_status == 'Active':\n            for\
+    \ user in fetched_value:\n                if user is not None:\n             \
+    \       for access_key in user.access_keys:\n                        if access_key\
+    \ is not None and access_key.status == 'Active':\n                           \
+    \ create_date = access_key.create_date\n                            if create_date\
+    \ is not None:\n                                age = now - create_date\n    \
+    \                            if age.days > 90:\n                             \
+    \       result = False\n                                    break\n        else:\n\
+    \            result = False\n            break"
+  name: IAMResource

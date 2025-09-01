@@ -1,0 +1,44 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-role-based-access-control-(rbac)
+  field_paths:
+  - policies
+  - policies[].default_version.Document.Statement
+  - policies[].default_version.Document.Statement[].Action
+  - policies[].default_version.Document.Statement[].Effect
+  - policies[].default_version.Document.Statement[].Resource
+  - users
+  - users[].arn
+  - users[].mfa_devices
+  fix_details:
+    automation_available: true
+    description: If RBAC is not properly implemented, you may need to review and update
+      IAM policies, user identities, and MFA device configurations.
+    estimated_time: 1-2 hours
+    instructions:
+    - Review IAM policies and ensure they follow the principle of least privilege,
+      granting only the necessary permissions for each role or user.
+    - Verify that all users are assigned to appropriate groups or roles based on their
+      job functions and access requirements.
+    - Enable and enforce MFA for all IAM users, especially those with privileged access.
+    - Regularly review and audit IAM configurations to identify and remediate any
+      deviations from RBAC best practices.
+  is_valid: true
+  literature: The AWS IAM Resource is a critical component for implementing Role-Based
+    Access Control (RBAC) in AWS. IAM allows you to create users, groups, and roles
+    with specific permissions to access AWS resources. By defining policies and attaching
+    them to IAM entities, you can enforce least privilege access and ensure that users
+    only have the necessary permissions to perform their job functions.
+  name: IAMResource
+  output_statements:
+    failure: RBAC is not properly implemented. IAM policies, user identities, or MFA
+      devices are misconfigured, allowing unauthorized access or violating the principle
+      of least privilege.
+    partial: RBAC implementation is partially effective. Some IAM policies, user identities,
+      or MFA devices may need further review or adjustment.
+    success: RBAC is effectively implemented using IAM policies, user identities,
+      and MFA devices. Access is restricted based on defined roles and permissions.
+  reason: The IAM Resource provides the necessary components to implement RBAC, including
+    policies, user identities, and multi-factor authentication (MFA) devices. By analyzing
+    the policy statements, user ARNs, and MFA devices, you can validate if RBAC is
+    properly configured and enforced.

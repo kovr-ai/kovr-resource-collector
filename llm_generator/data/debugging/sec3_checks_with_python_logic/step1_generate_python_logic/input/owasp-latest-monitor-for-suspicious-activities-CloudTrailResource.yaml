@@ -1,0 +1,58 @@
+check:
+  category: audit
+  control_names:
+  - NIST-800-53-AU-6
+  - ISO-27001-A.12.4.1
+  literature: The 'owasp-latest-monitor-for-suspicious-activities' check is designed
+    to detect and alert on any suspicious or anomalous activities within an organization's
+    systems and applications. It continuously monitors user behavior, system logs,
+    network traffic, and other relevant data sources to identify potential security
+    threats or unauthorized actions. This check is crucial because it helps organizations
+    proactively identify and respond to potential security incidents, such as unauthorized
+    access attempts, data exfiltration, or malicious insider activities. By monitoring
+    for suspicious activities, organizations can take timely action to mitigate risks,
+    investigate incidents, and prevent further damage or data breaches.
+  name: owasp-latest-monitor-for-suspicious-activities
+  resource:
+    field_paths:
+    - event_selectors
+    - event_selectors[]
+    - event_selectors[].data_resources
+    - event_selectors[].data_resources.type
+    - event_selectors[].data_resources.values
+    - event_selectors[].data_resources.values[]
+    - event_selectors[].include_management_events
+    - event_selectors[].read_write_type
+    - trails
+    - trails[]
+    - trails[].event_selectors
+    - trails[].event_selectors[]
+    - trails[].event_selectors[].data_resources
+    - trails[].event_selectors[].data_resources.type
+    - trails[].event_selectors[].data_resources.values
+    - trails[].event_selectors[].data_resources.values[]
+    - trails[].event_selectors[].include_management_events
+    - trails[].event_selectors[].read_write_type
+    - trails[].insight_selectors
+    - trails[].insight_selectors[]
+    - trails[].insight_selectors[].insight_type
+    - trails[].is_logging
+    - trails[].is_multi_region_trail
+    - trails[].log_file_validation_enabled
+    literature: The AWS CloudTrail resource is highly applicable for implementing
+      the 'owasp-latest-monitor-for-suspicious-activities' security check. CloudTrail
+      is a service that records AWS API calls and related events, providing a comprehensive
+      audit trail of activities across your AWS account. By configuring CloudTrail
+      trails and event selectors, you can capture and monitor various types of events,
+      including management events, data events, and insights events. This allows you
+      to detect and investigate suspicious or anomalous activities within your AWS
+      environment, such as unauthorized access attempts, policy changes, or data exfiltration.
+    name: CloudTrailResource
+    reason: The CloudTrail resource provides comprehensive logging and monitoring
+      capabilities for AWS API calls and events, allowing you to detect and investigate
+      suspicious or anomalous activities within your AWS environment. By configuring
+      CloudTrail trails, event selectors, and insight selectors, you can capture and
+      analyze various types of events, including management events, data events, and
+      insights events, which are essential for implementing the 'owasp-latest-monitor-for-suspicious-activities'
+      security check.
+  unique_id: owasp-latest-monitor-for-suspicious-activities

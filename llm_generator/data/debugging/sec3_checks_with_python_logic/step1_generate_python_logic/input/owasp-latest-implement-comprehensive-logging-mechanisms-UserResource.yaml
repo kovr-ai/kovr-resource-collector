@@ -1,0 +1,37 @@
+check:
+  category: audit
+  control_names:
+  - NIST-800-53-AU-2
+  - NIST-800-53-AU-3
+  - ISO-27001-A.12.4.1
+  literature: Comprehensive logging mechanisms are essential for maintaining visibility
+    into system activities, detecting potential security incidents, and enabling effective
+    incident response and forensic analysis. Logging captures detailed information
+    about user actions, system events, and security-related activities, providing
+    a trail of evidence that can be used to investigate and respond to security breaches,
+    policy violations, or operational issues. Implementing comprehensive logging mechanisms
+    helps organizations meet compliance requirements, identify and mitigate risks,
+    and maintain accountability. Without proper logging, it becomes challenging to
+    detect and respond to security incidents, leaving systems vulnerable to various
+    threats.
+  name: owasp-latest-implement-comprehensive-logging-mechanisms
+  resource:
+    field_paths:
+    - basic_info.creationTime
+    - basic_info.lastLoginTime
+    - contact_info.emails
+    - contact_info.phones
+    - security_info.isEnforcedIn2Sv
+    - security_info.isEnrolledIn2Sv
+    literature: The Google UserResource contains information related to user accounts
+      and their associated details. Implementing comprehensive logging mechanisms
+      for this resource can help track user activities, detect potential security
+      incidents, and enable effective incident response and forensic analysis. Relevant
+      logging mechanisms may include capturing user login attempts, password changes,
+      account modifications, and other security-related events.
+    name: UserResource
+    reason: The UserResource contains critical user account information and security
+      settings. Logging changes to these fields can provide visibility into user activities,
+      account modifications, and security-related events, which aligns with the security
+      check's objective of implementing comprehensive logging mechanisms.
+  unique_id: owasp-latest-implement-comprehensive-logging-mechanisms

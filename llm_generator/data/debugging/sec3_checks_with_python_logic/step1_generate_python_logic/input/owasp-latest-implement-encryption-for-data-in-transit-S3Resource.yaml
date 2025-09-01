@@ -1,0 +1,31 @@
+check:
+  category: encryption
+  control_names:
+  - NIST-800-53-SC-8
+  - ISO-27001-A.13.1.1
+  literature: Data in transit refers to any data that is being transmitted across
+    a network or communication channel. Implementing encryption for data in transit
+    is a crucial security measure to protect sensitive information from being intercepted
+    or eavesdropped by unauthorized parties. Without proper encryption, data transmitted
+    over networks can be easily captured and read by attackers, leading to data breaches
+    and compromised confidentiality. Encrypting data in transit ensures that even
+    if the data is intercepted, it remains unreadable and secure, preventing unauthorized
+    access and maintaining data integrity. This check validates that appropriate encryption
+    mechanisms are in place for all data transmissions, ensuring the confidentiality
+    and integrity of sensitive information during transit.
+  name: owasp-latest-implement-encryption-for-data-in-transit
+  resource:
+    field_paths:
+    - buckets[].encryption.enabled
+    - buckets[].encryption.type
+    literature: The S3 resource in AWS is applicable for implementing encryption for
+      data in transit as per the OWASP security check. S3 buckets can be configured
+      to enforce encryption of data in transit using SSL/TLS when transferring data
+      over the network. This ensures that all data transmitted to and from the S3
+      bucket is encrypted, protecting it from unauthorized access or interception.
+    name: S3Resource
+    reason: The S3 resource provides configuration options to enable encryption for
+      data in transit using SSL/TLS. The relevant field paths are buckets[].encryption.enabled
+      and buckets[].encryption.type, which allow specifying if encryption is enabled
+      and the type of encryption used.
+  unique_id: owasp-latest-implement-encryption-for-data-in-transit

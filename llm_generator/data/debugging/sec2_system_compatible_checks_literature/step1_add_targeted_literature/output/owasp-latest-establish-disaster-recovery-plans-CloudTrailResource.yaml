@@ -1,0 +1,50 @@
+resource:
+  check:
+    unique_id: owasp-latest-establish-disaster-recovery-plans
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To establish comprehensive disaster recovery plans, the organization
+      needs to define strategies, procedures, and resources for restoring critical
+      operations, data, and systems in the event of a disaster.
+    estimated_time: Establishing comprehensive disaster recovery plans can take several
+      weeks or months, depending on the size and complexity of the organization.
+    instructions:
+    - Conduct a risk assessment to identify potential threats and vulnerabilities
+      that could lead to disruptive events.
+    - Develop a business impact analysis to determine the critical operations, data,
+      and systems that need to be prioritized for recovery.
+    - Define recovery objectives, such as Recovery Time Objectives (RTOs) and Recovery
+      Point Objectives (RPOs), for each critical operation, data, and system.
+    - Establish redundant infrastructure, data backups, and failover mechanisms to
+      ensure the availability of critical resources during a disaster.
+    - Document detailed procedures for executing disaster recovery plans, including
+      roles and responsibilities, communication protocols, and testing schedules.
+    - Regularly test and update the disaster recovery plans to ensure their effectiveness
+      and alignment with changing business needs and technological landscapes.
+  is_valid: false
+  literature: AWS CloudTrail is a service that records AWS API calls and related events
+    for your account. While CloudTrail can be used to log and monitor activities related
+    to disaster recovery processes, it does not directly establish or manage disaster
+    recovery plans. Establishing disaster recovery plans involves defining strategies,
+    procedures, and resources for restoring critical operations, data, and systems
+    in the event of a disaster. CloudTrail can provide valuable audit trails and insights
+    into activities during a disaster recovery scenario, but it does not fulfill the
+    primary requirement of this security check, which is to have comprehensive disaster
+    recovery plans in place.
+  name: CloudTrailResource
+  output_statements:
+    failure: The organization does not have adequate disaster recovery plans in place,
+      putting it at risk of prolonged system downtime, data loss, financial losses,
+      and potential regulatory penalties in the event of a disaster.
+    partial: The organization has partially established disaster recovery plans, but
+      they may be incomplete or lack critical components necessary for effective disaster
+      recovery and business continuity.
+    success: The organization has established and maintains comprehensive disaster
+      recovery plans to ensure business continuity and minimize the impact of disruptive
+      events.
+  reason: AWS CloudTrail is a logging and monitoring service that does not directly
+    establish or manage disaster recovery plans. While it can provide valuable audit
+    trails and insights during a disaster recovery scenario, it does not fulfill the
+    primary requirement of this security check, which is to have comprehensive disaster
+    recovery plans in place.

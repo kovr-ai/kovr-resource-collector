@@ -1,0 +1,46 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-comprehensive-logging-mechanisms
+  field_paths:
+  - basic_info.creationTime
+  - basic_info.lastLoginTime
+  - contact_info.emails
+  - contact_info.phones
+  - security_info.isEnforcedIn2Sv
+  - security_info.isEnrolledIn2Sv
+  fix_details:
+    automation_available: true
+    description: If comprehensive logging mechanisms for the UserResource are not
+      implemented or are only partially implemented, additional configuration steps
+      may be required.
+    estimated_time: 1-2 hours
+    instructions:
+    - Review the existing logging mechanisms and identify any gaps in capturing user
+      activities, account modifications, and security-related events.
+    - Configure logging for the relevant field paths, such as basic_info.creationTime,
+      basic_info.lastLoginTime, contact_info.emails, contact_info.phones, security_info.isEnforcedIn2Sv,
+      and security_info.isEnrolledIn2Sv.
+    - Ensure that logs are securely stored, regularly reviewed, and integrated with
+      security monitoring and incident response processes.
+  is_valid: true
+  literature: The Google UserResource contains information related to user accounts
+    and their associated details. Implementing comprehensive logging mechanisms for
+    this resource can help track user activities, detect potential security incidents,
+    and enable effective incident response and forensic analysis. Relevant logging
+    mechanisms may include capturing user login attempts, password changes, account
+    modifications, and other security-related events.
+  name: UserResource
+  output_statements:
+    failure: Comprehensive logging mechanisms for the UserResource have not been implemented,
+      leaving user activities and account modifications untracked, which increases
+      the risk of undetected security incidents.
+    partial: Partial logging mechanisms for the UserResource have been implemented,
+      but some critical user activities or account modifications may not be captured,
+      potentially leaving security gaps.
+    success: Comprehensive logging mechanisms for the UserResource have been implemented
+      successfully, capturing user activities, account modifications, and security-related
+      events.
+  reason: The UserResource contains critical user account information and security
+    settings. Logging changes to these fields can provide visibility into user activities,
+    account modifications, and security-related events, which aligns with the security
+    check's objective of implementing comprehensive logging mechanisms.

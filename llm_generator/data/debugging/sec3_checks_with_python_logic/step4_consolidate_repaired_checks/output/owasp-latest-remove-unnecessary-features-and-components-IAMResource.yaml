@@ -1,0 +1,32 @@
+check:
+  name: owasp-latest-remove-unnecessary-features-and-components
+  resource:
+    field_path: policies[].default_version.Document.Statement[].Action[]
+    fix_details:
+      automation_available: true
+      description: If unnecessary or overly permissive policies or policy statements
+        are identified, they should be reviewed and removed or modified to align with
+        the principle of least privilege.
+      estimated_time: 30 minutes to 2 hours, depending on the number of policies and
+        statements
+      instructions:
+      - Review all IAM policies and their statements, focusing on the 'Action' and
+        'Resource' fields.
+      - Identify policies or statements that grant unnecessary or overly broad permissions.
+      - Remove or modify these policies or statements to restrict access to only the
+        necessary resources and actions.
+      - Ensure that all remaining policies and statements adhere to the principle
+        of least privilege.
+    logic: "result = True\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for actions in fetched_value:\n        for action in actions:\n       \
+      \     if action.startswith('*'):\n                result = False\n         \
+      \       break\n        if not result:\n            break"
+    name: IAMResource
+    output_statements:
+      failure: Unnecessary or overly permissive policies or policy statements were
+        identified in the IAM resource.
+      partial: Some unnecessary or overly permissive policies or policy statements
+        were identified in the IAM resource, but others may still exist.
+      success: No unnecessary policies or policy statements were found in the IAM
+        resource.
+  unique_id: owasp-latest-remove-unnecessary-features-and-components

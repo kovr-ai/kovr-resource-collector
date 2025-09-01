@@ -1,0 +1,8 @@
+check:
+  unique_id: owasp-latest-regularly-review-and-update-configurations
+resource:
+  field_path: buckets[*].encryption.enabled
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    for encryption_enabled in fetched_value:\n        if encryption_enabled:\n\
+    \            result = True\n            break"
+  name: S3Resource

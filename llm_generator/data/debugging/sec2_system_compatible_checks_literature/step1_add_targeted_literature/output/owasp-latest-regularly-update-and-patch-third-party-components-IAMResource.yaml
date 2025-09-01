@@ -1,0 +1,29 @@
+resource:
+  check:
+    unique_id: owasp-latest-regularly-update-and-patch-third-party-components
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This security check is not applicable to the IAMResource in AWS.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The IAMResource in AWS does not directly relate to updating and patching
+    third-party components used in applications or services. It is primarily used
+    for managing AWS Identity and Access Management (IAM) policies, users, and access
+    keys. While IAM policies can be used to control access to AWS services and resources,
+    they do not provide information about the specific third-party components used
+    or their update status.
+  name: IAMResource
+  output_statements:
+    failure: The IAMResource does not provide information about third-party components
+      used or their update status.
+    partial: The IAMResource does not provide information about third-party components
+      used or their update status.
+    success: The IAMResource does not provide information about third-party components
+      used or their update status.
+  reason: The IAMResource in AWS is focused on managing IAM policies, users, and access
+    keys, which are not directly related to updating and patching third-party components
+    used in applications or services. This security check is more applicable to resources
+    that provide information about the specific third-party components used and their
+    update status.

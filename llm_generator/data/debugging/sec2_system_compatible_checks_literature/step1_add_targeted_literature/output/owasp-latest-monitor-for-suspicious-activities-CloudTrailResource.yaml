@@ -1,0 +1,70 @@
+resource:
+  check:
+    unique_id: owasp-latest-monitor-for-suspicious-activities
+  field_paths:
+  - event_selectors
+  - event_selectors[]
+  - event_selectors[].data_resources
+  - event_selectors[].data_resources.type
+  - event_selectors[].data_resources.values
+  - event_selectors[].data_resources.values[]
+  - event_selectors[].include_management_events
+  - event_selectors[].read_write_type
+  - trails
+  - trails[]
+  - trails[].event_selectors
+  - trails[].event_selectors[]
+  - trails[].event_selectors[].data_resources
+  - trails[].event_selectors[].data_resources.type
+  - trails[].event_selectors[].data_resources.values
+  - trails[].event_selectors[].data_resources.values[]
+  - trails[].event_selectors[].include_management_events
+  - trails[].event_selectors[].read_write_type
+  - trails[].insight_selectors
+  - trails[].insight_selectors[]
+  - trails[].insight_selectors[].insight_type
+  - trails[].is_logging
+  - trails[].is_multi_region_trail
+  - trails[].log_file_validation_enabled
+  fix_details:
+    automation_available: true
+    description: If CloudTrail is not properly configured, you may need to create
+      or update CloudTrail trails, event selectors, and insight selectors to capture
+      and monitor relevant events.
+    estimated_time: 30 minutes to 1 hour
+    instructions:
+    - 1. Review your existing CloudTrail trails and ensure they are configured to
+      capture the desired events.
+    - 2. Configure event selectors to include management events, data events, and
+      insights events relevant to your organization's security requirements.
+    - 3. Enable log file validation and configure CloudTrail to deliver logs to a
+      secure S3 bucket for long-term retention and analysis.
+    - 4. Set up CloudWatch Logs and CloudWatch Alarms to monitor and alert on specific
+      events or patterns of interest.
+    - 5. Integrate CloudTrail with other security tools, such as SIEM solutions or
+      security analytics platforms, for advanced analysis and correlation of events.
+  is_valid: true
+  literature: The AWS CloudTrail resource is highly applicable for implementing the
+    'owasp-latest-monitor-for-suspicious-activities' security check. CloudTrail is
+    a service that records AWS API calls and related events, providing a comprehensive
+    audit trail of activities across your AWS account. By configuring CloudTrail trails
+    and event selectors, you can capture and monitor various types of events, including
+    management events, data events, and insights events. This allows you to detect
+    and investigate suspicious or anomalous activities within your AWS environment,
+    such as unauthorized access attempts, policy changes, or data exfiltration.
+  name: CloudTrailResource
+  output_statements:
+    failure: CloudTrail is not configured to capture and monitor relevant events,
+      hindering the ability to detect suspicious activities within your AWS environment.
+    partial: CloudTrail is partially configured to capture and monitor relevant events,
+      but additional configuration is required to fully implement the 'owasp-latest-monitor-for-suspicious-activities'
+      security check.
+    success: CloudTrail is configured to capture and monitor relevant events, enabling
+      the detection of suspicious activities within your AWS environment.
+  reason: The CloudTrail resource provides comprehensive logging and monitoring capabilities
+    for AWS API calls and events, allowing you to detect and investigate suspicious
+    or anomalous activities within your AWS environment. By configuring CloudTrail
+    trails, event selectors, and insight selectors, you can capture and analyze various
+    types of events, including management events, data events, and insights events,
+    which are essential for implementing the 'owasp-latest-monitor-for-suspicious-activities'
+    security check.

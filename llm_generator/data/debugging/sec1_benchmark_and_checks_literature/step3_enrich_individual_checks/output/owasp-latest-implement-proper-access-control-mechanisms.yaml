@@ -1,0 +1,39 @@
+check:
+  benchmarks:
+  - confidence: 0.8
+    reason: Proper access control mechanisms help prevent the misuse of valid accounts
+      by unauthorized entities or for unauthorized purposes.
+    unique_id: MITRE-ATT&CK-T1078
+  - confidence: 0.7
+    reason: Implementing proper access control mechanisms can help prevent unauthorized
+      access to sensitive data stored in cloud storage objects.
+    unique_id: MITRE-ATT&CK-T1530
+  category: access_control
+  controls:
+  - confidence: 0.9
+    reason: This control specifies the need for access control policies and procedures
+      to ensure that only authorized users or entities can access and perform operations
+      on sensitive data or resources.
+    unique_id: NIST-800-53-AC-3
+  - confidence: 0.8
+    reason: This control requires organizations to implement access control policies
+      and procedures to restrict access to information and information processing
+      facilities.
+    unique_id: ISO-27001-A.9.4.1
+  literature: Proper access control mechanisms are essential for ensuring that only
+    authorized users or entities can access and perform operations on sensitive data,
+    resources, or functionalities within an application or system. Implementing robust
+    access control measures helps prevent unauthorized access, data breaches, and
+    potential misuse or abuse of privileged operations. This check validates that
+    the application or system has implemented appropriate access control mechanisms,
+    such as role-based access control (RBAC), attribute-based access control (ABAC),
+    or other industry-standard access control models. Failure to implement proper
+    access control mechanisms can lead to unauthorized access, data leaks, and potential
+    security breaches.
+  severity: high
+  tags:
+  - access_control
+  - authorization
+  - security_controls
+  - data_protection
+  unique_id: owasp-latest-implement-proper-access-control-mechanisms

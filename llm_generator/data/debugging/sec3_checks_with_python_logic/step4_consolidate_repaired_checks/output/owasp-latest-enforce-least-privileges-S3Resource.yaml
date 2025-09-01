@@ -1,0 +1,31 @@
+check:
+  name: owasp-latest-enforce-least-privileges
+  resource:
+    field_path: buckets[*].public_access_block
+    fix_details:
+      automation_available: true
+      description: If S3 buckets are found to have excessive permissions or public
+        access enabled, the access controls need to be tightened to enforce the principle
+        of least privilege.
+      estimated_time: 30 minutes to 1 hour per non-compliant bucket
+      instructions:
+      - Review the bucket policies and access control lists (ACLs) for each non-compliant
+        S3 bucket.
+      - Remove any unnecessary permissions or public access grants.
+      - Configure the public access block settings to restrict public access as needed.
+      - Use AWS Identity and Access Management (IAM) policies to grant only the minimum
+        required permissions to users, roles, and applications accessing the S3 buckets.
+    logic: "result = True\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for public_access_block in fetched_value:\n        if not (public_access_block.block_public_acls\
+      \ and\n                public_access_block.block_public_policy and\n       \
+      \         public_access_block.ignore_public_acls and\n                public_access_block.restrict_public_buckets):\n\
+      \            result = False\n            break"
+    name: S3Resource
+    output_statements:
+      failure: One or more S3 buckets have excessive permissions or public access
+        enabled, violating the principle of least privilege.
+      partial: Some S3 buckets have appropriate access controls, but others may have
+        excessive permissions or public access enabled.
+      success: The S3 bucket(s) have appropriate access controls configured to enforce
+        the principle of least privilege.
+  unique_id: owasp-latest-enforce-least-privileges

@@ -1,0 +1,35 @@
+check:
+  name: owasp-latest-regularly-review-and-update-configurations
+  resource:
+    field_path: policies[*].update_date
+    fix_details:
+      automation_available: true
+      description: If IAM policies are found to be outdated or misconfigured, they
+        should be reviewed and updated to align with the latest security best practices
+        and organizational requirements.
+      estimated_time: 1-2 hours for initial review and update, ongoing maintenance
+        as needed
+      instructions:
+      - Identify all IAM policies and their associated resources.
+      - Review each policy document, statements, actions, conditions, and resources
+        for potential misconfigurations or excessive permissions.
+      - Update or create new policies to address any identified issues, following
+        the principle of least privilege.
+      - Implement a regular review and update process for IAM policies, aligning with
+        organizational policies and industry standards.
+    logic: "result = False\n\n# Check if any policy was updated more than 90 days\
+      \ ago\ntoday = datetime.datetime.now().date()\nfor update_date in fetched_value:\n\
+      \    if update_date is not None:\n        last_update = datetime.datetime.strptime(update_date,\
+      \ '%Y-%m-%dT%H:%M:%S+00:00').date()\n        days_since_update = (today - last_update).days\n\
+      \        if days_since_update > 90:\n            result = False\n          \
+      \  break\n    else:\n        result = False\n        break\nelse:\n    result\
+      \ = True"
+    name: IAMResource
+    output_statements:
+      failure: IAM policies have not been reviewed or updated in a timely manner,
+        potentially exposing the environment to security risks.
+      partial: Some IAM policies have been reviewed and updated, but others may still
+        require attention.
+      success: IAM policies are regularly reviewed and updated to maintain a secure
+        posture.
+  unique_id: owasp-latest-regularly-review-and-update-configurations

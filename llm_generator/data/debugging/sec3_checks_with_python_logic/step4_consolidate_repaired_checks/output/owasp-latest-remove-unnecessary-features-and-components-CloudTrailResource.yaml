@@ -1,0 +1,35 @@
+check:
+  name: owasp-latest-remove-unnecessary-features-and-components
+  resource:
+    field_path: trails[*].event_selectors[*].data_resources.values[*]
+    fix_details:
+      automation_available: true
+      description: Review and update the CloudTrail event selectors and data resources
+        to ensure that only necessary events and resources are being logged.
+      estimated_time: 1-2 hours
+      instructions:
+      - 1. Identify the events and resources that are essential for your organization's
+        operations and security monitoring.
+      - 2. Review the existing CloudTrail event selectors and data resources to identify
+        any unnecessary or overly broad configurations.
+      - 3. Update the event selectors and data resources to include only the necessary
+        events and resources.
+      - 4. Test and validate the updated CloudTrail configuration to ensure that essential
+        events and resources are still being captured.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    allowed_resources = ['AWS::S3::Object', 'AWS::Lambda::Function', 'AWS::EC2::Instance']\n\
+      \    for resource_list in fetched_value:\n        for resource in resource_list:\n\
+      \            if resource not in allowed_resources:\n                break\n\
+      \        else:\n            result = True\n            break"
+    name: CloudTrailResource
+    output_statements:
+      failure: CloudTrail is configured to log unnecessary events or resources, increasing
+        the attack surface and potentially exposing sensitive data or unnecessary
+        components.
+      partial: CloudTrail is partially configured to log only necessary events and
+        resources, but some unnecessary components or sensitive data may still be
+        exposed.
+      success: CloudTrail is configured to log only necessary events and resources,
+        minimizing the exposure of unnecessary components and reducing the attack
+        surface.
+  unique_id: owasp-latest-remove-unnecessary-features-and-components

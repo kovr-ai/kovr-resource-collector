@@ -1,0 +1,25 @@
+resource:
+  check:
+    unique_id: owasp-latest-validate-and-sanitize-all-user-input
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This resource is not applicable for this security check, so no fix
+      is required.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The CloudWatch resource in AWS is primarily used for monitoring and
+    logging purposes. It does not directly handle user input or perform input validation
+    and sanitization. Therefore, this resource is not directly applicable for implementing
+    the 'owasp-latest-validate-and-sanitize-all-user-input' security check.
+  name: CloudWatchResource
+  output_statements:
+    failure: This resource is not applicable for this security check.
+    partial: This resource is not applicable for this security check.
+    success: This resource is not applicable for this security check.
+  reason: The CloudWatch resource is a monitoring and logging service that does not
+    directly handle user input or perform input validation and sanitization. This
+    security check is focused on ensuring that all user input is properly validated
+    and sanitized to prevent injection attacks and other input-related vulnerabilities,
+    which is not a primary function of the CloudWatch resource.
