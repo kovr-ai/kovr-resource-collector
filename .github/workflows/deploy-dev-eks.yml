@@ -6,6 +6,7 @@ env:
   AWS_ACCOUNT_ID: "296062557786"
   AWS_REGION: "us-west-2"
   AWS_ROLE_ARN: "arn:aws:iam::296062557786:role/DevopsCICDRole"
+
   
   # EKS Configuration
   EKS_CLUSTER_NAME: "dev-kovr-app-cluster"
