@@ -1,0 +1,41 @@
+check:
+  category: access_control
+  control_names:
+  - NIST-800-53-AC-3
+  - ISO-27001-A.9.4.1
+  literature: Proper access control mechanisms are essential for ensuring that only
+    authorized users or entities can access and perform operations on sensitive data,
+    resources, or functionalities within an application or system. Implementing robust
+    access control measures helps prevent unauthorized access, data breaches, and
+    potential misuse or abuse of privileged operations. This check validates that
+    the application or system has implemented appropriate access control mechanisms,
+    such as role-based access control (RBAC), attribute-based access control (ABAC),
+    or other industry-standard access control models. Failure to implement proper
+    access control mechanisms can lead to unauthorized access, data leaks, and potential
+    security breaches.
+  name: owasp-latest-implement-proper-access-control-mechanisms
+  resource:
+    field_paths:
+    - policies
+    - policies[].default_version.Document.Statement
+    - policies[].default_version.Document.Statement[].Action
+    - policies[].default_version.Document.Statement[].Effect
+    - policies[].default_version.Document.Statement[].Resource
+    - users
+    - users[].access_keys
+    - users[].mfa_devices
+    literature: The AWS IAM resource is a critical component for implementing proper
+      access control mechanisms in the AWS cloud environment. IAM allows you to create
+      users, groups, and roles, and assign them specific permissions through IAM policies.
+      These policies define what actions are allowed or denied for which AWS resources.
+      By carefully crafting IAM policies and assigning them to the appropriate users,
+      groups, or roles, you can enforce role-based access control (RBAC) and ensure
+      that only authorized entities can access and perform operations on sensitive
+      resources.
+    name: IAMResource
+    reason: The IAM resource provides the necessary components to implement and manage
+      access control mechanisms in AWS. The policies field contains the IAM policies
+      that define permissions, and the users field contains information about IAM
+      users and their access keys and MFA devices, which are crucial for authentication
+      and authorization.
+  unique_id: owasp-latest-implement-proper-access-control-mechanisms

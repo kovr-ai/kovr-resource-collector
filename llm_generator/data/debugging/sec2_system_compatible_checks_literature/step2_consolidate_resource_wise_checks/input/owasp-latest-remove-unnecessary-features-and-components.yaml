@@ -1,0 +1,78 @@
+check:
+  resources:
+  - field_paths:
+    - policies
+    - policies[]
+    - policies[].default_version
+    - policies[].default_version.Document
+    - policies[].default_version.Document.Statement
+    - policies[].default_version.Document.Statement[]
+    - policies[].default_version.Document.Statement[].Action
+    - policies[].default_version.Document.Statement[].Action[]
+    - policies[].default_version.Document.Statement[].Resource
+    is_valid: true
+    literature: The OWASP check 'owasp-latest-remove-unnecessary-features-and-components'
+      is applicable to AWS IAM resources. IAM policies define permissions and access
+      levels for AWS resources and services. Unnecessary or overly permissive policies
+      can grant excessive privileges, increasing the attack surface and potential
+      for unauthorized access or misuse. By reviewing and removing unnecessary policies
+      or policy statements, the overall security posture of the AWS account can be
+      improved.
+    name: IAMResource
+    reason: The IAM resource contains policies and policy statements that define permissions
+      and access levels. By analyzing these policies and statements, unnecessary or
+      overly permissive access can be identified and removed, aligning with the OWASP
+      check's goal of reducing the attack surface by removing unnecessary features
+      and components.
+  - field_paths:
+    - buckets[].public_access_block
+    - buckets[].public_access_block.block_public_acls
+    - buckets[].public_access_block.block_public_policy
+    - buckets[].public_access_block.ignore_public_acls
+    - buckets[].public_access_block.restrict_public_buckets
+    - buckets[].website_enabled
+    is_valid: true
+    literature: The OWASP check 'owasp-latest-remove-unnecessary-features-and-components'
+      is applicable to AWS S3 buckets. S3 buckets can have various configurations
+      and settings that enable or disable certain features and access controls. By
+      reviewing and adjusting these settings, unnecessary features or components that
+      could introduce security risks can be removed or disabled.
+    name: S3Resource
+    reason: AWS S3 buckets can have various configurations that enable or disable
+      certain features and access controls. By reviewing and adjusting these settings,
+      unnecessary features or components that could introduce security risks can be
+      removed or disabled, aligning with the OWASP check.
+  - field_paths:
+    - event_selectors
+    - event_selectors[]
+    - event_selectors[].data_resources
+    - event_selectors[].data_resources.type
+    - event_selectors[].data_resources.values
+    - event_selectors[].data_resources.values[]
+    - event_selectors[].include_management_events
+    - event_selectors[].read_write_type
+    - trails
+    - trails[]
+    - trails[].event_selectors
+    - trails[].event_selectors[]
+    - trails[].event_selectors[].data_resources
+    - trails[].event_selectors[].data_resources.type
+    - trails[].event_selectors[].data_resources.values
+    - trails[].event_selectors[].data_resources.values[]
+    - trails[].event_selectors[].include_management_events
+    - trails[].event_selectors[].read_write_type
+    is_valid: true
+    literature: The AWS CloudTrail resource is applicable for implementing the OWASP
+      check 'owasp-latest-remove-unnecessary-features-and-components'. CloudTrail
+      is a service that records AWS API calls and related events, providing a log
+      of activities across your AWS infrastructure. By configuring CloudTrail appropriately,
+      you can ensure that only necessary events and resources are logged, reducing
+      the attack surface and minimizing the exposure of sensitive data or unnecessary
+      components.
+    name: CloudTrailResource
+    reason: The CloudTrail resource allows you to configure event selectors and data
+      resources to control which events and resources are logged. By carefully configuring
+      these settings, you can ensure that only necessary events and resources are
+      captured, reducing the attack surface and minimizing the exposure of unnecessary
+      components or features.
+  unique_id: owasp-latest-remove-unnecessary-features-and-components

@@ -1,0 +1,44 @@
+resource:
+  check:
+    unique_id: owasp-latest-validate-and-sanitize-all-user-input
+  field_paths:
+  - contact_info.emails[].address
+  - contact_info.phones[].value
+  - profile_info.languages[].languageCode
+  fix_details:
+    automation_available: true
+    description: Implement input validation and sanitization mechanisms for all user-provided
+      data fields in the UserResource.
+    estimated_time: 2-4 hours
+    instructions:
+    - Identify all fields that accept user input, including contact_info.emails[].address,
+      contact_info.phones[].value, and profile_info.languages[].languageCode.
+    - Implement input validation rules to ensure that user input adheres to expected
+      formats and constraints.
+    - Sanitize user input by removing or encoding any potentially malicious characters
+      or code.
+    - Update the application code to apply validation and sanitization checks before
+      storing or processing user input.
+    - Implement regular testing and monitoring to ensure the effectiveness of the
+      input validation and sanitization mechanisms.
+  is_valid: true
+  literature: The UserResource in Google Cloud contains various fields related to
+    user information, including contact details, profile information, and security
+    settings. To implement the 'owasp-latest-validate-and-sanitize-all-user-input'
+    security check, it is crucial to validate and sanitize any user-provided data
+    before storing or processing it. This includes fields such as contact_info.emails[].address,
+    contact_info.phones[].value, and profile_info.languages[].languageCode, where
+    users may input custom values.
+  name: UserResource
+  output_statements:
+    failure: One or more user input fields in the UserResource are not being properly
+      validated and sanitized, leaving the system vulnerable to injection attacks
+      and other input-related vulnerabilities.
+    partial: Some user input fields in the UserResource are properly validated and
+      sanitized, but others are not, leaving the system partially vulnerable to injection
+      attacks and other input-related vulnerabilities.
+    success: All user input fields in the UserResource are properly validated and
+      sanitized, mitigating the risk of injection attacks and other input-related
+      vulnerabilities.
+  reason: The UserResource contains fields that accept user input, which must be validated
+    and sanitized to prevent injection attacks and other input-related vulnerabilities.

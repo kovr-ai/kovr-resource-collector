@@ -1,0 +1,36 @@
+resource:
+  check:
+    unique_id: owasp-latest-have-a-plan-for-addressing-vulnerabilities
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: Since the GithubResource is not directly applicable to this security
+      check, there are no specific remediation steps to provide. However, organizations
+      should ensure that they have a comprehensive vulnerability management plan in
+      place, which should be documented and regularly reviewed. This plan should cover
+      the processes for identifying, prioritizing, and remediating vulnerabilities
+      across all applications, systems, and infrastructure components.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The 'owasp-latest-have-a-plan-for-addressing-vulnerabilities' security
+    check is designed to ensure that organizations have a documented plan for addressing
+    vulnerabilities discovered in their applications and systems. This check is typically
+    applicable to resources that are directly involved in the development, deployment,
+    and maintenance of applications or systems, such as code repositories, continuous
+    integration/deployment pipelines, or infrastructure-as-code resources.
+  name: GithubResource
+  output_statements:
+    failure: The organization does not have a documented plan for addressing vulnerabilities
+      discovered in their applications and systems.
+    partial: N/A
+    success: The organization has a well-defined and documented plan for addressing
+      vulnerabilities discovered in their applications and systems.
+  reason: The provided GithubResource does not appear to be directly related to the
+    development, deployment, or maintenance of applications or systems. It primarily
+    contains metadata and information about the GitHub repository itself, such as
+    collaborators, branches, and webhooks. While some security-related data is present
+    (e.g., code scanning alerts, vulnerability alerts), there is no indication of
+    a documented plan or process for addressing these vulnerabilities. Therefore,
+    this resource is not considered valid for implementing the 'owasp-latest-have-a-plan-for-addressing-vulnerabilities'
+    security check.

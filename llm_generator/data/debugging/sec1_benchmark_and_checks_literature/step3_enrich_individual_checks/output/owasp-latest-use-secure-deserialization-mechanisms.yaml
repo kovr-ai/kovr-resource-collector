@@ -1,0 +1,33 @@
+check:
+  benchmarks:
+  - confidence: 0.9
+    reason: Insecure deserialization can lead to command and script execution, which
+      is covered by this technique.
+    unique_id: MITRE-ATT&CK-T1059
+  - confidence: 0.95
+    reason: This sub-technique specifically covers deserialization of untrusted data,
+      which can lead to code execution.
+    unique_id: MITRE-ATT&CK-T1059.007
+  category: system_integrity
+  controls:
+  - confidence: 0.9
+    reason: This control requires organizations to implement mechanisms to prevent
+      unauthorized code execution, which includes secure deserialization mechanisms.
+    unique_id: NIST-800-53-SI-10
+  - confidence: 0.8
+    reason: This control requires organizations to implement controls to prevent the
+      execution of malicious code, which includes secure deserialization mechanisms.
+    unique_id: ISO-27001-A.12.2.1
+  literature: Secure deserialization mechanisms are essential to prevent code execution
+    and data tampering attacks. Deserialization is the process of converting serialized
+    data into an object, which can be exploited if not properly validated. Insecure
+    deserialization can lead to remote code execution, injection attacks, and data
+    tampering. This check validates that applications use secure deserialization mechanisms
+    to prevent such attacks.
+  severity: high
+  tags:
+  - deserialization
+  - code_execution
+  - injection
+  - data_tampering
+  unique_id: owasp-latest-use-secure-deserialization-mechanisms

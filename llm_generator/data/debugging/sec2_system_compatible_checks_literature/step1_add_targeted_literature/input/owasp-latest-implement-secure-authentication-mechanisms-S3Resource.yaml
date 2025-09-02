@@ -1,0 +1,37 @@
+check:
+  category: authentication
+  control_names:
+  - NIST-800-53-AC-3
+  - ISO-27001-A.9.4.1
+  literature: The OWASP latest secure authentication mechanisms check validates that
+    the application implements secure authentication mechanisms to protect against
+    common authentication attacks such as brute-force, credential stuffing, and session
+    hijacking. Proper authentication is crucial for ensuring that only authorized
+    users can access sensitive data and functionality within the application. Implementing
+    secure authentication mechanisms helps mitigate the risk of unauthorized access,
+    data breaches, and other security incidents.
+  provider: aws
+  resource:
+    field_paths:
+    - buckets
+    - buckets[]
+    - buckets[].creation_date
+    - buckets[].encryption
+    - buckets[].encryption.enabled
+    - buckets[].encryption.kms_key_id
+    - buckets[].encryption.type
+    - buckets[].id
+    - buckets[].logging_enabled
+    - buckets[].name
+    - buckets[].public_access_block
+    - buckets[].public_access_block.block_public_acls
+    - buckets[].public_access_block.block_public_policy
+    - buckets[].public_access_block.ignore_public_acls
+    - buckets[].public_access_block.restrict_public_buckets
+    - buckets[].region
+    - buckets[].versioning_status
+    - buckets[].website_enabled
+    - id
+    - source_connector
+    name: S3Resource
+  unique_id: owasp-latest-implement-secure-authentication-mechanisms

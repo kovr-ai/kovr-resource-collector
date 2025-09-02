@@ -1,0 +1,45 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-data-masking
+  field_paths:
+  - event_selectors
+  - event_selectors[].data_resources
+  - event_selectors[].data_resources.type
+  - event_selectors[].data_resources.values
+  - trails[].event_selectors
+  - trails[].event_selectors[].data_resources
+  - trails[].event_selectors[].data_resources.type
+  - trails[].event_selectors[].data_resources.values
+  fix_details:
+    automation_available: true
+    description: To implement data masking or obfuscation, you need to configure it
+      at the application or database level, where sensitive data is stored and processed.
+    estimated_time: Varies depending on the complexity of the application or database
+      environment.
+    instructions:
+    - Identify the applications or databases that handle sensitive data.
+    - Evaluate data masking or obfuscation techniques suitable for your use case (e.g.,
+      static data masking, dynamic data masking, format-preserving encryption).
+    - Implement the chosen data masking or obfuscation technique within the application
+      or database layer.
+    - Test and validate the implementation to ensure sensitive data is properly masked
+      or obfuscated.
+    - Monitor and maintain the data masking or obfuscation implementation regularly.
+  is_valid: false
+  literature: The CloudTrail resource in AWS is primarily used for logging and monitoring
+    API activity across various AWS services. While it can provide valuable audit
+    trails and insights into data access and usage, it does not directly implement
+    data masking or obfuscation capabilities. Data masking is typically implemented
+    at the application or database level, where sensitive data is stored and processed.
+  name: CloudTrailResource
+  output_statements:
+    failure: The CloudTrail resource does not implement data masking or obfuscation
+      capabilities. Sensitive data may be exposed in logs or other resources.
+    partial: The CloudTrail resource is not directly applicable for implementing data
+      masking or obfuscation.
+    success: The CloudTrail resource is configured to log and monitor data access
+      events, providing an audit trail for data usage.
+  reason: The CloudTrail resource is primarily used for logging and auditing purposes,
+    and does not directly provide data masking or obfuscation capabilities. While
+    it can log data access events, it does not have built-in functionality to mask
+    or obfuscate sensitive data.

@@ -1,0 +1,38 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-proper-access-control-mechanisms
+  field_paths:
+  - basic_info.description
+  - basic_info.email
+  - membership_info.directMembersCount
+  fix_details:
+    automation_available: true
+    description: While the GroupResource can be used to manage group membership, proper
+      access control mechanisms should be implemented at the resource level.
+    estimated_time: 1-2 hours
+    instructions:
+    - Review the resources that the group has access to and ensure that appropriate
+      access control mechanisms are in place, such as IAM policies or ACLs.
+    - Implement least privilege principles by granting only the necessary permissions
+      to the group members.
+    - Regularly review and audit group membership and access permissions to ensure
+      they are up-to-date and aligned with business requirements.
+  is_valid: false
+  literature: The GroupResource in Google Cloud Platform represents a collection of
+    entities, such as users or service accounts, that can be granted access to other
+    resources. While groups can be used to manage access control, they do not directly
+    implement access control mechanisms themselves. Proper access control mechanisms
+    should be implemented at the resource level, such as IAM policies, access control
+    lists (ACLs), or other resource-specific access control configurations.
+  name: GroupResource
+  output_statements:
+    failure: The GroupResource is not being used to implement proper access control
+      mechanisms. Access control should be configured at the resource level using
+      IAM policies, ACLs, or other resource-specific access control configurations.
+    partial: The GroupResource is being used to manage group membership, but proper
+      access control mechanisms may not be fully implemented at the resource level.
+    success: The GroupResource is being used effectively to manage group membership,
+      and proper access control mechanisms are implemented at the resource level.
+  reason: The GroupResource is a container for managing group membership, but it does
+    not directly implement access control mechanisms. Access control should be configured
+    at the resource level, such as IAM policies or ACLs.

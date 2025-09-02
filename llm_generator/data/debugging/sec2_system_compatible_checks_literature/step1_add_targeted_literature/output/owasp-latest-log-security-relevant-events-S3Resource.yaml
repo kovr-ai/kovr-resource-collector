@@ -1,0 +1,45 @@
+resource:
+  check:
+    unique_id: owasp-latest-log-security-relevant-events
+  field_paths:
+  - buckets[].logging_enabled
+  fix_details:
+    automation_available: true
+    description: To properly implement the 'owasp-latest-log-security-relevant-events'
+      check, you need to configure and enable logging for security-relevant events
+      at the system or application level, rather than relying solely on S3 bucket
+      logging.
+    estimated_time: 1-2 hours for initial setup, ongoing maintenance and review
+    instructions:
+    - Identify the appropriate logging mechanism for your system or application (e.g.,
+      system logs, application logs, security information and event management (SIEM)
+      solutions).
+    - Configure the logging mechanism to capture and log security-relevant events,
+      such as authentication attempts, access control decisions, system configuration
+      changes, and other security-related activities.
+    - Ensure that the logging mechanism captures relevant details, such as timestamps,
+      user identities, source IP addresses, and event descriptions.
+    - Implement log retention and rotation policies to ensure that log data is retained
+      for the required period and is easily accessible for analysis and investigation.
+    - Regularly review and analyze the log data to identify potential security incidents
+      or anomalies.
+  is_valid: false
+  literature: The 'owasp-latest-log-security-relevant-events' check is designed to
+    validate that the system is properly logging security-relevant events, which is
+    crucial for maintaining an audit trail and enabling effective incident response
+    and forensic analysis. However, the AWS S3 resource provided does not directly
+    relate to logging security-relevant events. S3 is an object storage service, and
+    while it does have logging capabilities, it is primarily focused on storing and
+    retrieving data objects rather than system-level logging.
+  name: S3Resource
+  output_statements:
+    failure: The system is not properly logging security-relevant events, which may
+      hinder incident response and forensic analysis capabilities.
+    partial: The system is partially logging security-relevant events, but there may
+      be gaps or limitations in the logging coverage.
+    success: The system is properly logging security-relevant events, enabling effective
+      incident response and forensic analysis.
+  reason: The AWS S3 resource is primarily used for object storage and does not directly
+    handle system-level logging of security-relevant events. While S3 does have logging
+    capabilities for tracking bucket-level events, it is not designed to capture and
+    log security-relevant events across the entire system or application.

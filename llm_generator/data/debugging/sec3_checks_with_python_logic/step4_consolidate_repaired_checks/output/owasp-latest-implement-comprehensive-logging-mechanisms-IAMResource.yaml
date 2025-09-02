@@ -1,0 +1,35 @@
+check:
+  name: owasp-latest-implement-comprehensive-logging-mechanisms
+  resource:
+    field_path: policies[].default_version.Document.Statement
+    fix_details:
+      automation_available: true
+      description: Ensure that AWS CloudTrail is enabled and configured to capture
+        all IAM events, including policy changes, access key usage, and MFA device
+        assignments.
+      estimated_time: 30 minutes
+      instructions:
+      - 1. Open the AWS CloudTrail console and navigate to the 'Trails' section.
+      - 2. Create a new trail or edit an existing trail to include all IAM events.
+      - 3. Configure the trail to deliver logs to an S3 bucket or CloudWatch Logs
+        for long-term storage and analysis.
+      - 4. Review and analyze the CloudTrail logs regularly to identify and investigate
+        any suspicious or unauthorized activities.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for statement in fetched_value:\n        if hasattr(statement, 'Effect')\
+      \ and statement.Effect == 'Allow':\n            condition = getattr(statement,\
+      \ 'Condition', None)\n            if condition:\n                for condition_key,\
+      \ condition_value in condition.items():\n                    if 'aws:MultiFactorAuthAge'\
+      \ in condition_key:\n                        result = True\n               \
+      \         break\n            else:\n                result = False\n       \
+      \         break"
+    name: IAMResource
+    output_statements:
+      failure: IAM logging mechanisms are not properly configured or comprehensive
+        logs are not being generated for policy changes, access key usage, and MFA
+        device assignments.
+      partial: IAM logging mechanisms are partially configured, but some gaps exist
+        in logging policy changes, access key usage, or MFA device assignments.
+      success: IAM logging mechanisms are properly configured and comprehensive logs
+        are being generated for policy changes, access key usage, and MFA device assignments.
+  unique_id: owasp-latest-implement-comprehensive-logging-mechanisms

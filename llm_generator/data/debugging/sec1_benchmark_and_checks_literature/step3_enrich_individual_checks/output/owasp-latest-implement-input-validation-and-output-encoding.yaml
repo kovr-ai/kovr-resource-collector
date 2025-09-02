@@ -1,0 +1,41 @@
+check:
+  benchmarks:
+  - confidence: 0.9
+    reason: Cross-Site Scripting (XSS) is a common attack technique that can be mitigated
+      by implementing input validation and output encoding, which is the focus of
+      this security check.
+    unique_id: MITRE-ATT&CK-T1059
+  - confidence: 0.8
+    reason: Exploiting vulnerabilities in web applications, such as those caused by
+      lack of input validation and output encoding, is a common attack technique that
+      can be mitigated by implementing this security check.
+    unique_id: MITRE-ATT&CK-T1190
+  category: system_integrity
+  controls:
+  - confidence: 0.9
+    reason: This control requires organizations to implement input validation and
+      output encoding to prevent code injection vulnerabilities, which aligns with
+      the purpose of this security check.
+    unique_id: NIST-800-53-SI-10
+  - confidence: 0.9
+    reason: This control requires organizations to implement input validation and
+      output encoding to prevent code injection vulnerabilities, which aligns with
+      the purpose of this security check.
+    unique_id: ISO-27001-A.12.2.1
+  literature: Input validation and output encoding are critical security measures
+    to prevent various types of code injection attacks, such as Cross-Site Scripting
+    (XSS), SQL Injection, and Command Injection. Input validation ensures that user-supplied
+    data is properly sanitized and validated before being processed by the application,
+    while output encoding ensures that any user-supplied data is properly encoded
+    before being rendered in the application's output (e.g., web pages, API responses).
+    Failure to implement these measures can lead to severe security vulnerabilities
+    that allow attackers to execute malicious code, access or modify sensitive data,
+    or perform other unauthorized actions.
+  severity: high
+  tags:
+  - input_validation
+  - output_encoding
+  - code_injection
+  - web_security
+  - data_sanitization
+  unique_id: owasp-latest-implement-input-validation-and-output-encoding

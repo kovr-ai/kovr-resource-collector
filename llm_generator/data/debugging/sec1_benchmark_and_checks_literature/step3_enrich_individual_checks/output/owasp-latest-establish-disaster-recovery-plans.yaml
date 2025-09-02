@@ -1,0 +1,67 @@
+check:
+  benchmarks:
+  - confidence: 0.7
+    reason: Establishing disaster recovery plans can help organizations recover from
+      endpoint denial of service attacks, which can disrupt business operations and
+      cause system downtime.
+    unique_id: MITRE-ATT&CK-T1499
+  - confidence: 0.8
+    reason: Disaster recovery plans can aid in the recovery of data and systems affected
+      by data destruction attacks, such as disk wipes or data manipulation.
+    unique_id: MITRE-ATT&CK-T1485
+  category: incident_response
+  controls:
+  - confidence: 0.9
+    reason: This control requires organizations to develop and implement contingency
+      plans for information systems to ensure the availability of critical mission/business
+      functions in the event of a disruption or disaster.
+    unique_id: NIST-800-53-CP-2
+  - confidence: 0.9
+    reason: This control requires organizations to establish and implement procedures
+      to ensure the availability of information processing facilities and maintain
+      business continuity in the event of a disaster.
+    unique_id: ISO-27001-A.17.1.2
+  literature: 'Establishing disaster recovery plans is a critical aspect of ensuring
+    business continuity and minimizing the impact of disruptive events such as natural
+    disasters, cyber attacks, or system failures. Disaster recovery plans outline
+    the strategies, procedures, and resources needed to restore critical operations,
+    data, and systems in the event of a disaster. This check validates the existence
+    and adequacy of disaster recovery plans within an organization.
+
+
+    Having a well-defined and regularly tested disaster recovery plan is essential
+    for several reasons:
+
+
+    1. Data and system protection: Disasters can lead to data loss, system downtime,
+    and disruption of critical operations. A comprehensive disaster recovery plan
+    helps protect valuable data and ensures that systems can be restored quickly,
+    minimizing data loss and operational disruptions.
+
+
+    2. Business continuity: Disasters can severely impact an organization''s ability
+    to conduct business operations. A robust disaster recovery plan enables organizations
+    to maintain essential functions, minimize financial losses, and preserve their
+    reputation during and after a disruptive event.
+
+
+    3. Regulatory compliance: Many industries and regulatory bodies require organizations
+    to have disaster recovery plans in place to ensure the protection of sensitive
+    data and the continuity of critical services.
+
+
+    4. Risk mitigation: By identifying potential risks and developing strategies to
+    address them, disaster recovery plans help organizations mitigate the impact of
+    disruptive events and reduce the overall risk exposure.
+
+
+    Failure to establish and maintain adequate disaster recovery plans can result
+    in prolonged system downtime, data loss, financial losses, reputational damage,
+    and potential regulatory penalties.'
+  severity: high
+  tags:
+  - disaster_recovery
+  - business_continuity
+  - data_protection
+  - system_recovery
+  unique_id: owasp-latest-establish-disaster-recovery-plans

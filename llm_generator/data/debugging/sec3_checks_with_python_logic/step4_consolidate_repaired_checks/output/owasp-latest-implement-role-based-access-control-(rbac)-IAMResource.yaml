@@ -1,0 +1,45 @@
+check:
+  name: owasp-latest-implement-role-based-access-control-(rbac)
+  resource:
+    field_path: policies[].default_version.Document.Statement
+    fix_details:
+      automation_available: true
+      description: 'If the IAM resource is not configured correctly for RBAC, the
+        following steps can be taken to remediate the issue:'
+      estimated_time: 1-2 hours
+      instructions:
+      - Review and update IAM policies to ensure they follow the principle of least
+        privilege and grant only the necessary permissions to users, groups, or roles.
+      - Create or modify user accounts, groups, and roles as needed, and assign appropriate
+        policies to them based on their job functions.
+      - Enable and enforce multi-factor authentication (MFA) for all IAM users to
+        add an extra layer of security.
+      - Regularly review and audit IAM configurations to ensure they remain up-to-date
+        and aligned with your organization's security requirements.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for statement in fetched_value:\n        if hasattr(statement, 'Effect')\
+      \ and statement.Effect == 'Allow':\n            if hasattr(statement, 'Action')\
+      \ and 'iam:*' in statement.Action:\n                if hasattr(statement, 'Resource')\
+      \ and '*' in statement.Resource:\n                    result = False\n     \
+      \               break\n            elif hasattr(statement, 'NotAction') and\
+      \ 'iam:*' not in statement.NotAction:\n                if hasattr(statement,\
+      \ 'Resource') and '*' in statement.Resource:\n                    result = False\n\
+      \                    break\n        elif isinstance(statement, dict):\n    \
+      \        if statement.get('Effect') == 'Allow':\n                if 'iam:*'\
+      \ in statement.get('Action', []):\n                    if '*' in statement.get('Resource',\
+      \ []):\n                        result = False\n                        break\n\
+      \                elif 'iam:*' not in statement.get('NotAction', []):\n     \
+      \               if '*' in statement.get('Resource', []):\n                 \
+      \       result = False\n                        break\n    else:\n        result\
+      \ = True"
+    name: IAMResource
+    output_statements:
+      failure: The AWS IAM resource has not implemented Role-Based Access Control
+        (RBAC) effectively. Policies, user accounts, or MFA devices are not configured
+        correctly.
+      partial: The AWS IAM resource has partially implemented Role-Based Access Control
+        (RBAC). Some aspects, such as policies, user accounts, or MFA devices, may
+        require further configuration.
+      success: The AWS IAM resource has implemented Role-Based Access Control (RBAC)
+        effectively, with appropriate policies, user accounts, and MFA devices configured.
+  unique_id: owasp-latest-implement-role-based-access-control-(rbac)

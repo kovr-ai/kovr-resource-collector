@@ -1,0 +1,9 @@
+check:
+  unique_id: owasp-latest-remove-unnecessary-features-and-components
+resource:
+  field_path: policies[].default_version.Document.Statement[].Action[]
+  logic: "result = True\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    for actions in fetched_value:\n        for action in actions:\n         \
+    \   if action.startswith('*'):\n                result = False\n             \
+    \   break\n        if not result:\n            break"
+  name: IAMResource

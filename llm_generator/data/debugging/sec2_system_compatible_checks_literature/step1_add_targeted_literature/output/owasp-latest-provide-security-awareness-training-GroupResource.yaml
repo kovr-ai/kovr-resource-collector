@@ -1,0 +1,39 @@
+resource:
+  check:
+    unique_id: owasp-latest-provide-security-awareness-training
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: 'To implement a security awareness training program, the organization
+      should consider the following steps:'
+    estimated_time: 2-3 months
+    instructions:
+    - Develop or procure security awareness training materials covering relevant topics
+      such as phishing, password management, data handling, and incident reporting.
+    - Establish a schedule for delivering training sessions or online courses to all
+      employees on a regular basis (e.g., annually or bi-annually).
+    - Implement a system or process for tracking employee completion of training and
+      maintaining training records.
+    - Incorporate security awareness training into the onboarding process for new
+      employees.
+    - Conduct periodic assessments or phishing simulations to evaluate the effectiveness
+      of the training program and identify areas for improvement.
+  is_valid: false
+  literature: The GroupResource in Google Cloud Platform represents a group of users
+    or other entities within an organization. While groups can be used for access
+    control and authorization purposes, they do not directly relate to providing security
+    awareness training to employees. Security awareness training typically involves
+    educational materials, training sessions, and assessments to ensure employees
+    understand security best practices and can identify potential threats.
+  name: GroupResource
+  output_statements:
+    failure: The organization does not have a security awareness training program
+      in place for employees.
+    partial: The organization has a security awareness training program, but it is
+      not consistently delivered or tracked across all employee groups.
+    success: The organization has implemented a comprehensive security awareness training
+      program for all employees.
+  reason: The GroupResource does not contain any information or functionality related
+    to security awareness training. It is primarily used for managing user groups
+    and their memberships, but does not provide a mechanism for delivering security
+    training content or tracking employee training completion.

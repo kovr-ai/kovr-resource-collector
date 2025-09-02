@@ -1,0 +1,42 @@
+resource:
+  check:
+    unique_id: owasp-latest-adopt-a-secure-software-development-lifecycle-(ssdlc)
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To address this check, the organization needs to implement and follow
+      a secure software development lifecycle (SSDLC) that incorporates security considerations
+      throughout the entire software development process.
+    estimated_time: Implementing a comprehensive SSDLC can take several months to
+      a year, depending on the organization's size and complexity.
+    instructions:
+    - Establish a formal SSDLC process that aligns with industry best practices, such
+      as the OWASP SSDLC or Microsoft SDL.
+    - Integrate security activities into each phase of the software development lifecycle,
+      including requirements gathering, design, implementation, testing, and deployment.
+    - Provide training and resources to development teams on secure coding practices,
+      threat modeling, and security testing.
+    - Implement security controls and processes for managing vulnerabilities, secure
+      code reviews, and secure deployment practices.
+    - Continuously monitor and improve the SSDLC process based on feedback and lessons
+      learned.
+  is_valid: false
+  literature: The OWASP Secure Software Development Lifecycle (SSDLC) is a set of
+    best practices and guidelines for building secure software from the ground up.
+    It covers the entire software development process, from requirements gathering
+    and design to implementation, testing, and deployment. The S3Resource in AWS is
+    a storage service and does not directly relate to the software development lifecycle.
+    While secure storage is an important aspect of application security, the S3Resource
+    itself does not provide information about the organization's adoption of an SSDLC.
+  name: S3Resource
+  output_statements:
+    failure: The organization has not adopted or does not follow a secure software
+      development lifecycle (SSDLC) as recommended by OWASP.
+    partial: Not applicable for this check.
+    success: The organization has adopted and follows a secure software development
+      lifecycle (SSDLC) as recommended by OWASP.
+  reason: The S3Resource is a storage service and does not directly relate to the
+    organization's adoption of a secure software development lifecycle. The provided
+    field paths are specific to the configuration and properties of S3 buckets, but
+    do not provide information about the software development practices or processes
+    followed by the organization.

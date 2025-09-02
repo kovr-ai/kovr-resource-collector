@@ -1,0 +1,39 @@
+resource:
+  check:
+    unique_id: owasp-latest-conduct-regular-security-testing
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To address this security check, the organization needs to establish
+      and implement a comprehensive security testing program that includes regular
+      penetration testing, vulnerability assessments, and code reviews.
+    estimated_time: Implementing a comprehensive security testing program can take
+      several months to a year, depending on the organization's size and complexity.
+    instructions:
+    - Develop a security testing policy and plan that outlines the scope, frequency,
+      and methodologies for different testing activities.
+    - Allocate resources (personnel, tools, budget) for conducting security testing
+      activities.
+    - Engage with internal teams or external vendors to perform penetration testing,
+      vulnerability assessments, and code reviews on a regular basis.
+    - Establish processes for tracking, remediating, and validating the resolution
+      of identified vulnerabilities and security issues.
+    - Maintain documentation and evidence of security testing activities for compliance
+      and audit purposes.
+  is_valid: false
+  literature: The provided AWS S3 resource does not directly relate to conducting
+    regular security testing activities such as penetration testing, vulnerability
+    assessments, or code reviews. S3 is an object storage service, and its configuration
+    does not provide information about an organization's security testing practices.
+  name: S3Resource
+  output_statements:
+    failure: The organization does not conduct regular security testing activities,
+      leaving it vulnerable to potential security risks and compliance violations.
+    partial: The organization partially conducts security testing activities, but
+      there are gaps or inconsistencies in the testing scope or frequency.
+    success: The organization conducts regular security testing activities, including
+      penetration testing, vulnerability assessments, and code reviews.
+  reason: The S3 resource is focused on storage configuration and does not contain
+    information relevant to security testing processes or activities. Regular security
+    testing is typically an organizational practice that spans multiple resources
+    and services.

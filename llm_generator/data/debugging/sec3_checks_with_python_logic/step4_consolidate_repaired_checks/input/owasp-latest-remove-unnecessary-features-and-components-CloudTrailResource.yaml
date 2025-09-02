@@ -1,0 +1,10 @@
+check:
+  unique_id: owasp-latest-remove-unnecessary-features-and-components
+resource:
+  field_path: trails[*].event_selectors[*].data_resources.values[*]
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    allowed_resources = ['AWS::S3::Object', 'AWS::Lambda::Function', 'AWS::EC2::Instance']\n\
+    \    for resource_list in fetched_value:\n        for resource in resource_list:\n\
+    \            if resource not in allowed_resources:\n                break\n  \
+    \      else:\n            result = True\n            break"
+  name: CloudTrailResource

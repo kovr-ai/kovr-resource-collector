@@ -1,0 +1,51 @@
+resource:
+  check:
+    unique_id: owasp-latest-enforce-least-privilege-principles
+  field_paths:
+  - collaboration_data.collaborators
+  - collaboration_data.collaborators[].permissions
+  - organization_data.members
+  - organization_data.members[].role
+  - organization_data.outside_collaborators
+  - organization_data.outside_collaborators[].permissions
+  - organization_data.teams
+  - organization_data.teams[].permission
+  - repository_data.branches
+  - repository_data.branches[].protection_details
+  - security_data.security_analysis
+  fix_details:
+    automation_available: true
+    description: If the check fails or partially passes, it indicates that there are
+      issues with access controls and permissions within the GitHub resource. This
+      may include collaborators with excessive permissions, teams with broad access,
+      or lack of branch protection rules.
+    estimated_time: 1-2 hours
+    instructions:
+    - Review the permissions granted to collaborators and ensure they only have the
+      minimum required access based on their roles and responsibilities.
+    - Analyze the permissions and access levels granted to organization members and
+      teams, and restrict them to only what is necessary.
+    - Implement branch protection rules, such as requiring pull request reviews, status
+      checks, and restricting push access to specific users or teams.
+    - Enable advanced security features like secret scanning, dependency review, and
+      push protection to enhance the overall security posture of the repository.
+  is_valid: false
+  literature: The principle of least privilege is a fundamental security concept that
+    restricts access rights for users, accounts, and processes to only those permissions
+    required to perform authorized tasks. This check aims to validate that systems
+    and applications adhere to this principle, ensuring that users, processes, and
+    services operate with the minimum necessary privileges to accomplish their intended
+    functions, and no more.
+  name: GithubResource
+  output_statements:
+    failure: The GitHub resource does not adhere to the principle of least privilege,
+      with excessive or inappropriate permissions granted to users, teams, or collaborators.
+    partial: The GitHub resource partially adheres to the principle of least privilege,
+      but there are areas where access controls and permissions need to be reviewed
+      and tightened.
+    success: The GitHub resource adheres to the principle of least privilege, with
+      appropriate access controls and permissions in place for users, teams, and collaborators.
+  reason: The provided resource, GithubResource, contains information related to GitHub
+    repositories, organizations, and collaborators. While it does not directly implement
+    the principle of least privilege, it provides relevant data points that can be
+    used to assess and enforce least privilege access controls within a GitHub environment.

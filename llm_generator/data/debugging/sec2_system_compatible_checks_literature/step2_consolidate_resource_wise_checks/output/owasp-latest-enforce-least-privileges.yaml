@@ -1,0 +1,85 @@
+check:
+  invalid_resources: []
+  unique_id: owasp-latest-enforce-least-privileges
+  valid_resources:
+  - field_paths:
+    - policies
+    - policies[].default_version.Document.Statement
+    - policies[].default_version.Document.Statement[].Action
+    - policies[].default_version.Document.Statement[].Resource
+    - users
+    - users[].access_keys
+    - users[].mfa_devices
+    literature: The AWS IAM resource is highly relevant for implementing the 'owasp-latest-enforce-least-privileges'
+      security check. IAM policies define the permissions granted to IAM users, groups,
+      and roles, allowing you to enforce the principle of least privilege. By analyzing
+      the policy documents and attached entities, you can verify if excessive privileges
+      have been granted.
+    name: IAMResource
+    reason: The IAM resource contains crucial information about the permissions granted
+      to users and roles through policies, as well as details on user access keys
+      and multi-factor authentication (MFA) devices. This data is essential for assessing
+      if the least privilege principle is being followed.
+  - field_paths:
+    - buckets
+    - buckets[].public_access_block
+    - buckets[].public_access_block.block_public_acls
+    - buckets[].public_access_block.block_public_policy
+    - buckets[].public_access_block.ignore_public_acls
+    - buckets[].public_access_block.restrict_public_buckets
+    literature: The 'owasp-latest-enforce-least-privileges' check is applicable to
+      AWS S3 buckets as they support granular access control mechanisms. S3 bucket
+      policies, access control lists (ACLs), and AWS Identity and Access Management
+      (IAM) policies can be used to enforce the principle of least privilege by granting
+      only the necessary permissions to users, roles, and applications. This helps
+      prevent unauthorized access, data leaks, and potential misuse of S3 resources.
+    name: S3Resource
+    reason: AWS S3 buckets support configurable access controls and policies that
+      can enforce the principle of least privilege. The provided field paths allow
+      for checking the public access settings, which is a crucial aspect of implementing
+      least privilege for S3 buckets.
+  - field_paths:
+    - event_selectors
+    - event_selectors[].data_resources
+    - event_selectors[].data_resources.type
+    - event_selectors[].data_resources.values
+    - event_selectors[].data_resources.values[]
+    - event_selectors[].include_management_events
+    - event_selectors[].read_write_type
+    - trails[].event_selectors
+    - trails[].event_selectors[].data_resources
+    - trails[].event_selectors[].data_resources.type
+    - trails[].event_selectors[].data_resources.values
+    - trails[].event_selectors[].data_resources.values[]
+    - trails[].event_selectors[].include_management_events
+    - trails[].event_selectors[].read_write_type
+    literature: The AWS CloudTrail resource is applicable for implementing the 'owasp-latest-enforce-least-privileges'
+      security check. CloudTrail logs all API activity across AWS accounts and services,
+      allowing you to monitor and analyze user and resource activity. By configuring
+      CloudTrail trails with appropriate event selectors and data resource filters,
+      you can enforce least privilege by auditing and restricting access to only necessary
+      resources and actions.
+    name: CloudTrailResource
+    reason: The CloudTrail resource allows you to configure event selectors and data
+      resource filters to log and monitor specific API activities and resource access.
+      This enables you to enforce least privilege by auditing and restricting access
+      to only necessary resources and actions, aligning with the 'owasp-latest-enforce-least-privileges'
+      security check.
+  - field_paths:
+    - admin_info.isAdmin
+    - admin_info.isDelegatedAdmin
+    - basic_info.ipWhitelisted
+    - organizational_info.orgUnitPath
+    - security_info.isEnforcedIn2Sv
+    - security_info.isEnrolledIn2Sv
+    literature: The 'owasp-latest-enforce-least-privileges' check aims to ensure that
+      the Google User resource follows the principle of least privilege by granting
+      only the necessary permissions required for the user's intended functions. This
+      mitigates risks like unauthorized data access, privilege escalation, and malicious
+      code execution. To implement this check, the relevant field paths should be
+      analyzed to determine if the user has excessive privileges or access rights.
+    name: UserResource
+    reason: The Google User resource contains fields that can indicate the user's
+      administrative privileges, IP whitelisting status, organizational unit path,
+      and two-factor authentication enrollment, which are relevant for assessing whether
+      the user has more access than necessary.

@@ -1,0 +1,8 @@
+check:
+  unique_id: owasp-latest-validate-and-sanitize-all-user-input
+resource:
+  field_path: contact_info.emails[].address
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    for email in fetched_value:\n        if not re.match(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\\
+    .[a-zA-Z0-9-.]+$', email):\n            break\n    else:\n        result = True"
+  name: UserResource

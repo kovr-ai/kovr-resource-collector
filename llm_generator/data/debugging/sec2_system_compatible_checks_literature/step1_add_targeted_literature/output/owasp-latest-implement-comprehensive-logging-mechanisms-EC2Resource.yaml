@@ -1,0 +1,36 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-comprehensive-logging-mechanisms
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: To implement comprehensive logging mechanisms in AWS, you need to
+      configure and utilize services like CloudTrail, CloudWatch Logs, and VPC Flow
+      Logs.
+    estimated_time: 1-2 hours
+    instructions:
+    - Enable AWS CloudTrail and configure it to capture API activity logs for your
+      AWS account.
+    - Configure CloudWatch Logs to collect and store logs from various AWS services
+      and EC2 instances.
+    - Enable VPC Flow Logs to capture network traffic information for your VPCs.
+    - Review and configure logging settings for other relevant AWS services based
+      on your requirements.
+    - Implement log monitoring, analysis, and retention strategies to effectively
+      utilize the collected logs.
+  is_valid: false
+  literature: The EC2Resource in AWS provides information about various EC2 components
+    such as instances, security groups, and network interfaces. However, it does not
+    directly provide comprehensive logging mechanisms or configurations related to
+    logging. Logging in AWS is typically handled by services like CloudTrail, CloudWatch
+    Logs, and VPC Flow Logs.
+  name: EC2Resource
+  output_statements:
+    failure: The EC2Resource does not provide comprehensive logging configurations
+      or mechanisms.
+    partial: The EC2Resource partially provides logging configurations, but additional
+      services are required for comprehensive logging.
+    success: The EC2Resource provides comprehensive logging configurations and mechanisms.
+  reason: The EC2Resource does not contain any field paths related to logging configurations
+    or mechanisms. It primarily provides information about the EC2 infrastructure
+    components themselves.

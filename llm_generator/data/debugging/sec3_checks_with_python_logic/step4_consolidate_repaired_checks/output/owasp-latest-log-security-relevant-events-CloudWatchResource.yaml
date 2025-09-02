@@ -1,0 +1,32 @@
+check:
+  name: owasp-latest-log-security-relevant-events
+  resource:
+    field_path: log_groups[*].metric_filter_count
+    fix_details:
+      automation_available: true
+      description: 'If CloudWatch is not properly configured to log and monitor security-relevant
+        events, the following steps can be taken to remediate the issue:'
+      estimated_time: 1-2 hours
+      instructions:
+      - 1. Identify the AWS resources and services that generate security-relevant
+        logs (e.g., VPC Flow Logs, AWS WAF logs, CloudTrail logs, etc.).
+      - 2. Create CloudWatch Log Groups to collect and store the identified log sources.
+      - 3. Configure Metric Filters within the Log Groups to extract and monitor specific
+        security-relevant events or patterns.
+      - 4. Set appropriate log retention periods for the Log Groups to ensure logs
+        are available for incident response and forensic analysis.
+      - 5. Configure CloudWatch Alarms to trigger notifications or automated actions
+        based on specific security-relevant events or metrics.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    has_metric_filters = any(count > 0 for count in fetched_value)\n    result\
+      \ = has_metric_filters"
+    name: CloudWatchResource
+    output_statements:
+      failure: CloudWatch is not configured to log and monitor security-relevant events,
+        which may hinder incident response and forensic analysis capabilities.
+      partial: CloudWatch is partially configured to log and monitor security-relevant
+        events, but additional configuration may be required to ensure comprehensive
+        coverage.
+      success: CloudWatch is configured to log and monitor security-relevant events,
+        enabling effective incident response and forensic analysis.
+  unique_id: owasp-latest-log-security-relevant-events

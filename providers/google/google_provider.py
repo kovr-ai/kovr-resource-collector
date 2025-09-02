@@ -32,7 +32,6 @@ class GoogleProvider(Provider):
         # Skip Google connection if using mock data
         if self.use_mock_data:
             print("🔄 Mock mode detected - skipping Google connection")
-            self.client = None  # No real client needed for mock data
             return
 
         service_account_info = self.get_service_account_secret_from_Google()
@@ -44,7 +43,7 @@ class GoogleProvider(Provider):
         )
 
         service = build('admin', 'directory_v1', credentials=credentials)
-        self.client = service
+        return service
 
     def get_service_account_secret_from_Google(self):
         boto3.setup_default_session(region_name='us-west-2')

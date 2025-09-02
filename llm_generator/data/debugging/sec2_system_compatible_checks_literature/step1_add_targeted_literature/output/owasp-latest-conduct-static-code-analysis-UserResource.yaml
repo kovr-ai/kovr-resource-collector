@@ -1,0 +1,25 @@
+resource:
+  check:
+    unique_id: owasp-latest-conduct-static-code-analysis
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This check is not applicable to the 'UserResource' resource, as it
+      does not contain any source code or software artifacts.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The provided resource 'UserResource' is a user account resource in Google
+    Workspace, containing user profile information, contact details, and organizational
+    data. This resource does not contain any source code or artifacts related to software
+    development. Therefore, it is not applicable for implementing the 'owasp-latest-conduct-static-code-analysis'
+    security check, which is focused on performing static code analysis to identify
+    vulnerabilities and coding issues in software applications.
+  name: UserResource
+  output_statements:
+    failure: This check is not applicable to the 'UserResource' resource.
+    partial: This check is not applicable to the 'UserResource' resource.
+    success: This check is not applicable to the 'UserResource' resource.
+  reason: The 'UserResource' is a user account resource and does not contain any source
+    code or software artifacts. Static code analysis is performed on application source
+    code, not user account data.

@@ -1,0 +1,48 @@
+resource:
+  check:
+    unique_id: owasp-latest-enforce-least-privilege-principles
+  field_paths:
+  - buckets[].public_access_block
+  - buckets[].public_access_block.block_public_acls
+  - buckets[].public_access_block.block_public_policy
+  - buckets[].public_access_block.ignore_public_acls
+  - buckets[].public_access_block.restrict_public_buckets
+  - buckets[].encryption
+  - buckets[].encryption.enabled
+  - buckets[].encryption.type
+  fix_details:
+    automation_available: true
+    description: 'If any S3 buckets are found to be non-compliant with the principle
+      of least privilege, the following steps can be taken to remediate the issue:'
+    estimated_time: 30 minutes to 1 hour
+    instructions:
+    - Review the bucket policies and access control lists (ACLs) for each non-compliant
+      bucket and remove any unnecessary or overly permissive access grants.
+    - Enable server-side encryption for the bucket using AWS-managed keys (SSE-S3)
+      or customer-managed keys (SSE-KMS).
+    - Configure the public access block settings for the bucket to block public access,
+      public ACLs, and public bucket policies.
+    - Implement AWS Identity and Access Management (IAM) policies and roles to grant
+      least privilege access to the bucket and its objects based on the principle
+      of least privilege.
+  is_valid: true
+  literature: The AWS S3 resource is applicable for implementing the 'owasp-latest-enforce-least-privilege-principles'
+    security check. S3 buckets can be configured with various access controls and
+    permissions to enforce the principle of least privilege. By properly configuring
+    bucket policies, access control lists (ACLs), and other security settings, you
+    can restrict access to only authorized users, roles, or services, and limit the
+    actions they can perform on the bucket and its objects.
+  name: S3Resource
+  output_statements:
+    failure: One or more S3 buckets are not configured with proper access controls,
+      encryption, or public access restrictions, violating the principle of least
+      privilege.
+    partial: Some S3 buckets are configured with appropriate access controls, encryption,
+      and public access restrictions, while others are not, partially adhering to
+      the principle of least privilege.
+    success: The S3 bucket(s) are configured with appropriate access controls, encryption,
+      and public access restrictions, adhering to the principle of least privilege.
+  reason: The S3 resource provides various configuration options and settings that
+    allow you to implement the principle of least privilege by controlling access
+    to buckets and objects, enabling encryption, and restricting public access. The
+    relevant field paths cover these security controls.

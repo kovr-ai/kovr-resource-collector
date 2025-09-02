@@ -1,0 +1,27 @@
+resource:
+  check:
+    unique_id: owasp-latest-use-secure-xml-parsers
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This security check is not applicable to the EC2 resource.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The security check 'owasp-latest-use-secure-xml-parsers' is related
+    to the use of secure XML parsers in applications to prevent vulnerabilities such
+    as XML External Entity (XXE) attacks, XML Injection, and Denial of Service (DoS)
+    attacks. This check is primarily applicable to application-level resources that
+    handle XML data processing and parsing.
+  name: EC2Resource
+  output_statements:
+    failure: The EC2 resource does not handle XML data processing, and therefore,
+      this check is not applicable.
+    partial: This check is not applicable to the EC2 resource.
+    success: The EC2 resource is configured to use secure XML parsers for all XML
+      data processing.
+  reason: The provided resource 'EC2Resource' is an AWS Elastic Compute Cloud (EC2)
+    resource, which represents virtual machines (instances) and related networking
+    components. This resource does not directly handle XML parsing or processing.
+    Therefore, it is not applicable for implementing the 'owasp-latest-use-secure-xml-parsers'
+    security check.

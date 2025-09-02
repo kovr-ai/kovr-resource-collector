@@ -1,0 +1,28 @@
+resource:
+  check:
+    unique_id: owasp-latest-conduct-dynamic-application-security-testing-(dast)
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: No fix is required as the IAMResource is not applicable for the OWASP
+      DAST security check.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: Dynamic Application Security Testing (DAST) is a technique used to identify
+    security vulnerabilities in web applications by simulating real-world attacks
+    and analyzing the application's behavior and responses. It involves interacting
+    with the running application from the outside, mimicking the actions of a malicious
+    user or attacker. The IAMResource in AWS does not represent a web application
+    or service that can be tested using DAST techniques. Instead, it is a resource
+    that manages Identity and Access Management (IAM) policies and user access keys.
+    Therefore, this resource is not applicable for implementing the OWASP DAST security
+    check.
+  name: IAMResource
+  output_statements:
+    failure: This resource is not applicable for the OWASP DAST security check.
+    partial: This resource is not applicable for the OWASP DAST security check.
+    success: This resource is not applicable for the OWASP DAST security check.
+  reason: The IAMResource in AWS is not a web application or service that can be tested
+    using DAST techniques. It is a resource that manages IAM policies and user access
+    keys, which are not directly related to the OWASP DAST security check.

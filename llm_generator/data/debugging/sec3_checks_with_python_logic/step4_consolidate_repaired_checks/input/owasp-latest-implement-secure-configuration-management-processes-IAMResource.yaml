@@ -1,0 +1,16 @@
+check:
+  unique_id: owasp-latest-implement-secure-configuration-management-processes
+resource:
+  field_path: policies[].default_version.Document.Statement[*]
+  logic: "result = True\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    for statement in fetched_value:\n        if hasattr(statement, 'Effect')\
+    \ and statement.Effect == 'Allow':\n            condition = getattr(statement,\
+    \ 'Condition', None)\n            if condition is None:\n                result\
+    \ = False\n                break\n            else:\n                # Implement\
+    \ additional checks on condition to ensure secure configuration\n            \
+    \    pass\n        elif isinstance(statement, dict) and statement.get('Effect')\
+    \ == 'Allow':\n            condition = statement.get('Condition')\n          \
+    \  if condition is None:\n                result = False\n                break\n\
+    \            else:\n                # Implement additional checks on condition\
+    \ to ensure secure configuration\n                pass"
+  name: IAMResource

@@ -1,0 +1,35 @@
+resource:
+  check:
+    unique_id: owasp-latest-ensure-secure-configuration-of-databases
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To assess the secure configuration of databases, you need to analyze
+      resources specifically related to the database service being used (e.g., RDS
+      for AWS).
+    estimated_time: 30 minutes to 1 hour
+    instructions:
+    - Identify the database service and resources being used in your cloud environment.
+    - Locate the appropriate resource in the Cloud Security Command Center that provides
+      information about database configurations.
+    - Analyze the resource and its field paths to determine if it contains the necessary
+      information to assess the secure configuration of databases.
+    - If a suitable resource is found, perform the 'owasp-latest-ensure-secure-configuration-of-databases'
+      security check on that resource.
+  is_valid: false
+  literature: The EC2Resource in AWS does not directly relate to the configuration
+    of databases. It provides information about Elastic Compute Cloud (EC2) instances,
+    networking components, and other resources associated with the EC2 service. While
+    EC2 instances can host databases, the resource itself does not contain specific
+    details about database configurations.
+  name: EC2Resource
+  output_statements:
+    failure: The EC2 resources do not provide information about database configurations,
+      and therefore, this check cannot be performed.
+    partial: This check is not applicable to the EC2Resource.
+    success: The EC2 resources are configured securely, and the associated databases
+      have secure configurations.
+  reason: The EC2Resource does not contain any information related to the configuration
+    settings of databases, which is the focus of the 'owasp-latest-ensure-secure-configuration-of-databases'
+    security check. This resource is primarily concerned with EC2 instances, networking
+    components, and other EC2-related resources, but not database configurations.

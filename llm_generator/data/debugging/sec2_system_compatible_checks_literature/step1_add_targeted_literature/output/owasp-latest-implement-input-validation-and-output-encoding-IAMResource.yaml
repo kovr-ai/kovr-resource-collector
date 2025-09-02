@@ -1,0 +1,51 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-input-validation-and-output-encoding
+  field_paths:
+  - policies
+  - policies[].default_version.Document.Statement
+  - policies[].default_version.Document.Statement[].Action
+  - policies[].default_version.Document.Statement[].Resource
+  - users
+  - users[].access_keys
+  fix_details:
+    automation_available: true
+    description: Review and update IAM policies and user permissions to ensure that
+      only authorized users and applications have access to resources that handle
+      user input and output data, and that they have the necessary permissions to
+      implement input validation and output encoding measures.
+    estimated_time: 1-2 hours
+    instructions:
+    - Identify resources that handle user input and output data (e.g., web applications,
+      APIs, databases)
+    - Review IAM policies and user permissions related to these resources
+    - Update policies and permissions to restrict access to authorized users and applications
+      only
+    - Ensure that authorized users and applications have the necessary permissions
+      to implement input validation and output encoding measures
+    - Test and verify the updated policies and permissions
+  is_valid: false
+  literature: The IAM Resource in AWS is primarily used for managing access and permissions
+    for users, groups, and roles within an AWS account. While it does not directly
+    implement input validation and output encoding, it plays a crucial role in securing
+    access to AWS resources and services that handle user input and output data. By
+    properly configuring IAM policies and user permissions, you can ensure that only
+    authorized users and applications have access to resources that process user input
+    and output data, and that they have the necessary permissions to implement input
+    validation and output encoding measures.
+  name: IAMResource
+  output_statements:
+    failure: IAM policies and user permissions are not properly configured to secure
+      access to resources that handle user input and output data, or do not allow
+      the implementation of input validation and output encoding measures.
+    partial: N/A
+    success: IAM policies and user permissions are properly configured to secure access
+      to resources that handle user input and output data, and to allow the implementation
+      of input validation and output encoding measures.
+  reason: The IAM Resource itself does not directly handle input validation or output
+    encoding. However, it is a critical component in securing access to resources
+    that do handle user input and output data. By properly configuring IAM policies
+    and user permissions, you can ensure that only authorized users and applications
+    have access to resources that process user input and output data, and that they
+    have the necessary permissions to implement input validation and output encoding
+    measures.

@@ -1,0 +1,30 @@
+resource:
+  check:
+    unique_id: owasp-latest-use-industry-standard-authentication-protocols
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This resource is not applicable for implementing the OWASP latest
+      use industry standard authentication protocols check.
+    estimated_time: Not applicable
+    instructions: []
+  is_valid: false
+  literature: The OWASP latest use industry standard authentication protocols check
+    is focused on ensuring that applications use industry-standard authentication
+    protocols and mechanisms to authenticate users and protect their credentials.
+    This check is primarily applicable to application-level resources that handle
+    user authentication and authorization, such as web applications, APIs, or identity
+    and access management services.
+  name: S3Resource
+  output_statements:
+    failure: The application does not use industry-standard authentication protocols
+      and mechanisms to authenticate users and protect their credentials, making it
+      vulnerable to various attacks.
+    partial: Not applicable for this resource.
+    success: The application uses industry-standard authentication protocols and mechanisms
+      to authenticate users and protect their credentials.
+  reason: The provided resource, AWS S3 (Simple Storage Service), is an object storage
+    service primarily used for storing and retrieving data. It does not directly handle
+    user authentication or authorization mechanisms. Therefore, this resource is not
+    applicable for implementing the OWASP latest use industry standard authentication
+    protocols check.

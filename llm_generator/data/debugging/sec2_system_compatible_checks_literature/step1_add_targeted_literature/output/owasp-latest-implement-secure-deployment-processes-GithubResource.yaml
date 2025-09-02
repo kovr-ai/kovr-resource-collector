@@ -1,0 +1,125 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-secure-deployment-processes
+  field_paths:
+  - actions_data
+  - actions_data.active_workflows
+  - actions_data.recent_runs_count
+  - actions_data.total_workflows
+  - actions_data.workflows
+  - actions_data.workflows.badge_url
+  - actions_data.workflows.created_at
+  - actions_data.workflows.html_url
+  - actions_data.workflows.id
+  - actions_data.workflows.name
+  - actions_data.workflows.path
+  - actions_data.workflows.recent_runs
+  - actions_data.workflows.recent_runs[].conclusion
+  - actions_data.workflows.recent_runs[].created_at
+  - actions_data.workflows.recent_runs[].head_branch
+  - actions_data.workflows.recent_runs[].head_sha
+  - actions_data.workflows.recent_runs[].id
+  - actions_data.workflows.recent_runs[].name
+  - actions_data.workflows.recent_runs[].run_attempt
+  - actions_data.workflows.recent_runs[].run_number
+  - actions_data.workflows.recent_runs[].status
+  - actions_data.workflows.recent_runs[].updated_at
+  - actions_data.workflows.state
+  - actions_data.workflows.updated_at
+  - actions_data.workflows.url
+  - security_data.code_scanning_alerts
+  - security_data.code_scanning_alerts.alerts
+  - security_data.code_scanning_alerts.alerts[].dismissed_at
+  - security_data.code_scanning_alerts.alerts[].dismissed_by
+  - security_data.code_scanning_alerts.alerts[].dismissed_by.id
+  - security_data.code_scanning_alerts.alerts[].dismissed_by.login
+  - security_data.code_scanning_alerts.alerts[].dismissed_by.type
+  - security_data.code_scanning_alerts.alerts[].dismissed_reason
+  - security_data.code_scanning_alerts.alerts[].number
+  - security_data.code_scanning_alerts.alerts[].rule
+  - security_data.code_scanning_alerts.alerts[].rule.description
+  - security_data.code_scanning_alerts.alerts[].rule.id
+  - security_data.code_scanning_alerts.alerts[].rule.severity
+  - security_data.code_scanning_alerts.alerts[].state
+  - security_data.code_scanning_alerts.error
+  - security_data.dependency_graph
+  - security_data.dependency_graph.has_vulnerability_alerts_enabled
+  - security_data.dependency_graph.security_and_analysis
+  - security_data.dependency_graph.security_and_analysis.advanced_security
+  - security_data.dependency_graph.security_and_analysis.secret_scanning
+  - security_data.dependency_graph.security_and_analysis.secret_scanning_push_protection
+  - security_data.security_advisories
+  - security_data.security_advisories.advisories
+  - security_data.security_advisories.advisories[].id
+  - security_data.security_advisories.advisories[].published_at
+  - security_data.security_advisories.advisories[].severity
+  - security_data.security_advisories.advisories[].summary
+  - security_data.security_advisories.advisories[].updated_at
+  - security_data.security_advisories.advisories[].vulnerabilities
+  - security_data.security_advisories.advisories[].vulnerabilities.first_patched_version
+  - security_data.security_advisories.advisories[].vulnerabilities.package
+  - security_data.security_advisories.advisories[].vulnerabilities.severity
+  - security_data.security_advisories.advisories[].vulnerabilities.vulnerable_version_range
+  - security_data.security_advisories.advisories[].withdrawn_at
+  - security_data.security_advisories.error
+  - security_data.security_analysis
+  - security_data.security_analysis.advanced_security_enabled
+  - security_data.security_analysis.dependency_review_enabled
+  - security_data.security_analysis.push_protection_enabled
+  - security_data.security_analysis.secret_scanning_enabled
+  - security_data.security_features_enabled
+  - security_data.total_advisories
+  - security_data.total_code_scanning_alerts
+  - security_data.total_dependabot_alerts
+  - security_data.vulnerability_alerts
+  - security_data.vulnerability_alerts.dependabot_alerts
+  - security_data.vulnerability_alerts.dependabot_alerts[].created_at
+  - security_data.vulnerability_alerts.dependabot_alerts[].number
+  - security_data.vulnerability_alerts.dependabot_alerts[].package
+  - security_data.vulnerability_alerts.dependabot_alerts[].severity
+  - security_data.vulnerability_alerts.dependabot_alerts[].state
+  - security_data.vulnerability_alerts.dependabot_alerts[].updated_at
+  - security_data.vulnerability_alerts.enabled
+  - security_data.vulnerability_alerts.error
+  fix_details:
+    automation_available: false
+    description: 'To fully implement secure deployment processes, the organization
+      should establish and document a comprehensive deployment lifecycle with appropriate
+      security controls, including but not limited to:'
+    estimated_time: Varies based on the organization's size and complexity, but typically
+      takes several weeks to several months to fully implement.
+    instructions:
+    - 1. Implement a formal change management process with code reviews, testing,
+      and approval gates.
+    - 2. Conduct regular vulnerability scanning and remediation for all components.
+    - 3. Enforce secure configuration management practices for infrastructure and
+      applications.
+    - 4. Implement access controls and segregation of duties for deployment activities.
+    - 5. Establish monitoring and logging mechanisms for deployment activities.
+    - 6. Develop incident response and rollback procedures for failed or compromised
+      deployments.
+    - 7. Provide security awareness training for personnel involved in deployment
+      processes.
+  is_valid: false
+  literature: The 'owasp-latest-implement-secure-deployment-processes' check validates
+    that an organization has implemented secure processes for deploying applications
+    and infrastructure components. This includes ensuring proper security controls
+    are in place throughout the deployment lifecycle, such as code reviews, vulnerability
+    scanning, secure configuration management, and access controls.
+  name: GithubResource
+  output_statements:
+    failure: The organization has not implemented secure processes for deploying applications
+      and infrastructure components, and lacks proper security controls throughout
+      the deployment lifecycle.
+    partial: The organization has partially implemented secure deployment processes,
+      but there are gaps or weaknesses in the security controls throughout the deployment
+      lifecycle.
+    success: The organization has implemented secure processes for deploying applications
+      and infrastructure components, with proper security controls in place throughout
+      the deployment lifecycle.
+  reason: The GithubResource provided does not contain sufficient information to fully
+    assess the implementation of secure deployment processes within an organization.
+    While the resource provides details about GitHub Actions workflows, code scanning
+    alerts, security advisories, and vulnerability alerts, it lacks information about
+    the organization's overall deployment processes, security controls, and governance
+    practices.

@@ -1,0 +1,36 @@
+check:
+  name: owasp-latest-establish-incident-response-plans
+  resource:
+    field_path: alarms[*].alarm_actions
+    fix_details:
+      automation_available: true
+      description: To fully leverage CloudWatch for incident response, you need to
+        ensure that appropriate alarms, log groups, and actions are configured.
+      estimated_time: 1-2 hours for initial setup, ongoing maintenance as needed
+      instructions:
+      - Review your AWS resources and applications to identify critical events and
+        metrics that should be monitored for security incidents.
+      - Create CloudWatch alarms with appropriate thresholds and conditions to detect
+        these events and metrics.
+      - Configure alarm actions to trigger notifications (e.g., SNS topics, Lambda
+        functions) and automated responses (e.g., AWS Systems Manager Automation documents)
+        when alarms are triggered.
+      - Set up log groups to collect and retain relevant logs from your AWS resources
+        and applications for incident investigation and forensics.
+      - Regularly review and update your CloudWatch configurations as your environment
+        and security requirements evolve.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for alarm_actions in fetched_value:\n        for action in alarm_actions:\n\
+      \            if action.startswith('arn:aws:sns:'):\n                result =\
+      \ True\n                break"
+    name: CloudWatchResource
+    output_statements:
+      failure: CloudWatch is not properly configured to detect and respond to security
+        incidents, hindering the organization's ability to implement an effective
+        incident response plan.
+      partial: CloudWatch has some configurations in place for incident detection
+        and response, but additional improvements are needed to fully support an effective
+        incident response plan.
+      success: CloudWatch alarms and log groups are configured to detect and respond
+        to security incidents, supporting an effective incident response plan.
+  unique_id: owasp-latest-establish-incident-response-plans

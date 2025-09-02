@@ -1,0 +1,30 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-encryption-for-data-in-transit
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: Since the provided resource is not directly applicable for this security
+      check, no specific fix is required.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The security check 'owasp-latest-implement-encryption-for-data-in-transit'
+    focuses on ensuring that data transmitted over networks is encrypted to prevent
+    unauthorized access and maintain confidentiality and integrity. This check is
+    typically applicable to resources that handle network communication, such as web
+    servers, load balancers, or databases.
+  name: GithubResource
+  output_statements:
+    failure: The resource does not implement encryption for data in transit, leaving
+      transmitted data vulnerable to interception and unauthorized access.
+    partial: N/A
+    success: The resource implements appropriate encryption mechanisms for all data
+      transmissions, ensuring the confidentiality and integrity of sensitive information
+      during transit.
+  reason: The provided resource 'GithubResource' appears to be related to GitHub repositories
+    and their associated metadata, such as branches, collaborators, and security information.
+    Based on the available field paths, there is no indication that this resource
+    handles network communication or data transmission directly. Therefore, this resource
+    is not directly applicable for implementing the 'owasp-latest-implement-encryption-for-data-in-transit'
+    security check.

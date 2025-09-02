@@ -1,0 +1,41 @@
+check:
+  name: owasp-latest-follow-data-protection-regulations
+  resource:
+    field_path: trails[*].event_selectors[*].data_resources.values[*]
+    fix_details:
+      automation_available: true
+      description: 'If CloudTrail is not properly configured to capture and securely
+        store data access events, the following steps should be taken to remediate
+        the issue:'
+      estimated_time: 30 minutes to 1 hour
+      instructions:
+      - 1. Review the CloudTrail event selectors and ensure that relevant data resources
+        (e.g., S3 buckets, DynamoDB tables) are included in the data_resources.values
+        field.
+      - 2. Set the event_selectors.read_write_type field to 'All' to capture both
+        read and write events.
+      - 3. Enable log file validation by setting the log_file_validation_enabled field
+        to true.
+      - 4. Ensure that logs are stored in a secure and centralized location by configuring
+        an appropriate s3_bucket_name and s3_key_prefix.
+      - 5. If necessary, enable encryption for log files by specifying a kms_key_id.
+      - 6. Consider enabling multi-region trail (is_multi_region_trail) to capture
+        events across multiple AWS regions.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    sensitive_data_types = ['AWS::S3Object', 'AWS::Lambda::Function', 'AWS::DynamoDB::Table']\n\
+      \    for data_resource_values in fetched_value:\n        if any(value in sensitive_data_types\
+      \ for value in data_resource_values):\n            result = True\n         \
+      \   break"
+    name: CloudTrailResource
+    output_statements:
+      failure: CloudTrail is not configured to capture relevant data events, or logs
+        are not securely stored and protected, failing to meet the requirements of
+        the 'owasp-latest-follow-data-protection-regulations' security check.
+      partial: CloudTrail is partially configured to capture relevant data events,
+        but there are gaps or issues with log storage and protection, partially meeting
+        the requirements of the 'owasp-latest-follow-data-protection-regulations'
+        security check.
+      success: CloudTrail is configured to capture relevant data events, and logs
+        are securely stored and protected, meeting the requirements of the 'owasp-latest-follow-data-protection-regulations'
+        security check.
+  unique_id: owasp-latest-follow-data-protection-regulations

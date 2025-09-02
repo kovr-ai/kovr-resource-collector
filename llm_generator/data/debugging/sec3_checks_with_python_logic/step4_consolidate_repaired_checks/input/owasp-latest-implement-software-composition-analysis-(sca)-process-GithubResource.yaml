@@ -1,0 +1,8 @@
+check:
+  unique_id: owasp-latest-implement-software-composition-analysis-(sca)-process
+resource:
+  field_path: security_data.dependency_graph
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    has_dependency_graph = fetched_value\n    if has_dependency_graph:\n    \
+    \    result = True"
+  name: GithubResource

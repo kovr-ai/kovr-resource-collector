@@ -1,0 +1,30 @@
+check:
+  name: owasp-latest-implement-secure-logging-mechanisms
+  resource:
+    field_path: buckets[*].logging_enabled
+    fix_details:
+      automation_available: true
+      description: To fully implement secure logging mechanisms for AWS S3 buckets,
+        access logging must be enabled for all buckets.
+      estimated_time: 10-15 minutes per bucket
+      instructions:
+      - 1. Open the AWS Management Console and navigate to the S3 service.
+      - 2. Select the bucket for which you want to enable access logging.
+      - 3. Click on the 'Properties' tab, and then click on the 'Server access logging'
+        section.
+      - 4. Enable access logging by selecting a target bucket and prefix for the log
+        files.
+      - 5. Repeat steps 2-4 for all remaining buckets that do not have access logging
+        enabled.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for logging_enabled in fetched_value:\n        if logging_enabled:\n  \
+      \          result = True\n            break"
+    name: S3Resource
+    output_statements:
+      failure: S3 bucket access logging is not enabled, which violates the secure
+        logging mechanisms requirement.
+      partial: Some S3 buckets have access logging enabled, while others do not. Secure
+        logging mechanisms are partially implemented.
+      success: S3 bucket access logging is enabled, ensuring secure logging mechanisms
+        are implemented.
+  unique_id: owasp-latest-implement-secure-logging-mechanisms

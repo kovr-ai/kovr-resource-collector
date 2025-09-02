@@ -1,0 +1,17 @@
+check:
+  unique_id: owasp-latest-follow-data-protection-regulations
+resource:
+  field_path: policies[].default_version.Document.Statement
+  logic: "result = True\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    for statement in fetched_value:\n        if hasattr(statement, 'Effect')\
+    \ and statement.Effect == 'Allow':\n            condition = getattr(statement,\
+    \ 'Condition', None)\n            if condition:\n                for condition_key,\
+    \ condition_value in condition.items():\n                    if 'aws:PrincipalOrgPaths'\
+    \ in condition_key:\n                        for org_path in condition_value:\n\
+    \                            if org_path.startswith('/data-protection/'):\n  \
+    \                              result = True\n                            else:\n\
+    \                                result = False\n                            \
+    \    break\n                    else:\n                        result = False\n\
+    \                        break\n            else:\n                result = False\n\
+    \                break\n        else:\n            continue"
+  name: IAMResource

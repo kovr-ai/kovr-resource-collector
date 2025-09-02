@@ -1,0 +1,9 @@
+check:
+  unique_id: owasp-latest-regularly-update-and-patch-third-party-components
+resource:
+  field_path: security_data.dependency_graph
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    has_vulnerabilities = False\n    for dependency in fetched_value:\n     \
+    \   if dependency is not None and hasattr(dependency, 'vulnerabilities') and dependency.vulnerabilities:\n\
+    \            has_vulnerabilities = True\n            break\n    result = not has_vulnerabilities"
+  name: GithubResource

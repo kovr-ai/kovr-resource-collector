@@ -1,0 +1,27 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-output-encoding-for-xss-prevention
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This security check is not applicable to the GroupResource.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The GroupResource in Google Cloud Platform represents a group of users,
+    which is primarily used for managing access control and permissions. This resource
+    does not directly relate to implementing output encoding for XSS prevention, as
+    it does not handle user input or output rendering in web applications.
+  name: GroupResource
+  output_statements:
+    failure: The GroupResource is not applicable for implementing output encoding
+      for XSS prevention.
+    partial: The GroupResource is not applicable for implementing output encoding
+      for XSS prevention.
+    success: The GroupResource is not applicable for implementing output encoding
+      for XSS prevention.
+  reason: The GroupResource is not applicable for implementing output encoding for
+    XSS prevention because it is not a web application resource that handles user
+    input or output rendering. This security check is specifically designed for web
+    applications that need to sanitize and encode user input to prevent Cross-Site
+    Scripting (XSS) attacks.

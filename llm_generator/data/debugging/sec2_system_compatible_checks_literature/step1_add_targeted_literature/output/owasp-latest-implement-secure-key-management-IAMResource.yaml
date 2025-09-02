@@ -1,0 +1,47 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-secure-key-management
+  field_paths:
+  - users
+  - users[].access_keys
+  - users[].access_keys[].create_date
+  - users[].access_keys[].last_used_date
+  - users[].access_keys[].status
+  - policies
+  - policies[].default_version.Document.Statement
+  - policies[].default_version.Document.Statement[].Action
+  - policies[].default_version.Document.Statement[].Resource
+  fix_details:
+    automation_available: true
+    description: If issues are found with IAM access key or policy management, remediation
+      steps may include rotating access keys, revoking compromised keys, updating
+      policies to restrict access, and implementing automated key rotation processes.
+    estimated_time: 1-2 hours for manual review and remediation, ongoing for automation
+    instructions:
+    - Review all IAM user access keys and identify any inactive or compromised keys.
+    - Rotate access keys for all active users on a regular schedule (e.g., every 90
+      days).
+    - Revoke any compromised or inactive access keys immediately.
+    - Review IAM policies and ensure they follow the principle of least privilege,
+      granting only necessary permissions.
+    - Implement automated processes for key rotation and policy management using AWS
+      services like AWS Lambda and AWS Config.
+  is_valid: true
+  literature: The IAM resource in AWS is relevant for implementing secure key management
+    practices. IAM allows you to create and manage access keys, which are used to
+    securely authenticate requests to AWS services. Proper management of these access
+    keys is crucial for maintaining data confidentiality and preventing unauthorized
+    access. This resource provides the necessary controls to enforce secure key management
+    practices, such as key rotation, key revocation, and access restrictions.
+  name: IAMResource
+  output_statements:
+    failure: IAM access keys and/or policies are not configured securely, posing risks
+      for unauthorized access and data exposure.
+    partial: Some aspects of IAM access key and policy management adhere to secure
+      practices, but improvements are needed.
+    success: IAM access keys and policies are configured securely, following best
+      practices for key management.
+  reason: The IAM resource provides access keys for authenticating requests to AWS
+    services, and policies for controlling access permissions. These elements are
+    essential for implementing secure key management practices, such as key rotation,
+    revocation, and access restrictions.

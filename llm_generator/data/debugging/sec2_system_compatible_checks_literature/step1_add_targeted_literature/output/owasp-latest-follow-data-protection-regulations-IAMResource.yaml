@@ -1,0 +1,53 @@
+resource:
+  check:
+    unique_id: owasp-latest-follow-data-protection-regulations
+  field_paths:
+  - policies
+  - policies[].default_version.Document.Statement
+  - policies[].default_version.Document.Statement[].Action
+  - policies[].default_version.Document.Statement[].Resource
+  - users
+  - users[].access_keys
+  fix_details:
+    automation_available: true
+    description: 'If IAM policies or user access keys are found to be non-compliant
+      with data protection regulations, remediation steps may include:'
+    estimated_time: 1-2 hours for initial review and remediation, with ongoing maintenance
+      required
+    instructions:
+    - Review IAM policy statements and actions to identify any overly permissive access
+      to sensitive data or resources.
+    - Modify IAM policies to restrict access to sensitive data and resources based
+      on the principle of least privilege.
+    - Review user access keys and disable or rotate keys for users who no longer require
+      access to sensitive data.
+    - Implement additional access controls, such as multi-factor authentication (MFA)
+      or conditional access policies, for accessing sensitive data.
+    - Regularly review and audit IAM policies and user access keys to ensure ongoing
+      compliance with data protection regulations.
+  is_valid: true
+  literature: The IAMResource in AWS is relevant for implementing the 'owasp-latest-follow-data-protection-regulations'
+    security check. IAM (Identity and Access Management) policies define permissions
+    for accessing AWS resources, including sensitive data. By analyzing IAM policies,
+    you can identify potential areas of non-compliance with data protection regulations,
+    such as overly permissive access to personal data or lack of proper access controls.
+    Ensuring that IAM policies adhere to data protection regulations is crucial for
+    maintaining regulatory compliance and protecting sensitive information.
+  name: IAMResource
+  output_statements:
+    failure: IAM policies or user access keys are not configured in compliance with
+      data protection regulations, potentially exposing sensitive data to unauthorized
+      access or mishandling.
+    partial: Some IAM policies or user access keys are not configured in compliance
+      with data protection regulations, while others are compliant. Further investigation
+      and remediation are required.
+    success: IAM policies and user access keys are configured in compliance with data
+      protection regulations, ensuring proper access controls and protection of sensitive
+      data.
+  reason: The IAMResource provides access to IAM policies and user access keys, which
+    are essential for evaluating compliance with data protection regulations. By analyzing
+    the policy statements, actions, and resources, you can identify potential areas
+    of non-compliance, such as overly permissive access to sensitive data or lack
+    of proper access controls. Additionally, reviewing user access keys can help identify
+    potential security risks and ensure that access to sensitive data is properly
+    managed.

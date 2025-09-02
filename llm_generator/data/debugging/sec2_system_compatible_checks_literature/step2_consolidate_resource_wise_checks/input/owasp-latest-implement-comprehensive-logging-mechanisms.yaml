@@ -1,0 +1,130 @@
+check:
+  resources:
+  - field_paths:
+    - policies
+    - policies[].default_version.Document.Statement
+    - users[].access_keys
+    - users[].mfa_devices
+    is_valid: true
+    literature: The IAMResource in AWS is applicable for implementing comprehensive
+      logging mechanisms as it contains information about IAM policies, user access
+      keys, and MFA devices. Logging changes to IAM policies, access key usage, and
+      MFA device assignments can provide visibility into privileged activities and
+      potential security risks. This aligns with the OWASP recommendation for maintaining
+      audit trails of system events and user actions.
+    name: IAMResource
+    reason: The IAMResource contains details about IAM policies, user access keys,
+      and MFA devices, which are critical components for auditing and logging privileged
+      access and changes to security controls. Monitoring these elements can help
+      detect and respond to potential security incidents.
+  - field_paths:
+    - buckets
+    - buckets[].id
+    - buckets[].name
+    - buckets[].region
+    - buckets[].logging_enabled
+    is_valid: true
+    literature: AWS S3 buckets support comprehensive logging mechanisms that capture
+      detailed information about access requests, object-level operations, and other
+      bucket-related activities. By enabling S3 server access logging, organizations
+      can maintain visibility into all requests made to their S3 buckets, including
+      the requester, bucket name, request time, action, response status, and other
+      relevant details. This logging data can be used for security monitoring, incident
+      response, and forensic analysis, helping organizations meet compliance requirements
+      and maintain accountability.
+    name: S3Resource
+    reason: The AWS S3 resource is valid for implementing comprehensive logging mechanisms
+      as it provides the necessary configuration options to enable and manage access
+      logging for S3 buckets.
+  - field_paths:
+    - event_selectors
+    - event_selectors[]
+    - event_selectors[].data_resources
+    - event_selectors[].data_resources.type
+    - event_selectors[].data_resources.values
+    - event_selectors[].data_resources.values[]
+    - event_selectors[].include_management_events
+    - event_selectors[].read_write_type
+    - trails
+    - trails[]
+    - trails[].enable_log_file_validation
+    - trails[].event_selectors
+    - trails[].event_selectors[]
+    - trails[].event_selectors[].data_resources
+    - trails[].event_selectors[].data_resources.type
+    - trails[].event_selectors[].data_resources.values
+    - trails[].event_selectors[].data_resources.values[]
+    - trails[].event_selectors[].include_management_events
+    - trails[].event_selectors[].read_write_type
+    - trails[].include_global_service_events
+    - trails[].is_logging
+    - trails[].is_multi_region_trail
+    - trails[].log_file_validation_enabled
+    - trails[].s3_bucket_name
+    - trails[].s3_key_prefix
+    is_valid: true
+    literature: AWS CloudTrail is a service that enables comprehensive logging of
+      account activity across AWS services and resources. It captures API calls, console
+      actions, and other events, providing a detailed audit trail for security analysis,
+      resource change tracking, and compliance monitoring. By configuring CloudTrail
+      trails with appropriate event selectors and log file validation, organizations
+      can implement comprehensive logging mechanisms that capture critical system
+      activities, user actions, and security-related events.
+    name: CloudTrailResource
+    reason: AWS CloudTrail provides comprehensive logging capabilities that align
+      with the security check's requirement for implementing comprehensive logging
+      mechanisms. The resource's field paths allow for configuring event selectors,
+      data resources, management event inclusion, read/write event types, log file
+      validation, and other settings to capture detailed system activities and security-related
+      events.
+  - field_paths:
+    - alarms
+    - alarms[].alarm_actions
+    - alarms[].alarm_description
+    - alarms[].alarm_name
+    - alarms[].dimensions
+    - alarms[].dimensions[].Name
+    - alarms[].dimensions[].Value
+    - alarms[].metric_name
+    - alarms[].namespace
+    - log_groups
+    - log_groups[].arn
+    - log_groups[].log_group_name
+    - log_groups[].retention_in_days
+    is_valid: true
+    literature: AWS CloudWatch provides comprehensive logging and monitoring capabilities
+      that can be leveraged to implement comprehensive logging mechanisms as recommended
+      by OWASP. CloudWatch allows you to collect and monitor logs from various AWS
+      resources and services, including EC2 instances, Lambda functions, and other
+      AWS services. You can create log groups and log streams to centralize and organize
+      your logs, and then use CloudWatch Logs Insights to search, analyze, and visualize
+      log data. Additionally, CloudWatch Alarms can be configured to monitor specific
+      metrics and trigger actions, such as sending notifications or executing automated
+      remediation workflows, based on predefined thresholds.
+    name: CloudWatchResource
+    reason: AWS CloudWatch provides comprehensive logging and monitoring capabilities
+      that can be used to implement the OWASP recommendation for comprehensive logging
+      mechanisms. CloudWatch Logs can collect and centralize logs from various AWS
+      resources, while CloudWatch Alarms can be configured to monitor specific metrics
+      and trigger actions based on predefined thresholds, enabling effective incident
+      detection and response.
+  - field_paths:
+    - basic_info.creationTime
+    - basic_info.lastLoginTime
+    - contact_info.emails
+    - contact_info.phones
+    - security_info.isEnforcedIn2Sv
+    - security_info.isEnrolledIn2Sv
+    is_valid: true
+    literature: The Google UserResource contains information related to user accounts
+      and their associated details. Implementing comprehensive logging mechanisms
+      for this resource can help track user activities, detect potential security
+      incidents, and enable effective incident response and forensic analysis. Relevant
+      logging mechanisms may include capturing user login attempts, password changes,
+      account modifications, and other security-related events.
+    name: UserResource
+    reason: The UserResource contains critical user account information and security
+      settings. Logging changes to these fields can provide visibility into user activities,
+      account modifications, and security-related events, which aligns with the security
+      check's objective of implementing comprehensive logging mechanisms.
+  unique_id: owasp-latest-implement-comprehensive-logging-mechanisms

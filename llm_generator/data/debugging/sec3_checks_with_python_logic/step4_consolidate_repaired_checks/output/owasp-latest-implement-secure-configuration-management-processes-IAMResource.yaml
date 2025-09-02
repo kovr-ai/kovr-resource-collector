@@ -1,0 +1,41 @@
+check:
+  name: owasp-latest-implement-secure-configuration-management-processes
+  resource:
+    field_path: policies[].default_version.Document.Statement[*]
+    fix_details:
+      automation_available: true
+      description: 'If the IAM resource is not being managed through a secure configuration
+        management process, the following steps should be taken:'
+      estimated_time: 2-4 weeks
+      instructions:
+      - Establish a formal process for reviewing, testing, and approving IAM policy
+        changes before deployment.
+      - Implement version control and change tracking for IAM policies.
+      - Regularly review IAM policies, user access keys, and MFA device assignments
+        for appropriateness and potential risks.
+      - Ensure that IAM policy changes are properly documented, tested, and approved
+        by appropriate stakeholders before deployment.
+      - Implement automated monitoring and alerting for unauthorized or high-risk
+        IAM policy changes.
+    logic: "result = True\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for statement in fetched_value:\n        if hasattr(statement, 'Effect')\
+      \ and statement.Effect == 'Allow':\n            condition = getattr(statement,\
+      \ 'Condition', None)\n            if condition is None:\n                result\
+      \ = False\n                break\n            else:\n                # Implement\
+      \ additional checks on condition to ensure secure configuration\n          \
+      \      pass\n        elif isinstance(statement, dict) and statement.get('Effect')\
+      \ == 'Allow':\n            condition = statement.get('Condition')\n        \
+      \    if condition is None:\n                result = False\n               \
+      \ break\n            else:\n                # Implement additional checks on\
+      \ condition to ensure secure configuration\n                pass"
+    name: IAMResource
+    output_statements:
+      failure: IAM policies and associated user access are not being managed through
+        a secure configuration management process, increasing the risk of unauthorized
+        or unintended changes that could introduce vulnerabilities or compliance issues.
+      partial: Some aspects of IAM policy and user access management follow secure
+        configuration management processes, but there are gaps or inconsistencies
+        that need to be addressed.
+      success: IAM policies and associated user access are being managed through a
+        secure configuration management process.
+  unique_id: owasp-latest-implement-secure-configuration-management-processes

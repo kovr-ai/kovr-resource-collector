@@ -1,0 +1,36 @@
+check:
+  name: owasp-latest-monitor-for-suspicious-activities
+  resource:
+    field_path: trails[*].event_selectors[*].data_resources.values[*]
+    fix_details:
+      automation_available: true
+      description: If CloudTrail is not properly configured to monitor for suspicious
+        activities, you need to review and update the trail settings and event selectors.
+      estimated_time: 30 minutes to 1 hour
+      instructions:
+      - 1. Review the existing CloudTrail trails and event selectors to identify any
+        gaps in monitoring coverage.
+      - 2. Update the event selectors to include relevant data resources and event
+        types that should be monitored for suspicious activities.
+      - 3. Ensure that log file validation is enabled for integrity verification.
+      - 4. Configure multi-region trails if you need to monitor activities across
+        multiple AWS regions.
+      - 5. Integrate CloudTrail with other AWS services like S3 for log storage and
+        analysis.
+      - 6. Set up alerts and notifications for specific event patterns or anomalies.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for values_list in fetched_value:\n        if 'AWS::Lambda::Function' in\
+      \ values_list and 'AWS::S3::Object' in values_list:\n            result = True\n\
+      \            break"
+    name: CloudTrailResource
+    output_statements:
+      failure: CloudTrail is not configured to capture and monitor relevant API calls
+        and events, hindering the ability to detect suspicious activities across your
+        AWS account.
+      partial: CloudTrail is partially configured to capture and monitor API calls
+        and events, but additional configuration is required to ensure comprehensive
+        monitoring for suspicious activities.
+      success: CloudTrail is configured to capture and monitor relevant API calls
+        and events, enabling effective detection of suspicious activities across your
+        AWS account.
+  unique_id: owasp-latest-monitor-for-suspicious-activities

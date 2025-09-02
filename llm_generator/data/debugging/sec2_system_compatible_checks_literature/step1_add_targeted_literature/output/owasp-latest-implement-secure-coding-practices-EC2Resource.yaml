@@ -1,0 +1,48 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-secure-coding-practices
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To implement secure coding practices, the organization needs to establish
+      and enforce secure coding standards, guidelines, and processes throughout its
+      software development lifecycle.
+    estimated_time: Implementing secure coding practices is an ongoing process that
+      requires continuous effort and commitment. The initial setup and training may
+      take several weeks or months, depending on the organization's size and complexity.
+    instructions:
+    - Adopt industry-standard secure coding guidelines (e.g., OWASP Secure Coding
+      Practices, CERT Secure Coding Standards) and integrate them into the development
+      process.
+    - Conduct secure code reviews and static code analysis to identify and remediate
+      coding vulnerabilities.
+    - Implement security controls and techniques such as input validation, output
+      encoding, authentication and access control, cryptographic practices, error
+      handling, and more.
+    - Provide secure coding training and awareness programs for developers and development
+      teams.
+    - Establish secure coding policies and procedures, and ensure their consistent
+      application across all projects and teams.
+  is_valid: false
+  literature: The EC2Resource in AWS provides information about various EC2 components
+    such as instances, security groups, and networking configurations. However, it
+    does not directly relate to implementing secure coding practices within the application
+    code or software development lifecycle. Secure coding practices involve techniques
+    and controls applied during the coding and development phases, such as input validation,
+    output encoding, authentication and access control, cryptographic practices, error
+    handling, and more.
+  name: EC2Resource
+  output_statements:
+    failure: The organization has not implemented secure coding practices, leaving
+      its applications and software vulnerable to various security risks and coding
+      flaws.
+    partial: The organization has partially implemented secure coding practices, but
+      there are gaps or inconsistencies in their adoption across different projects
+      or teams.
+    success: The organization has implemented secure coding practices throughout its
+      software development lifecycle, following industry-standard guidelines and techniques
+      to mitigate common coding vulnerabilities.
+  reason: The EC2Resource does not contain any information or configurations related
+    to the implementation of secure coding practices within application code or the
+    software development lifecycle. It primarily deals with the infrastructure and
+    resource configurations of EC2 components.

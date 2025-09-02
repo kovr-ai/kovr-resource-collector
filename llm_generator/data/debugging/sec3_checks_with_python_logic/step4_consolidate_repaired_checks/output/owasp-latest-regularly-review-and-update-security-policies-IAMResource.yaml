@@ -1,0 +1,39 @@
+check:
+  name: owasp-latest-regularly-review-and-update-security-policies
+  resource:
+    field_path: policies[].update_date
+    fix_details:
+      automation_available: true
+      description: If IAM policies are found to be outdated or non-compliant, they
+        should be reviewed and updated to align with the organization's security requirements
+        and industry best practices.
+      estimated_time: The time required for reviewing and updating IAM policies can
+        vary depending on the number of policies, their complexity, and the organization's
+        size. It may take several hours to several days for a comprehensive review
+        and update process.
+      instructions:
+      - Establish a regular review schedule for IAM policies (e.g., quarterly, annually).
+      - Review each IAM policy's creation date, last update date, and attached entities
+        (users, roles, groups).
+      - Assess if the policy's permissions and access controls align with the organization's
+        security requirements and industry best practices.
+      - Update or create new policies as needed, ensuring proper access controls and
+        least privilege principles are applied.
+      - Communicate policy changes to relevant stakeholders and provide training if
+        necessary.
+      - Monitor and audit IAM policy changes and access activities for ongoing compliance.
+    logic: "result = False\n\n# Check if any policy was updated within the last 365\
+      \ days\ntoday = datetime.datetime.now().date()\none_year_ago = today - datetime.timedelta(days=365)\n\
+      \nif fetched_value is not None:\n    for update_date in fetched_value:\n   \
+      \     if update_date is not None:\n            update_date = update_date.date()\n\
+      \            if update_date >= one_year_ago:\n                result = True\n\
+      \                break"
+    name: IAMResource
+    output_statements:
+      failure: IAM policies have not been reviewed or updated in a timely manner,
+        potentially exposing the organization to security risks.
+      partial: Some IAM policies have been reviewed and updated, but others may require
+        attention to ensure compliance with security requirements.
+      success: IAM policies are regularly reviewed and updated to align with the organization's
+        security requirements and industry best practices.
+  unique_id: owasp-latest-regularly-review-and-update-security-policies

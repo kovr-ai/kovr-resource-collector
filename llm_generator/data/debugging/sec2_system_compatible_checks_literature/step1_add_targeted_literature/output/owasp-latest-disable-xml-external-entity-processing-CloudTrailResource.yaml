@@ -1,0 +1,29 @@
+resource:
+  check:
+    unique_id: owasp-latest-disable-xml-external-entity-processing
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This security check is not applicable to the CloudTrail resource.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The security check 'owasp-latest-disable-xml-external-entity-processing'
+    is focused on preventing XML External Entity (XXE) attacks by disabling external
+    entity processing in applications that parse XML input. This check is primarily
+    applicable to web applications, web services, or other software components that
+    handle XML data. The AWS CloudTrail resource is a service that logs AWS account
+    activity and does not directly handle XML parsing or processing. Therefore, this
+    security check is not directly applicable to the CloudTrail resource.
+  name: CloudTrailResource
+  output_statements:
+    failure: The CloudTrail resource does not handle XML parsing or processing, so
+      this check is not applicable.
+    partial: The CloudTrail resource does not handle XML parsing or processing, so
+      this check is not applicable.
+    success: The CloudTrail resource is configured to disable XML external entity
+      processing.
+  reason: The CloudTrail resource is a logging service that records AWS account activity
+    and does not directly handle XML parsing or processing. As such, the security
+    check related to disabling XML external entity processing is not directly applicable
+    to this resource.

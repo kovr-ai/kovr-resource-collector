@@ -1,0 +1,32 @@
+check:
+  name: owasp-latest-use-secure-defaults
+  resource:
+    field_path: buckets[*].encryption.enabled
+    fix_details:
+      automation_available: true
+      description: 'If the S3 bucket is not configured with secure defaults, the following
+        steps should be taken to remediate the issue:'
+      estimated_time: 15 minutes
+      instructions:
+      - Enable encryption for the S3 bucket using AWS-managed keys (SSE-S3) or customer-managed
+        keys (SSE-KMS).
+      - Configure the S3 bucket's public access block to block public access control
+        lists (ACLs), block public bucket policies, ignore public ACLs, and restrict
+        public bucket access.
+      - Enable versioning for the S3 bucket to protect against accidental deletion
+        or overwrites.
+      - Enable server access logging for the S3 bucket to capture access requests
+        for audit and analysis purposes.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for encryption_enabled in fetched_value:\n        if encryption_enabled:\n\
+      \            result = True\n        else:\n            result = False\n    \
+      \        break"
+    name: S3Resource
+    output_statements:
+      failure: The S3 bucket is not configured with secure defaults, potentially exposing
+        sensitive data to unauthorized access.
+      partial: Some aspects of the S3 bucket configuration adhere to secure defaults,
+        but there are still areas that need improvement.
+      success: The S3 bucket is configured with secure defaults, including encryption,
+        public access restrictions, versioning, and logging.
+  unique_id: owasp-latest-use-secure-defaults

@@ -1,0 +1,8 @@
+check:
+  unique_id: owasp-latest-implement-centralized-log-management
+resource:
+  field_path: log_groups[*].log_group_name
+  logic: "result = False\n\nif fetched_value is not None:\n    for log_group_name\
+    \ in fetched_value:\n        if isinstance(log_group_name, str) and log_group_name.startswith('/aws/lambda/'):\n\
+    \            result = True\n            break"
+  name: CloudWatchResource

@@ -1,0 +1,37 @@
+check:
+  name: owasp-latest-implement-proper-access-control-mechanisms
+  resource:
+    field_path: buckets[*].public_access_block
+    fix_details:
+      automation_available: true
+      description: If the S3 buckets do not have proper access control mechanisms
+        configured, you need to review and update the bucket policies, ACLs, and IAM
+        role assignments to ensure that only authorized users or entities can access
+        and perform operations on the buckets and their contents.
+      estimated_time: 30 minutes to 1 hour
+      instructions:
+      - Review the bucket policies and ensure that they only grant access to authorized
+        users or entities.
+      - Review the bucket ACLs and ensure that they only grant access to authorized
+        users or entities.
+      - Review the IAM role assignments and ensure that only authorized roles have
+        access to the S3 buckets.
+      - Enable the public access block settings for the S3 buckets to prevent public
+        access.
+      - Regularly review and audit the access control mechanisms to ensure they remain
+        secure and up-to-date.
+    logic: "result = True\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for public_access_block in fetched_value:\n        if not (public_access_block.block_public_acls\
+      \ and\n                public_access_block.block_public_policy and\n       \
+      \         public_access_block.ignore_public_acls and\n                public_access_block.restrict_public_buckets):\n\
+      \            result = False\n            break"
+    name: S3Resource
+    output_statements:
+      failure: The S3 buckets do not have proper access control mechanisms configured,
+        potentially allowing unauthorized access and operations.
+      partial: Some S3 buckets have proper access control mechanisms configured, while
+        others may be vulnerable to unauthorized access and operations.
+      success: The S3 buckets have proper access control mechanisms configured, ensuring
+        that only authorized users or entities can access and perform operations on
+        the buckets and their contents.
+  unique_id: owasp-latest-implement-proper-access-control-mechanisms

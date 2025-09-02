@@ -1,0 +1,47 @@
+resource:
+  check:
+    unique_id: owasp-latest-adopt-a-secure-software-development-lifecycle-(ssdlc)
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To address this issue, your organization needs to establish and implement
+      a comprehensive Secure Software Development Lifecycle (SSDLC) process.
+    estimated_time: 3-6 months
+    instructions:
+    - 1. Conduct a thorough assessment of your current software development practices
+      and identify gaps or areas for improvement in terms of security.
+    - 2. Develop and document an SSDLC framework that incorporates security best practices
+      throughout the entire software development lifecycle, from requirements gathering
+      to deployment and maintenance.
+    - 3. Provide training and awareness programs to ensure that all development teams
+      and stakeholders understand and follow the SSDLC processes and guidelines.
+    - 4. Implement tools and automation to support and enforce the SSDLC practices,
+      such as static code analysis, dynamic testing, and secure coding practices.
+    - 5. Continuously monitor and audit the implementation of the SSDLC across all
+      software development projects, and make improvements as needed.
+  is_valid: false
+  literature: The AWS CloudTrail resource is a service that records AWS API calls
+    and related events for your account. While CloudTrail is an important security
+    tool for auditing and monitoring activities in your AWS environment, it does not
+    directly address the adoption of a Secure Software Development Lifecycle (SSDLC).
+    The SSDLC is a set of practices and guidelines for building secure software from
+    the ground up, covering various phases such as requirements gathering, design,
+    implementation, testing, and deployment. CloudTrail can be used to monitor and
+    audit activities related to software development processes, but it does not directly
+    implement or enforce an SSDLC.
+  name: CloudTrailResource
+  output_statements:
+    failure: Your organization has not adopted or does not follow a Secure Software
+      Development Lifecycle (SSDLC), which increases the risk of introducing security
+      vulnerabilities during software development.
+    partial: Your organization has partially adopted a Secure Software Development
+      Lifecycle (SSDLC), but there are gaps or inconsistencies in its implementation
+      across different projects or teams.
+    success: Your organization has adopted and follows a Secure Software Development
+      Lifecycle (SSDLC) to proactively address security risks and vulnerabilities
+      throughout the software development process.
+  reason: The CloudTrail resource is focused on auditing and monitoring AWS API calls
+    and events, which is a different scope from implementing a Secure Software Development
+    Lifecycle (SSDLC). While CloudTrail can be used to monitor activities related
+    to software development, it does not directly address the adoption and implementation
+    of an SSDLC process.

@@ -1,0 +1,34 @@
+check:
+  category: access_control
+  control_names:
+  - NIST-800-53-AC-6
+  - ISO-27001-A.9.1.1
+  literature: The 'owasp-latest-enforce-least-privileges' check validates that applications
+    and systems follow the principle of least privilege, which is a fundamental security
+    concept that restricts access rights for users, accounts, and processes to only
+    those permissions that are essential for performing their intended functions.
+    Granting excessive privileges increases the potential attack surface and risk
+    of unauthorized access or misuse. This check helps mitigate threats like privilege
+    escalation, unauthorized data access, and malicious code execution by ensuring
+    that entities operate with the minimum necessary permissions.
+  name: owasp-latest-enforce-least-privileges
+  resource:
+    field_paths:
+    - admin_info.isAdmin
+    - admin_info.isDelegatedAdmin
+    - basic_info.ipWhitelisted
+    - organizational_info.orgUnitPath
+    - security_info.isEnforcedIn2Sv
+    - security_info.isEnrolledIn2Sv
+    literature: The 'owasp-latest-enforce-least-privileges' check aims to ensure that
+      the Google User resource follows the principle of least privilege by granting
+      only the necessary permissions required for the user's intended functions. This
+      mitigates risks like unauthorized data access, privilege escalation, and malicious
+      code execution. To implement this check, the relevant field paths should be
+      analyzed to determine if the user has excessive privileges or access rights.
+    name: UserResource
+    reason: The Google User resource contains fields that can indicate the user's
+      administrative privileges, IP whitelisting status, organizational unit path,
+      and two-factor authentication enrollment, which are relevant for assessing whether
+      the user has more access than necessary.
+  unique_id: owasp-latest-enforce-least-privileges

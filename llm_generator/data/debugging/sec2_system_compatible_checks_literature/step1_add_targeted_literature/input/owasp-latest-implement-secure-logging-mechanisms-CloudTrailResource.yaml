@@ -1,0 +1,57 @@
+check:
+  category: audit
+  control_names:
+  - NIST-800-53-AU-2
+  - NIST-800-53-AU-3
+  - ISO-27001-A.12.4.1
+  literature: Secure logging mechanisms are essential for maintaining an audit trail,
+    detecting security incidents, and troubleshooting issues in applications and systems.
+    Proper logging practices involve capturing relevant information about user activities,
+    system events, and security-related occurrences, while ensuring the confidentiality,
+    integrity, and availability of log data. Implementing secure logging mechanisms
+    helps organizations comply with regulatory requirements, forensic investigations,
+    and incident response efforts. Failure to implement secure logging can lead to
+    data breaches, unauthorized access, and an inability to reconstruct events or
+    identify the root cause of security incidents.
+  provider: aws
+  resource:
+    field_paths:
+    - event_selectors
+    - event_selectors[]
+    - event_selectors[].data_resources
+    - event_selectors[].data_resources.type
+    - event_selectors[].data_resources.values
+    - event_selectors[].data_resources.values[]
+    - event_selectors[].include_management_events
+    - event_selectors[].read_write_type
+    - id
+    - source_connector
+    - trails
+    - trails[]
+    - trails[].enable_log_file_validation
+    - trails[].event_selectors
+    - trails[].event_selectors[]
+    - trails[].event_selectors[].data_resources
+    - trails[].event_selectors[].data_resources.type
+    - trails[].event_selectors[].data_resources.values
+    - trails[].event_selectors[].data_resources.values[]
+    - trails[].event_selectors[].include_management_events
+    - trails[].event_selectors[].read_write_type
+    - trails[].id
+    - trails[].include_global_service_events
+    - trails[].insight_selectors
+    - trails[].insight_selectors[]
+    - trails[].insight_selectors[].insight_type
+    - trails[].is_logging
+    - trails[].is_multi_region_trail
+    - trails[].kms_key_id
+    - trails[].log_file_validation_enabled
+    - trails[].name
+    - trails[].s3_bucket_name
+    - trails[].s3_key_prefix
+    - trails[].tags
+    - trails[].tags[]
+    - trails[].tags[].key
+    - trails[].tags[].value
+    name: CloudTrailResource
+  unique_id: owasp-latest-implement-secure-logging-mechanisms

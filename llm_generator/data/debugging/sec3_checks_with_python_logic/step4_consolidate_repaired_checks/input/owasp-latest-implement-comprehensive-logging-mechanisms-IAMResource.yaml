@@ -1,0 +1,13 @@
+check:
+  unique_id: owasp-latest-implement-comprehensive-logging-mechanisms
+resource:
+  field_path: policies[].default_version.Document.Statement
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    for statement in fetched_value:\n        if hasattr(statement, 'Effect')\
+    \ and statement.Effect == 'Allow':\n            condition = getattr(statement,\
+    \ 'Condition', None)\n            if condition:\n                for condition_key,\
+    \ condition_value in condition.items():\n                    if 'aws:MultiFactorAuthAge'\
+    \ in condition_key:\n                        result = True\n                 \
+    \       break\n            else:\n                result = False\n           \
+    \     break"
+  name: IAMResource

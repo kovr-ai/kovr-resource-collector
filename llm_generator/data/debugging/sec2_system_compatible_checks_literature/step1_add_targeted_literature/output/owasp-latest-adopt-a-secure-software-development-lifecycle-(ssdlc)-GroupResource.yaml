@@ -1,0 +1,46 @@
+resource:
+  check:
+    unique_id: owasp-latest-adopt-a-secure-software-development-lifecycle-(ssdlc)
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This security check is not applicable to the provided resource. However,
+      to implement a secure software development lifecycle (SSDLC) based on OWASP
+      guidelines, the organization should review and adopt the OWASP SSDLC practices
+      throughout their software development process.
+    estimated_time: The implementation time can vary significantly based on the organization's
+      size, complexity, and existing software development practices. It may take several
+      months to fully adopt and integrate the SSDLC process.
+    instructions:
+    - Establish a cross-functional team responsible for implementing and maintaining
+      the SSDLC process.
+    - Conduct a thorough assessment of the current software development practices
+      and identify gaps against the OWASP SSDLC guidelines.
+    - Develop and document a comprehensive SSDLC policy and procedures aligned with
+      OWASP recommendations.
+    - Provide training and awareness programs for developers, testers, and other stakeholders
+      on secure coding practices and the SSDLC process.
+    - Implement security controls and activities throughout the software development
+      lifecycle, including secure requirements gathering, threat modeling, secure
+      coding practices, security testing, and secure deployment.
+  is_valid: false
+  literature: The OWASP Secure Software Development Lifecycle (SSDLC) is a set of
+    best practices and guidelines for building secure software from the ground up.
+    It emphasizes the importance of incorporating security considerations throughout
+    the entire software development process, from requirements gathering and design
+    to implementation, testing, and deployment. This security check is focused on
+    ensuring that an organization has adopted and follows a secure SSDLC, which is
+    crucial for developing secure and resilient applications that can withstand various
+    cyber threats.
+  name: GroupResource
+  output_statements:
+    failure: The organization has not adopted or does not follow a secure software
+      development lifecycle (SSDLC) based on OWASP guidelines.
+    partial: This resource is not applicable for this security check.
+    success: The organization has adopted and follows a secure software development
+      lifecycle (SSDLC) based on OWASP guidelines.
+  reason: The provided resource 'GroupResource' from Google Cloud Platform is a resource
+    related to managing groups and their memberships. It does not contain any information
+    or configurations related to software development lifecycles or secure coding
+    practices. Therefore, this resource is not applicable for implementing the 'owasp-latest-adopt-a-secure-software-development-lifecycle-(ssdlc)'
+    security check.

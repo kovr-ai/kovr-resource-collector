@@ -1,0 +1,28 @@
+resource:
+  check:
+    unique_id: owasp-latest-keep-software-up-to-date-with-security-patches
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: Since the GroupResource is not applicable for this security check,
+      no specific fix is required.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The security check 'owasp-latest-keep-software-up-to-date-with-security-patches'
+    is focused on ensuring that software and systems are regularly updated with the
+    latest security patches to address known vulnerabilities and maintain a strong
+    security posture. However, the provided resource 'GroupResource' from Google Cloud
+    Platform appears to be related to managing groups and group memberships, rather
+    than software or system updates.
+  name: GroupResource
+  output_statements:
+    failure: The GroupResource is not being updated with the latest security patches,
+      leaving it vulnerable to known security issues.
+    partial: Some aspects of the GroupResource are being updated with security patches,
+      but others are not.
+    success: The GroupResource is regularly updated with the latest security patches.
+  reason: The GroupResource does not seem to have any direct relation to software
+    updates or patch management. It is primarily used for managing groups and their
+    members within an organization or project. Therefore, this resource is not applicable
+    for implementing the given security check.

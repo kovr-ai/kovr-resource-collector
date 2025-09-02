@@ -1,0 +1,38 @@
+check:
+  category: system_integrity
+  control_names:
+  - NIST-800-53-CM-6
+  - ISO-27001-A.12.1.2
+  literature: The OWASP check 'owasp-latest-regularly-review-and-update-configurations'
+    is designed to ensure that system configurations are regularly reviewed and updated
+    to maintain a secure posture. As systems evolve and new vulnerabilities are discovered,
+    it is crucial to keep configurations up-to-date to mitigate potential risks. Outdated
+    configurations can introduce security vulnerabilities, expose sensitive data,
+    or enable unauthorized access. Regular reviews and updates help identify and address
+    misconfigurations, apply security patches, and align with the latest security
+    best practices.
+  name: owasp-latest-regularly-review-and-update-configurations
+  resource:
+    field_paths: []
+    literature: null
+    name: IAMResource
+    reason: null
+  unique_id: owasp-latest-regularly-review-and-update-configurations
+errors:
+- error: "Traceback (most recent call last):\n  File \"/Users/aetoskia/Workspace/code/kovr-resource-collector/llm_generator/checks_with_python_logic/validate_with_mock_data/services.py\"\
+    , line 73, in _process_input\n    result = comparison_operation(fetched_value,\
+    \ None)\n  File \"/Users/aetoskia/Workspace/code/kovr-resource-collector/con_mon/compliance/models/checks.py\"\
+    , line 39, in __call__\n    response = self.function(fetched_value, config_value)\n\
+    \  File \"<string>\", line 26, in custom\n  File \"<string>\", line 9, in custom\n\
+    AttributeError: type object 'datetime.datetime' has no attribute 'datetime'\n"
+  field_path: policies[*].update_date
+  input_filepath: llm_generator_v2/data/debugging/sec3_checks_with_python_logic/step1_generate_python_logic/input/owasp-latest-regularly-review-and-update-configurations-IAMResource.yaml
+  logic: "result = False\n\n# Check if any policy was updated more than 90 days ago\n\
+    today = datetime.datetime.now().date()\nfor update_date in fetched_value:\n  \
+    \  if update_date is not None:\n        last_update = datetime.datetime.strptime(update_date,\
+    \ '%Y-%m-%dT%H:%M:%S+00:00').date()\n        days_since_update = (today - last_update).days\n\
+    \        if days_since_update > 90:\n            result = False\n            break\n\
+    \    else:\n        result = False\n        break\nelse:\n    result = True"
+  output_filepath: llm_generator_v2/data/debugging/sec3_checks_with_python_logic/step1_generate_python_logic/output/owasp-latest-regularly-review-and-update-configurations-IAMResource.yaml
+  result: null
+  success: false

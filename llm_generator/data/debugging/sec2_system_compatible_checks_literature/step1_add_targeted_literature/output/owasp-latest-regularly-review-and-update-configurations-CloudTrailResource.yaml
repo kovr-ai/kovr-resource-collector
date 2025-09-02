@@ -1,0 +1,55 @@
+resource:
+  check:
+    unique_id: owasp-latest-regularly-review-and-update-configurations
+  field_paths:
+  - trails
+  - trails[].event_selectors
+  - trails[].event_selectors[].data_resources
+  - trails[].event_selectors[].include_management_events
+  - trails[].is_logging
+  - trails[].is_multi_region_trail
+  - trails[].log_file_validation_enabled
+  - trails[].s3_bucket_name
+  fix_details:
+    automation_available: true
+    description: 'If CloudTrail is not configured correctly, the following steps should
+      be taken to ensure proper logging and enable regular reviews and updates to
+      system configurations:'
+    estimated_time: 1-2 hours
+    instructions:
+    - 1. Enable CloudTrail logging for all regions and ensure it is configured to
+      capture all management events.
+    - 2. Configure CloudTrail to capture data events for relevant AWS services and
+      resources.
+    - 3. Ensure CloudTrail logs are delivered to a secure and centralized S3 bucket
+      with appropriate access controls.
+    - 4. Enable log file validation to ensure the integrity and completeness of CloudTrail
+      logs.
+    - 5. Implement automated processes or tools to regularly review and analyze CloudTrail
+      logs for potential misconfigurations, unauthorized access attempts, or other
+      security-related events.
+    - 6. Establish procedures to promptly address and remediate any identified issues,
+      updating system configurations as necessary.
+  is_valid: true
+  literature: The AWS CloudTrail resource is applicable for implementing the OWASP
+    check 'owasp-latest-regularly-review-and-update-configurations'. CloudTrail is
+    a service that records AWS API calls and related events, providing a log of account
+    activity. By enabling CloudTrail and configuring it correctly, organizations can
+    regularly review and audit the logs to identify potential misconfigurations, unauthorized
+    access attempts, or other security-related events. This allows for timely updates
+    and remediation of any identified issues, aligning with the security check's objective
+    of maintaining an up-to-date and secure system configuration.
+  name: CloudTrailResource
+  output_statements:
+    failure: CloudTrail is not configured correctly to capture relevant API calls
+      and events, hindering the ability to regularly review and update system configurations.
+    partial: CloudTrail is partially configured to capture API calls and events, but
+      additional configuration changes are required to enable comprehensive reviews
+      and updates to system configurations.
+    success: CloudTrail is configured correctly to capture relevant API calls and
+      events, enabling regular reviews and updates to system configurations.
+  reason: The CloudTrail resource provides a centralized logging mechanism for AWS
+    account activity, enabling regular reviews and updates to system configurations
+    based on the logged events. By configuring CloudTrail appropriately, organizations
+    can ensure that relevant API calls and events are captured, allowing for comprehensive
+    monitoring and timely remediation of any identified issues.

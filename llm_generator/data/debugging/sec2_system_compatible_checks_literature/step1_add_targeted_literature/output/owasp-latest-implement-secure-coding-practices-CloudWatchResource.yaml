@@ -1,0 +1,47 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-secure-coding-practices
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To implement secure coding practices, organizations should focus
+      on the software development lifecycle and adopt industry-standard secure coding
+      guidelines and practices during the development and testing phases of their
+      applications.
+    estimated_time: Implementing secure coding practices is an ongoing process and
+      requires a cultural shift within the organization. The initial setup and training
+      may take several weeks or months, depending on the size and complexity of the
+      organization.
+    instructions:
+    - Establish secure coding standards and guidelines for your organization, based
+      on industry best practices such as OWASP Secure Coding Practices or CERT Secure
+      Coding Standards.
+    - Provide training and awareness programs for developers on secure coding practices
+      and common vulnerabilities.
+    - Implement secure coding practices throughout the software development lifecycle,
+      including code reviews, static code analysis, and security testing.
+    - Integrate security tools and processes into the development pipeline, such as
+      static application security testing (SAST) and dynamic application security
+      testing (DAST) tools.
+    - Regularly review and update secure coding practices to address emerging threats
+      and vulnerabilities.
+  is_valid: false
+  literature: The CloudWatch resource in AWS is primarily used for monitoring and
+    observability purposes, such as creating alarms, dashboards, and log groups. It
+    does not directly relate to implementing secure coding practices within the software
+    development lifecycle. Secure coding practices involve following guidelines, using
+    secure coding techniques, and implementing security controls during the development
+    and testing phases of software applications.
+  name: CloudWatchResource
+  output_statements:
+    failure: The CloudWatch resource is not applicable for implementing secure coding
+      practices.
+    partial: The CloudWatch resource is not applicable for implementing secure coding
+      practices.
+    success: The CloudWatch resource is not applicable for implementing secure coding
+      practices.
+  reason: The CloudWatch resource is focused on monitoring and observability capabilities,
+    and does not directly address secure coding practices or the software development
+    lifecycle. While CloudWatch can be used to monitor and alert on security-related
+    events, it does not provide functionality for implementing secure coding practices
+    within the application code itself.

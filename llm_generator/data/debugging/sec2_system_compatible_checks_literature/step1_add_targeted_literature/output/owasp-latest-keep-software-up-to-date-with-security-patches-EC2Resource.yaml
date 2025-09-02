@@ -1,0 +1,32 @@
+resource:
+  check:
+    unique_id: owasp-latest-keep-software-up-to-date-with-security-patches
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: Since the EC2Resource does not contain information about software
+      patching and updates, it is not possible to provide specific remediation steps
+      for this security check.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The security check 'owasp-latest-keep-software-up-to-date-with-security-patches'
+    is focused on ensuring that software and systems are regularly updated with the
+    latest security patches to address known vulnerabilities and maintain a strong
+    security posture. However, the provided AWS EC2Resource does not contain any information
+    related to software patching or update management.
+  name: EC2Resource
+  output_statements:
+    failure: One or more EC2 instances or components of the AWS infrastructure are
+      not up-to-date with the latest security patches, leaving them vulnerable to
+      known security vulnerabilities.
+    partial: N/A
+    success: The EC2 instances and underlying AWS infrastructure are up-to-date with
+      the latest security patches.
+  reason: The AWS EC2Resource primarily contains information about EC2 instances,
+    networking components (VPCs, subnets, security groups, etc.), and other AWS resources
+    related to the EC2 service. It does not include any details about the software
+    versions, patch levels, or update mechanisms used by the EC2 instances or the
+    underlying AWS infrastructure. Therefore, this resource is not applicable for
+    implementing the 'owasp-latest-keep-software-up-to-date-with-security-patches'
+    security check.

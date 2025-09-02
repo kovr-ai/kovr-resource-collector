@@ -1,0 +1,8 @@
+check:
+  unique_id: owasp-latest-implement-comprehensive-logging-mechanisms
+resource:
+  field_path: log_groups[*].retention_in_days
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    for retention_days in fetched_value:\n        if retention_days is not None\
+    \ and retention_days >= 365:\n            result = True\n            break"
+  name: CloudWatchResource
