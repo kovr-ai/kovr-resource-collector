@@ -57,7 +57,6 @@ def main(
         connection_id, info_data
     )
     # Execute checks and collect results
-
     filtered_checks = ChecksLoader.filter_by_resource_model(
         checks,
         resource_collection.resource_models
@@ -75,7 +74,6 @@ def main(
             batch_executed_check_results.append((check, check_results))
 
         batch_sleep_counter += 1
-
         if batch_sleep_counter % 10 == 0:
             helpers.print_summary(batch_executed_check_results)
 
