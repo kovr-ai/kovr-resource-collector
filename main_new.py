@@ -8,6 +8,27 @@ from con_mon.utils.services import ResourceCollectionService, ConMonResultServic
 from con_mon.utils import helpers
 
 
+def insert_in_batch(
+    batch_executed_check_results,
+    customer_id,
+    connection_id
+):
+    start_time = time.time()
+    total_result_count_batch = ConMonResultService.insert_in_db(
+        executed_check_results=batch_executed_check_results,
+        customer_id=customer_id,
+        connection_id=connection_id
+    )
+    finish_time = time.time() - start_time
+
+    print(f"   • Customer ID: {customer_id}")
+    print(f"   • Connection ID: {connection_id}")
+    print(f"   • Batch Checks executed: {len(batch_executed_check_results)}")
+    print(f"   • Batch Results Inserted: {total_result_count_batch}")
+    print(f"   • Time Taken for Insert: {finish_time}")
+    return total_result_count_batch
+
+
 def main(
     connection_id: int,
     connector_type: str,
@@ -36,7 +57,7 @@ def main(
         connection_id, info_data
     )
     # Execute checks and collect results
-    
+
     filtered_checks = ChecksLoader.filter_by_resource_model(
         checks,
         resource_collection.resource_models
@@ -45,7 +66,7 @@ def main(
     batch_executed_check_results = []
     batch_sleep_counter = 0
     total_result_count = 0
-    for check in filtered_checks[:100]:
+    for check in filtered_checks:
         # Execute the check against all resources
         print(f'check.name: {check.name}')
         check_results = check.evaluate(resource_collection.resources)
@@ -54,35 +75,31 @@ def main(
             batch_executed_check_results.append((check, check_results))
 
         batch_sleep_counter += 1
-       
 
         if batch_sleep_counter % 10 == 0:
             helpers.print_summary(batch_executed_check_results)
 
-            total_result_count_batch = ConMonResultService.insert_in_db(
-                executed_check_results=batch_executed_check_results,
-                customer_id=customer_id,
-                connection_id=connection_id
+            total_result_count_batch = insert_in_batch(
+                batch_executed_check_results,
+                customer_id,
+                connection_id,
             )
             total_result_count += total_result_count_batch
-            
             print("\n**Batch Database Storage:**")
             print(f"   • Batch ID: {math.ceil(batch_sleep_counter / 10)}")
-            print(f"   • Customer ID: {customer_id}")
-            print(f"   • Connection ID: {connection_id}")
-            print(f"   • Batch Checks executed: {len(batch_executed_check_results)}")
-            print(f"   • Batch Results Inserted: {total_result_count_batch}")
 
             batch_executed_check_results = []
             time.sleep(.5)
             print('sleeping for 0.5 seconds')
 
-
-        
+    if batch_executed_check_results:
+        insert_in_batch(
+            batch_executed_check_results,
+            customer_id,
+            connection_id,
+        )
 
     # Generate summary using con_mon helpers with Check objects
-    
-    
     print("\n **Database Storage:**")
     print(f"   • Customer ID: {customer_id}")
     print(f"   • Connection ID: {connection_id}")
@@ -111,9 +128,9 @@ def params_from_connection_id(
 
     # Use ConnectionLoader to fetch connection data
     connection_loader = ConnectionLoader()
-    
+
     # Load the specific connection by ID
-    
+
     connections: List[Connection] = connection_loader.load_by_ids([connection_id])
     if not connections:
         raise ValueError(f"Connection with ID {connection_id} not found")
@@ -156,6 +173,7 @@ def wrapper(message: dict = {}):
              for check_id in check_ids],
         ),
     )
+
 
 if __name__ == "__main__":
     wrapper()
