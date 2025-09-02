@@ -29,6 +29,7 @@ def main():
             messages = response.get("Messages", [])
             if not messages:
                 if count >= 10:
+                    print(f"No messages received after {count} attempts")
                     break
                 count += 1
                 continue
