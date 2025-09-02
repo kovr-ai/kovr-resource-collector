@@ -4,8 +4,7 @@ import time
 
 from con_mon.utils.config import settings
 
-
-from .main_new import wrapper as run_pipeline
+from main_new import wrapper as run_pipeline
 
 sqs = boto3.client("sqs", region_name=settings.AWS_REGION)
 
@@ -15,6 +14,7 @@ def delete_message(handle):
         QueueUrl=settings.CONNECTOR_QUEUE,
         ReceiptHandle=handle,
     )
+
 
 def main():
     count = 0
