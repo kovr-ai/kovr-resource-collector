@@ -69,3 +69,5 @@ class Settings(BaseModel):
     BEDROCK_TEMPERATURE: float = 0.1
     BEDROCK_TOP_P: float = 0.9
     BEDROCK_TIMEOUT: int = 300
+
+    CONNECTOR_QUEUE: str
