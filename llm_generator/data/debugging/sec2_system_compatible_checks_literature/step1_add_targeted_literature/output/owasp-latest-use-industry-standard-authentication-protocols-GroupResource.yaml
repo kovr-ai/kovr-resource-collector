@@ -1,0 +1,29 @@
+resource:
+  check:
+    unique_id: owasp-latest-use-industry-standard-authentication-protocols
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This resource is not applicable for implementing the 'owasp-latest-use-industry-standard-authentication-protocols'
+      security check.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The GroupResource in Google Cloud Platform represents a group of users
+    or other entities, such as service accounts or other groups. It does not directly
+    relate to authentication protocols or mechanisms used by applications. This resource
+    is primarily used for managing group memberships and access control within Google
+    Cloud Platform.
+  name: GroupResource
+  output_statements:
+    failure: The GroupResource does not contain any configuration related to authentication
+      protocols used by applications.
+    partial: The GroupResource does not directly implement authentication protocols,
+      but it may be used in conjunction with other resources or services that handle
+      authentication.
+    success: The GroupResource is configured to use industry-standard authentication
+      protocols for authenticating users and protecting their credentials.
+  reason: The GroupResource does not contain any information or configuration related
+    to authentication protocols or mechanisms used by applications. It is a resource
+    for managing user groups and access control within Google Cloud Platform, but
+    it does not directly implement or configure authentication protocols.

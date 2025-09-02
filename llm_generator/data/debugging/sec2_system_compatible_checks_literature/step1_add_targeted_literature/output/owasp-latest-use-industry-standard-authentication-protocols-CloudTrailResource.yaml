@@ -1,0 +1,43 @@
+resource:
+  check:
+    unique_id: owasp-latest-use-industry-standard-authentication-protocols
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: Since the CloudTrail resource is not applicable for this security
+      check, no specific fix is required. However, to ensure that the application
+      uses industry-standard authentication protocols, you should review the authentication
+      mechanisms used by the application and implement industry-standard protocols
+      like OAuth, OpenID Connect, or SAML.
+    estimated_time: Varies based on the complexity of the application and the authentication
+      mechanisms involved.
+    instructions:
+    - Identify the authentication mechanisms currently used by the application.
+    - Evaluate the security and industry-standard compliance of the existing authentication
+      mechanisms.
+    - If the existing mechanisms are outdated or non-compliant, plan and implement
+      industry-standard authentication protocols like OAuth, OpenID Connect, or SAML.
+    - Test and validate the new authentication mechanisms to ensure proper functionality
+      and security.
+  is_valid: false
+  literature: The CloudTrail resource in AWS is used for logging and monitoring API
+    activity across various AWS services. While it is an important security tool,
+    it does not directly implement authentication protocols or mechanisms for authenticating
+    users and protecting their credentials. The security check 'owasp-latest-use-industry-standard-authentication-protocols'
+    is specifically focused on ensuring that the application uses industry-standard
+    authentication protocols like OAuth, OpenID Connect, or SAML to securely authenticate
+    users and protect their credentials.
+  name: CloudTrailResource
+  output_statements:
+    failure: The application does not use industry-standard authentication protocols,
+      and instead relies on weak or outdated authentication mechanisms, making it
+      vulnerable to various attacks like brute-force, credential stuffing, and man-in-the-middle
+      attacks.
+    partial: N/A
+    success: The application uses industry-standard authentication protocols like
+      OAuth, OpenID Connect, or SAML to securely authenticate users and protect their
+      credentials.
+  reason: The CloudTrail resource is not directly applicable for implementing the
+    'owasp-latest-use-industry-standard-authentication-protocols' security check as
+    it is a logging and monitoring service, and does not handle user authentication
+    or credential management.

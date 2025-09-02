@@ -1,0 +1,51 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-role-based-access-control-(rbac)
+  field_paths:
+  - collaboration_data.collaborators
+  - collaboration_data.collaborators[].permissions
+  - organization_data.members
+  - organization_data.members[].role
+  - organization_data.outside_collaborators
+  - organization_data.outside_collaborators[].permissions
+  - organization_data.teams
+  - organization_data.teams[].permission
+  fix_details:
+    automation_available: false
+    description: To implement RBAC effectively in a GitHub repository or organization,
+      you need to configure and manage roles, permissions, and access control settings
+      appropriately.
+    estimated_time: 1-2 hours for initial setup, ongoing maintenance as needed
+    instructions:
+    - Review the existing collaborators, members, and teams within the repository
+      or organization, and identify any unnecessary or excessive access privileges.
+    - Define a clear set of roles and permissions based on the principle of least
+      privilege, ensuring that users only have access to the resources they need for
+      their job functions.
+    - Assign appropriate roles and permissions to collaborators, members, and teams
+      based on their responsibilities and access requirements.
+    - Regularly review and audit access control settings to ensure they remain up-to-date
+      and aligned with organizational policies and security best practices.
+    - Implement additional security measures, such as two-factor authentication and
+      IP whitelisting, to further enhance access control and protect sensitive resources.
+  is_valid: false
+  literature: The GithubResource provided does not contain any information related
+    to implementing Role-Based Access Control (RBAC) within the GitHub repository
+    or organization. The resource fields primarily contain metadata about the repository,
+    such as branches, workflows, collaborators, and security advisories, but do not
+    provide details on how access control is configured or managed.
+  name: GithubResource
+  output_statements:
+    failure: The GitHub repository or organization has not implemented Role-Based
+      Access Control (RBAC) effectively, potentially allowing unauthorized access
+      to sensitive information or functionality.
+    partial: The GitHub repository or organization has partially implemented Role-Based
+      Access Control (RBAC), but there are gaps or inconsistencies in the access control
+      configuration.
+    success: The GitHub repository or organization has implemented Role-Based Access
+      Control (RBAC) effectively, ensuring that users only have access to the information
+      and functionality they need to perform their job duties.
+  reason: While the GithubResource contains some information about collaborators,
+    members, and teams, it does not provide sufficient details on how RBAC is implemented
+    within the GitHub repository or organization. The resource lacks information on
+    specific roles, permissions, and access control configurations.

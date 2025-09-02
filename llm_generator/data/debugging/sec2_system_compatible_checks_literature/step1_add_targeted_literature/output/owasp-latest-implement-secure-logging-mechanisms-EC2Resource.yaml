@@ -1,0 +1,33 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-secure-logging-mechanisms
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: To implement secure logging mechanisms in AWS, you should consider
+      using services specifically designed for log management, such as Amazon CloudWatch
+      Logs, AWS CloudTrail, or third-party logging solutions.
+    estimated_time: 1-2 hours for initial setup, ongoing maintenance required
+    instructions:
+    - 1. Identify the sources of logs you want to capture (e.g., EC2 instances, load
+      balancers, databases, etc.)
+    - 2. Configure log forwarding from these sources to a centralized log management
+      service like Amazon CloudWatch Logs or a third-party solution.
+    - 3. Implement log encryption, access controls, and retention policies to ensure
+      the confidentiality, integrity, and availability of log data.
+    - 4. Set up log monitoring and alerting to detect security incidents or anomalies.
+    - 5. Regularly review and analyze log data for security and compliance purposes.
+  is_valid: false
+  literature: The EC2Resource in AWS does not directly relate to implementing secure
+    logging mechanisms. Secure logging typically involves capturing and managing log
+    data from various sources, such as applications, services, and infrastructure
+    components. While EC2 instances can generate logs, the EC2Resource itself does
+    not provide functionality for implementing secure logging mechanisms.
+  name: EC2Resource
+  output_statements:
+    failure: The EC2Resource is not applicable for implementing secure logging mechanisms.
+    partial: The EC2Resource is not applicable for implementing secure logging mechanisms.
+    success: The EC2Resource is not applicable for implementing secure logging mechanisms.
+  reason: The EC2Resource represents information about EC2 instances, reserved instances,
+    elastic IPs, and other EC2-related resources in an AWS account. It does not contain
+    any specific fields or configurations related to logging mechanisms or log management.

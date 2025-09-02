@@ -1,0 +1,37 @@
+check:
+  name: owasp-latest-enforce-least-privilege-principles
+  resource:
+    field_path: admin_info.isAdmin
+    fix_details:
+      automation_available: true
+      description: 'If the user account has excessive privileges or access rights,
+        the following steps can be taken to remediate the issue:'
+      estimated_time: 30 minutes to 1 hour
+      instructions:
+      - Review the user's roles and group memberships, and remove any unnecessary
+        or excessive permissions.
+      - Implement role-based access control (RBAC) and assign the user only the roles
+        required for their job functions.
+      - Configure access control lists (ACLs) to restrict the user's access to specific
+        resources or data.
+      - Enable two-factor authentication (2FA) for the user account to enhance security
+        and reduce the risk of unauthorized access.
+      - Regularly review and audit user privileges and access rights to ensure they
+        remain aligned with the principle of least privilege.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    # Check if the user is an admin\n    is_admin = fetched_value\n    \n \
+      \   # Check if the user is enrolled in 2-step verification\n    is_enrolled_in_2sv\
+      \ = fetched_value.get('security_info', {}).get('isEnrolledIn2Sv', False)\n \
+      \   \n    # Enforce least privilege by ensuring non-admin users are enrolled\
+      \ in 2-step verification\n    if not is_admin and is_enrolled_in_2sv:\n    \
+      \    result = True"
+    name: UserResource
+    output_statements:
+      failure: The user account has excessive privileges or access rights that violate
+        the principle of least privilege.
+      partial: Some aspects of the user account's privileges and access controls align
+        with the principle of least privilege, but there are areas that require further
+        review and adjustment.
+      success: The user account adheres to the principle of least privilege, with
+        appropriate roles, group memberships, and access controls in place.
+  unique_id: owasp-latest-enforce-least-privilege-principles

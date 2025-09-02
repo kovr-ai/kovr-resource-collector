@@ -1,0 +1,41 @@
+resource:
+  check:
+    unique_id: owasp-latest-enforce-least-privileges
+  field_paths:
+  - policies
+  - policies[].default_version.Document.Statement
+  - policies[].default_version.Document.Statement[].Action
+  - policies[].default_version.Document.Statement[].Resource
+  - users
+  - users[].access_keys
+  - users[].mfa_devices
+  fix_details:
+    automation_available: true
+    description: If excessive privileges are found, IAM policies and user permissions
+      need to be reviewed and updated to follow the least privilege principle.
+    estimated_time: 1-2 hours for initial review and remediation, ongoing maintenance
+      required
+    instructions:
+    - Identify IAM policies and user permissions that grant unnecessary or overly
+      broad access rights.
+    - Modify the policy documents and user permissions to restrict access to only
+      the required resources and actions.
+    - Remove any unused or obsolete policies, user accounts, and access keys.
+    - Implement regular access reviews and audits to maintain least privilege compliance.
+  is_valid: true
+  literature: The AWS IAM resource is highly relevant for implementing the 'owasp-latest-enforce-least-privileges'
+    security check. IAM policies define the permissions granted to IAM users, groups,
+    and roles, allowing you to enforce the principle of least privilege. By analyzing
+    the policy documents and attached entities, you can verify if excessive privileges
+    have been granted.
+  name: IAMResource
+  output_statements:
+    failure: One or more IAM policies or user permissions violate the principle of
+      least privilege by granting excessive privileges.
+    partial: N/A
+    success: All IAM policies and user permissions adhere to the principle of least
+      privilege, granting only the necessary access rights.
+  reason: The IAM resource contains crucial information about the permissions granted
+    to users and roles through policies, as well as details on user access keys and
+    multi-factor authentication (MFA) devices. This data is essential for assessing
+    if the least privilege principle is being followed.

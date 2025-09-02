@@ -1,0 +1,40 @@
+check:
+  category: access_control
+  control_names:
+  - NIST-800-53-AC-3
+  - ISO-27001-A.9.4.1
+  literature: The 'owasp-latest-validate-access-controls-on-the-server-side' check
+    is designed to validate that access controls are properly implemented on the server-side
+    of an application. Access controls are essential security mechanisms that ensure
+    only authorized users or entities can access and perform specific actions on protected
+    resources or data. Failing to implement proper access controls on the server-side
+    can lead to unauthorized access, data breaches, and other security vulnerabilities.
+    This check helps identify and mitigate risks associated with improper access control
+    implementation, such as broken authentication, broken access control, and insecure
+    direct object references.
+  name: owasp-latest-validate-access-controls-on-the-server-side
+  resource:
+    field_paths:
+    - admin_info.isAdmin
+    - admin_info.isDelegatedAdmin
+    - basic_info.customerId
+    - basic_info.id
+    - basic_info.primaryEmail
+    - contact_info.emails
+    - contact_info.phones
+    - organizational_info.orgUnitPath
+    - security_info.isEnforcedIn2Sv
+    - security_info.isEnrolledIn2Sv
+    literature: The 'owasp-latest-validate-access-controls-on-the-server-side' check
+      is designed to validate that access controls are properly implemented on the
+      server-side for the Google UserResource. This resource contains information
+      about a user's account, including administrative privileges, contact details,
+      and security settings. Proper access controls are crucial to ensure that only
+      authorized users or entities can access and modify sensitive user data.
+    name: UserResource
+    reason: The UserResource contains fields related to user privileges, identities,
+      and security settings, which are essential for implementing proper access controls
+      on the server-side. By validating these fields, the security check can ensure
+      that only authorized users can access and modify user data based on their assigned
+      roles and permissions.
+  unique_id: owasp-latest-validate-access-controls-on-the-server-side

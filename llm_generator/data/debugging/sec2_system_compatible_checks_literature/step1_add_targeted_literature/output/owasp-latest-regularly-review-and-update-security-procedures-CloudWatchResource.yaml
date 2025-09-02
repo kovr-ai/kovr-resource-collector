@@ -1,0 +1,43 @@
+resource:
+  check:
+    unique_id: owasp-latest-regularly-review-and-update-security-procedures
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To address this security check, your organization needs to establish
+      a formal process for regularly reviewing and updating security procedures.
+    estimated_time: Ongoing effort
+    instructions:
+    - 1. Assemble a cross-functional team of security experts, compliance officers,
+      and stakeholders from relevant business units.
+    - 2. Define a cadence for regular security procedure reviews (e.g., quarterly,
+      bi-annually, or annually).
+    - 3. Develop a framework for evaluating the effectiveness of existing security
+      procedures and identifying areas for improvement.
+    - 4. Stay up-to-date with industry best practices, regulatory requirements, and
+      emerging threats to inform procedure updates.
+    - 5. Document and communicate updated security procedures to all relevant personnel
+      and stakeholders.
+    - 6. Implement a process for continuous monitoring and improvement of security
+      procedures.
+  is_valid: false
+  literature: The OWASP recommendation to regularly review and update security procedures
+    is a high-level organizational practice that is not directly implementable through
+    a specific cloud resource like AWS CloudWatch. CloudWatch is a monitoring and
+    observability service that collects and analyzes metrics, logs, and events from
+    various AWS resources and applications. While CloudWatch can be used to monitor
+    security-related events and metrics, it does not directly address the process
+    of reviewing and updating security procedures.
+  name: CloudWatchResource
+  output_statements:
+    failure: Your organization does not have a defined process for regularly reviewing
+      and updating security procedures, leaving you vulnerable to emerging threats
+      and potential compliance violations.
+    partial: N/A
+    success: Your organization has established a robust process for regularly reviewing
+      and updating security procedures to align with evolving threats, vulnerabilities,
+      and best practices.
+  reason: AWS CloudWatch is a monitoring and observability service that does not directly
+    relate to the process of reviewing and updating security procedures within an
+    organization. This security check is focused on organizational practices and processes,
+    rather than a specific technical implementation.

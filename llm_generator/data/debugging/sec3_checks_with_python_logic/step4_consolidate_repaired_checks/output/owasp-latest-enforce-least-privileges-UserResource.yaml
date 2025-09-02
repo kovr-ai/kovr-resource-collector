@@ -1,0 +1,35 @@
+check:
+  name: owasp-latest-enforce-least-privileges
+  resource:
+    field_path: admin_info.isAdmin
+    fix_details:
+      automation_available: true
+      description: 'If the user account has been granted excessive privileges, the
+        following steps should be taken to remediate the issue and enforce the principle
+        of least privilege:'
+      estimated_time: 30 minutes to 1 hour
+      instructions:
+      - Review the user's role and responsibilities within the organization to determine
+        the minimum required privileges.
+      - Remove any unnecessary administrative roles or privileges from the user account.
+      - Ensure the user is assigned to the appropriate organizational unit based on
+        their role and access requirements.
+      - Enable and enforce two-step verification (2SV) for the user account to add
+        an extra layer of security.
+      - Regularly review and audit user privileges to ensure they remain aligned with
+        the principle of least privilege.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    # Check if the user is an admin\n    if fetched_value:\n        result\
+      \ = False\n    else:\n        # User is not an admin, which follows the principle\
+      \ of least privilege\n        result = True"
+    name: UserResource
+    output_statements:
+      failure: The user account has been granted excessive privileges beyond what
+        is necessary for their intended functions, violating the principle of least
+        privilege.
+      partial: Some aspects of the user account's privileges align with the principle
+        of least privilege, but there are areas that require further review and potential
+        adjustment.
+      success: The user account has been configured with the minimum required privileges
+        based on their role and responsibilities within the organization.
+  unique_id: owasp-latest-enforce-least-privileges

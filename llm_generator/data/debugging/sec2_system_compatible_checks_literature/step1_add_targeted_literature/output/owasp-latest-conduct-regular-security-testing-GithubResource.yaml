@@ -1,0 +1,47 @@
+resource:
+  check:
+    unique_id: owasp-latest-conduct-regular-security-testing
+  field_paths:
+  - security_data.code_scanning_alerts
+  - security_data.dependency_graph
+  - security_data.security_advisories
+  - security_data.security_analysis
+  - security_data.security_features_enabled
+  - security_data.vulnerability_alerts
+  fix_details:
+    automation_available: false
+    description: To fully implement this security check, the organization should establish
+      a comprehensive security testing program that includes regular penetration testing,
+      vulnerability assessments, and code reviews.
+    estimated_time: Varies depending on the size and complexity of the organization
+    instructions:
+    - Develop a security testing plan that outlines the scope, frequency, and methodologies
+      for conducting security testing activities.
+    - Engage qualified security professionals or third-party vendors to perform penetration
+      testing and vulnerability assessments on a regular basis.
+    - Implement a process for conducting regular code reviews to identify and remediate
+      security vulnerabilities in the codebase.
+    - Document and track the findings and remediation efforts from security testing
+      activities.
+    - Continuously monitor and update the security testing program to align with evolving
+      threats and best practices.
+  is_valid: false
+  literature: The provided resource is a GitHub repository, which contains information
+    about the repository itself, such as its code, branches, collaborators, and security
+    settings. While this resource provides some security-related data like code scanning
+    alerts, vulnerability alerts, and security advisories, it does not directly indicate
+    whether the organization conducts regular security testing activities like penetration
+    testing, vulnerability assessments, or code reviews. To fully implement this security
+    check, additional information about the organization's security testing practices
+    and processes would be required.
+  name: GithubResource
+  output_statements:
+    failure: The organization does not conduct regular security testing activities,
+      leaving it vulnerable to cyber threats, data breaches, and compliance violations.
+    partial: N/A
+    success: The organization conducts regular security testing activities, including
+      penetration testing, vulnerability assessments, and code reviews, to identify
+      and mitigate potential security risks.
+  reason: The GitHub repository resource primarily contains information about the
+    repository itself, but does not provide direct evidence of whether the organization
+    conducts regular security testing activities as required by the security check.

@@ -1,0 +1,48 @@
+resource:
+  check:
+    unique_id: owasp-latest-establish-incident-response-plans
+  field_paths:
+  - trails
+  - trails[].event_selectors
+  - trails[].event_selectors[].data_resources
+  - trails[].event_selectors[].include_management_events
+  - trails[].is_logging
+  - trails[].is_multi_region_trail
+  - trails[].log_file_validation_enabled
+  - trails[].s3_bucket_name
+  fix_details:
+    automation_available: true
+    description: To ensure CloudTrail is properly configured for incident response,
+      you may need to enable or adjust various settings.
+    estimated_time: 30 minutes
+    instructions:
+    - 1. Enable CloudTrail logging and ensure it is active across all regions (is_logging
+      and is_multi_region_trail).
+    - 2. Configure event selectors to capture relevant API activity logs (event_selectors,
+      data_resources, include_management_events).
+    - 3. Enable log file validation (log_file_validation_enabled) to ensure log integrity.
+    - 4. Configure an S3 bucket (s3_bucket_name) for secure and durable log storage.
+    - 5. Review and adjust other settings as needed, such as KMS key for encryption,
+      log file prefix, and tags.
+  is_valid: true
+  literature: AWS CloudTrail is a service that records AWS API calls and related events,
+    providing a comprehensive audit trail of activities across your AWS account. By
+    configuring CloudTrail appropriately, you can capture and analyze logs to detect
+    and respond to security incidents effectively. This resource is applicable for
+    implementing the 'owasp-latest-establish-incident-response-plans' security check
+    as it allows you to set up logging and monitoring mechanisms, which are crucial
+    components of an incident response plan.
+  name: CloudTrailResource
+  output_statements:
+    failure: CloudTrail is not configured properly to capture necessary API activity
+      logs, hindering incident response capabilities.
+    partial: CloudTrail is partially configured to capture API activity logs, but
+      additional configuration is required for comprehensive incident response capabilities.
+    success: CloudTrail is configured to capture comprehensive API activity logs,
+      enabling effective incident response and forensic analysis.
+  reason: The CloudTrail resource allows you to configure and manage trails, which
+    capture API activity logs across your AWS account. By enabling appropriate event
+    selectors, data resource types, and management event logging, you can ensure comprehensive
+    logging of relevant activities. Additionally, enabling log file validation, multi-region
+    trails, and configuring an S3 bucket for log storage are essential for maintaining
+    an audit trail and supporting incident response efforts.

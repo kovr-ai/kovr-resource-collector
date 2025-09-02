@@ -1,0 +1,35 @@
+resource:
+  check:
+    unique_id: owasp-latest-conduct-static-code-analysis
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: This resource is not applicable for static code analysis. To implement
+      this security check, you need to identify and analyze the relevant source code
+      or application resources in your Google Cloud environment.
+    estimated_time: Varies depending on the size and complexity of the codebase or
+      application resources.
+    instructions:
+    - Identify the source code repositories or application resources that need to
+      be analyzed for potential vulnerabilities and coding issues.
+    - Configure the OWASP static code analysis tool to scan the identified code repositories
+      or application resources.
+    - Schedule regular scans and review the analysis results to identify and remediate
+      any issues found.
+  is_valid: false
+  literature: The GroupResource in Google Cloud Platform represents a group of entities,
+    such as users or service accounts, and is primarily used for access control and
+    identity management purposes. It does not contain any source code or application-level
+    information that would be relevant for conducting static code analysis.
+  name: GroupResource
+  output_statements:
+    failure: The GroupResource is not a code artifact or application resource, and
+      therefore cannot be analyzed using the OWASP static code analysis tool.
+    partial: The GroupResource is not a code artifact or application resource, and
+      therefore cannot be analyzed using the OWASP static code analysis tool.
+    success: The GroupResource has been successfully analyzed for potential vulnerabilities
+      and coding issues using the latest OWASP static code analysis tool.
+  reason: The GroupResource is not a code artifact or application resource, and therefore
+    is not applicable for implementing the OWASP static code analysis security check.
+    This check is designed to analyze source code for potential vulnerabilities and
+    coding issues, which is not the purpose or function of the GroupResource.

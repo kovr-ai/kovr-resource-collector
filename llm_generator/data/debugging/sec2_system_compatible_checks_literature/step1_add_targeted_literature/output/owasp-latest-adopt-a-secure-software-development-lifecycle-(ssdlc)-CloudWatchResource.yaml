@@ -1,0 +1,46 @@
+resource:
+  check:
+    unique_id: owasp-latest-adopt-a-secure-software-development-lifecycle-(ssdlc)
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This resource is not applicable for implementing the OWASP Secure
+      Software Development Lifecycle (SSDLC) security check. To address this check,
+      the organization should review its software development processes and ensure
+      that security considerations are incorporated throughout the entire lifecycle,
+      from requirements gathering and design to implementation, testing, and deployment.
+    estimated_time: Implementing a comprehensive SSDLC process can take several months
+      or longer, depending on the organization's size and complexity.
+    instructions:
+    - Establish a secure software development lifecycle (SSDLC) process that aligns
+      with industry best practices, such as the OWASP SSDLC guidelines.
+    - Integrate security requirements and threat modeling into the early stages of
+      the software development process.
+    - Implement secure coding practices and perform code reviews to identify and mitigate
+      security vulnerabilities.
+    - Conduct security testing, including static and dynamic analysis, penetration
+      testing, and vulnerability scanning.
+    - Establish secure deployment and maintenance processes, including secure configuration
+      management and patch management.
+  is_valid: false
+  literature: The OWASP Secure Software Development Lifecycle (SSDLC) is a set of
+    best practices and guidelines for building secure software from the ground up.
+    It emphasizes the importance of incorporating security considerations throughout
+    the entire software development process, from requirements gathering and design
+    to implementation, testing, and deployment. However, the AWS CloudWatch resource
+    is a monitoring and observability service that collects and tracks metrics, logs,
+    and events from various AWS resources and applications. It does not directly relate
+    to the software development lifecycle or secure coding practices.
+  name: CloudWatchResource
+  output_statements:
+    failure: The organization has not adopted or does not follow the OWASP Secure
+      Software Development Lifecycle (SSDLC) best practices throughout the software
+      development process.
+    partial: Not applicable for this resource.
+    success: The organization has adopted and follows the OWASP Secure Software Development
+      Lifecycle (SSDLC) best practices throughout the software development process.
+  reason: The AWS CloudWatch resource is a monitoring and observability service that
+    collects and tracks metrics, logs, and events from various AWS resources and applications.
+    It does not directly relate to the software development lifecycle or secure coding
+    practices. Therefore, it is not applicable for implementing the OWASP Secure Software
+    Development Lifecycle (SSDLC) security check.

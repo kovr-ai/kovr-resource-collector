@@ -1,0 +1,29 @@
+check:
+  name: owasp-latest-implement-comprehensive-logging-mechanisms
+  resource:
+    field_path: buckets[*].logging_enabled
+    fix_details:
+      automation_available: true
+      description: To enable comprehensive logging for S3 buckets, server access logging
+        must be configured for each bucket.
+      estimated_time: 5-10 minutes per bucket
+      instructions:
+      - 1. Open the AWS Management Console and navigate to the S3 service.
+      - 2. Select the bucket for which you want to enable logging.
+      - 3. Go to the 'Properties' tab and click on 'Server access logging'.
+      - 4. Enable logging and specify a target bucket and optional prefix for log
+        file delivery.
+      - 5. Review and save the logging configuration.
+      - 6. Repeat these steps for any other buckets that require logging.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for logging_enabled in fetched_value:\n        if logging_enabled:\n  \
+      \          result = True\n            break"
+    name: S3Resource
+    output_statements:
+      failure: S3 bucket logging is not enabled, which may limit visibility into access
+        requests and activities.
+      partial: Some S3 buckets have logging enabled, while others do not, resulting
+        in partial visibility into access requests and activities.
+      success: S3 bucket logging is enabled, providing comprehensive logging mechanisms
+        for monitoring access and activities.
+  unique_id: owasp-latest-implement-comprehensive-logging-mechanisms

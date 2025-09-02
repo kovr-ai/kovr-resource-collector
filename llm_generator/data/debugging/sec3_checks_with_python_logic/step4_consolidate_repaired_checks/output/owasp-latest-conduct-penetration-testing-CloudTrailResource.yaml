@@ -1,0 +1,31 @@
+check:
+  name: owasp-latest-conduct-penetration-testing
+  resource:
+    field_path: trails[*].event_selectors[*].data_resources.values[*]
+    fix_details:
+      automation_available: true
+      description: To ensure CloudTrail is properly configured for penetration testing
+        and security analysis, you may need to adjust the event selectors, enable
+        log file validation, and configure multi-region trails.
+      estimated_time: 30 minutes
+      instructions:
+      - Review the CloudTrail event selectors and ensure they capture all relevant
+        API calls and events for your resources.
+      - Enable log file validation to ensure the integrity and completeness of CloudTrail
+        logs.
+      - Configure multi-region trails if you have resources in multiple AWS regions
+        to ensure comprehensive logging.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for values_list in fetched_value:\n        if 'AWS::CloudTrail::Trail'\
+      \ in values_list:\n            result = True\n            break"
+    name: CloudTrailResource
+    output_statements:
+      failure: CloudTrail is not configured properly or log file validation is disabled,
+        hindering the ability to conduct comprehensive penetration testing and security
+        analysis.
+      partial: CloudTrail is partially configured to capture relevant events, but
+        some settings may need adjustment to enable comprehensive penetration testing
+        and security analysis.
+      success: CloudTrail is configured to capture relevant events and log file validation
+        is enabled, allowing for effective penetration testing and security analysis.
+  unique_id: owasp-latest-conduct-penetration-testing

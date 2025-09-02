@@ -1,0 +1,32 @@
+check:
+  name: owasp-latest-implement-software-composition-analysis-(sca)-process
+  resource:
+    field_path: security_data.dependency_graph
+    fix_details:
+      automation_available: true
+      description: 'If the repository does not have an effective SCA process in place,
+        the following steps can be taken to implement one:'
+      estimated_time: 1-2 hours for initial setup, ongoing maintenance as needed
+      instructions:
+      - 1. Enable and configure the GitHub Advanced Security features, including Dependabot
+        alerts, code scanning, and secret scanning.
+      - 2. Set up regular scans for vulnerabilities, dependencies, and security advisories
+        using the GitHub API or third-party tools.
+      - 3. Review and address any identified vulnerabilities, licensing issues, or
+        outdated components.
+      - 4. Establish a process for monitoring and responding to new vulnerabilities
+        and security advisories as they are released.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    has_dependency_graph = fetched_value\n    if has_dependency_graph:\n  \
+      \      result = True"
+    name: GithubResource
+    output_statements:
+      failure: The repository does not have an effective Software Composition Analysis
+        (SCA) process in place, and may be at risk of security vulnerabilities and
+        licensing issues.
+      partial: The repository has a partial Software Composition Analysis (SCA) process
+        in place, but may be missing some components or not scanning regularly.
+      success: The repository has an effective Software Composition Analysis (SCA)
+        process in place, with regular scans for vulnerabilities, dependencies, and
+        security advisories.
+  unique_id: owasp-latest-implement-software-composition-analysis-(sca)-process

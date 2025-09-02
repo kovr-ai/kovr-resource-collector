@@ -1,0 +1,42 @@
+resource:
+  check:
+    unique_id: owasp-latest-have-a-plan-for-addressing-vulnerabilities
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To address this security check, your organization needs to develop
+      and document a comprehensive plan for vulnerability management.
+    estimated_time: 2-4 weeks
+    instructions:
+    - Establish a vulnerability management team or assign responsibilities to existing
+      security personnel.
+    - Define processes for identifying, prioritizing, and remediating vulnerabilities
+      in applications, systems, and third-party components.
+    - Develop a vulnerability disclosure policy and procedures for coordinating with
+      external parties.
+    - Implement tools and processes for vulnerability scanning, penetration testing,
+      and continuous monitoring.
+    - Document the vulnerability management plan, including roles, responsibilities,
+      and escalation procedures.
+    - Regularly review and update the vulnerability management plan to align with
+      evolving threats and organizational needs.
+  is_valid: false
+  literature: The 'owasp-latest-have-a-plan-for-addressing-vulnerabilities' security
+    check is designed to ensure that organizations have a documented plan for addressing
+    vulnerabilities in their applications and systems. This check is primarily focused
+    on the organizational processes and policies related to vulnerability management,
+    rather than specific cloud resources.
+  name: IAMResource
+  output_statements:
+    failure: Your organization does not have a documented plan for addressing vulnerabilities
+      in applications and systems. This increases the risk of security incidents and
+      data breaches.
+    partial: N/A
+    success: Your organization has a well-defined and documented plan for addressing
+      vulnerabilities in applications and systems.
+  reason: The IAMResource in AWS is primarily focused on managing Identity and Access
+    Management (IAM) resources, such as users, groups, roles, and policies. While
+    IAM policies can be used to grant or restrict access to specific AWS services
+    and resources, they do not directly address the organizational processes and plans
+    for vulnerability management. Therefore, the IAMResource is not directly applicable
+    for implementing this security check.

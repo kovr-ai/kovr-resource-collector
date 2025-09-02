@@ -1,0 +1,29 @@
+resource:
+  check:
+    unique_id: owasp-latest-use-secure-xml-parsers
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This security check is not applicable to the AWS CloudTrail resource.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The AWS CloudTrail resource is used for logging and monitoring AWS account
+    activity and events. It does not directly handle XML parsing or processing. Therefore,
+    this resource is not applicable for implementing the 'owasp-latest-use-secure-xml-parsers'
+    security check, which focuses on ensuring the use of secure XML parsers to mitigate
+    vulnerabilities like XML External Entity (XXE) attacks, XML Injection, and Denial
+    of Service (DoS) attacks.
+  name: CloudTrailResource
+  output_statements:
+    failure: The CloudTrail resource does not handle XML parsing or processing, and
+      therefore cannot implement the 'owasp-latest-use-secure-xml-parsers' security
+      check.
+    partial: The CloudTrail resource does not handle XML parsing or processing, and
+      therefore cannot implement the 'owasp-latest-use-secure-xml-parsers' security
+      check.
+    success: The CloudTrail resource is configured to use secure XML parsers for handling
+      XML data.
+  reason: The CloudTrail resource is primarily used for logging and monitoring AWS
+    account activity and events. It does not directly handle XML parsing or processing,
+    which is the focus of the 'owasp-latest-use-secure-xml-parsers' security check.

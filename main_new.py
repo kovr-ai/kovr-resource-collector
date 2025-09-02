@@ -1,4 +1,7 @@
+from ast import List
 import os
+import time
+import math
 from con_mon.compliance.data_loader import ChecksLoader, ConnectionLoader
 from con_mon.compliance.models import Connection
 from con_mon.utils.services import ResourceCollectionService, ConMonResultService
@@ -33,28 +36,54 @@ def main(
         connection_id, info_data
     )
     # Execute checks and collect results
-    executed_check_results = []
+    
     filtered_checks = ChecksLoader.filter_by_resource_model(
         checks,
         resource_collection.resource_models
     )
-    
-    for check in filtered_checks:
+    executed_check_results = []
+    batch_executed_check_results = []
+    batch_sleep_counter = 0
+    total_result_count = 0
+    for check in filtered_checks[:100]:
         # Execute the check against all resources
+        print(f'check.name: {check.name}')
         check_results = check.evaluate(resource_collection.resources)
         if check_results is not None:
             executed_check_results.append((check, check_results))
+            batch_executed_check_results.append((check, check_results))
+
+        batch_sleep_counter += 1
+       
+
+        if batch_sleep_counter % 10 == 0:
+            helpers.print_summary(batch_executed_check_results)
+
+            total_result_count_batch = ConMonResultService.insert_in_db(
+                executed_check_results=batch_executed_check_results,
+                customer_id=customer_id,
+                connection_id=connection_id
+            )
+            total_result_count += total_result_count_batch
+            
+            print("\n**Batch Database Storage:**")
+            print(f"   • Batch ID: {math.ceil(batch_sleep_counter / 10)}")
+            print(f"   • Customer ID: {customer_id}")
+            print(f"   • Connection ID: {connection_id}")
+            print(f"   • Batch Checks executed: {len(batch_executed_check_results)}")
+            print(f"   • Batch Results Inserted: {total_result_count_batch}")
+
+            batch_executed_check_results = []
+            time.sleep(.5)
+            print('sleeping for 0.5 seconds')
+
+
+        
 
     # Generate summary using con_mon helpers with Check objects
-    helpers.print_summary(executed_check_results)
-
-    total_result_count = ConMonResultService.insert_in_db(
-        executed_check_results=executed_check_results,
-        customer_id=customer_id,
-        connection_id=connection_id
-    )
     
-    print("\n💾 **Database Storage:**")
+    
+    print("\n **Database Storage:**")
     print(f"   • Customer ID: {customer_id}")
     print(f"   • Connection ID: {connection_id}")
     print(f"   • Checks executed: {len(executed_check_results)}")
@@ -84,11 +113,15 @@ def params_from_connection_id(
     connection_loader = ConnectionLoader()
     
     # Load the specific connection by ID
-    connection: Connection = connection_loader.load_by_ids([connection_id])[0]
+    
+    connections: List[Connection] = connection_loader.load_by_ids([connection_id])
+    if not connections:
+        raise ValueError(f"Connection with ID {connection_id} not found")
+    connection = connections[0]
 
     # Validate connection is active
     if connection.sync_status != 'active':
-        print(f"⚠️ Warning: Connection {connection_id} status is '{connection.sync_status}' (not active)")
+        print(f"Warning: Connection {connection_id} status is '{connection.sync_status}' (not active)")
 
     # Extract data from Connection object
     customer_id = connection.customer_id

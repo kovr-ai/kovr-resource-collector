@@ -1,0 +1,36 @@
+resource:
+  check:
+    unique_id: owasp-latest-follow-data-protection-regulations
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: To address data protection compliance, you need to assess resources
+      directly involved in data storage, processing, and transfer, such as S3 buckets,
+      RDS databases, and data pipelines.
+    estimated_time: Varies based on the complexity of your data infrastructure
+    instructions:
+    - Identify resources handling sensitive data in your AWS environment.
+    - Review the configurations and access controls for those resources against relevant
+      data protection regulations.
+    - Implement necessary controls and safeguards, such as encryption, access restrictions,
+      and data retention policies.
+    - Regularly monitor and audit data handling practices for ongoing compliance.
+  is_valid: false
+  literature: The 'owasp-latest-follow-data-protection-regulations' security check
+    is designed to ensure compliance with data protection regulations and standards
+    when handling sensitive information. However, the provided AWS EC2Resource does
+    not directly relate to data handling or storage. EC2 instances are virtual machines
+    used for computing purposes, and the resource fields primarily describe instance
+    configurations, networking, and resource limits.
+  name: EC2Resource
+  output_statements:
+    failure: The EC2 resource configurations do not comply with data protection regulations
+      for sensitive data handling.
+    partial: Some aspects of the EC2 resource configurations comply with data protection
+      regulations, but other areas need improvement.
+    success: The EC2 resource configurations comply with data protection regulations
+      for sensitive data handling.
+  reason: The EC2Resource does not contain any information related to data storage,
+    processing, or transfer, which are the primary concerns of data protection regulations
+    like GDPR and CCPA. This resource is focused on virtual machine provisioning and
+    management, rather than data handling practices.

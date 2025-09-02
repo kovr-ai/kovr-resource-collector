@@ -1,0 +1,36 @@
+resource:
+  check:
+    unique_id: owasp-latest-regularly-review-and-update-security-procedures
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This security check is not directly applicable to the AWS S3 resource.
+      However, it is still important to have a process in place for regularly reviewing
+      and updating security procedures related to your cloud infrastructure and services.
+    estimated_time: Varies based on the size and complexity of the organization.
+    instructions:
+    - Establish a formal process for periodically reviewing and updating security
+      policies, procedures, and controls related to your cloud environment.
+    - Assign responsible teams or individuals to oversee this process and ensure it
+      is followed consistently.
+    - Stay up-to-date with industry best practices, regulatory requirements, and emerging
+      threats to identify areas where updates may be needed.
+    - Document and communicate any changes to security procedures to relevant stakeholders
+      and teams.
+  is_valid: false
+  literature: The security check 'owasp-latest-regularly-review-and-update-security-procedures'
+    is focused on the process of regularly reviewing and updating security procedures
+    within an organization. This check is not directly applicable to an AWS S3 resource,
+    which is an object storage service. S3 resources do not have inherent security
+    procedures or policies that can be reviewed and updated.
+  name: S3Resource
+  output_statements:
+    failure: Your organization does not have a process for regularly reviewing and
+      updating security procedures, which can lead to outdated security measures and
+      increased risk.
+    partial: N/A
+    success: Your organization has a well-defined process for regularly reviewing
+      and updating security procedures.
+  reason: The provided security check is related to organizational processes and policies,
+    while the AWS S3 resource is an infrastructure component. The check is not directly
+    applicable to the resource itself.

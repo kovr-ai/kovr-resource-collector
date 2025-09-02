@@ -1,0 +1,59 @@
+resource:
+  check:
+    unique_id: owasp-latest-validate-and-sanitize-all-user-input
+  field_paths:
+  - event_selectors
+  - event_selectors[]
+  - event_selectors[].data_resources
+  - event_selectors[].data_resources.type
+  - event_selectors[].data_resources.values
+  - event_selectors[].data_resources.values[]
+  - event_selectors[].include_management_events
+  - event_selectors[].read_write_type
+  - trails
+  - trails[]
+  - trails[].event_selectors
+  - trails[].event_selectors[]
+  - trails[].event_selectors[].data_resources
+  - trails[].event_selectors[].data_resources.type
+  - trails[].event_selectors[].data_resources.values
+  - trails[].event_selectors[].data_resources.values[]
+  - trails[].event_selectors[].include_management_events
+  - trails[].event_selectors[].read_write_type
+  fix_details:
+    automation_available: true
+    description: While CloudTrail is not directly applicable for this security check,
+      it is still important to ensure that it is configured correctly to capture and
+      log all relevant API activity and events across AWS services and regions.
+    estimated_time: 30 minutes to 1 hour
+    instructions:
+    - Review the CloudTrail trail configuration and ensure that it is capturing events
+      from all necessary AWS services and regions.
+    - Configure event selectors to include specific data resources and event types
+      that are relevant to your organization's monitoring and auditing requirements.
+    - Enable log file validation and encryption to ensure the integrity and confidentiality
+      of CloudTrail logs.
+    - Configure CloudTrail to deliver logs to a secure and centralized location, such
+      as an S3 bucket or CloudWatch Logs, for long-term retention and analysis.
+  is_valid: false
+  literature: The CloudTrailResource in AWS is used to capture and log AWS API activity
+    and events across multiple services and regions. While CloudTrail can be used
+    to monitor and audit user activity, it does not directly validate or sanitize
+    user input. User input validation and sanitization are typically implemented within
+    the application code or services that handle user input.
+  name: CloudTrailResource
+  output_statements:
+    failure: The CloudTrail resource is not configured correctly, and may not be capturing
+      all necessary API activity and events, hindering effective monitoring and auditing
+      of user actions.
+    partial: The CloudTrail resource is partially configured to capture API activity
+      and events, but some settings may need adjustment to ensure comprehensive monitoring
+      and auditing of user actions.
+    success: The CloudTrail resource is configured to capture and log all relevant
+      API activity and events, enabling effective monitoring and auditing of user
+      actions.
+  reason: The CloudTrailResource in AWS is primarily used for logging and auditing
+    purposes, and does not directly handle user input validation or sanitization.
+    This security check is focused on ensuring that user input is properly validated
+    and sanitized within applications or services that accept user input, which is
+    not the primary purpose of CloudTrail.

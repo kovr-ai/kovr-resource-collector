@@ -1,0 +1,37 @@
+resource:
+  check:
+    unique_id: owasp-latest-conduct-static-code-analysis
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: This resource is not relevant for conducting static code analysis
+      or using the OWASP static code analysis tool. To implement this security check,
+      you should consider using other AWS services or tools specifically designed
+      for static code analysis and vulnerability detection.
+    estimated_time: Varies depending on the complexity of your application and the
+      chosen static code analysis solution.
+    instructions:
+    - Explore AWS CodePipeline, AWS CodeBuild, or AWS Lambda functions for integrating
+      static code analysis tools like OWASP ZAP or SonarQube into your CI/CD pipeline.
+    - Investigate third-party static code analysis tools or services that can be integrated
+      with your AWS environment.
+    - Implement processes and procedures to ensure that static code analysis is performed
+      regularly during the software development lifecycle.
+  is_valid: false
+  literature: The CloudWatchResource in AWS does not directly relate to conducting
+    static code analysis or using the OWASP static code analysis tool. CloudWatch
+    is a monitoring and observability service that collects and tracks metrics, logs,
+    and events from various AWS resources and applications. It does not have capabilities
+    for analyzing source code or detecting vulnerabilities within the code.
+  name: CloudWatchResource
+  output_statements:
+    failure: This resource is not applicable for the 'owasp-latest-conduct-static-code-analysis'
+      security check.
+    partial: This resource is not applicable for the 'owasp-latest-conduct-static-code-analysis'
+      security check.
+    success: This resource is not applicable for the 'owasp-latest-conduct-static-code-analysis'
+      security check.
+  reason: The CloudWatchResource is primarily used for monitoring and observability
+    purposes, and does not have any direct functionality related to static code analysis
+    or the OWASP static code analysis tool. This resource is not applicable for implementing
+    the given security check.

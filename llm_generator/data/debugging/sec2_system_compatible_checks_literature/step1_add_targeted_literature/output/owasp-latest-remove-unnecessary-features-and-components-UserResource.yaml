@@ -1,0 +1,29 @@
+resource:
+  check:
+    unique_id: owasp-latest-remove-unnecessary-features-and-components
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: No fix is required as this security check is not applicable to the
+      UserResource.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The OWASP check 'owasp-latest-remove-unnecessary-features-and-components'
+    aims to ensure that applications and systems do not expose unnecessary features,
+    components, or functionality that could potentially be exploited by attackers.
+    However, the provided Google UserResource does not appear to be directly related
+    to application or system features and components. This resource represents user
+    information and account details within the Google Workspace environment.
+  name: UserResource
+  output_statements:
+    failure: The UserResource does not expose any unnecessary features or components
+      that could introduce security risks.
+    partial: The UserResource does not expose any unnecessary features or components
+      that could introduce security risks.
+    success: The UserResource does not expose any unnecessary features or components
+      that could introduce security risks.
+  reason: The UserResource is a data object containing user account information and
+    does not directly relate to application or system features and components that
+    could be removed or disabled for security purposes. This security check is not
+    applicable to this resource.

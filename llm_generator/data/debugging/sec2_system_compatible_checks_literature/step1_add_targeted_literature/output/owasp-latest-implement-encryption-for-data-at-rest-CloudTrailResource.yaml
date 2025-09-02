@@ -1,0 +1,42 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-encryption-for-data-at-rest
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: This resource is not applicable for this security check. To implement
+      encryption for data at rest, you should review and configure encryption settings
+      for your persistent data storage resources, such as Amazon S3 buckets, Amazon
+      EBS volumes, Amazon RDS databases, and Amazon DynamoDB tables.
+    estimated_time: The time required will vary depending on the number of resources
+      and the complexity of your environment.
+    instructions:
+    - Identify the persistent data storage resources in your AWS environment that
+      store sensitive data.
+    - Review the encryption settings for each resource and ensure that encryption
+      is enabled using industry-standard algorithms and key management practices.
+    - Configure encryption settings for resources that do not have encryption enabled
+      or have weak encryption configurations.
+    - Implement centralized key management practices using AWS Key Management Service
+      (KMS) or other secure key management solutions.
+  is_valid: false
+  literature: The AWS CloudTrail resource is a service that records AWS API calls
+    and related events for your account. It does not directly implement encryption
+    for data at rest. The security check 'owasp-latest-implement-encryption-for-data-at-rest'
+    is focused on ensuring that sensitive data stored in persistent storage (e.g.,
+    databases, object storage, file systems) is encrypted at rest using industry-standard
+    encryption algorithms and key management practices. While CloudTrail can log events
+    related to encryption key management and usage, it does not directly handle the
+    encryption of data at rest.
+  name: CloudTrailResource
+  output_statements:
+    failure: This resource is not applicable for the 'owasp-latest-implement-encryption-for-data-at-rest'
+      security check.
+    partial: This resource is not applicable for the 'owasp-latest-implement-encryption-for-data-at-rest'
+      security check.
+    success: This resource is not applicable for the 'owasp-latest-implement-encryption-for-data-at-rest'
+      security check.
+  reason: The CloudTrail resource is a logging and auditing service that records API
+    activity, but it does not directly handle the encryption of data at rest. This
+    security check is focused on ensuring that persistent data storage resources (e.g.,
+    databases, object storage) have encryption enabled for data at rest.

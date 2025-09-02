@@ -423,3 +423,109 @@ class ResourceYamlMapping(BaseModel):
                 resources_collection=collection_mapping
             )
         return result
+
+
+class SchemaYamlMapping(BaseModel):
+    """Mapping class for schema configurations from YAML (e.g., schemas.yaml)."""
+    step_name: str
+    models: Dict[str, YamlModelMapping]
+    
+    @staticmethod
+    def _load_yaml_data(path_or_dict: str | Path | dict) -> dict:
+        """Load YAML data from file path or dict."""
+        if isinstance(path_or_dict, (str, Path)):
+            if not os.path.exists(str(path_or_dict)):
+                raise FileNotFoundError(f"YAML file not found: {path_or_dict}")
+            
+            with open(path_or_dict, 'r') as file:
+                return yaml.safe_load(file)
+        elif isinstance(path_or_dict, dict):
+            return path_or_dict
+        else:
+            raise ValueError("Input must be either a file path (str or Path) or a dictionary")
+    
+    @staticmethod
+    def _resolve_references(model_def: Dict[str, Any], step_namespace: str, all_schemas: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Resolve schema references like 'benchmark_and_checks_literature.Check'.
+        
+        Args:
+            model_def: The model definition to resolve references in
+            step_namespace: The schema namespace (e.g., 'benchmark_and_checks_literature')
+            all_schemas: All schema definitions
+            
+        Returns:
+            Dict with references resolved to actual schema definitions
+        """
+        resolved = {}
+        
+        for field_name, field_def in model_def.items():
+            if isinstance(field_def, list):
+                # Handle array fields like checks[]: ["benchmark_and_checks_literature.Check"]
+                resolved_items = []
+                for item in field_def:
+                    if isinstance(item, str) and '.' in item:
+                        # This is a reference like "benchmark_and_checks_literature.Check"
+                        namespace, ref_name = item.split('.', 1)
+                        if namespace in all_schemas and ref_name in all_schemas[namespace]:
+                            resolved_items.append(all_schemas[namespace][ref_name])
+                        else:
+                            resolved_items.append(item)  # Keep as-is if not found
+                    else:
+                        resolved_items.append(item)
+                resolved[field_name] = resolved_items
+            elif isinstance(field_def, dict):
+                # Recursively resolve references in nested objects
+                resolved[field_name] = SchemaYamlMapping._resolve_references(field_def, step_namespace, all_schemas)
+            else:
+                # Keep field as-is
+                resolved[field_name] = field_def
+        
+        return resolved
+    
+    @classmethod
+    def load_yaml(
+            cls,
+            path_or_dict: str | Path | dict
+    ) -> Dict[str, 'SchemaYamlMapping']:
+        """
+        Load schema configuration from a YAML file or dictionary.
+        
+        Args:
+            path_or_dict: Either a path to a YAML file or a dictionary containing the YAML data
+            
+        Returns:
+            Dict[str, SchemaYamlMapping]: A dictionary mapping schema names to their mappings
+        """
+        yaml_data = cls._load_yaml_data(path_or_dict)
+        
+        if not yaml_data or not isinstance(yaml_data, dict):
+            raise ValueError("Invalid YAML data: expected a dictionary with schema configuration")
+        
+        result = {}
+        
+        # Process each top-level schema namespace
+        for step_name, schema_models in yaml_data.items():
+            if not isinstance(schema_models, dict):
+                continue
+                
+            models = {}
+            
+            # Process each model within the schema
+            for model_name, model_def in schema_models.items():
+                if isinstance(model_def, dict):
+                    # Resolve any references within this model
+                    resolved_def = cls._resolve_references(model_def, step_name, yaml_data)
+                    
+                    # Create model mapping for this individual model
+                    model_dict = {model_name: resolved_def}
+                    model_mapping = YamlModelMapping.load_yaml(model_dict)
+                    
+                    models[model_name] = model_mapping
+            
+            result[step_name] = cls(
+                step_name=step_name,
+                models=models
+            )
+        
+        return result

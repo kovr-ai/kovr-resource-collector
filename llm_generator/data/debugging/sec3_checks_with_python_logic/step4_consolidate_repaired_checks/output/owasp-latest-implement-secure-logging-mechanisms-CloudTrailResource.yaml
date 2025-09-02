@@ -1,0 +1,33 @@
+check:
+  name: owasp-latest-implement-secure-logging-mechanisms
+  resource:
+    field_path: trails[*].is_logging
+    fix_details:
+      automation_available: true
+      description: If CloudTrail is not configured correctly, adjustments may be needed
+        to ensure comprehensive logging, secure log delivery, and log file integrity
+        validation.
+      estimated_time: 30 minutes to 1 hour
+      instructions:
+      - 1. Enable CloudTrail logging for all regions and configure event selectors
+        to capture management and data events from all AWS services.
+      - 2. Create or specify an Amazon S3 bucket for log delivery, and configure appropriate
+        bucket policies and encryption settings to secure the logs.
+      - 3. Enable log file validation to ensure the integrity of CloudTrail logs.
+      - 4. (Optional) Configure CloudTrail to use AWS Key Management Service (KMS)
+        for additional encryption of log files.
+      - 5. Review and update CloudTrail configurations periodically to ensure compliance
+        with secure logging requirements.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for is_logging in fetched_value:\n        if is_logging:\n            result\
+      \ = True\n            break"
+    name: CloudTrailResource
+    output_statements:
+      failure: CloudTrail is not configured to log all relevant events, logs are not
+        being delivered to a secure location, or log file integrity is not being validated.
+      partial: CloudTrail is partially configured to meet secure logging requirements,
+        but some settings need to be adjusted or additional configurations are required.
+      success: CloudTrail is configured to log all management and data events, deliver
+        logs to a secure S3 bucket, and validate log file integrity using log file
+        validation.
+  unique_id: owasp-latest-implement-secure-logging-mechanisms

@@ -1,0 +1,39 @@
+check:
+  category: system_integrity
+  control_names:
+  - NIST-800-53-CM-6
+  - NIST-800-53-CM-7
+  - ISO-27001-A.12.1.2
+  literature: Application servers are a critical component of modern web applications,
+    handling requests, executing business logic, and serving content. Ensuring secure
+    configuration of these servers is crucial to prevent unauthorized access, data
+    breaches, and other security incidents. This check validates that application
+    servers are configured securely, following industry best practices and hardening
+    guidelines. Insecure configurations can lead to vulnerabilities such as unintended
+    data exposure, remote code execution, and privilege escalation, which can be exploited
+    by attackers to compromise the entire application and underlying infrastructure.
+  provider: aws
+  resource:
+    field_paths:
+    - buckets
+    - buckets[]
+    - buckets[].creation_date
+    - buckets[].encryption
+    - buckets[].encryption.enabled
+    - buckets[].encryption.kms_key_id
+    - buckets[].encryption.type
+    - buckets[].id
+    - buckets[].logging_enabled
+    - buckets[].name
+    - buckets[].public_access_block
+    - buckets[].public_access_block.block_public_acls
+    - buckets[].public_access_block.block_public_policy
+    - buckets[].public_access_block.ignore_public_acls
+    - buckets[].public_access_block.restrict_public_buckets
+    - buckets[].region
+    - buckets[].versioning_status
+    - buckets[].website_enabled
+    - id
+    - source_connector
+    name: S3Resource
+  unique_id: owasp-latest-ensure-secure-configuration-of-application-servers

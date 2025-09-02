@@ -1,0 +1,34 @@
+resource:
+  check:
+    unique_id: owasp-latest-conduct-static-code-analysis
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: This resource is not applicable for static code analysis. To implement
+      this security check, you should focus on resources that contain application
+      code or infrastructure as code (IaC) resources.
+    estimated_time: Varies based on the size and complexity of the codebase.
+    instructions:
+    - Identify resources that contain source code or IaC artifacts within your AWS
+      environment.
+    - Configure static code analysis tools to scan these resources for vulnerabilities
+      and coding best practices.
+    - Establish a process to regularly scan and remediate issues identified by the
+      static code analysis tool.
+  is_valid: false
+  literature: The IAMResource in AWS does not contain any source code or information
+    related to static code analysis. This resource is focused on managing Identity
+    and Access Management (IAM) policies, users, and access keys within an AWS account.
+    Static code analysis is typically performed on application code or infrastructure
+    as code (IaC) resources, not IAM configurations.
+  name: IAMResource
+  output_statements:
+    failure: The IAMResource is not applicable for static code analysis.
+    partial: The IAMResource does not contain any source code or artifacts suitable
+      for static code analysis.
+    success: The IAMResource has been successfully analyzed for static code analysis
+      vulnerabilities.
+  reason: The IAMResource does not contain any source code or artifacts that can be
+    analyzed using static code analysis tools. This resource is focused on managing
+    access and permissions within an AWS account, which is not directly related to
+    the OWASP static code analysis security check.

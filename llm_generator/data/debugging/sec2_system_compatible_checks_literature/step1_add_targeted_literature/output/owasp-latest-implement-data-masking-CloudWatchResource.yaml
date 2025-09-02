@@ -1,0 +1,26 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-data-masking
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: No fix is required for this resource, as it is not applicable for
+      implementing data masking.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The CloudWatch resource in AWS does not directly handle sensitive data
+    or provide data masking capabilities. CloudWatch is a monitoring and observability
+    service that collects and analyzes metrics, logs, and events from various AWS
+    resources and applications. While CloudWatch can be used to monitor and alert
+    on security-related events, it does not have built-in functionality for data masking
+    or obfuscation.
+  name: CloudWatchResource
+  output_statements:
+    failure: The CloudWatch resource is not applicable for implementing data masking.
+    partial: The CloudWatch resource is not applicable for implementing data masking.
+    success: The CloudWatch resource is not applicable for implementing data masking.
+  reason: The CloudWatch resource is primarily used for monitoring and observability
+    purposes, and does not directly handle or store sensitive data that requires data
+    masking or obfuscation. Therefore, it is not applicable for implementing the 'owasp-latest-implement-data-masking'
+    security check.

@@ -1,0 +1,32 @@
+resource:
+  check:
+    unique_id: owasp-latest-use-secure-communication-protocols-(e.g.,-https)
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This resource is not applicable for implementing the 'Use Secure
+      Communication Protocols (e.g., HTTPS)' security check. No remediation is required.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The OWASP check 'Use Secure Communication Protocols (e.g., HTTPS)' is
+    designed to ensure that web applications and services communicate over secure
+    protocols like HTTPS to protect data in transit. This check is primarily applicable
+    to resources that handle web traffic or network communication, such as load balancers,
+    web servers, or API gateways. The provided resource 'UserResource' appears to
+    be a user management resource for Google Workspace, which does not directly handle
+    web traffic or network communication protocols.
+  name: UserResource
+  output_statements:
+    failure: The resource is not configured to use secure communication protocols
+      like HTTPS for web traffic and network communication, exposing data to potential
+      interception and tampering.
+    partial: Some components of the resource are configured to use secure communication
+      protocols like HTTPS, but others are not, leaving parts of the communication
+      vulnerable.
+    success: The resource is configured to use secure communication protocols like
+      HTTPS for all web traffic and network communication.
+  reason: The 'UserResource' is a user management resource for Google Workspace and
+    does not directly handle web traffic or network communication protocols. Therefore,
+    it is not applicable for implementing the 'Use Secure Communication Protocols
+    (e.g., HTTPS)' security check.

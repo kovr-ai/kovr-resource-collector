@@ -1,0 +1,34 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-multi-factor-authentication
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: To implement multi-factor authentication in Google Cloud Platform,
+      you need to configure it at the user account level or through organizational
+      policies.
+    estimated_time: 30 minutes
+    instructions:
+    - 1. Navigate to the Google Cloud Console and go to the 'IAM & Admin' section.
+    - 2. Under 'Security Settings', select 'Multi-factor authentication'.
+    - 3. Configure the desired MFA settings, such as enforcing MFA for all users or
+      specific groups.
+    - 4. Optionally, you can also set up organizational policies to enforce MFA across
+      your entire organization.
+  is_valid: false
+  literature: The GroupResource in Google Cloud Platform represents a group of users,
+    which is primarily used for managing access control and permissions. While groups
+    can be used to enforce multi-factor authentication (MFA) policies, this resource
+    itself does not directly implement or configure MFA. MFA is typically configured
+    at the user account level or through organizational policies.
+  name: GroupResource
+  output_statements:
+    failure: The GroupResource does not enforce multi-factor authentication for its
+      members.
+    partial: The GroupResource does not directly implement multi-factor authentication.
+    success: The GroupResource is configured to enforce multi-factor authentication
+      for all members.
+  reason: The GroupResource does not contain any fields or properties related to configuring
+    or enforcing multi-factor authentication. It is primarily used for managing group
+    membership and access control, but the actual MFA settings are managed separately
+    at the user account or organizational level.

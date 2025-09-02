@@ -1,0 +1,9 @@
+check:
+  unique_id: owasp-latest-monitor-for-suspicious-activities
+resource:
+  field_path: trails[*].event_selectors[*].data_resources.values[*]
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    for values_list in fetched_value:\n        if 'AWS::Lambda::Function' in\
+    \ values_list and 'AWS::S3::Object' in values_list:\n            result = True\n\
+    \            break"
+  name: CloudTrailResource

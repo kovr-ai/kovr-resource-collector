@@ -1,0 +1,26 @@
+check:
+  name: owasp-latest-implement-multi-factor-authentication
+  resource:
+    field_path: security_info.isEnrolledIn2Sv
+    fix_details:
+      automation_available: true
+      description: If MFA is not implemented or enforced, you need to enable and enforce
+        Google's Two-Step Verification for the user account.
+      estimated_time: 10 minutes
+      instructions:
+      - 1. Access the Google Admin console for your organization.
+      - 2. Navigate to the Users section and select the user account.
+      - 3. Under the Account > Security section, enable 'Enforced 2-Step Verification'
+        for the user.
+      - 4. Follow the prompts to enroll the user in 2-Step Verification.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    # Check if the user is enrolled in 2SV (MFA)\n    result = fetched_value"
+    name: UserResource
+    output_statements:
+      failure: Multi-factor authentication is not implemented or enforced for the
+        user account.
+      partial: Multi-factor authentication is implemented but not enforced for the
+        user account.
+      success: Multi-factor authentication is implemented and enforced for the user
+        account.
+  unique_id: owasp-latest-implement-multi-factor-authentication

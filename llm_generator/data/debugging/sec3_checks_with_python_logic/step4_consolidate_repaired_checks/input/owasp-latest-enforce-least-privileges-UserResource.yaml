@@ -1,0 +1,9 @@
+check:
+  unique_id: owasp-latest-enforce-least-privileges
+resource:
+  field_path: admin_info.isAdmin
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    # Check if the user is an admin\n    if fetched_value:\n        result =\
+    \ False\n    else:\n        # User is not an admin, which follows the principle\
+    \ of least privilege\n        result = True"
+  name: UserResource

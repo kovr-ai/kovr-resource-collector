@@ -1,0 +1,29 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-input-validation-and-output-encoding
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: Since the GroupResource is not a web application or API resource,
+      there are no specific fixes related to input validation and output encoding
+      for this resource.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The GroupResource in Google Cloud does not appear to be directly related
+    to input validation and output encoding for web applications or APIs. This resource
+    represents a Google Groups entity, which is used for managing email groups and
+    group memberships. It does not contain any information or configurations related
+    to handling user input or encoding output data.
+  name: GroupResource
+  output_statements:
+    failure: The GroupResource does not have any configurations related to input validation
+      or output encoding, leaving it potentially vulnerable to code injection attacks.
+    partial: The GroupResource partially implements input validation and output encoding
+      controls, but additional measures may be needed to fully mitigate the risk of
+      code injection attacks.
+    success: The GroupResource is configured to properly validate user input and encode
+      output data, mitigating the risk of code injection attacks.
+  reason: The GroupResource is not a web application or API resource, and therefore
+    does not have any direct relevance to implementing input validation and output
+    encoding controls for preventing code injection attacks.

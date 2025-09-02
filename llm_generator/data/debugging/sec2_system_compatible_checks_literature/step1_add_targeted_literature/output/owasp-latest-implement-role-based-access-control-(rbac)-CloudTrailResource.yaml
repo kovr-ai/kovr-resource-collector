@@ -1,0 +1,56 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-role-based-access-control-(rbac)
+  field_paths:
+  - event_selectors
+  - event_selectors[]
+  - event_selectors[].data_resources
+  - event_selectors[].data_resources.type
+  - event_selectors[].data_resources.values
+  - event_selectors[].data_resources.values[]
+  - event_selectors[].include_management_events
+  - event_selectors[].read_write_type
+  - trails
+  - trails[]
+  - trails[].event_selectors
+  - trails[].event_selectors[]
+  - trails[].event_selectors[].data_resources
+  - trails[].event_selectors[].data_resources.type
+  - trails[].event_selectors[].data_resources.values
+  - trails[].event_selectors[].data_resources.values[]
+  - trails[].event_selectors[].include_management_events
+  - trails[].event_selectors[].read_write_type
+  fix_details:
+    automation_available: true
+    description: To implement RBAC in your AWS environment, you should focus on configuring
+      the IAM service properly.
+    estimated_time: 1-2 hours
+    instructions:
+    - 1. Create IAM users, groups, and roles based on your organizational structure
+      and access requirements.
+    - 2. Define and attach IAM policies to users, groups, and roles, granting them
+      the necessary permissions to access specific AWS resources and services.
+    - 3. Review and adjust IAM policies regularly to ensure they align with the principle
+      of least privilege.
+    - 4. Enable multi-factor authentication (MFA) for privileged IAM users and roles.
+    - 5. Configure CloudTrail to log relevant events, including IAM-related events,
+      for auditing and monitoring purposes.
+  is_valid: false
+  literature: The CloudTrail resource in AWS is a service that records AWS API calls
+    and related events for your account. While it can provide valuable audit trails
+    and logging capabilities, it does not directly implement Role-Based Access Control
+    (RBAC) for controlling access to resources and services within your AWS environment.
+    RBAC is typically implemented through AWS Identity and Access Management (IAM)
+    service, which allows you to create and manage users, groups, roles, and permissions.
+  name: CloudTrailResource
+  output_statements:
+    failure: CloudTrail is not configured to log relevant events, and RBAC is not
+      implemented through IAM.
+    partial: CloudTrail is partially configured to log relevant events, but RBAC implementation
+      through IAM is incomplete.
+    success: CloudTrail is configured to log relevant events, and RBAC is implemented
+      through IAM.
+  reason: The CloudTrail resource is primarily used for logging and auditing purposes,
+    and does not directly implement Role-Based Access Control (RBAC) functionality.
+    RBAC is typically implemented through the AWS Identity and Access Management (IAM)
+    service, which allows you to create and manage users, groups, roles, and permissions.

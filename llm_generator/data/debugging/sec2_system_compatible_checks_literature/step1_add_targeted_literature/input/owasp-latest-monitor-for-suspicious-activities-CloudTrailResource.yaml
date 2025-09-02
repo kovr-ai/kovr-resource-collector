@@ -1,0 +1,56 @@
+check:
+  category: audit
+  control_names:
+  - NIST-800-53-AU-6
+  - ISO-27001-A.12.4.1
+  literature: The 'owasp-latest-monitor-for-suspicious-activities' check is designed
+    to detect and alert on any suspicious or anomalous activities within an organization's
+    systems and applications. It continuously monitors user behavior, system logs,
+    network traffic, and other relevant data sources to identify potential security
+    threats or unauthorized actions. This check is crucial because it helps organizations
+    proactively identify and respond to potential security incidents, such as unauthorized
+    access attempts, data exfiltration, or malicious insider activities. By monitoring
+    for suspicious activities, organizations can take timely action to mitigate risks,
+    investigate incidents, and prevent further damage or data breaches.
+  provider: aws
+  resource:
+    field_paths:
+    - event_selectors
+    - event_selectors[]
+    - event_selectors[].data_resources
+    - event_selectors[].data_resources.type
+    - event_selectors[].data_resources.values
+    - event_selectors[].data_resources.values[]
+    - event_selectors[].include_management_events
+    - event_selectors[].read_write_type
+    - id
+    - source_connector
+    - trails
+    - trails[]
+    - trails[].enable_log_file_validation
+    - trails[].event_selectors
+    - trails[].event_selectors[]
+    - trails[].event_selectors[].data_resources
+    - trails[].event_selectors[].data_resources.type
+    - trails[].event_selectors[].data_resources.values
+    - trails[].event_selectors[].data_resources.values[]
+    - trails[].event_selectors[].include_management_events
+    - trails[].event_selectors[].read_write_type
+    - trails[].id
+    - trails[].include_global_service_events
+    - trails[].insight_selectors
+    - trails[].insight_selectors[]
+    - trails[].insight_selectors[].insight_type
+    - trails[].is_logging
+    - trails[].is_multi_region_trail
+    - trails[].kms_key_id
+    - trails[].log_file_validation_enabled
+    - trails[].name
+    - trails[].s3_bucket_name
+    - trails[].s3_key_prefix
+    - trails[].tags
+    - trails[].tags[]
+    - trails[].tags[].key
+    - trails[].tags[].value
+    name: CloudTrailResource
+  unique_id: owasp-latest-monitor-for-suspicious-activities

@@ -1,0 +1,31 @@
+resource:
+  check:
+    unique_id: owasp-latest-follow-data-protection-regulations
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: Since the GroupResource is not directly related to data handling
+      or storage, there are no specific fixes required for this security check.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The 'owasp-latest-follow-data-protection-regulations' check is designed
+    to ensure compliance with data protection regulations and standards when handling
+    sensitive information. However, the Google GroupResource does not appear to be
+    directly related to data handling or storage. This resource represents a group
+    of users or entities within the Google Cloud environment, and its fields primarily
+    contain metadata about the group itself, such as its name, description, and membership
+    information.
+  name: GroupResource
+  output_statements:
+    failure: The GroupResource does not comply with data protection regulations and
+      industry standards for handling sensitive information.
+    partial: The GroupResource partially complies with data protection regulations
+      and industry standards for handling sensitive information.
+    success: The GroupResource complies with data protection regulations and industry
+      standards for handling sensitive information.
+  reason: The GroupResource does not seem to be applicable for implementing this security
+    check as it does not directly handle or store sensitive data. The resource's purpose
+    is to manage user groups within the Google Cloud environment, and its fields do
+    not contain information related to data protection regulations or sensitive data
+    handling.

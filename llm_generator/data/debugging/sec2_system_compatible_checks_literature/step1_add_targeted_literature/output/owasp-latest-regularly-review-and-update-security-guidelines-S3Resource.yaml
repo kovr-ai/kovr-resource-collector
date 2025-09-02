@@ -1,0 +1,41 @@
+resource:
+  check:
+    unique_id: owasp-latest-regularly-review-and-update-security-guidelines
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This security check is not applicable to the provided AWS S3 resource.
+      However, if you have web applications hosted on AWS, you should implement a
+      process to regularly review and update their security guidelines based on the
+      OWASP Top 10.
+    estimated_time: Ongoing process, with initial setup taking 1-2 weeks
+    instructions:
+    - Identify all web applications hosted on AWS or other cloud platforms.
+    - Establish a regular cadence (e.g., quarterly, annually) for reviewing and updating
+      security guidelines for these applications.
+    - Consult the latest OWASP Top 10 and other relevant security standards to identify
+      potential vulnerabilities and best practices.
+    - Update the security guidelines and implement necessary changes to the applications
+      to address identified risks and align with best practices.
+    - Conduct security testing and code reviews to validate the effectiveness of the
+      updated guidelines.
+  is_valid: false
+  literature: The provided security check 'owasp-latest-regularly-review-and-update-security-guidelines'
+    is focused on regularly reviewing and updating security guidelines based on the
+    OWASP Top 10 standard for web application security. This check is primarily applicable
+    to web applications and their associated security practices, rather than cloud
+    resources like AWS S3 buckets.
+  name: S3Resource
+  output_statements:
+    failure: The organization does not have a process in place to regularly review
+      and update its web application security guidelines based on the OWASP Top 10.
+    partial: The organization partially reviews and updates its web application security
+      guidelines based on the OWASP Top 10, but the process is not comprehensive or
+      consistent.
+    success: The organization regularly reviews and updates its web application security
+      guidelines based on the latest OWASP Top 10 recommendations.
+  reason: The AWS S3 resource is a storage service for hosting and managing data objects,
+    and does not directly relate to web application security guidelines or the OWASP
+    Top 10. While S3 buckets can be used to host web content, the provided resource
+    fields do not contain information about the application code, security practices,
+    or adherence to OWASP guidelines.

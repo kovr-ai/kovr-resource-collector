@@ -1,0 +1,25 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-secure-configuration-management-processes
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: No fix is required as this resource is not applicable for the given
+      security check.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The GroupResource in Google Cloud Platform represents a collection of
+    entities, such as users or service accounts, that can be managed together. While
+    this resource provides information about the group and its members, it does not
+    directly relate to configuration management processes or system integrity controls.
+  name: GroupResource
+  output_statements:
+    failure: This resource is not applicable for this security check.
+    partial: This resource is not applicable for this security check.
+    success: This resource is not applicable for this security check.
+  reason: The GroupResource is primarily used for managing access and permissions
+    within Google Cloud Platform, but it does not provide functionality or settings
+    related to configuration management processes or system integrity controls. Therefore,
+    it is not applicable for implementing the 'owasp-latest-implement-secure-configuration-management-processes'
+    security check.

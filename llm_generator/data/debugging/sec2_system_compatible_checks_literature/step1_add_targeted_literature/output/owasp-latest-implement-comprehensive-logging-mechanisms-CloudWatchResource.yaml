@@ -1,0 +1,62 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-comprehensive-logging-mechanisms
+  field_paths:
+  - alarms
+  - alarms[].alarm_actions
+  - alarms[].alarm_description
+  - alarms[].alarm_name
+  - alarms[].dimensions
+  - alarms[].dimensions[].Name
+  - alarms[].dimensions[].Value
+  - alarms[].metric_name
+  - alarms[].namespace
+  - log_groups
+  - log_groups[].arn
+  - log_groups[].log_group_name
+  - log_groups[].retention_in_days
+  fix_details:
+    automation_available: true
+    description: 'If CloudWatch is not properly configured for comprehensive logging
+      and monitoring, the following steps can be taken to remediate the issue:'
+    estimated_time: 1-2 hours
+    instructions:
+    - 1. Identify the AWS resources and services that require logging and monitoring.
+    - 2. Create CloudWatch Log Groups and configure log forwarding from the identified
+      resources to the respective Log Groups.
+    - 3. Set appropriate log retention policies for the Log Groups based on your organization's
+      requirements.
+    - 4. Define critical metrics and thresholds for monitoring and incident detection.
+    - 5. Create CloudWatch Alarms for the defined metrics and configure appropriate
+      actions (e.g., notifications, automated remediation workflows) to be triggered
+      when thresholds are breached.
+    - 6. Regularly review and update the logging and monitoring configurations as
+      your AWS environment evolves.
+  is_valid: true
+  literature: AWS CloudWatch provides comprehensive logging and monitoring capabilities
+    that can be leveraged to implement comprehensive logging mechanisms as recommended
+    by OWASP. CloudWatch allows you to collect and monitor logs from various AWS resources
+    and services, including EC2 instances, Lambda functions, and other AWS services.
+    You can create log groups and log streams to centralize and organize your logs,
+    and then use CloudWatch Logs Insights to search, analyze, and visualize log data.
+    Additionally, CloudWatch Alarms can be configured to monitor specific metrics
+    and trigger actions, such as sending notifications or executing automated remediation
+    workflows, based on predefined thresholds.
+  name: CloudWatchResource
+  output_statements:
+    failure: CloudWatch is not configured to collect and centralize logs from relevant
+      AWS resources, and/or CloudWatch Alarms are not set up to monitor critical metrics
+      and trigger appropriate actions for incident detection and response.
+    partial: CloudWatch is partially configured to collect and centralize logs from
+      relevant AWS resources, and/or CloudWatch Alarms are partially set up to monitor
+      critical metrics and trigger appropriate actions for incident detection and
+      response.
+    success: CloudWatch is configured to collect and centralize logs from relevant
+      AWS resources, and CloudWatch Alarms are set up to monitor critical metrics
+      and trigger appropriate actions for incident detection and response.
+  reason: AWS CloudWatch provides comprehensive logging and monitoring capabilities
+    that can be used to implement the OWASP recommendation for comprehensive logging
+    mechanisms. CloudWatch Logs can collect and centralize logs from various AWS resources,
+    while CloudWatch Alarms can be configured to monitor specific metrics and trigger
+    actions based on predefined thresholds, enabling effective incident detection
+    and response.

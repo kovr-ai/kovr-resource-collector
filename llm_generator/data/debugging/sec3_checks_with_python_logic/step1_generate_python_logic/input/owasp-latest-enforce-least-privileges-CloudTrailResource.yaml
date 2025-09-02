@@ -1,0 +1,43 @@
+check:
+  category: access_control
+  control_names:
+  - NIST-800-53-AC-6
+  - ISO-27001-A.9.1.1
+  literature: The 'owasp-latest-enforce-least-privileges' check validates that applications
+    and systems follow the principle of least privilege, which is a fundamental security
+    concept that restricts access rights for users, accounts, and processes to only
+    those permissions that are essential for performing their intended functions.
+    Granting excessive privileges increases the potential attack surface and risk
+    of unauthorized access or misuse. This check helps mitigate threats like privilege
+    escalation, unauthorized data access, and malicious code execution by ensuring
+    that entities operate with the minimum necessary permissions.
+  name: owasp-latest-enforce-least-privileges
+  resource:
+    field_paths:
+    - event_selectors
+    - event_selectors[].data_resources
+    - event_selectors[].data_resources.type
+    - event_selectors[].data_resources.values
+    - event_selectors[].data_resources.values[]
+    - event_selectors[].include_management_events
+    - event_selectors[].read_write_type
+    - trails[].event_selectors
+    - trails[].event_selectors[].data_resources
+    - trails[].event_selectors[].data_resources.type
+    - trails[].event_selectors[].data_resources.values
+    - trails[].event_selectors[].data_resources.values[]
+    - trails[].event_selectors[].include_management_events
+    - trails[].event_selectors[].read_write_type
+    literature: The AWS CloudTrail resource is applicable for implementing the 'owasp-latest-enforce-least-privileges'
+      security check. CloudTrail logs all API activity across AWS accounts and services,
+      allowing you to monitor and analyze user and resource activity. By configuring
+      CloudTrail trails with appropriate event selectors and data resource filters,
+      you can enforce least privilege by auditing and restricting access to only necessary
+      resources and actions.
+    name: CloudTrailResource
+    reason: The CloudTrail resource allows you to configure event selectors and data
+      resource filters to log and monitor specific API activities and resource access.
+      This enables you to enforce least privilege by auditing and restricting access
+      to only necessary resources and actions, aligning with the 'owasp-latest-enforce-least-privileges'
+      security check.
+  unique_id: owasp-latest-enforce-least-privileges

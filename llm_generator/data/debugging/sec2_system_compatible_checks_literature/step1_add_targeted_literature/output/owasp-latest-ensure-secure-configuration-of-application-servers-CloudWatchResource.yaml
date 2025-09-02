@@ -1,0 +1,40 @@
+resource:
+  check:
+    unique_id: owasp-latest-ensure-secure-configuration-of-application-servers
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: To ensure secure configuration of application servers, you need to
+      review and harden the security settings of each server, following industry best
+      practices and vendor-specific hardening guidelines.
+    estimated_time: The time required can vary depending on the number of application
+      servers and the complexity of the environment. It may take several hours to
+      several days to complete the hardening process.
+    instructions:
+    - Identify all application servers in your environment.
+    - Review the security configuration of each server, including network settings,
+      access controls, encryption, and other security features.
+    - Implement recommended hardening measures based on industry best practices and
+      vendor guidelines.
+    - Regularly monitor and update the security configurations as new vulnerabilities
+      and threats emerge.
+  is_valid: false
+  literature: The CloudWatchResource in AWS does not directly relate to the secure
+    configuration of application servers. CloudWatch is a monitoring and observability
+    service that collects and tracks metrics, logs, and events from various AWS resources
+    and applications. While CloudWatch can be used to monitor the performance and
+    health of application servers, it does not directly configure or harden the security
+    settings of those servers.
+  name: CloudWatchResource
+  output_statements:
+    failure: One or more application servers have insecure configurations, which could
+      lead to vulnerabilities such as unintended data exposure, remote code execution,
+      and privilege escalation.
+    partial: Some application servers are configured securely, but others have insecure
+      configurations that need to be addressed.
+    success: The application servers are configured securely, following industry best
+      practices and hardening guidelines.
+  reason: The CloudWatchResource is a monitoring and observability service, and does
+    not directly manage or configure the security settings of application servers.
+    Therefore, it is not applicable for implementing the 'owasp-latest-ensure-secure-configuration-of-application-servers'
+    security check.

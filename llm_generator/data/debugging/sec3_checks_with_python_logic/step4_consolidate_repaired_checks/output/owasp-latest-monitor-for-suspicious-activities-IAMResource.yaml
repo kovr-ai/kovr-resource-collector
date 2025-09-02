@@ -1,0 +1,49 @@
+check:
+  name: owasp-latest-monitor-for-suspicious-activities
+  resource:
+    field_path: policies[].default_version.Document.Statement
+    fix_details:
+      automation_available: true
+      description: If suspicious activities are detected, remediation steps may include
+        reviewing and updating IAM policies, rotating access keys, enabling MFA for
+        users, and investigating any unauthorized access attempts.
+      estimated_time: 1-2 hours
+      instructions:
+      - Review the identified IAM policies for overly permissive statements and update
+        them to follow the principle of least privilege.
+      - Rotate any access keys that show suspicious activity or have been inactive
+        for an extended period.
+      - Enable MFA for all IAM users and enforce its usage.
+      - Investigate any unauthorized access attempts or unusual activity patterns
+        detected in the logs.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for statement in fetched_value:\n        if hasattr(statement, 'Effect')\
+      \ and statement.Effect == 'Allow':\n            condition = getattr(statement,\
+      \ 'Condition', None)\n            if condition:\n                # Check if\
+      \ the condition allows overly permissive access\n                if 'StringEquals'\
+      \ in condition and 'AWS:SourceIp' in condition['StringEquals'] and condition['StringEquals']['AWS:SourceIp']\
+      \ == '0.0.0.0/0':\n                    result = False\n                    break\n\
+      \                elif 'NotIpAddress' in condition and condition['NotIpAddress']\
+      \ == '0.0.0.0/0':\n                    result = False\n                    break\n\
+      \            else:\n                # Unconditional Allow statement\n      \
+      \          result = False\n                break\n        elif isinstance(statement,\
+      \ dict) and statement.get('Effect') == 'Allow':\n            condition = statement.get('Condition')\n\
+      \            if condition:\n                # Check if the condition allows\
+      \ overly permissive access\n                if 'StringEquals' in condition and\
+      \ 'AWS:SourceIp' in condition['StringEquals'] and condition['StringEquals']['AWS:SourceIp']\
+      \ == '0.0.0.0/0':\n                    result = False\n                    break\n\
+      \                elif 'NotIpAddress' in condition and condition['NotIpAddress']\
+      \ == '0.0.0.0/0':\n                    result = False\n                    break\n\
+      \            else:\n                # Unconditional Allow statement\n      \
+      \          result = False\n                break\n    else:\n        result\
+      \ = True"
+    name: IAMResource
+    output_statements:
+      failure: Suspicious activities were detected in the IAM policies, user access
+        keys, or MFA device configurations. Review the findings and take appropriate
+        action.
+      partial: Some potential issues were identified in the IAM policies, user access
+        keys, or MFA device configurations. Further investigation is recommended.
+      success: No suspicious activities were detected in the IAM policies, user access
+        keys, or MFA device configurations.
+  unique_id: owasp-latest-monitor-for-suspicious-activities

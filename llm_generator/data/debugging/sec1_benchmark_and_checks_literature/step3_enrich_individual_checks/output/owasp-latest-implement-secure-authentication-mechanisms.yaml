@@ -1,0 +1,35 @@
+check:
+  benchmarks:
+  - confidence: 0.9
+    reason: Implementing secure authentication mechanisms helps mitigate the risk
+      of valid accounts being compromised and used for unauthorized access.
+    unique_id: MITRE-ATT&CK-T1078
+  - confidence: 0.9
+    reason: Secure authentication mechanisms help protect against brute-force attacks,
+      which attempt to gain unauthorized access by guessing credentials.
+    unique_id: MITRE-ATT&CK-T1110
+  category: authentication
+  controls:
+  - confidence: 0.9
+    reason: This control requires organizations to enforce access control policies
+      and procedures, which includes implementing secure authentication mechanisms
+      to ensure that only authorized users can access the system.
+    unique_id: NIST-800-53-AC-3
+  - confidence: 0.8
+    reason: This control requires organizations to implement access control policies
+      and procedures to restrict access to information and information processing
+      facilities, which includes implementing secure authentication mechanisms.
+    unique_id: ISO-27001-A.9.4.1
+  literature: The OWASP latest secure authentication mechanisms check validates that
+    the application implements secure authentication mechanisms to protect against
+    common authentication attacks such as brute-force, credential stuffing, and session
+    hijacking. Proper authentication is crucial for ensuring that only authorized
+    users can access sensitive data and functionality within the application. Implementing
+    secure authentication mechanisms helps mitigate the risk of unauthorized access,
+    data breaches, and other security incidents.
+  severity: high
+  tags:
+  - access_control
+  - authentication
+  - security
+  unique_id: owasp-latest-implement-secure-authentication-mechanisms

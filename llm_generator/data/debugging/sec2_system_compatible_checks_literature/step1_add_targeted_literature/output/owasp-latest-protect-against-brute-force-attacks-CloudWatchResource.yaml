@@ -1,0 +1,44 @@
+resource:
+  check:
+    unique_id: owasp-latest-protect-against-brute-force-attacks
+  field_paths:
+  - alarms
+  - alarms[].alarm_actions
+  - alarms[].alarm_description
+  - alarms[].alarm_name
+  - alarms[].dimensions
+  - alarms[].dimensions[].Name
+  - alarms[].dimensions[].Value
+  - alarms[].metric_name
+  - alarms[].namespace
+  fix_details:
+    automation_available: true
+    description: To use CloudWatch for monitoring and alerting on potential brute
+      force attacks, you need to configure appropriate alarms and metrics.
+    estimated_time: 1-2 hours
+    instructions:
+    - Identify relevant metrics and log sources that can indicate brute force attack
+      patterns (e.g., failed login attempts, IP address patterns, etc.)
+    - Create CloudWatch metric filters and alarms to monitor and alert on these patterns.
+    - Configure alarm actions to notify the appropriate security teams or trigger
+      automated response mechanisms.
+    - Regularly review and update the monitoring and alerting configurations as needed.
+  is_valid: false
+  literature: The CloudWatch resource in AWS is primarily used for monitoring and
+    logging purposes. It does not directly provide mechanisms for protecting against
+    brute force attacks on authentication systems. While CloudWatch can be used to
+    monitor and alert on potential brute force attack patterns, it does not implement
+    the actual protection measures such as account lockouts, IP address blocking,
+    or CAPTCHA challenges.
+  name: CloudWatchResource
+  output_statements:
+    failure: CloudWatch is not configured to monitor and alert on potential brute
+      force attack patterns.
+    partial: CloudWatch is partially configured to monitor and alert on potential
+      brute force attack patterns, but additional configuration is required.
+    success: CloudWatch alarms and metrics are configured to detect and alert on potential
+      brute force attack patterns.
+  reason: The CloudWatch resource is primarily used for monitoring and logging purposes,
+    and does not directly implement protection mechanisms against brute force attacks.
+    While it can be used to monitor and alert on potential attack patterns, it does
+    not provide the actual protection measures required by this security check.

@@ -1,0 +1,66 @@
+check:
+  category: audit
+  control_names:
+  - NIST-800-53-AU-2
+  - NIST-800-53-AU-3
+  - ISO-27001-A.12.4.1
+  literature: Secure logging mechanisms are essential for maintaining an audit trail,
+    detecting security incidents, and troubleshooting issues in applications and systems.
+    Proper logging practices involve capturing relevant information about user activities,
+    system events, and security-related occurrences, while ensuring the confidentiality,
+    integrity, and availability of log data. Implementing secure logging mechanisms
+    helps organizations comply with regulatory requirements, forensic investigations,
+    and incident response efforts. Failure to implement secure logging can lead to
+    data breaches, unauthorized access, and an inability to reconstruct events or
+    identify the root cause of security incidents.
+  provider: aws
+  resource:
+    field_paths:
+    - id
+    - policies
+    - policies[]
+    - policies[].attachment_count
+    - policies[].create_date
+    - policies[].default_version
+    - policies[].default_version.CreateDate
+    - policies[].default_version.Document
+    - policies[].default_version.Document.Statement
+    - policies[].default_version.Document.Statement[]
+    - policies[].default_version.Document.Statement[].Action
+    - policies[].default_version.Document.Statement[].Action[]
+    - policies[].default_version.Document.Statement[].Condition
+    - policies[].default_version.Document.Statement[].Effect
+    - policies[].default_version.Document.Statement[].Resource
+    - policies[].default_version.Document.Version
+    - policies[].default_version.IsDefaultVersion
+    - policies[].default_version.VersionId
+    - policies[].default_version_id
+    - policies[].id
+    - policies[].path
+    - policies[].policy_id
+    - policies[].policy_name
+    - policies[].update_date
+    - source_connector
+    - users
+    - users[]
+    - users[].access_keys
+    - users[].access_keys[]
+    - users[].access_keys[].create_date
+    - users[].access_keys[].id
+    - users[].access_keys[].last_used_date
+    - users[].access_keys[].last_used_region
+    - users[].access_keys[].last_used_service
+    - users[].access_keys[].status
+    - users[].arn
+    - users[].create_date
+    - users[].id
+    - users[].mfa_devices
+    - users[].mfa_devices[]
+    - users[].mfa_devices[].enable_date
+    - users[].mfa_devices[].serial_number
+    - users[].mfa_devices[].type
+    - users[].mfa_devices[].virtual_mfa_token
+    - users[].path
+    - users[].user_id
+    name: IAMResource
+  unique_id: owasp-latest-implement-secure-logging-mechanisms

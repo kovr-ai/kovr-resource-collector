@@ -1,0 +1,30 @@
+check:
+  name: owasp-latest-implement-secure-deployment-processes
+  resource:
+    field_path: trails[*].is_logging
+    fix_details:
+      automation_available: true
+      description: If CloudTrail is not configured properly, it needs to be set up
+        to capture and log all relevant API activity and events related to deployments.
+      estimated_time: 30 minutes
+      instructions:
+      - 1. Enable CloudTrail and create a new trail or modify an existing one.
+      - 2. Configure the trail to log all management events and data events for relevant
+        AWS services.
+      - 3. Specify an S3 bucket to store the CloudTrail logs.
+      - 4. Enable log file validation to ensure log integrity.
+      - 5. Configure additional settings as needed, such as multi-region trails or
+        custom event selectors.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for is_logging in fetched_value:\n        if is_logging:\n            result\
+      \ = True\n            break"
+    name: CloudTrailResource
+    output_statements:
+      failure: CloudTrail is not configured properly to capture and log API activity
+        and events, hindering the ability to monitor and audit secure deployments.
+      partial: CloudTrail is partially configured to capture and log API activity
+        and events, but additional configuration is required to fully support secure
+        deployment monitoring and auditing.
+      success: CloudTrail is configured to capture and log all relevant API activity
+        and events, enabling secure deployment monitoring and auditing.
+  unique_id: owasp-latest-implement-secure-deployment-processes

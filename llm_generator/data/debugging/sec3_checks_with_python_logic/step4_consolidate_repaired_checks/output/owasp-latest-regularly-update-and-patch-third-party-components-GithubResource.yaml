@@ -1,0 +1,31 @@
+check:
+  name: owasp-latest-regularly-update-and-patch-third-party-components
+  resource:
+    field_path: security_data.dependency_graph
+    fix_details:
+      automation_available: true
+      description: If vulnerabilities are identified in third-party dependencies,
+        they should be addressed by updating or patching the affected components.
+      estimated_time: 30 minutes to 2 hours
+      instructions:
+      - Review the security_data.vulnerability_alerts and security_data.security_advisories
+        fields to identify vulnerable dependencies.
+      - Check the project's dependency management system (e.g., package.json, requirements.txt)
+        for available updates or patches.
+      - Update or patch the affected dependencies according to the project's update
+        process.
+      - Verify that the vulnerabilities have been resolved by checking the security_data
+        fields again.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    has_vulnerabilities = False\n    for dependency in fetched_value:\n   \
+      \     if dependency.vulnerabilities:\n            has_vulnerabilities = True\n\
+      \            break\n    result = not has_vulnerabilities"
+    name: GithubResource
+    output_statements:
+      failure: The repository has one or more vulnerabilities in third-party dependencies
+        that require patching or updating.
+      partial: Some third-party dependencies have been updated, but there are still
+        outstanding vulnerabilities that need to be addressed.
+      success: The repository has no outstanding vulnerabilities in third-party dependencies,
+        and all components are up-to-date.
+  unique_id: owasp-latest-regularly-update-and-patch-third-party-components

@@ -1,0 +1,40 @@
+check:
+  category: access_control
+  control_names:
+  - NIST-800-53-AC-6
+  - ISO-27001-A.9.1.2
+  literature: The principle of least privilege is a fundamental security concept that
+    restricts access rights for users, accounts, and processes to only those permissions
+    required to perform authorized tasks. By enforcing least privilege, organizations
+    can reduce their attack surface, limit potential damage from malicious actors,
+    and mitigate the risks associated with excessive permissions. This check validates
+    that systems and applications adhere to the least privilege principle, ensuring
+    that users, processes, and services operate with the minimum necessary privileges
+    to accomplish their intended functions, and no more. Implementing least privilege
+    is crucial for maintaining a robust security posture and protecting sensitive
+    data and systems from unauthorized access or misuse.
+  provider: aws
+  resource:
+    field_paths:
+    - buckets
+    - buckets[]
+    - buckets[].creation_date
+    - buckets[].encryption
+    - buckets[].encryption.enabled
+    - buckets[].encryption.kms_key_id
+    - buckets[].encryption.type
+    - buckets[].id
+    - buckets[].logging_enabled
+    - buckets[].name
+    - buckets[].public_access_block
+    - buckets[].public_access_block.block_public_acls
+    - buckets[].public_access_block.block_public_policy
+    - buckets[].public_access_block.ignore_public_acls
+    - buckets[].public_access_block.restrict_public_buckets
+    - buckets[].region
+    - buckets[].versioning_status
+    - buckets[].website_enabled
+    - id
+    - source_connector
+    name: S3Resource
+  unique_id: owasp-latest-enforce-least-privilege-principles

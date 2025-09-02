@@ -1,0 +1,44 @@
+resource:
+  check:
+    unique_id: owasp-latest-regularly-review-and-update-configurations
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: To address this issue, you need to establish and document a formal
+      process for regularly reviewing and updating system configurations for EC2 resources,
+      including instances, networking components, and other related resources.
+    estimated_time: 2-4 weeks
+    instructions:
+    - 1. Develop a comprehensive configuration management plan that outlines the scope,
+      frequency, and procedures for reviewing and updating system configurations.
+    - 2. Implement a centralized configuration management system or tool to manage
+      and track configuration changes across all EC2 resources.
+    - 3. Define roles and responsibilities for configuration management activities,
+      including review, approval, and deployment processes.
+    - 4. Establish a change management process to ensure that configuration changes
+      are properly documented, tested, and approved before deployment.
+    - 5. Regularly review and update system configurations based on the defined schedule,
+      taking into account new vulnerabilities, security patches, and best practices.
+    - 6. Maintain detailed documentation and audit trails for all configuration changes
+      and reviews.
+  is_valid: false
+  literature: The OWASP check 'owasp-latest-regularly-review-and-update-configurations'
+    is designed to ensure that system configurations are regularly reviewed and updated
+    to maintain a secure posture. However, the provided AWS EC2Resource does not contain
+    any information about configuration management processes or review procedures.
+    This resource primarily contains details about EC2 instances, networking components,
+    and other infrastructure resources, but lacks information about how configurations
+    are managed and updated.
+  name: EC2Resource
+  output_statements:
+    failure: The AWS account does not have a defined process for regularly reviewing
+      and updating system configurations for EC2 resources.
+    partial: The AWS account has a process for reviewing and updating some system
+      configurations for EC2 resources, but it is not comprehensive or consistently
+      applied.
+    success: The AWS account has a well-defined process for regularly reviewing and
+      updating system configurations across all EC2 resources.
+  reason: The AWS EC2Resource does not contain any relevant information or fields
+    related to configuration management processes, review procedures, or update mechanisms.
+    This resource is focused on providing details about the EC2 infrastructure components
+    themselves, rather than the processes for managing their configurations.

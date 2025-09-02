@@ -1,0 +1,40 @@
+resource:
+  check:
+    unique_id: owasp-latest-regularly-review-and-update-security-guidelines
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This resource is not applicable for implementing the security check.
+      To address the check, the organization should establish a process for regularly
+      reviewing and updating their web application security guidelines based on the
+      OWASP Top 10 recommendations.
+    estimated_time: 1-2 hours for initial setup, ongoing effort based on review cadence
+    instructions:
+    - 1. Identify the team or individuals responsible for maintaining web application
+      security guidelines.
+    - 2. Establish a regular cadence (e.g., quarterly, bi-annually) for reviewing
+      and updating the guidelines.
+    - 3. Review the latest OWASP Top 10 and other relevant security resources during
+      each review cycle.
+    - 4. Update the security guidelines to address any new or emerging threats identified
+      in the OWASP Top 10 or other sources.
+    - 5. Communicate and disseminate the updated security guidelines to development
+      teams and stakeholders.
+  is_valid: false
+  literature: The OWASP Top 10 is a widely recognized standard for web application
+    security, and regularly reviewing and updating security guidelines based on it
+    is crucial for maintaining a robust security posture. However, the provided Google
+    GroupResource does not appear to be directly related to web application security
+    or implementing OWASP guidelines.
+  name: GroupResource
+  output_statements:
+    failure: The organization's security guidelines are not regularly reviewed and
+      updated based on the latest OWASP Top 10 recommendations, leaving web applications
+      potentially vulnerable to known and emerging threats.
+    partial: N/A
+    success: The organization's security guidelines are regularly reviewed and updated
+      based on the latest OWASP Top 10 recommendations.
+  reason: The GroupResource is a Google Cloud resource used for managing groups and
+    their memberships within an organization. It does not contain any information
+    or configuration related to web application security or OWASP guidelines. Therefore,
+    this resource is not applicable for implementing the given security check.

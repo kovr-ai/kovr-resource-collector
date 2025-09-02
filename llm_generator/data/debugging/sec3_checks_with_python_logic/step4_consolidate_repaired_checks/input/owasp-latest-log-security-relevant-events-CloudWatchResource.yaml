@@ -1,0 +1,8 @@
+check:
+  unique_id: owasp-latest-log-security-relevant-events
+resource:
+  field_path: log_groups[*].metric_filter_count
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    has_metric_filters = any(count > 0 for count in fetched_value)\n    result\
+    \ = has_metric_filters"
+  name: CloudWatchResource

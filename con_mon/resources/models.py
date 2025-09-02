@@ -24,7 +24,11 @@ class Resource(BaseModel):
     source_connector: str
 
     @classmethod
-    def field_paths(cls, max_depth: int = 4) -> List[str]:
+    def field_paths(
+            cls,
+            max_depth: int = 4,
+            short_list: bool = None,
+    ) -> List[str]:
         """
         Dynamically generate field paths by analyzing this resource model.
         
@@ -34,19 +38,15 @@ class Resource(BaseModel):
         Returns:
             List of field paths for this resource
         """
-        try:
-            # Generate field paths for this resource
-            paths = cls._generate_paths_for_model(cls, max_depth=max_depth)
-            
-            # Add function-based paths
+        # Generate field paths for this resource
+        paths = cls._generate_paths_for_model(cls, max_depth=max_depth)
+
+        # Add function-based paths
+        if not short_list:
             function_paths = cls._generate_function_paths(paths)
             paths.extend(function_paths)
-            
-            return sorted(set(paths))
-            
-        except Exception as e:
-            print(f"❌ Error generating field paths for {cls.__name__}: {e}")
-            return []
+
+        return sorted(set(paths))
 
     @classmethod
     def _generate_paths_for_model(cls, model_class: Type[BaseModel], prefix: str = "", max_depth: int = 4, current_depth: int = 0) -> List[str]:
@@ -75,36 +75,36 @@ class Resource(BaseModel):
                 fields = model_class.__fields__
             else:
                 return []
-            
+
             for field_name, field_info in fields.items():
                 current_path = f"{prefix}.{field_name}" if prefix else field_name
                 paths.append(current_path)
-                
+
                 # Get field type
                 field_type = cls._get_field_type(field_info)
-                
+
                 # Handle different field types
                 if cls._is_list_type(field_type):
                     # Handle list types
                     inner_type = cls._get_list_inner_type(field_type)
-                    
+
                     # Add array access patterns
                     paths.extend([
-                        f"{current_path}[*]",
+                        # f"{current_path}[*]",
                         f"{current_path}[]",
-                        f"{current_path}.*"
+                        # f"{current_path}.*"
                     ])
-                    
+
                     # If inner type is a model, recurse into it with array patterns
                     if inner_type and cls._is_pydantic_model(inner_type):
                         inner_paths = cls._generate_paths_for_model(inner_type, "", max_depth, current_depth + 1)
                         for inner_path in inner_paths:
                             paths.extend([
-                                f"{current_path}[*].{inner_path}",
+                                # f"{current_path}[*].{inner_path}",
                                 f"{current_path}[].{inner_path}",
-                                f"{current_path}.*.{inner_path}"
+                                # f"{current_path}.*.{inner_path}"
                             ])
-                            
+
                 elif cls._is_dict_type(field_type):
                     # Handle dict types - add some common patterns
                     paths.extend([
@@ -112,7 +112,7 @@ class Resource(BaseModel):
                         f"{current_path}.key",
                         f"{current_path}.value"
                     ])
-                    
+
                 elif cls._is_pydantic_model(field_type):
                     # Recurse into nested models
                     nested_paths = cls._generate_paths_for_model(field_type, current_path, max_depth, current_depth + 1)
@@ -138,7 +138,7 @@ class Resource(BaseModel):
         
         # Functions to apply to array/list paths
         functions = ['len', 'any', 'all', 'count', 'sum', 'max', 'min']
-        
+
         for path in base_paths:
             # Apply functions to paths that look like arrays
             if any(pattern in path for pattern in ['[*]', '[]', '.*']):

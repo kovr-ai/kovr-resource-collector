@@ -1,0 +1,39 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-role-based-access-control-(rbac)
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: To implement RBAC in Google Cloud, you need to configure access control
+      policies and role assignments within Google Cloud Identity and Access Management
+      (IAM).
+    estimated_time: 1-2 hours
+    instructions:
+    - 1. Navigate to the Google Cloud Console and select the IAM & Admin service.
+    - 2. Create custom roles or use predefined roles to define the necessary permissions
+      and access levels.
+    - 3. Assign roles to users, groups, or service accounts based on their job responsibilities
+      and access requirements.
+    - 4. Review and audit role assignments periodically to ensure proper access control.
+    - 5. Implement least privilege principles by granting only the minimum required
+      permissions.
+  is_valid: false
+  literature: The UserResource in Google Cloud does not appear to be directly applicable
+    for implementing Role-Based Access Control (RBAC). This resource represents user
+    information and attributes, but does not contain details about roles, permissions,
+    or access control mechanisms. To implement RBAC, you would need to configure access
+    control policies and role assignments within Google Cloud Identity and Access
+    Management (IAM).
+  name: UserResource
+  output_statements:
+    failure: The UserResource does not contain the necessary information to implement
+      Role-Based Access Control (RBAC). Please configure access control policies and
+      role assignments within Google Cloud Identity and Access Management (IAM).
+    partial: The UserResource does not directly support Role-Based Access Control
+      (RBAC) implementation. Additional configuration within Google Cloud Identity
+      and Access Management (IAM) is required.
+    success: The UserResource has been properly configured to support Role-Based Access
+      Control (RBAC) within Google Cloud.
+  reason: The UserResource contains user profile information, but does not include
+    details about roles, permissions, or access control mechanisms required for implementing
+    RBAC.

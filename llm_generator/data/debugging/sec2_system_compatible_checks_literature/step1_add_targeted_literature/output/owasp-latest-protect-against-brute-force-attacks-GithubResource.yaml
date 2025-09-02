@@ -1,0 +1,42 @@
+resource:
+  check:
+    unique_id: owasp-latest-protect-against-brute-force-attacks
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: This GitHub resource is not designed to handle authentication or
+      brute force attack protection. To implement this security check, you would need
+      to configure the appropriate authentication systems and security controls within
+      your organization's infrastructure or applications that handle user authentication.
+    estimated_time: The time required to implement these measures can vary significantly
+      depending on the complexity of your authentication systems and the number of
+      applications involved. It may take several hours to several days or weeks for
+      a comprehensive implementation.
+    instructions:
+    - Identify the authentication systems and applications used in your organization
+      that require protection against brute force attacks.
+    - Implement account lockout policies after a certain number of failed login attempts.
+    - Configure IP address blocking or rate limiting for excessive failed login attempts
+      from the same IP address.
+    - Implement CAPTCHA challenges or other mechanisms to prevent automated brute
+      force attacks.
+    - Monitor and review authentication logs for suspicious activity or potential
+      brute force attack attempts.
+  is_valid: false
+  literature: The GitHub resource provided does not contain any information related
+    to authentication mechanisms, account lockouts, IP address blocking, or CAPTCHA
+    challenges. This resource primarily focuses on repository data, collaboration
+    details, security advisories, and code scanning alerts. While these aspects are
+    important for overall security, they do not directly address protection against
+    brute force attacks on authentication systems.
+  name: GithubResource
+  output_statements:
+    failure: The GitHub resource does not have any mechanisms to protect against brute
+      force attacks on authentication systems.
+    partial: The GitHub resource partially implements protection against brute force
+      attacks on authentication systems, but additional measures are required.
+    success: The GitHub resource has appropriate measures in place to protect against
+      brute force attacks on authentication systems.
+  reason: The GitHub resource does not contain any relevant fields or configurations
+    for implementing protection against brute force attacks on authentication systems.
+    This security check is not applicable to this resource.

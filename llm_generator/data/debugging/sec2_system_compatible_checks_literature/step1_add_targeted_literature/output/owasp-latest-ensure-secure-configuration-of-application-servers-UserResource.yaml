@@ -1,0 +1,41 @@
+resource:
+  check:
+    unique_id: owasp-latest-ensure-secure-configuration-of-application-servers
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: To address insecure application server configurations, you need to
+      review and update the server settings according to industry best practices and
+      hardening guidelines.
+    estimated_time: The time required can vary depending on the number of application
+      servers and the complexity of the configurations, but a typical implementation
+      could take several hours to a few days.
+    instructions:
+    - Identify all application servers in your environment and their current configurations.
+    - Compare the configurations against industry-standard hardening guidelines, such
+      as those provided by the Center for Internet Security (CIS) or the vendor's
+      own hardening guides.
+    - Update any insecure settings, such as disabling unnecessary services, restricting
+      access, enabling secure protocols, and configuring appropriate logging and monitoring.
+    - Implement a process for regularly reviewing and updating application server
+      configurations to maintain a secure posture.
+  is_valid: false
+  literature: The provided resource 'UserResource' appears to be related to user account
+    management in Google Workspace. While secure configuration of user accounts is
+    important, this resource does not directly relate to the configuration of application
+    servers, which is the focus of the 'owasp-latest-ensure-secure-configuration-of-application-servers'
+    security check. This check is intended to validate the secure configuration of
+    web application servers, such as Apache or Nginx, to prevent vulnerabilities like
+    remote code execution, data exposure, and privilege escalation.
+  name: UserResource
+  output_statements:
+    failure: One or more application servers have insecure configurations, which could
+      lead to vulnerabilities like remote code execution, data exposure, and privilege
+      escalation.
+    partial: Some application servers have secure configurations, but others have
+      insecure settings that need to be addressed.
+    success: The application servers are configured securely, following industry best
+      practices and hardening guidelines.
+  reason: The 'UserResource' is focused on user account details and does not contain
+    information about the configuration of application servers, which is the primary
+    concern of this security check.

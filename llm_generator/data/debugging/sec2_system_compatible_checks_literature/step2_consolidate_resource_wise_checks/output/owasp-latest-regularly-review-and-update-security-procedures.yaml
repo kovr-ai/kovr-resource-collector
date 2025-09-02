@@ -1,0 +1,59 @@
+check:
+  invalid_resources: []
+  unique_id: owasp-latest-regularly-review-and-update-security-procedures
+  valid_resources:
+  - field_paths:
+    - policies
+    - policies[]
+    - policies[].create_date
+    - policies[].default_version
+    - policies[].default_version.CreateDate
+    - policies[].default_version.Document
+    - policies[].default_version.Document.Statement
+    - policies[].default_version.Document.Statement[]
+    - policies[].default_version.Document.Statement[].Action
+    - policies[].default_version.Document.Statement[].Action[]
+    - policies[].default_version.Document.Statement[].Condition
+    - policies[].default_version.Document.Statement[].Effect
+    - policies[].default_version.Document.Statement[].Resource
+    - policies[].default_version.Document.Version
+    - policies[].default_version.IsDefaultVersion
+    - policies[].default_version.VersionId
+    - policies[].default_version_id
+    - policies[].id
+    - policies[].path
+    - policies[].policy_id
+    - policies[].policy_name
+    - policies[].update_date
+    literature: The IAM resource in AWS is applicable for implementing the OWASP recommendation
+      to regularly review and update security procedures. IAM policies define permissions
+      and access controls for AWS resources, and they should be regularly reviewed
+      and updated to ensure that they align with the organization's security requirements
+      and best practices. Outdated or overly permissive policies can introduce security
+      risks and potential data breaches.
+    name: IAMResource
+    reason: The IAM resource in AWS contains policies that define permissions and
+      access controls for AWS resources. Regularly reviewing and updating these policies
+      is crucial for maintaining an effective security posture and aligning with the
+      latest security best practices and regulatory requirements.
+  - field_paths:
+    - trails
+    - trails[].event_selectors
+    - trails[].event_selectors[].data_resources
+    - trails[].event_selectors[].include_management_events
+    - trails[].event_selectors[].read_write_type
+    - trails[].is_logging
+    - trails[].is_multi_region_trail
+    - trails[].log_file_validation_enabled
+    literature: AWS CloudTrail is a service that records AWS API calls and related
+      events, providing a comprehensive audit trail of account activity. By enabling
+      CloudTrail and configuring it to capture relevant events, organizations can
+      regularly review and analyze the logs to identify potential security issues,
+      detect unauthorized access attempts, and monitor compliance with security policies
+      and procedures. Regular review of CloudTrail logs is a crucial step in maintaining
+      an effective security posture and identifying areas for improvement or updates
+      to security procedures.
+    name: CloudTrailResource
+    reason: AWS CloudTrail provides a comprehensive audit trail of account activity,
+      which can be used to regularly review and update security procedures based on
+      the logged events and identified security issues or policy violations.

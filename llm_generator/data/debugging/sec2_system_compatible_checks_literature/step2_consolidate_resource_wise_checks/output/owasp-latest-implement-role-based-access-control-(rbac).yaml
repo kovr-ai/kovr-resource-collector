@@ -1,0 +1,23 @@
+check:
+  invalid_resources: []
+  unique_id: owasp-latest-implement-role-based-access-control-(rbac)
+  valid_resources:
+  - field_paths:
+    - policies
+    - policies[].default_version.Document.Statement
+    - policies[].default_version.Document.Statement[].Action
+    - policies[].default_version.Document.Statement[].Effect
+    - policies[].default_version.Document.Statement[].Resource
+    - users
+    - users[].arn
+    - users[].mfa_devices
+    literature: The AWS IAM Resource is a critical component for implementing Role-Based
+      Access Control (RBAC) in AWS. IAM allows you to create users, groups, and roles
+      with specific permissions to access AWS resources. By defining policies and
+      attaching them to IAM entities, you can enforce least privilege access and ensure
+      that users only have the necessary permissions to perform their job functions.
+    name: IAMResource
+    reason: The IAM Resource provides the necessary components to implement RBAC,
+      including policies, user identities, and multi-factor authentication (MFA) devices.
+      By analyzing the policy statements, user ARNs, and MFA devices, you can validate
+      if RBAC is properly configured and enforced.

@@ -1,0 +1,13 @@
+check:
+  unique_id: owasp-latest-conduct-regular-security-testing
+resource:
+  field_path: policies[].default_version.Document.Statement[].Action
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    for statement in fetched_value:\n        if hasattr(statement, 'Action'):\n\
+    \            actions = statement.Action\n        elif isinstance(statement, dict):\n\
+    \            actions = statement.get('Action')\n        else:\n            actions\
+    \ = getattr(statement, 'Action', None)\n\n        if actions:\n            if\
+    \ isinstance(actions, str):\n                actions = [actions]\n\n         \
+    \   if any(action.startswith('iam:') for action in actions):\n               \
+    \ result = True\n                break"
+  name: IAMResource

@@ -1,0 +1,36 @@
+resource:
+  check:
+    unique_id: owasp-latest-protect-against-session-hijacking
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To protect against session hijacking attacks, you need to implement
+      secure session management practices within the applications running on the EC2
+      instances.
+    estimated_time: Varies based on the complexity of the application and the number
+      of instances involved.
+    instructions:
+    - Use secure session tokens or session IDs that are difficult to guess or predict.
+    - Implement session timeouts and automatically terminate inactive sessions after
+      a specified period.
+    - Protect session tokens from being exposed in URLs, logs, or other insecure channels.
+    - Use secure communication protocols (HTTPS) to transmit session tokens.
+    - Implement additional security measures like IP address validation, user agent
+      validation, and session binding.
+  is_valid: false
+  literature: The EC2Resource in AWS does not directly relate to protecting against
+    session hijacking attacks. Session management and protection mechanisms are typically
+    implemented at the application layer, rather than at the infrastructure level
+    of EC2 instances or networking resources.
+  name: EC2Resource
+  output_statements:
+    failure: The EC2 resource does not provide any mechanisms to protect against session
+      hijacking attacks.
+    partial: The EC2 resource does not directly address session hijacking protection,
+      but related security measures may be implemented at the application layer.
+    success: The EC2 resource configurations adequately protect against session hijacking
+      attacks.
+  reason: The EC2Resource does not contain any fields or configurations directly related
+    to session management or protection against session hijacking attacks. These security
+    measures are typically implemented within the application code or web server configurations
+    running on the EC2 instances.

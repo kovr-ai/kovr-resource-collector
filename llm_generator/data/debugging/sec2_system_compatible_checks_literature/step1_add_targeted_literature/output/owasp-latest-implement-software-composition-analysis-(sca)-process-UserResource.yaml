@@ -1,0 +1,35 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-software-composition-analysis-(sca)-process
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: To implement an SCA process in Google Cloud, you would need to analyze
+      the application code and its dependencies, rather than user account information.
+    estimated_time: The time required will vary depending on the size and complexity
+      of the application code and its dependencies.
+    instructions:
+    - Identify the application code and its dependencies (e.g., open source libraries,
+      third-party components) that need to be analyzed.
+    - Use a suitable SCA tool or service (e.g., Google Cloud's Container Analysis,
+      third-party SCA tools) to scan the application code and its dependencies for
+      known vulnerabilities and licensing issues.
+    - Review the SCA report and take appropriate actions to address any identified
+      vulnerabilities or licensing issues, such as upgrading to a newer version of
+      a component or replacing a component with a more secure alternative.
+  is_valid: false
+  literature: The UserResource in Google Cloud does not appear to be directly applicable
+    for implementing a Software Composition Analysis (SCA) process. SCA is typically
+    performed on application code and its dependencies to identify open source and
+    third-party components, and analyze them for potential vulnerabilities and licensing
+    issues. The UserResource represents user account information in Google Workspace,
+    which does not directly relate to the application code or its dependencies.
+  name: UserResource
+  output_statements:
+    failure: The resource is not applicable for implementing an SCA process.
+    partial: The resource partially supports implementing an SCA process, but additional
+      resources or configurations are required.
+    success: The resource is applicable for implementing an SCA process.
+  reason: The UserResource in Google Cloud represents user account information and
+    does not contain information about the application code or its dependencies, which
+    is necessary for implementing an SCA process.

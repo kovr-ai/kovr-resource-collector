@@ -1,0 +1,40 @@
+check:
+  benchmarks:
+  - confidence: 0.8
+    reason: Secure session management helps prevent attackers from hijacking valid
+      user sessions, which is a technique used in the Valid Accounts tactic.
+    unique_id: MITRE-ATT&CK-T1078
+  - confidence: 0.7
+    reason: Secure session management, such as using unpredictable session identifiers,
+      can help mitigate brute-force attacks on user sessions.
+    unique_id: MITRE-ATT&CK-T1110
+  category: access_control
+  controls:
+  - confidence: 0.9
+    reason: This control requires organizations to employ mechanisms for identifying
+      and authenticating users before establishing a session, which is directly related
+      to secure session management.
+    unique_id: NIST-800-53-AC-12
+  - confidence: 0.8
+    reason: This control requires organizations to protect the confidentiality and
+      integrity of session data, which is a key aspect of secure session management.
+    unique_id: NIST-800-53-SC-23
+  - confidence: 0.7
+    reason: This control requires organizations to restrict access to information
+      and information processing facilities based on access control policies, which
+      includes secure session management.
+    unique_id: ISO-27001-A.9.4.1
+  literature: Secure session management is a critical aspect of web application security.
+    It involves protecting user sessions from unauthorized access, hijacking, and
+    other attacks. This check validates that the application implements secure session
+    management practices, such as generating unpredictable session identifiers, protecting
+    session data from tampering, setting appropriate session timeouts, and invalidating
+    sessions after logout or inactivity. Failure to implement secure session management
+    can lead to session hijacking, unauthorized access, and other security vulnerabilities.
+  severity: high
+  tags:
+  - web_application_security
+  - session_management
+  - authentication
+  - authorization
+  unique_id: owasp-latest-implement-secure-session-management

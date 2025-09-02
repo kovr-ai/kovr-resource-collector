@@ -1,0 +1,46 @@
+check:
+  name: owasp-latest-implement-proper-access-control-mechanisms
+  resource:
+    field_path: policies[].default_version.Document.Statement
+    fix_details:
+      automation_available: true
+      description: If issues are found with IAM policies or user access controls,
+        they need to be reviewed and updated to align with the principle of least
+        privilege and industry best practices for access control.
+      estimated_time: 1-2 hours for initial review and remediation, ongoing maintenance
+        required
+      instructions:
+      - Review all IAM policies and ensure they follow the principle of least privilege,
+        granting only the necessary permissions required for specific roles or tasks.
+      - Review all IAM user accounts and ensure they have appropriate access keys
+        and MFA devices configured for secure authentication and authorization.
+      - Remove or disable any unnecessary or overly permissive policies or user access
+        keys.
+      - Implement regular audits and reviews of IAM policies and user access controls
+        to maintain a secure access control posture.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for statement in fetched_value:\n        if hasattr(statement, 'Effect')\
+      \ and statement.Effect == 'Allow':\n            if hasattr(statement, 'Action')\
+      \ and 'iam:*' in statement.Action:\n                if hasattr(statement, 'Resource')\
+      \ and '*' in statement.Resource:\n                    result = False\n     \
+      \               break\n            elif hasattr(statement, 'NotAction') and\
+      \ 'iam:*' not in statement.NotAction:\n                if hasattr(statement,\
+      \ 'Resource') and '*' in statement.Resource:\n                    result = False\n\
+      \                    break\n        elif isinstance(statement, dict):\n    \
+      \        if statement.get('Effect') == 'Allow':\n                if 'iam:*'\
+      \ in statement.get('Action', []):\n                    if '*' in statement.get('Resource',\
+      \ []):\n                        result = False\n                        break\n\
+      \                elif 'iam:*' not in statement.get('NotAction', []):\n     \
+      \               if '*' in statement.get('Resource', []):\n                 \
+      \       result = False\n                        break\n    else:\n        result\
+      \ = True"
+    name: IAMResource
+    output_statements:
+      failure: IAM policies and user access controls are not properly configured,
+        allowing unauthorized access or excessive privileges.
+      partial: Some IAM policies and user access controls are properly configured,
+        but others need attention to fully enforce least privilege and prevent unauthorized
+        access.
+      success: IAM policies and user access controls are properly configured to enforce
+        least privilege and prevent unauthorized access.
+  unique_id: owasp-latest-implement-proper-access-control-mechanisms

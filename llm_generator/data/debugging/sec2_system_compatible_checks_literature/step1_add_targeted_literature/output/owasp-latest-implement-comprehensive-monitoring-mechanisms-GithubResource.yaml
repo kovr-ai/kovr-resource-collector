@@ -1,0 +1,50 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-comprehensive-monitoring-mechanisms
+  field_paths:
+  - security_data.code_scanning_alerts
+  - security_data.dependency_graph
+  - security_data.security_advisories
+  - security_data.security_analysis
+  - security_data.security_features_enabled
+  - security_data.vulnerability_alerts
+  fix_details:
+    automation_available: true
+    description: To implement comprehensive monitoring mechanisms, the organization
+      needs to deploy monitoring tools and systems that can collect and analyze logs,
+      events, and security data from various sources, including network devices, servers,
+      applications, and user activities.
+    estimated_time: Varies depending on the organization's size and complexity
+    instructions:
+    - Identify the critical components and data sources that need to be monitored,
+      such as firewalls, intrusion detection systems, servers, applications, and user
+      access logs.
+    - Implement a centralized log management solution that can collect and aggregate
+      logs from different sources.
+    - Configure monitoring rules and alerts to detect anomalies, suspicious behavior,
+      and potential threats.
+    - Establish processes for incident response and investigation based on the monitoring
+      data.
+    - Regularly review and update the monitoring mechanisms to ensure they are effective
+      and up-to-date.
+  is_valid: false
+  literature: The provided resource is a GitHub repository, which primarily contains
+    information about the repository itself, such as its code, branches, collaborators,
+    and security settings. While some security-related data is available, like vulnerability
+    alerts and code scanning alerts, this resource does not provide comprehensive
+    monitoring mechanisms for an organization's entire infrastructure, applications,
+    and user interactions as required by the security check.
+  name: GithubResource
+  output_statements:
+    failure: The organization has not implemented comprehensive monitoring mechanisms
+      that can track and log various activities across its infrastructure, applications,
+      and user interactions.
+    partial: N/A
+    success: The organization has implemented comprehensive monitoring mechanisms
+      that can track and log various activities across its infrastructure, applications,
+      and user interactions.
+  reason: The GitHub repository resource is focused on a specific code repository
+    and does not provide the necessary monitoring capabilities across an organization's
+    entire infrastructure, applications, and user interactions. While it includes
+    some security-related data, it lacks the comprehensive monitoring mechanisms required
+    by the security check.

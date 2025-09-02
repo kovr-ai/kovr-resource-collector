@@ -1,0 +1,44 @@
+check:
+  name: owasp-latest-follow-data-protection-regulations
+  resource:
+    field_path: policies[].default_version.Document.Statement
+    fix_details:
+      automation_available: true
+      description: If the check fails or partially passes, it indicates that IAM policies
+        or user access keys are not configured correctly to comply with data protection
+        regulations. This could lead to unauthorized access to sensitive data, potentially
+        resulting in regulatory violations and fines.
+      estimated_time: 1-2 hours
+      instructions:
+      - Review IAM policies and identify any overly permissive policies or policies
+        that grant access to sensitive data without proper controls.
+      - Modify or remove policies that violate data protection regulations, following
+        the principle of least privilege.
+      - Review user access keys and disable or rotate any keys that are no longer
+        needed or have been compromised.
+      - Implement additional access controls, such as multi-factor authentication
+        (MFA) and conditional access policies, to further secure access to sensitive
+        data.
+    logic: "result = True\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for statement in fetched_value:\n        if hasattr(statement, 'Effect')\
+      \ and statement.Effect == 'Allow':\n            condition = getattr(statement,\
+      \ 'Condition', None)\n            if condition:\n                for condition_key,\
+      \ condition_value in condition.items():\n                    if 'aws:PrincipalOrgPaths'\
+      \ in condition_key:\n                        for org_path in condition_value:\n\
+      \                            if org_path.startswith('/data-protection/'):\n\
+      \                                result = True\n                           \
+      \ else:\n                                result = False\n                  \
+      \              break\n                    else:\n                        result\
+      \ = False\n                        break\n            else:\n              \
+      \  result = False\n                break\n        else:\n            continue"
+    name: IAMResource
+    output_statements:
+      failure: IAM policies or user access keys are not configured in compliance with
+        data protection regulations, potentially exposing sensitive data to unauthorized
+        access.
+      partial: Some IAM policies or user access keys are not configured in compliance
+        with data protection regulations, potentially exposing sensitive data to unauthorized
+        access.
+      success: IAM policies and user access keys are configured in compliance with
+        data protection regulations.
+  unique_id: owasp-latest-follow-data-protection-regulations

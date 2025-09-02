@@ -1,0 +1,37 @@
+check:
+  name: owasp-latest-validate-access-controls-on-the-server-side
+  resource:
+    field_path: security_info.isEnrolledIn2Sv
+    fix_details:
+      automation_available: true
+      description: If access control issues are identified, it is crucial to review
+        and update the server-side logic and configurations to ensure that only authorized
+        users or entities can access and modify user data based on their assigned
+        privileges and security settings.
+      estimated_time: 1-2 hours for initial review and basic fixes, but ongoing maintenance
+        and updates may be required.
+      instructions:
+      - Review the server-side code and configurations related to user authentication,
+        authorization, and access control mechanisms.
+      - Implement proper checks and validations to ensure that only users with the
+        appropriate administrative privileges or security settings can access and
+        modify sensitive user data.
+      - Regularly review and update access control policies and configurations to
+        align with the latest security best practices and organizational requirements.
+      - Implement logging and monitoring mechanisms to detect and respond to potential
+        access control violations or unauthorized access attempts.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    # Check if the user is enrolled in two-step verification\n    result =\
+      \ fetched_value"
+    name: UserResource
+    output_statements:
+      failure: Access controls for the UserResource are not properly implemented on
+        the server-side, allowing unauthorized access or modification of sensitive
+        user data.
+      partial: Access controls for the UserResource are partially implemented on the
+        server-side, but some issues or gaps were identified that could lead to unauthorized
+        access or modification of sensitive user data.
+      success: Access controls for the UserResource are properly implemented on the
+        server-side, ensuring that only authorized users can access and modify sensitive
+        user data.
+  unique_id: owasp-latest-validate-access-controls-on-the-server-side

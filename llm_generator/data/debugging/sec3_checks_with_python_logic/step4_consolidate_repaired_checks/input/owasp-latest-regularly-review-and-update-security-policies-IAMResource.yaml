@@ -1,0 +1,11 @@
+check:
+  unique_id: owasp-latest-regularly-review-and-update-security-policies
+resource:
+  field_path: policies[].update_date
+  logic: "result = False\n\nimport datetime\n\n# Check if any policy was updated within\
+    \ the last 365 days\ntoday = datetime.date.today()\none_year_ago = today - datetime.timedelta(days=365)\n\
+    \nif fetched_value is not None:\n    for update_date in fetched_value:\n     \
+    \   if update_date is not None:\n            if isinstance(update_date, datetime.datetime):\n\
+    \                update_date = update_date.date()\n            if update_date\
+    \ >= one_year_ago:\n                result = True\n                break"
+  name: IAMResource

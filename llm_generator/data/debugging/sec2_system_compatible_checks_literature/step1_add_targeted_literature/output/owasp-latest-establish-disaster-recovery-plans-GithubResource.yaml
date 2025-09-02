@@ -1,0 +1,41 @@
+resource:
+  check:
+    unique_id: owasp-latest-establish-disaster-recovery-plans
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To address this security check, an organization should establish
+      and maintain a comprehensive disaster recovery plan that outlines strategies,
+      procedures, and resources for restoring critical operations, data, and systems
+      in the event of a disaster.
+    estimated_time: Varies depending on the organization's size and complexity, but
+      typically takes several weeks to months to develop and implement a comprehensive
+      disaster recovery plan.
+    instructions:
+    - Identify critical business processes, data, and systems that need to be recovered
+      in the event of a disaster.
+    - Develop a detailed plan that outlines the steps and resources required for restoring
+      these critical components.
+    - Establish backup and data replication strategies to ensure data protection and
+      availability.
+    - Define roles and responsibilities for disaster recovery team members.
+    - Regularly test and update the disaster recovery plan to ensure its effectiveness
+      and alignment with changing business needs.
+  is_valid: false
+  literature: The GitHub resource provided does not contain information directly related
+    to disaster recovery plans or business continuity strategies. This resource primarily
+    contains data about the GitHub repository itself, such as its code, issues, pull
+    requests, collaborators, and security analysis. While some of this information
+    may be useful for disaster recovery planning, it does not directly address the
+    establishment or maintenance of disaster recovery plans.
+  name: GithubResource
+  output_statements:
+    failure: The GitHub repository does not have a documented disaster recovery plan
+      or strategy for ensuring business continuity in the event of a disruptive incident.
+    partial: N/A
+    success: The GitHub repository has a well-defined and regularly tested disaster
+      recovery plan in place.
+  reason: The GitHub resource does not contain any specific information or configurations
+    related to disaster recovery plans or business continuity strategies. It primarily
+    focuses on the repository's code, collaboration, and security aspects, which are
+    not directly relevant to this security check.

@@ -1,0 +1,30 @@
+check:
+  name: owasp-latest-conduct-regular-security-testing
+  resource:
+    field_path: trails[*].log_file_validation_enabled
+    fix_details:
+      automation_available: true
+      description: If CloudTrail is not configured properly, it may not capture all
+        relevant events and activities, making it difficult to conduct regular security
+        testing and monitoring.
+      estimated_time: 30 minutes to 1 hour
+      instructions:
+      - Review the CloudTrail trail configurations and ensure that relevant data resources,
+        management events, and read/write operations are being captured.
+      - Enable log file validation to ensure the integrity of CloudTrail logs.
+      - Consider enabling multi-region trails to capture events from all AWS regions.
+      - Regularly review CloudTrail logs and set up alerts or notifications for suspicious
+        activities.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for log_file_validation_enabled in fetched_value:\n        if log_file_validation_enabled:\n\
+      \            result = True\n            break"
+    name: CloudTrailResource
+    output_statements:
+      failure: CloudTrail is not configured to capture relevant events and activities,
+        hindering regular security testing and monitoring.
+      partial: CloudTrail is partially configured to capture relevant events and activities,
+        but additional configuration may be required for comprehensive security testing
+        and monitoring.
+      success: CloudTrail is configured to capture relevant events and activities,
+        enabling regular security testing and monitoring.
+  unique_id: owasp-latest-conduct-regular-security-testing

@@ -1,0 +1,33 @@
+check:
+  name: owasp-latest-implement-comprehensive-monitoring-mechanisms
+  resource:
+    field_path: buckets[*].logging_enabled
+    fix_details:
+      automation_available: true
+      description: To fully implement comprehensive monitoring mechanisms for S3 buckets,
+        ensure that logging is enabled for all buckets and that public access is appropriately
+        restricted.
+      estimated_time: 30 minutes to 1 hour
+      instructions:
+      - 1. Review the list of S3 buckets and identify those without logging enabled
+        or with public access enabled.
+      - 2. For buckets without logging enabled, enable server access logging and configure
+        a log bucket to store the access logs.
+      - 3. For buckets with public access enabled, review the public access settings
+        and apply appropriate restrictions using the public access block settings.
+      - 4. Continuously monitor the S3 access logs and public access settings to detect
+        and respond to any security incidents or unauthorized access attempts.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for logging_enabled in fetched_value:\n        if logging_enabled:\n  \
+      \          result = True\n            break"
+    name: S3Resource
+    output_statements:
+      failure: One or more S3 buckets do not have logging enabled or have public access
+        enabled, increasing the risk of security incidents and unauthorized access
+        going undetected.
+      partial: Some S3 buckets have logging enabled and public access restricted,
+        while others do not, resulting in partial implementation of comprehensive
+        monitoring mechanisms.
+      success: All S3 buckets have logging enabled, and public access is appropriately
+        restricted, ensuring comprehensive monitoring and security.
+  unique_id: owasp-latest-implement-comprehensive-monitoring-mechanisms
