@@ -25,7 +25,7 @@ env:
   
   # Secret Configuration
   CHAINGUARD_SECRET_ID: "global/Chainguard/Credentials"
-  APP_SECRETS_ID: "kovr-resource-collector-secret-local"
+  APP_SECRETS_ID: "dev-kovr-resource-collector-secrets"
   
   # SSH Tunneling Configuration
   SSH_TUNNEL_CIDR: "0.0.0.0/0"
@@ -69,13 +69,13 @@ jobs:
         with:
           ref: dev
 
-      - name: Checkout external Helm charts repo
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ env.HELM_CHARTS_REPO }}
-          path: helm-charts
-          token: ${{ secrets.GIT_HUB_TOKEN }}
-          ref: main
+      # - name: Checkout external Helm charts repo
+      #   uses: actions/checkout@v4
+      #   with:
+      #     repository: ${{ env.HELM_CHARTS_REPO }}
+      #     path: helm-charts
+      #     token: ${{ secrets.GIT_HUB_TOKEN }}
+      #     ref: main
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -266,18 +266,18 @@ jobs:
       - name: Set image tag
         run: echo "IMAGE_TAG=$(cat image-tags.txt)" >> $GITHUB_ENV
 
-      # - name: Fetch AWS secrets and set as Helm values
-      #   id: fetch-secrets
-      #   run: |
-      #     # Fetch secrets from AWS Secrets Manager
-      #     SECRETS_JSON=$(aws secretsmanager get-secret-value --secret-id ${{ env.APP_SECRETS_ID }} --query SecretString --output text)
+      - name: Fetch AWS secrets and set as Helm values
+        id: fetch-secrets
+        run: |
+          # Fetch secrets from AWS Secrets Manager
+          SECRETS_JSON=$(aws secretsmanager get-secret-value --secret-id ${{ env.APP_SECRETS_ID }} --query SecretString --output text)
           
-      #     # Create a values file with secrets
-      #     echo "$SECRETS_JSON" | jq '{secrets: .}' > temp-secrets-values.yaml
+          # Create a values file with secrets
+          echo "$SECRETS_JSON" | jq '{secrets: .}' > temp-secrets-values.yaml
           
-      #     # Debug: show the file was created
-      #     echo "Secrets values file created:"
-      #     ls -la temp-secrets-values.yaml
+          # Debug: show the file was created
+          echo "Secrets values file created:"
+          ls -la temp-secrets-values.yaml
 
 
       - name: Deploy service to EKS
@@ -286,6 +286,7 @@ jobs:
           # cat temp-secrets-values.yaml
           echo "Deploying service to EKS..."
           helm upgrade --install ${{ env.HELM_RELEASE_NAME }} helm-charts/${{ env.HELM_CHART_PATH }} \
+            --values temp-secrets-values.yaml \
             --values ${{ env.HELM_VALUES_PATH }} \
             --set service.image=${{ env.IMAGE_TAG }} \
             --namespace ${{ env.EKS_NAMESPACE }} \
