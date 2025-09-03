@@ -73,7 +73,7 @@ class AWSProvider(Provider):
         ]
 
     def _get_all_regions(self, session: boto3.Session):
-        ec2 = session.client("ec2")
+        ec2 = session.client("ec2", region_name="us-east-1")
         regions = []
         try:
             response = ec2.describe_regions()
