@@ -1,0 +1,33 @@
+check:
+  category: system_integrity
+  control_names:
+  - NIST-800-53-CM-6
+  - ISO-27001-A.12.1.2
+  literature: The 'owasp-latest-use-secure-defaults' check validates that applications
+    and systems are configured with secure default settings and configurations. Many
+    software products and services come with default configurations that prioritize
+    ease of use and functionality over security. These default settings often have
+    known vulnerabilities, weak security controls, or unnecessary services enabled,
+    which can expose the system to various security risks. By enforcing secure defaults,
+    this check helps mitigate the risk of unauthorized access, data breaches, and
+    other security incidents caused by insecure configurations.
+  provider: google
+  resource:
+    field_paths:
+    - aliases
+    - aliases.nonEditableAliases
+    - basic_info
+    - basic_info.adminCreated
+    - basic_info.description
+    - basic_info.email
+    - basic_info.etag
+    - basic_info.id
+    - basic_info.kind
+    - basic_info.name
+    - group_id
+    - id
+    - membership_info
+    - membership_info.directMembersCount
+    - source_connector
+    name: GroupResource
+  unique_id: owasp-latest-use-secure-defaults

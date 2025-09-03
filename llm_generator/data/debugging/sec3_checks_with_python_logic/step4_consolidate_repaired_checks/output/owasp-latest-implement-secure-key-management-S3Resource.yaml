@@ -1,0 +1,31 @@
+check:
+  name: owasp-latest-implement-secure-key-management
+  resource:
+    field_path: buckets[].encryption.enabled
+    fix_details:
+      automation_available: true
+      description: If any S3 buckets are found to have insecure encryption settings
+        or are not using KMS keys for encryption, the configuration needs to be updated
+        to enable server-side encryption with a secure KMS key.
+      estimated_time: 30 minutes to 1 hour
+      instructions:
+      - Identify the S3 buckets with insecure encryption settings or no encryption
+        enabled.
+      - Create a new KMS key or use an existing secure KMS key for encryption.
+      - Update the bucket encryption configuration to enable server-side encryption
+        using the secure KMS key.
+      - Verify that the encryption settings have been applied correctly and all data
+        in the bucket is encrypted using the secure KMS key.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for encryption_enabled in fetched_value:\n        if encryption_enabled:\n\
+      \            result = True\n            break"
+    name: S3Resource
+    output_statements:
+      failure: One or more S3 buckets do not have server-side encryption enabled or
+        are using an insecure encryption configuration, violating secure key management
+        practices.
+      partial: Some S3 buckets have secure encryption settings, while others may have
+        issues with key management implementation.
+      success: The S3 bucket(s) have server-side encryption enabled using a secure
+        KMS key, implementing proper key management practices.
+  unique_id: owasp-latest-implement-secure-key-management

@@ -1,0 +1,31 @@
+check:
+  name: owasp-latest-implement-secure-software-supply-chain-practices
+  resource:
+    field_path: security_data.security_features_enabled
+    fix_details:
+      automation_available: true
+      description: 'If the repository is found to be lacking in secure software supply
+        chain practices, the following steps can be taken to remediate the issues:'
+      estimated_time: 1-2 hours for initial setup, ongoing maintenance required
+      instructions:
+      - Review and configure GitHub Actions workflows for automated build, testing,
+        and deployment processes.
+      - Implement proper access controls and permissions for collaborators based on
+        the principle of least privilege.
+      - Enable and configure security features like Dependabot for dependency scanning,
+        CodeQL for code analysis, and secret scanning for detecting exposed secrets.
+      - Review and address any identified security advisories or vulnerability alerts.
+      - Establish processes and documentation for maintaining secure software supply
+        chain practices throughout the repository's lifecycle.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    # Check if security features are enabled\n    result = fetched_value"
+    name: GithubResource
+    output_statements:
+      failure: The repository lacks proper implementation of secure software supply
+        chain practices. Automated workflows, access controls, and security scanning
+        capabilities are missing or misconfigured.
+      partial: The repository has partially implemented secure software supply chain
+        practices, but there are areas that require further attention and improvement.
+      success: The repository has implemented secure software supply chain practices,
+        including automated workflows, access controls, and security scanning.
+  unique_id: owasp-latest-implement-secure-software-supply-chain-practices

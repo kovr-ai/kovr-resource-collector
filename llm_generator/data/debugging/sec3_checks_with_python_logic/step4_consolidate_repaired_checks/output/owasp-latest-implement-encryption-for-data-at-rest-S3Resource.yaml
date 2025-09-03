@@ -1,0 +1,29 @@
+check:
+  name: owasp-latest-implement-encryption-for-data-at-rest
+  resource:
+    field_path: buckets[*].encryption.enabled
+    fix_details:
+      automation_available: true
+      description: For any S3 buckets that do not have encryption enabled, or are
+        using an insecure encryption method (SSE-S3), encryption needs to be enabled
+        using a secure method (SSE-KMS or SSE-C) and a valid KMS key.
+      estimated_time: 30 minutes to 1 hour
+      instructions:
+      - Identify the S3 buckets that do not have encryption enabled or are using SSE-S3.
+      - Create a new KMS key or use an existing KMS key for encryption.
+      - Update the bucket encryption configuration to enable SSE-KMS or SSE-C using
+        the KMS key.
+      - Verify that encryption is enabled and using the correct encryption method
+        and KMS key.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for bucket_encryption in fetched_value:\n        if bucket_encryption:\n\
+      \            result = True\n            break"
+    name: S3Resource
+    output_statements:
+      failure: One or more S3 buckets do not have encryption enabled, or are using
+        an insecure encryption method (SSE-S3).
+      partial: Some S3 buckets have encryption enabled using a secure encryption method,
+        while others do not or are using an insecure encryption method.
+      success: All S3 buckets have encryption enabled using a secure encryption method
+        (SSE-KMS or SSE-C) and a valid KMS key.
+  unique_id: owasp-latest-implement-encryption-for-data-at-rest

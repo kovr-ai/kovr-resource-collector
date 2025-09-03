@@ -1,0 +1,38 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-encryption-for-data-at-rest
+  field_paths:
+  - instances[].block_device_mappings[].ebs.volume_id
+  - snapshots[].encrypted
+  - volumes[].encrypted
+  fix_details:
+    automation_available: true
+    description: To implement encryption for data at rest, you need to configure encryption
+      on the specific storage services used, such as EBS volumes, S3 buckets, or RDS
+      databases.
+    estimated_time: The time required will vary depending on the number of storage
+      services and the complexity of your environment.
+    instructions:
+    - Identify all storage services used in your AWS environment that store sensitive
+      data.
+    - For each storage service, enable encryption at rest using industry-standard
+      encryption algorithms and key management practices.
+    - Regularly review and audit your encryption configurations to ensure compliance
+      and address any changes or updates.
+  is_valid: false
+  literature: The EC2Resource in AWS does not directly handle data encryption at rest.
+    It provides information about EC2 instances, networking resources, and other related
+    components, but does not manage the encryption of data stored on EBS volumes or
+    other storage services. To implement encryption for data at rest, you would need
+    to configure encryption on the specific storage services used, such as EBS volumes,
+    S3 buckets, or RDS databases.
+  name: EC2Resource
+  output_statements:
+    failure: One or more storage resources have data at rest that is not encrypted.
+    partial: Some data at rest is encrypted, but not all storage resources are configured
+      for encryption.
+    success: All data at rest is encrypted using industry-standard encryption algorithms
+      and key management practices.
+  reason: The EC2Resource does not directly manage encryption settings for data at
+    rest. It provides information about EC2 instances and related resources, but the
+    actual encryption configuration needs to be done on the storage services themselves.

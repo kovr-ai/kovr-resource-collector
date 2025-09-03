@@ -1,0 +1,67 @@
+resource:
+  check:
+    unique_id: owasp-latest-monitor-for-suspicious-activities
+  field_paths:
+  - alarms
+  - alarms[].alarm_actions
+  - alarms[].alarm_description
+  - alarms[].alarm_name
+  - alarms[].comparison_operator
+  - alarms[].dimensions
+  - alarms[].dimensions[].Name
+  - alarms[].dimensions[].Value
+  - alarms[].evaluation_periods
+  - alarms[].metric_name
+  - alarms[].namespace
+  - alarms[].period
+  - alarms[].statistic
+  - alarms[].threshold
+  - log_groups
+  - log_groups[].log_group_name
+  - metrics
+  - metrics[].dimensions
+  - metrics[].dimensions[].Name
+  - metrics[].dimensions[].Value
+  - metrics[].metric_name
+  - metrics[].namespace
+  fix_details:
+    automation_available: true
+    description: To fully implement the 'owasp-latest-monitor-for-suspicious-activities'
+      security check using CloudWatch, you need to configure appropriate CloudWatch
+      Alarms and Log Groups to monitor relevant metrics, logs, and events from your
+      AWS resources and applications.
+    estimated_time: 2-4 hours
+    instructions:
+    - Identify the critical metrics, logs, and events that could indicate suspicious
+      or anomalous activities within your AWS environment.
+    - Create CloudWatch Alarms with appropriate thresholds and alarm actions (e.g.,
+      sending notifications, triggering automated responses) for the identified metrics
+      and events.
+    - Configure CloudWatch Log Groups to collect and store relevant log data from
+      your AWS resources and applications.
+    - Set up CloudWatch Metric Filters and Alarms to monitor and alert on specific
+      log patterns or events that may indicate suspicious activities.
+    - Regularly review and update the CloudWatch Alarms and Log Groups to ensure they
+      are effectively monitoring for new or evolving security threats.
+  is_valid: true
+  literature: The AWS CloudWatch service can be used to implement the 'owasp-latest-monitor-for-suspicious-activities'
+    security check. CloudWatch allows you to collect and monitor various logs, metrics,
+    and events from your AWS resources and applications. By creating CloudWatch Alarms
+    and configuring appropriate alarm actions, you can detect and alert on suspicious
+    or anomalous activities within your AWS environment.
+  name: CloudWatchResource
+  output_statements:
+    failure: CloudWatch Alarms and Log Groups are not configured to monitor for suspicious
+      activities within your AWS environment, leaving your resources vulnerable to
+      potential security threats.
+    partial: CloudWatch Alarms and Log Groups are partially configured to monitor
+      for suspicious activities within your AWS environment, but additional configuration
+      is required to ensure comprehensive monitoring and alerting.
+    success: CloudWatch Alarms and Log Groups are configured to effectively monitor
+      for suspicious activities within your AWS environment.
+  reason: CloudWatch Alarms can be configured to monitor various metrics and logs
+    from AWS services and applications. By setting appropriate alarm thresholds and
+    actions, you can detect and alert on suspicious activities, such as unusual resource
+    usage patterns, unauthorized access attempts, or security-related events. Additionally,
+    CloudWatch Log Groups can be used to collect and analyze log data from various
+    sources, enabling you to identify and investigate potential security incidents.

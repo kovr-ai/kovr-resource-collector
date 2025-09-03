@@ -1,0 +1,11 @@
+check:
+  unique_id: owasp-latest-use-secure-defaults
+resource:
+  field_path: policies[].default_version.Document.Statement
+  logic: "result = True\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    for statement in fetched_value:\n        if hasattr(statement, 'Effect')\
+    \ and statement.Effect == 'Allow':\n            if hasattr(statement, 'Action')\
+    \ and '*' in statement.Action:\n                result = False\n             \
+    \   break\n            elif hasattr(statement, 'Resource') and '*' in statement.Resource:\n\
+    \                result = False\n                break"
+  name: IAMResource

@@ -1,0 +1,42 @@
+resource:
+  check:
+    unique_id: owasp-latest-regularly-review-and-update-configurations
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: This resource is not applicable for implementing the 'owasp-latest-regularly-review-and-update-configurations'
+      check. To address this security check, you would need to review and update the
+      configurations of the relevant systems and services within your Google Cloud
+      environment.
+    estimated_time: The time required to implement this check will vary depending
+      on the complexity and number of systems involved, as well as the existing processes
+      and tools in place.
+    instructions:
+    - Identify the critical systems and services that require regular configuration
+      reviews and updates.
+    - Establish a process for periodically reviewing and updating the configurations
+      of these systems and services.
+    - Implement automated tools or scripts to assist with the review and update process,
+      where applicable.
+    - Document and maintain records of the configuration changes made during each
+      review cycle.
+    - Ensure that the updated configurations are thoroughly tested and validated before
+      deployment.
+  is_valid: false
+  literature: The OWASP check 'owasp-latest-regularly-review-and-update-configurations'
+    is designed to ensure that system configurations are regularly reviewed and updated
+    to maintain a secure posture. However, the provided Google UserResource does not
+    appear to be directly related to system configurations or their management. This
+    resource represents user account information within the Google Workspace environment,
+    including details such as user profile, contact information, and security settings.
+  name: UserResource
+  output_statements:
+    failure: The system configurations are not being regularly reviewed and updated,
+      which can introduce security vulnerabilities and misconfigurations.
+    partial: Some system configurations are being reviewed and updated, but the process
+      is not comprehensive or consistent.
+    success: The system configurations are regularly reviewed and updated to maintain
+      a secure posture.
+  reason: The UserResource does not contain any information related to system configurations
+    or their review and update processes. It is primarily focused on storing and managing
+    user account data within the Google Workspace environment.

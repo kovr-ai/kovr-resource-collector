@@ -1,0 +1,44 @@
+check:
+  category: audit
+  control_names:
+  - NIST-800-53-AU-6
+  - ISO-27001-A.12.4.1
+  - NIST-800-53-SI-4
+  literature: Comprehensive monitoring mechanisms are essential for detecting and
+    responding to security incidents, unauthorized access attempts, and potential
+    data breaches. This check validates that an organization has implemented robust
+    monitoring systems that can track and log various activities across its infrastructure,
+    applications, and user interactions. Effective monitoring enables organizations
+    to identify anomalies, suspicious behavior, and potential threats in a timely
+    manner, allowing for prompt investigation and mitigation. Without comprehensive
+    monitoring, organizations may remain unaware of security incidents, leaving them
+    vulnerable to data breaches, system compromises, and regulatory non-compliance.
+  name: owasp-latest-implement-comprehensive-monitoring-mechanisms
+  resource:
+    field_paths:
+    - policies
+    - policies[].default_version.Document.Statement
+    - policies[].default_version.Document.Statement[].Action
+    - policies[].default_version.Document.Statement[].Effect
+    - policies[].default_version.Document.Statement[].Resource
+    - users
+    - users[].access_keys
+    - users[].access_keys[].create_date
+    - users[].access_keys[].last_used_date
+    - users[].access_keys[].last_used_region
+    - users[].access_keys[].last_used_service
+    - users[].access_keys[].status
+    literature: The IAMResource in AWS is a critical component for implementing comprehensive
+      monitoring mechanisms as outlined in the OWASP security check. IAM (Identity
+      and Access Management) policies and user access keys play a crucial role in
+      controlling and auditing access to AWS resources and services. By monitoring
+      IAM policies, their changes, and user activities, organizations can detect unauthorized
+      access attempts, policy modifications, and potential misuse of privileges. This
+      resource provides the necessary information to track and log IAM-related events,
+      enabling organizations to identify and respond to security incidents promptly.
+    name: IAMResource
+    reason: The IAMResource provides essential information for monitoring IAM policies,
+      their changes, and user access key activities, which are critical components
+      of a comprehensive monitoring mechanism for detecting unauthorized access attempts
+      and potential security incidents.
+  unique_id: owasp-latest-implement-comprehensive-monitoring-mechanisms

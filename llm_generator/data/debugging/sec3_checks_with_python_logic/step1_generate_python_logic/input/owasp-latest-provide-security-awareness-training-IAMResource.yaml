@@ -1,0 +1,35 @@
+check:
+  category: authentication
+  control_names:
+  - NIST-800-53-AT-2
+  - ISO-27001-A.7.2.2
+  literature: Security awareness training is crucial for organizations to educate
+    their employees on identifying and mitigating potential security threats. It helps
+    employees understand the importance of cybersecurity, recognize common attack
+    vectors, and learn best practices for protecting sensitive information and systems.
+    Regular security awareness training can significantly reduce the risk of human
+    error, which is often a leading cause of data breaches and cyber incidents. By
+    providing employees with the knowledge and skills to identify and respond to security
+    threats, organizations can strengthen their overall security posture and better
+    protect their assets and reputation.
+  name: owasp-latest-provide-security-awareness-training
+  resource:
+    field_paths:
+    - users
+    - users[].access_keys
+    - users[].mfa_devices
+    - policies
+    - policies[].default_version.Document.Statement
+    literature: The IAMResource in AWS can be used to implement security awareness
+      training for employees. The 'users' field path contains information about IAM
+      users, including their access keys, MFA devices, and associated policies. By
+      analyzing the policies attached to each user, you can identify if there are
+      any policies related to security awareness training, such as mandatory training
+      requirements or access restrictions based on training completion. Additionally,
+      you can use the access key information to monitor user activity and ensure that
+      only authorized users with proper training have access to sensitive resources.
+    name: IAMResource
+    reason: The IAMResource provides information about IAM users, their access keys,
+      MFA devices, and associated policies, which can be used to implement and enforce
+      security awareness training requirements.
+  unique_id: owasp-latest-provide-security-awareness-training

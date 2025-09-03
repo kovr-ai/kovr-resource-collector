@@ -1,0 +1,32 @@
+check:
+  name: owasp-latest-establish-incident-response-plans
+  resource:
+    field_path: trails[*].is_logging
+    fix_details:
+      automation_available: true
+      description: To ensure CloudTrail is properly configured for incident response,
+        you may need to adjust event selectors, enable log file validation, configure
+        multi-region logging, and integrate with appropriate storage and encryption
+        services.
+      estimated_time: 1-2 hours
+      instructions:
+      - Review and update the event selectors to capture relevant management events,
+        data events, and insights.
+      - Enable log file validation to ensure log integrity and prevent tampering.
+      - Configure CloudTrail to log events across multiple regions if necessary.
+      - Integrate CloudTrail with Amazon S3 for secure log storage and AWS KMS for
+        encryption at rest.
+      - Regularly review and monitor CloudTrail logs for potential security incidents
+        or anomalies.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for is_logging in fetched_value:\n        if is_logging:\n            result\
+      \ = True\n            break"
+    name: CloudTrailResource
+    output_statements:
+      failure: CloudTrail is not configured properly to support incident response
+        and monitoring requirements.
+      partial: CloudTrail is partially configured, but additional configuration is
+        required to fully support incident response and monitoring.
+      success: CloudTrail is configured to capture and log relevant events, enabling
+        effective incident response and monitoring.
+  unique_id: owasp-latest-establish-incident-response-plans

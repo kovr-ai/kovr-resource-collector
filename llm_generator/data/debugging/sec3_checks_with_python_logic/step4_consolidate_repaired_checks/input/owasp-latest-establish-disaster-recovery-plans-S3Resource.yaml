@@ -1,0 +1,8 @@
+check:
+  unique_id: owasp-latest-establish-disaster-recovery-plans
+resource:
+  field_path: buckets[*].versioning_status
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    for versioning_status in fetched_value:\n        if versioning_status ==\
+    \ 'Enabled':\n            result = True\n            break"
+  name: S3Resource

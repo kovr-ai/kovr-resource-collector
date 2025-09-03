@@ -1,0 +1,43 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-proper-access-control-mechanisms
+  field_paths:
+  - instances[].iam_instance_profile
+  - instances[].security_groups
+  - network_interfaces[].security_groups
+  - security_groups.inbound_rules
+  - security_groups.outbound_rules
+  - vpcs[].id
+  fix_details:
+    automation_available: true
+    description: To implement proper access control mechanisms in AWS, you need to
+      configure and manage resources specifically designed for access control, such
+      as IAM (Identity and Access Management) and resource-level policies.
+    estimated_time: 1-2 hours for initial setup, ongoing maintenance
+    instructions:
+    - 1. Review and configure IAM roles, policies, and permissions to control access
+      to AWS resources and services.
+    - 2. Implement resource-level policies (e.g., S3 bucket policies, VPC network
+      ACLs, security group rules) to control access to specific resources.
+    - 3. Implement multi-factor authentication (MFA) for privileged accounts and sensitive
+      operations.
+    - 4. Regularly review and audit access control configurations to ensure they align
+      with the principle of least privilege.
+  is_valid: false
+  literature: The EC2Resource in AWS provides information about various EC2 components
+    such as instances, security groups, network interfaces, and VPCs. While some of
+    these components may be relevant for implementing access control mechanisms, the
+    resource itself does not directly provide the capability to configure or manage
+    access control policies or mechanisms.
+  name: EC2Resource
+  output_statements:
+    failure: The EC2Resource does not provide the capability to implement proper access
+      control mechanisms.
+    partial: The EC2Resource partially supports access control mechanisms, but additional
+      configuration is required.
+    success: The EC2Resource has appropriate access control mechanisms implemented.
+  reason: The EC2Resource provides information about EC2 components, but it does not
+    directly allow for the configuration or management of access control mechanisms.
+    While some fields like security groups and IAM instance profiles may be relevant
+    for access control, the resource itself does not provide the necessary functionality
+    to implement proper access control mechanisms as per the security check.

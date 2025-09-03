@@ -1,0 +1,44 @@
+resource:
+  check:
+    unique_id: owasp-latest-regularly-update-and-patch-third-party-components
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: To address this security check, you need to implement a process or
+      mechanism to regularly update and patch third-party components used in applications
+      and services running on the EC2 instances.
+    estimated_time: The time required will vary depending on the number of applications,
+      services, and third-party components involved, as well as the complexity of
+      the update and patching process. It could range from a few hours for simple
+      setups to several days or weeks for more complex environments.
+    instructions:
+    - Identify all third-party components (libraries, frameworks, modules) used in
+      your applications and services running on the EC2 instances.
+    - Establish a process to monitor for new updates and security patches for these
+      third-party components.
+    - Implement a process to test and deploy the updates and patches in a controlled
+      manner, minimizing downtime and ensuring compatibility.
+    - Automate the update and patching process as much as possible using tools or
+      scripts.
+    - Regularly review and update the list of third-party components to ensure new
+      components are included in the update and patching process.
+  is_valid: false
+  literature: The EC2Resource in AWS does not directly relate to updating or patching
+    third-party components used in applications or services running on the EC2 instances.
+    The EC2Resource provides information about the EC2 instances themselves, such
+    as instance details, security groups, network interfaces, and other EC2-related
+    resources. However, it does not provide information about the software components
+    or libraries used within the applications or services running on those instances.
+  name: EC2Resource
+  output_statements:
+    failure: The EC2 instances and related resources do not have a mechanism in place
+      to regularly update and patch third-party components used in applications and
+      services.
+    partial: Some EC2 instances and related resources are configured to regularly
+      update and patch third-party components, but others are not.
+    success: The EC2 instances and related resources are configured to regularly update
+      and patch third-party components used in applications and services.
+  reason: The EC2Resource does not contain any information related to the third-party
+    components or libraries used within applications or services running on the EC2
+    instances. It only provides details about the EC2 instances themselves and related
+    resources, but not the software components installed or used within those instances.

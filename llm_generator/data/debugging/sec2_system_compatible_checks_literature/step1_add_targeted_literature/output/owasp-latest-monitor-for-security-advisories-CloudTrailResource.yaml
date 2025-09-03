@@ -1,0 +1,47 @@
+resource:
+  check:
+    unique_id: owasp-latest-monitor-for-security-advisories
+  field_paths:
+  - trails
+  - trails[].event_selectors
+  - trails[].event_selectors[].data_resources
+  - trails[].event_selectors[].data_resources.type
+  - trails[].event_selectors[].data_resources.values
+  - trails[].event_selectors[].include_management_events
+  - trails[].event_selectors[].read_write_type
+  - trails[].is_logging
+  - trails[].is_multi_region_trail
+  - trails[].log_file_validation_enabled
+  fix_details:
+    automation_available: true
+    description: If CloudTrail is not configured to log relevant events, it needs
+      to be enabled and properly configured to capture the necessary information for
+      monitoring security advisories.
+    estimated_time: 30 minutes to 1 hour
+    instructions:
+    - 1. Enable CloudTrail if it is not already enabled.
+    - 2. Configure CloudTrail to log events from relevant AWS services that may be
+      affected by security advisories.
+    - 3. Set up CloudTrail to deliver logs to a centralized location (e.g., S3 bucket)
+      for analysis and monitoring.
+    - 4. Integrate CloudTrail logs with security monitoring tools to receive alerts
+      and notifications about potential security issues.
+  is_valid: true
+  literature: AWS CloudTrail is a service that records AWS API calls and related events
+    for your account. It provides a log of activities that can be used to monitor
+    for security advisories and potential threats. By configuring CloudTrail to log
+    relevant events and integrating it with security monitoring tools, organizations
+    can stay informed about security advisories and take appropriate actions to mitigate
+    risks.
+  name: CloudTrailResource
+  output_statements:
+    failure: CloudTrail is not configured to log relevant events, making it difficult
+      to monitor for security advisories.
+    partial: CloudTrail is partially configured to log relevant events, but additional
+      configuration may be needed to effectively monitor for security advisories.
+    success: CloudTrail is configured to log relevant events and can be used to monitor
+      for security advisories.
+  reason: AWS CloudTrail can be configured to log API calls and events related to
+    various AWS services, including those that may be affected by security advisories.
+    By enabling CloudTrail and configuring it to capture relevant events, organizations
+    can monitor for potential security issues and take appropriate actions.

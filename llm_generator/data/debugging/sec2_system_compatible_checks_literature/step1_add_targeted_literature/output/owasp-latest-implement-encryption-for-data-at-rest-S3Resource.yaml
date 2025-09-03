@@ -1,0 +1,41 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-encryption-for-data-at-rest
+  field_paths:
+  - buckets
+  - buckets[].encryption
+  - buckets[].encryption.enabled
+  - buckets[].encryption.kms_key_id
+  - buckets[].encryption.type
+  fix_details:
+    automation_available: true
+    description: For any S3 buckets that do not have encryption enabled or are using
+      an insecure encryption method, encryption needs to be enabled using a secure
+      method (SSE-KMS or SSE-C) and a valid KMS key.
+    estimated_time: 30 minutes to 1 hour
+    instructions:
+    - Identify S3 buckets without encryption or using SSE-S3 encryption.
+    - Create a new KMS key or use an existing KMS key for encryption.
+    - Enable encryption on the identified buckets using SSE-KMS or SSE-C with the
+      KMS key.
+    - Verify that encryption is enabled and the correct encryption method and KMS
+      key are used for all buckets.
+  is_valid: true
+  literature: The AWS S3 resource is applicable for implementing encryption for data
+    at rest. S3 buckets can be configured to use server-side encryption to protect
+    data stored in the bucket. AWS provides several encryption options, including
+    AWS-managed keys (SSE-S3), AWS Key Management Service (SSE-KMS) managed keys,
+    and customer-provided keys (SSE-C). Enabling encryption for S3 buckets ensures
+    that data is encrypted before it is written to disks, and decrypted after it is
+    accessed, providing protection for data at rest.
+  name: S3Resource
+  output_statements:
+    failure: One or more S3 buckets do not have encryption enabled, or are using an
+      insecure encryption method (SSE-S3).
+    partial: Some S3 buckets have encryption enabled using a secure encryption method,
+      while others do not or are using an insecure encryption method.
+    success: All S3 buckets have encryption enabled using a secure encryption method
+      (SSE-KMS or SSE-C) and a valid KMS key.
+  reason: The S3 resource provides fields to configure and manage encryption for data
+    stored in S3 buckets, which aligns with the security check's requirement of implementing
+    encryption for data at rest.

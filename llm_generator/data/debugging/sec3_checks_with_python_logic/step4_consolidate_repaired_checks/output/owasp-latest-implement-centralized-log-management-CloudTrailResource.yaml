@@ -1,0 +1,34 @@
+check:
+  name: owasp-latest-implement-centralized-log-management
+  resource:
+    field_path: trails[*].is_logging
+    fix_details:
+      automation_available: true
+      description: 'If CloudTrail is not configured correctly or log data is not being
+        centralized, follow these steps to remediate the issue:'
+      estimated_time: 30 minutes to 1 hour
+      instructions:
+      - 1. Create or update an AWS CloudTrail trail to capture logs from all AWS services
+        and regions.
+      - 2. Configure the trail to deliver log files to an Amazon S3 bucket for centralized
+        storage and analysis.
+      - 3. Enable log file validation to ensure log file integrity and completeness.
+      - 4. Configure event selectors to capture specific types of events or data resources
+        based on your organization's requirements.
+      - 5. Enable insights selectors to analyze and detect specific patterns or anomalies
+        in the log data.
+      - 6. Review and update CloudTrail configurations regularly to ensure comprehensive
+        log coverage and alignment with security best practices.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for is_logging in fetched_value:\n        if is_logging:\n            result\
+      \ = True\n            break"
+    name: CloudTrailResource
+    output_statements:
+      failure: CloudTrail is not configured correctly, or log data is not being centralized,
+        hindering log management and analysis capabilities.
+      partial: CloudTrail is partially configured for centralized log management,
+        but some services or regions may not be covered, limiting visibility and analysis
+        capabilities.
+      success: CloudTrail is configured to capture and centralize logs from AWS services,
+        enabling effective log management and analysis.
+  unique_id: owasp-latest-implement-centralized-log-management

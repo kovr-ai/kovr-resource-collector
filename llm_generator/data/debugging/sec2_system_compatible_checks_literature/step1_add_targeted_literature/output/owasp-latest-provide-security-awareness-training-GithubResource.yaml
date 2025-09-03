@@ -1,0 +1,38 @@
+resource:
+  check:
+    unique_id: owasp-latest-provide-security-awareness-training
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This resource is not applicable for implementing security awareness
+      training. To address this security check, organizations should consider implementing
+      a dedicated security awareness training program.
+    estimated_time: Varies depending on the organization's size and complexity
+    instructions:
+    - Identify appropriate security awareness training materials and resources tailored
+      to your organization's needs.
+    - Develop a comprehensive training plan that covers various security topics and
+      delivery methods (e.g., online courses, workshops, simulated phishing exercises).
+    - Establish a schedule for regular training sessions and assessments to ensure
+      continuous learning and reinforcement.
+    - Track employee participation and performance to measure the effectiveness of
+      the training program.
+    - Continuously update and improve the training program based on feedback and emerging
+      security threats.
+  is_valid: false
+  literature: The provided resource is a GitHub repository, which does not directly
+    relate to providing security awareness training for employees. Security awareness
+    training typically involves educational materials, training sessions, and assessments
+    to educate employees on identifying and mitigating security threats, best practices
+    for handling sensitive information, and overall cybersecurity awareness.
+  name: GithubResource
+  output_statements:
+    failure: The resource does not support implementing security awareness training
+      programs and materials.
+    partial: The resource partially supports implementing security awareness training
+      programs and materials.
+    success: The resource supports implementing security awareness training programs
+      and materials.
+  reason: The GitHub repository resource does not contain any information or functionality
+    related to security awareness training programs or materials. It primarily stores
+    code, project files, and collaboration data for software development purposes.

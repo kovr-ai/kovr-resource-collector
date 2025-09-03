@@ -1,0 +1,37 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-secure-session-management
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This security check is not applicable to the EC2Resource. To implement
+      secure session management, you need to review and configure your web applications
+      and their underlying infrastructure components.
+    estimated_time: Varies based on the number of web applications and complexity
+      of the infrastructure
+    instructions:
+    - Identify the web applications running on your infrastructure
+    - Review the session management implementation of each web application
+    - Implement secure session management practices as per industry standards (e.g.,
+      OWASP guidelines)
+    - Configure web servers, load balancers, and other infrastructure components to
+      support secure session management
+  is_valid: false
+  literature: The EC2Resource in AWS does not directly relate to implementing secure
+    session management for web applications. Secure session management involves protecting
+    user sessions from unauthorized access, hijacking, and other attacks by generating
+    unpredictable session identifiers, protecting session data from tampering, setting
+    appropriate session timeouts, and invalidating sessions after logout or inactivity.
+    This security check is primarily applicable to web applications and their underlying
+    infrastructure, rather than EC2 instances or other cloud resources.
+  name: EC2Resource
+  output_statements:
+    failure: The EC2 resource does not implement secure session management practices
+      for web applications.
+    partial: The EC2 resource partially implements secure session management practices
+      for web applications.
+    success: The EC2 resource implements secure session management practices for web
+      applications.
+  reason: The EC2Resource does not contain any information or configurations related
+    to web application session management. This security check is not applicable to
+    this resource.

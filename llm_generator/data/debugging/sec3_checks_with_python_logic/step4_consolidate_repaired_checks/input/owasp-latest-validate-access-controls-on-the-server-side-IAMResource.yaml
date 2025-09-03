@@ -1,0 +1,16 @@
+check:
+  unique_id: owasp-latest-validate-access-controls-on-the-server-side
+resource:
+  field_path: policies[].default_version.Document.Statement
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    for statement in fetched_value:\n        if hasattr(statement, 'Effect')\
+    \ and statement.Effect == 'Allow':\n            condition = getattr(statement,\
+    \ 'Condition', None)\n            if condition is None:\n                result\
+    \ = False\n                break\n            else:\n                resource\
+    \ = getattr(statement, 'Resource', None)\n                action = getattr(statement,\
+    \ 'Action', None)\n                if resource and action:\n                 \
+    \   if '*' in resource or '*' in action:\n                        result = False\n\
+    \                        break\n                    else:\n                  \
+    \      result = True\n                else:\n                    result = False\n\
+    \                    break"
+  name: IAMResource

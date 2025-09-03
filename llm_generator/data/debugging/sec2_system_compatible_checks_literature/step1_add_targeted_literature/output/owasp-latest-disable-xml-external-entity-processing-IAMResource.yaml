@@ -1,0 +1,26 @@
+resource:
+  check:
+    unique_id: owasp-latest-disable-xml-external-entity-processing
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This security check is not applicable to the IAMResource in AWS.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The security check 'owasp-latest-disable-xml-external-entity-processing'
+    is focused on preventing XML External Entity (XXE) attacks by disabling external
+    entity processing in applications that parse XML input. This check is primarily
+    applicable to web applications, web services, or other software components that
+    handle XML data. The provided resource, 'IAMResource' in AWS, is related to Identity
+    and Access Management (IAM) policies and user configurations. It does not directly
+    handle XML parsing or processing.
+  name: IAMResource
+  output_statements:
+    failure: This check is not applicable to the IAMResource.
+    partial: This check is not applicable to the IAMResource.
+    success: This check is not applicable to the IAMResource.
+  reason: The IAMResource in AWS is not directly related to XML parsing or processing,
+    which is the focus of the 'owasp-latest-disable-xml-external-entity-processing'
+    security check. This resource manages IAM policies, user access keys, and MFA
+    devices, but does not involve handling XML data or external entity processing.

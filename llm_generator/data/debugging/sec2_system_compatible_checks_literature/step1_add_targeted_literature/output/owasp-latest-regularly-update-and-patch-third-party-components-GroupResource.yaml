@@ -1,0 +1,35 @@
+resource:
+  check:
+    unique_id: owasp-latest-regularly-update-and-patch-third-party-components
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: This security check is not applicable to the 'GroupResource' in Google
+      Cloud. However, if you are using third-party components in your software applications,
+      it is recommended to implement a process to regularly update and patch them.
+    estimated_time: Varies depending on the number of components and complexity of
+      the applications.
+    instructions:
+    - Identify all third-party components used in your applications.
+    - Monitor for new versions and security updates for these components.
+    - Establish a process to test and deploy updates in a timely manner.
+    - Automate the update process where possible to ensure consistency and reduce
+      manual effort.
+  is_valid: false
+  literature: The security check 'owasp-latest-regularly-update-and-patch-third-party-components'
+    is focused on ensuring that third-party components, such as libraries, frameworks,
+    and modules, used in software applications are regularly updated and patched to
+    mitigate security vulnerabilities. However, the provided Google Cloud resource
+    'GroupResource' appears to be related to managing Google Groups, which are user
+    groups for collaboration and access control purposes. This resource does not seem
+    to be directly relevant to managing third-party components used in software applications.
+  name: GroupResource
+  output_statements:
+    failure: The application's third-party components are not regularly updated and
+      patched, exposing it to known vulnerabilities.
+    partial: Some of the application's third-party components are regularly updated
+      and patched, but others are not.
+    success: The application's third-party components are regularly updated and patched.
+  reason: The 'GroupResource' is not directly related to managing third-party components
+    used in software applications. It is a resource for managing user groups in Google
+    Cloud, which is not the focus of the provided security check.

@@ -1,0 +1,33 @@
+check:
+  name: owasp-latest-establish-disaster-recovery-plans
+  resource:
+    field_path: buckets[*].versioning_status
+    fix_details:
+      automation_available: true
+      description: To ensure adequate disaster recovery measures for S3 buckets, enable
+        versioning, encryption, logging, and cross-region replication for all buckets.
+      estimated_time: 1-2 hours
+      instructions:
+      - Enable versioning for all S3 buckets to maintain a history of object versions
+        and facilitate recovery from accidental deletions or overwrites.
+      - Enable server-side encryption for all S3 buckets using AWS-managed keys (SSE-S3)
+        or customer-managed keys (SSE-KMS) to protect data at rest.
+      - Enable access logging for all S3 buckets to maintain a detailed record of
+        access requests for auditing and forensic purposes.
+      - Configure cross-region replication for critical S3 buckets to replicate data
+        to a different AWS region, ensuring data availability and enabling recovery
+        in case of a regional disaster.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for versioning_status in fetched_value:\n        if versioning_status ==\
+      \ 'Enabled':\n            result = True\n            break"
+    name: S3Resource
+    output_statements:
+      failure: S3 buckets lack essential disaster recovery measures, such as versioning,
+        encryption, logging, or cross-region replication, putting data at risk in
+        the event of a disruptive incident or disaster.
+      partial: Some S3 buckets have disaster recovery measures in place, but others
+        lack essential features like versioning, encryption, logging, or cross-region
+        replication, leaving data partially at risk.
+      success: S3 buckets have adequate disaster recovery measures in place, including
+        versioning, encryption, logging, and cross-region replication.
+  unique_id: owasp-latest-establish-disaster-recovery-plans

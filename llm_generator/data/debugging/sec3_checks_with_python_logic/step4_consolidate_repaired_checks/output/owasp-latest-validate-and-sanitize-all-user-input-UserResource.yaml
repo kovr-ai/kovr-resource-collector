@@ -1,0 +1,35 @@
+check:
+  name: owasp-latest-validate-and-sanitize-all-user-input
+  resource:
+    field_path: contact_info.emails[].address
+    fix_details:
+      automation_available: true
+      description: Implement input validation and sanitization mechanisms for all
+        user-provided data in the UserResource.
+      estimated_time: 2-4 hours
+      instructions:
+      - Identify all fields that accept user input, including contact_info.emails[].address,
+        contact_info.phones[].value, and profile_info.languages[].languageCode.
+      - Implement input validation rules to ensure that user input conforms to expected
+        formats and does not contain malicious characters or patterns.
+      - Sanitize user input by removing or encoding potentially dangerous characters
+        or patterns before storing or processing the data.
+      - Update the application code to use the validated and sanitized input values
+        instead of the raw user input.
+      - Implement regular testing and monitoring to ensure the input validation and
+        sanitization mechanisms are working as intended.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for email in fetched_value:\n        if not re.match(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\\
+      .[a-zA-Z0-9-.]+$', email):\n            break\n    else:\n        result = True"
+    name: UserResource
+    output_statements:
+      failure: One or more user input fields in the UserResource are not being properly
+        validated and sanitized, leaving the system vulnerable to injection attacks
+        and other input-related vulnerabilities.
+      partial: Some user input fields in the UserResource are being validated and
+        sanitized, but others are not, leaving the system partially vulnerable to
+        injection attacks and other input-related vulnerabilities.
+      success: All user input fields in the UserResource are properly validated and
+        sanitized, mitigating the risk of injection attacks and other input-related
+        vulnerabilities.
+  unique_id: owasp-latest-validate-and-sanitize-all-user-input

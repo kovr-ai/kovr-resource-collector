@@ -1,0 +1,49 @@
+resource:
+  check:
+    unique_id: owasp-latest-protect-against-brute-force-attacks
+  field_paths:
+  - trails[].event_selectors[].data_resources.type
+  - trails[].event_selectors[].data_resources.values
+  - trails[].event_selectors[].include_management_events
+  - trails[].event_selectors[].read_write_type
+  - trails[].is_logging
+  - trails[].is_multi_region_trail
+  - trails[].log_file_validation_enabled
+  fix_details:
+    automation_available: true
+    description: While CloudTrail does not directly protect against brute force attacks,
+      it can be configured to log and monitor API activity, which can help detect
+      and respond to potential brute force attacks.
+    estimated_time: 30 minutes to 1 hour
+    instructions:
+    - 1. Enable CloudTrail in all regions where you have AWS resources.
+    - 2. Configure CloudTrail to log management events and read/write events for relevant
+      AWS services.
+    - 3. Configure CloudTrail to log data events for relevant AWS resources.
+    - 4. Enable log file validation to ensure the integrity of CloudTrail logs.
+    - 5. Configure CloudTrail to send logs to a secure and centralized location, such
+      as an S3 bucket with appropriate access controls.
+    - 6. Regularly review CloudTrail logs for potential security incidents, including
+      signs of brute force attacks.
+  is_valid: false
+  literature: The CloudTrailResource in AWS is primarily used for logging and monitoring
+    API activity across AWS services and resources. While it can provide valuable
+    audit trails and insights into potential security incidents, it does not directly
+    implement protection mechanisms against brute force attacks. Protecting against
+    brute force attacks typically involves configuring access controls, account lockout
+    policies, IP address blocking, and CAPTCHA challenges at the application or service
+    level.
+  name: CloudTrailResource
+  output_statements:
+    failure: CloudTrail is not configured to log and monitor API activity, which could
+      make it difficult to detect and respond to potential brute force attacks.
+    partial: CloudTrail is partially configured to log and monitor API activity, but
+      additional configuration may be needed to ensure comprehensive audit trails
+      for detecting potential brute force attacks.
+    success: CloudTrail is configured to log and monitor API activity, providing valuable
+      audit trails for detecting potential brute force attacks.
+  reason: The CloudTrailResource is primarily focused on logging and monitoring API
+    activity, but does not directly implement protection mechanisms against brute
+    force attacks, which typically involve configuring access controls, account lockout
+    policies, IP address blocking, and CAPTCHA challenges at the application or service
+    level.

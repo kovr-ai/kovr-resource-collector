@@ -1,0 +1,36 @@
+check:
+  resources:
+  - field_paths:
+    - users
+    - users[]
+    - users[].mfa_devices
+    - users[].mfa_devices[]
+    - users[].mfa_devices[].enable_date
+    - users[].mfa_devices[].serial_number
+    - users[].mfa_devices[].type
+    - users[].mfa_devices[].virtual_mfa_token
+    is_valid: true
+    literature: The IAMResource in AWS is applicable for implementing multi-factor
+      authentication (MFA) as it contains information about IAM users and their associated
+      MFA devices. By analyzing the 'users' and 'users[].mfa_devices' field paths,
+      you can determine which users have MFA enabled and enforce MFA for all user
+      accounts.
+    name: IAMResource
+    reason: The IAMResource contains the necessary information to identify IAM users
+      and their associated MFA devices, which is essential for implementing and enforcing
+      multi-factor authentication.
+  - field_paths:
+    - security_info.isEnrolledIn2Sv
+    - security_info.isEnforcedIn2Sv
+    is_valid: true
+    literature: The UserResource in Google Cloud represents a user account within
+      an organization. To implement multi-factor authentication (MFA) for this resource,
+      you need to leverage the security_info fields. The security_info.isEnrolledIn2Sv
+      field indicates whether the user is enrolled in Google's Two-Step Verification
+      (2SV), which is their implementation of MFA. The security_info.isEnforcedIn2Sv
+      field shows if 2SV is enforced for that user account.
+    name: UserResource
+    reason: The UserResource contains fields specifically related to multi-factor
+      authentication enrollment and enforcement, making it applicable for this security
+      check.
+  unique_id: owasp-latest-implement-multi-factor-authentication

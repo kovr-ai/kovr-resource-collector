@@ -1,0 +1,39 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-output-encoding-for-xss-prevention
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This security check is not applicable to the IAMResource in AWS.
+      To implement output encoding for XSS prevention, you need to focus on the web
+      application code and ensure that user input is properly encoded before rendering
+      it in web pages.
+    estimated_time: Varies depending on the size and complexity of the web application.
+    instructions:
+    - 1. Identify all user input sources in the web application (e.g., form fields,
+      URL parameters, cookies).
+    - 2. Implement input validation and sanitization to remove or escape any potentially
+      malicious characters or scripts.
+    - 3. Use appropriate encoding functions or libraries to encode user input before
+      rendering it in web pages.
+    - 4. Test the web application thoroughly to ensure that XSS vulnerabilities have
+      been mitigated.
+  is_valid: false
+  literature: The IAMResource in AWS does not directly relate to implementing output
+    encoding for XSS prevention. This security check is focused on ensuring that web
+    applications properly encode user input before rendering it in web pages to prevent
+    Cross-Site Scripting (XSS) attacks. The IAMResource manages Identity and Access
+    Management (IAM) policies, users, and access keys, which are not directly relevant
+    to web application security or output encoding.
+  name: IAMResource
+  output_statements:
+    failure: The web application does not properly implement output encoding, leaving
+      it vulnerable to XSS attacks.
+    partial: N/A
+    success: The web application properly implements output encoding to prevent XSS
+      attacks.
+  reason: The IAMResource in AWS is used for managing IAM policies, users, and access
+    keys, which are not directly related to implementing output encoding for XSS prevention
+    in web applications. This security check is focused on ensuring that web applications
+    properly encode user input before rendering it in web pages to prevent Cross-Site
+    Scripting (XSS) attacks.

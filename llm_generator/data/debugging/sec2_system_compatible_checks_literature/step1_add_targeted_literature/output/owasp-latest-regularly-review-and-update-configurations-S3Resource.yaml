@@ -1,0 +1,45 @@
+resource:
+  check:
+    unique_id: owasp-latest-regularly-review-and-update-configurations
+  field_paths:
+  - buckets
+  - buckets[].encryption
+  - buckets[].encryption.enabled
+  - buckets[].encryption.type
+  - buckets[].public_access_block
+  - buckets[].public_access_block.block_public_acls
+  - buckets[].public_access_block.block_public_policy
+  - buckets[].public_access_block.ignore_public_acls
+  - buckets[].public_access_block.restrict_public_buckets
+  - buckets[].versioning_status
+  fix_details:
+    automation_available: true
+    description: Review and update S3 bucket configurations to align with the latest
+      security best practices and organizational policies.
+    estimated_time: 30 minutes to 2 hours, depending on the number of S3 buckets and
+      the extent of configuration updates required.
+    instructions:
+    - Identify S3 buckets with outdated or insecure configurations based on the security
+      check findings.
+    - Update encryption settings to use the latest encryption algorithms and key management
+      practices.
+    - Ensure public access blocks are enabled and configured correctly to prevent
+      unauthorized access.
+    - Enable versioning for S3 buckets to maintain a history of object changes and
+      facilitate recovery from accidental deletions or modifications.
+    - Review and update any other relevant S3 bucket configurations, such as access
+      control lists (ACLs), bucket policies, and lifecycle rules.
+  is_valid: true
+  literature: The AWS S3 resource is applicable for implementing the OWASP check 'owasp-latest-regularly-review-and-update-configurations'.
+    S3 bucket configurations, such as encryption settings, public access controls,
+    and versioning status, should be regularly reviewed and updated to maintain a
+    secure posture. Outdated or misconfigured S3 buckets can lead to data breaches,
+    unauthorized access, or non-compliance with security standards.
+  name: S3Resource
+  output_statements:
+    failure: One or more S3 bucket configurations are outdated or insecure.
+    partial: Some S3 bucket configurations are up-to-date and secure, but others require
+      review and updates.
+    success: All S3 bucket configurations are up-to-date and secure.
+  reason: The AWS S3 resource provides configurations that should be regularly reviewed
+    and updated to maintain a secure posture, aligning with the OWASP check's objective.

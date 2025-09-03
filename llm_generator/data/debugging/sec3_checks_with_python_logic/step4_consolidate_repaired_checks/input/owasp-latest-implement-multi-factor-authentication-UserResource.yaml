@@ -1,0 +1,7 @@
+check:
+  unique_id: owasp-latest-implement-multi-factor-authentication
+resource:
+  field_path: security_info.isEnrolledIn2Sv
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    # Check if the user is enrolled in 2SV (MFA)\n    result = fetched_value"
+  name: UserResource

@@ -1,0 +1,31 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-secure-session-management
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This resource is not applicable for the given security check, and
+      no remediation is required.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The provided security check 'owasp-latest-implement-secure-session-management'
+    is focused on validating secure session management practices in web applications.
+    This includes generating unpredictable session identifiers, protecting session
+    data from tampering, setting appropriate session timeouts, and invalidating sessions
+    after logout or inactivity. However, the provided AWS S3 resource is an object
+    storage service and does not directly handle user sessions or web application
+    functionality.
+  name: S3Resource
+  output_statements:
+    failure: This resource is not applicable for the 'owasp-latest-implement-secure-session-management'
+      security check.
+    partial: This resource is not applicable for the 'owasp-latest-implement-secure-session-management'
+      security check.
+    success: This resource is not applicable for the 'owasp-latest-implement-secure-session-management'
+      security check.
+  reason: The AWS S3 resource is an object storage service and does not directly handle
+    user sessions or web application functionality. Therefore, it is not applicable
+    for implementing the 'owasp-latest-implement-secure-session-management' security
+    check, which is focused on validating secure session management practices in web
+    applications.

@@ -1,0 +1,11 @@
+check:
+  unique_id: owasp-latest-regularly-review-and-update-security-procedures
+resource:
+  field_path: policies[*].default_version.Document.Statement[*].Action
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    for actions in fetched_value:\n        if isinstance(actions, list):\n  \
+    \          for action in actions:\n                if action.startswith('iam:'):\n\
+    \                    result = True\n                    break\n        elif isinstance(actions,\
+    \ str):\n            if actions.startswith('iam:'):\n                result =\
+    \ True\n                break"
+  name: IAMResource

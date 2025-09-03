@@ -1,0 +1,45 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-secure-software-supply-chain-practices
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To implement secure software supply chain practices, organizations
+      should consider adopting a comprehensive approach that involves various tools,
+      processes, and controls across different stages of the software development
+      lifecycle.
+    estimated_time: Implementing secure software supply chain practices is an ongoing
+      effort that requires significant planning, resources, and time commitment.
+    instructions:
+    - Implement secure coding practices and code analysis tools during the development
+      phase.
+    - Establish secure build and deployment processes, including artifact signing
+      and verification.
+    - Implement secure configuration management and version control systems.
+    - Implement continuous integration and continuous deployment (CI/CD) pipelines
+      with security checks and approvals.
+    - Implement monitoring and incident response processes to detect and respond to
+      supply chain threats.
+    - Conduct regular security assessments and audits of the software supply chain
+      processes and controls.
+  is_valid: false
+  literature: The AWS S3 resource is primarily a storage service and does not directly
+    relate to implementing secure software supply chain practices. While S3 can be
+    used to store artifacts and components as part of a software supply chain, it
+    does not provide specific controls or features for securing the entire software
+    supply chain lifecycle. Secure software supply chain practices involve implementing
+    processes and controls across various stages, including development, testing,
+    build, deployment, and monitoring.
+  name: S3Resource
+  output_statements:
+    failure: The AWS S3 resource is not directly applicable for implementing secure
+      software supply chain practices.
+    partial: The AWS S3 resource is not directly applicable for implementing secure
+      software supply chain practices.
+    success: The AWS S3 resource is not directly applicable for implementing secure
+      software supply chain practices.
+  reason: The AWS S3 resource is a storage service and does not directly address the
+    security check for implementing secure software supply chain practices. While
+    S3 can be used as part of a software supply chain, it does not provide comprehensive
+    controls or features specifically designed for securing the entire software supply
+    chain lifecycle.

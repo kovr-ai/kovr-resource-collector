@@ -1,0 +1,41 @@
+resource:
+  check:
+    unique_id: owasp-latest-conduct-regular-security-testing
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To fully implement this security check, you need to establish a comprehensive
+      security testing program that includes regular penetration testing, vulnerability
+      assessments, and code reviews.
+    estimated_time: Varies based on the size and complexity of your organization and
+      applications.
+    instructions:
+    - Identify and engage with qualified security testing providers or build an internal
+      security testing team.
+    - Define the scope, frequency, and types of security testing activities to be
+      performed.
+    - Develop and implement processes for remediating identified vulnerabilities and
+      tracking remediation progress.
+    - Integrate security testing activities into your software development lifecycle
+      and infrastructure management processes.
+    - Continuously monitor and review the effectiveness of your security testing program,
+      and make adjustments as needed.
+  is_valid: false
+  literature: The AWS CloudWatch resource is primarily used for monitoring and observability
+    purposes, such as creating alarms, dashboards, and log groups. While it can be
+    used to set up monitoring and alerting for security-related events, it does not
+    directly facilitate regular security testing activities like penetration testing,
+    vulnerability assessments, or code reviews. Therefore, this resource is not directly
+    applicable for implementing the 'owasp-latest-conduct-regular-security-testing'
+    security check.
+  name: CloudWatchResource
+  output_statements:
+    failure: CloudWatch is not configured to support regular security testing activities,
+      such as penetration testing, vulnerability assessments, or code reviews.
+    partial: CloudWatch is monitoring and alerting on some security-related events,
+      but regular security testing activities are not being performed.
+    success: CloudWatch is configured to monitor and alert on security-related events,
+      and regular security testing activities are being performed.
+  reason: The CloudWatch resource is focused on monitoring and observability, but
+    does not directly support conducting regular security testing activities as required
+    by the security check.

@@ -1,0 +1,35 @@
+check:
+  name: owasp-latest-monitor-for-suspicious-activities
+  resource:
+    field_path: alarms[*].alarm_actions
+    fix_details:
+      automation_available: true
+      description: To fully implement the 'owasp-latest-monitor-for-suspicious-activities'
+        security check using AWS CloudWatch, you need to configure CloudWatch alarms
+        and log monitoring to detect and alert on suspicious activities.
+      estimated_time: 1-2 hours
+      instructions:
+      - 1. Identify the AWS resources and applications that need to be monitored for
+        suspicious activities.
+      - 2. Define the metrics and log events that indicate suspicious activities for
+        each resource or application.
+      - 3. Create CloudWatch alarms with appropriate thresholds and alarm actions
+        (e.g., sending notifications, triggering AWS Lambda functions) for the identified
+        metrics.
+      - 4. Configure CloudWatch log monitoring and metric filters to capture and analyze
+        relevant log events for suspicious activities.
+      - 5. Set up alarm notifications and response procedures to investigate and mitigate
+        any detected suspicious activities.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for alarm_actions in fetched_value:\n        for action in alarm_actions:\n\
+      \            if action.startswith('arn:aws:sns:'):\n                result =\
+      \ True\n                break"
+    name: CloudWatchResource
+    output_statements:
+      failure: CloudWatch alarms and log monitoring are not configured to detect and
+        alert on suspicious activities across AWS resources and applications.
+      partial: CloudWatch alarms and log monitoring are partially configured to detect
+        and alert on suspicious activities across AWS resources and applications.
+      success: CloudWatch alarms and log monitoring are configured to detect and alert
+        on suspicious activities across AWS resources and applications.
+  unique_id: owasp-latest-monitor-for-suspicious-activities

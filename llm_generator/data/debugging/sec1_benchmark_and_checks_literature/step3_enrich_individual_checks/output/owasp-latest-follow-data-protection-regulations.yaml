@@ -1,0 +1,39 @@
+check:
+  benchmarks:
+  - confidence: 0.7
+    reason: Data protection regulations aim to prevent unauthorized access and misuse
+      of sensitive data, which can occur through techniques like accessing data from
+      cloud storage objects.
+    unique_id: MITRE-ATT&CK-T1530
+  - confidence: 0.6
+    reason: Data protection regulations often require organizations to implement measures
+      to prevent data breaches, which can be caused by techniques like data from information
+      repositories.
+    unique_id: MITRE-ATT&CK-T1213
+  category: access_control
+  controls:
+  - confidence: 0.9
+    reason: This control focuses on the protection of information at rest, which is
+      directly relevant to ensuring compliance with data protection regulations.
+    unique_id: NIST-800-53-SC-28
+  - confidence: 0.8
+    reason: This control addresses the protection of privacy and personal information,
+      which is a key aspect of data protection regulations.
+    unique_id: ISO-27001-A.18.1.4
+  literature: The 'owasp-latest-follow-data-protection-regulations' check is designed
+    to ensure that organizations comply with relevant data protection regulations
+    and industry standards when handling sensitive information. Data protection regulations,
+    such as the General Data Protection Regulation (GDPR) and the California Consumer
+    Privacy Act (CCPA), impose strict requirements on how organizations collect, process,
+    store, and transfer personal data. Failure to comply with these regulations can
+    result in significant fines and reputational damage. This check helps organizations
+    identify potential areas of non-compliance and take appropriate measures to protect
+    sensitive data and maintain regulatory compliance.
+  severity: high
+  tags:
+  - data_protection
+  - compliance
+  - privacy
+  - gdpr
+  - ccpa
+  unique_id: owasp-latest-follow-data-protection-regulations

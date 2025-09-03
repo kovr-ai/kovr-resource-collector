@@ -1,0 +1,35 @@
+check:
+  name: owasp-latest-regularly-review-and-update-security-procedures
+  resource:
+    field_path: policies[*].default_version.Document.Statement[*].Action
+    fix_details:
+      automation_available: true
+      description: Review and update IAM policies to ensure they align with the latest
+        security best practices, address emerging threats, and comply with regulatory
+        requirements.
+      estimated_time: 1-2 hours for initial review and update, with ongoing maintenance
+        as needed
+      instructions:
+      - Identify all IAM policies and their associated resources
+      - Review each policy's permissions, conditions, and resource access to identify
+        potential security risks or outdated configurations
+      - Update or remove policies as needed to address identified issues and align
+        with the latest security best practices
+      - Implement a regular review and update process for IAM policies to ensure ongoing
+        security and compliance
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for actions in fetched_value:\n        if isinstance(actions, list):\n\
+      \            for action in actions:\n                if action.startswith('iam:'):\n\
+      \                    result = True\n                    break\n        elif\
+      \ isinstance(actions, str):\n            if actions.startswith('iam:'):\n  \
+      \              result = True\n                break"
+    name: IAMResource
+    output_statements:
+      failure: IAM policies have not been reviewed or updated in a timely manner,
+        potentially exposing the organization to security risks and compliance violations.
+      partial: Some IAM policies have been reviewed and updated, but others may still
+        require attention to ensure a comprehensive and up-to-date security posture.
+      success: IAM policies have been reviewed and updated to align with the latest
+        security best practices, address emerging threats, and comply with regulatory
+        requirements.
+  unique_id: owasp-latest-regularly-review-and-update-security-procedures

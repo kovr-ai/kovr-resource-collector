@@ -1,0 +1,32 @@
+check:
+  name: owasp-latest-implement-proper-access-control-mechanisms
+  resource:
+    field_path: trails[].event_selectors[].data_resources.values[]
+    fix_details:
+      automation_available: true
+      description: To ensure proper access control monitoring and enforcement, CloudTrail
+        should be configured to log all relevant API calls and events, including management
+        events and data events for specific resources.
+      estimated_time: 30 minutes to 1 hour
+      instructions:
+      - Review the current CloudTrail trail configurations and event selectors to
+        identify any gaps in logging coverage.
+      - Update the event selectors to include all necessary data resources and management
+        events relevant to your organization's access control policies.
+      - Ensure that the CloudTrail trail is configured to log events across all required
+        AWS regions and services.
+      - Set up appropriate log monitoring and analysis mechanisms to detect and respond
+        to potential access control violations or unauthorized activities.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for value in fetched_value:\n        if value == 'arn:aws:s3:::':\n   \
+      \         result = True\n            break"
+    name: CloudTrailResource
+    output_statements:
+      failure: CloudTrail is not configured to log relevant API calls and events,
+        hindering the ability to monitor and enforce access control mechanisms effectively.
+      partial: CloudTrail is partially configured to log API calls and events, but
+        some critical events or resources may not be covered, potentially leaving
+        gaps in access control monitoring and enforcement.
+      success: CloudTrail is configured to log all relevant API calls and events,
+        enabling effective monitoring and auditing of access control mechanisms.
+  unique_id: owasp-latest-implement-proper-access-control-mechanisms

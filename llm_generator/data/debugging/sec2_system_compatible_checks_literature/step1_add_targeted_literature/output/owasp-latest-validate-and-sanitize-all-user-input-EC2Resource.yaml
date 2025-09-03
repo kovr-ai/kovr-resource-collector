@@ -1,0 +1,33 @@
+resource:
+  check:
+    unique_id: owasp-latest-validate-and-sanitize-all-user-input
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This security check is not directly applicable to the EC2Resource.
+      However, if you are running applications on EC2 instances that accept user input,
+      you should implement input validation and sanitization within those applications.
+    estimated_time: Varies depending on the complexity of your applications
+    instructions:
+    - Identify all sources of user input in your applications (e.g., web forms, API
+      endpoints, file uploads)
+    - Implement input validation and sanitization mechanisms for each input source
+    - Use secure coding practices and input validation libraries/frameworks
+    - Test your input validation and sanitization mechanisms thoroughly
+  is_valid: false
+  literature: The EC2Resource in AWS does not directly handle user input validation
+    and sanitization. This security check is primarily applicable to application resources
+    that accept and process user input, such as web servers, APIs, or databases. The
+    EC2Resource represents Amazon Elastic Compute Cloud (EC2) instances, which are
+    virtual servers used to run applications, but it does not inherently handle user
+    input.
+  name: EC2Resource
+  output_statements:
+    failure: User input is not being properly validated and sanitized, leaving the
+      system vulnerable to injection attacks and other input-related vulnerabilities.
+    partial: Some user input is being validated and sanitized, but not all input sources
+      are covered.
+    success: All user input is properly validated and sanitized before processing.
+  reason: The EC2Resource does not directly handle user input validation and sanitization.
+    This security check is more relevant for application resources that accept and
+    process user input, rather than infrastructure resources like EC2 instances.

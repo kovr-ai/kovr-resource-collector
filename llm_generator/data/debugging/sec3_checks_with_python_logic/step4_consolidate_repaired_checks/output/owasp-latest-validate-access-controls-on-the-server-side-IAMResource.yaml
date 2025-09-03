@@ -1,0 +1,41 @@
+check:
+  name: owasp-latest-validate-access-controls-on-the-server-side
+  resource:
+    field_path: policies[].default_version.Document.Statement
+    fix_details:
+      automation_available: true
+      description: If the check fails or partially passes, it indicates that the access
+        controls defined in IAM policies need to be reviewed and updated to follow
+        best practices.
+      estimated_time: 1-2 hours
+      instructions:
+      - Review the IAM policies and their statements to identify any overly permissive
+        or insecure access controls.
+      - Update the policies to follow the principle of least privilege, granting only
+        the necessary permissions required for specific tasks or roles.
+      - Implement conditions and resource constraints to further restrict access based
+        on specific criteria, such as IP addresses, time ranges, or resource tags.
+      - Review and rotate access keys regularly to mitigate the risk of unauthorized
+        access.
+      - Implement multi-factor authentication (MFA) for privileged user accounts to
+        add an extra layer of security.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for statement in fetched_value:\n        if hasattr(statement, 'Effect')\
+      \ and statement.Effect == 'Allow':\n            condition = getattr(statement,\
+      \ 'Condition', None)\n            if condition is None:\n                result\
+      \ = False\n                break\n            else:\n                resource\
+      \ = getattr(statement, 'Resource', None)\n                action = getattr(statement,\
+      \ 'Action', None)\n                if resource and action:\n               \
+      \     if '*' in resource or '*' in action:\n                        result =\
+      \ False\n                        break\n                    else:\n        \
+      \                result = True\n                else:\n                    result\
+      \ = False\n                    break"
+    name: IAMResource
+    output_statements:
+      failure: Access controls defined in IAM policies are not properly implemented
+        or violate best practices.
+      partial: Some access controls defined in IAM policies are properly implemented,
+        but others require attention.
+      success: Access controls defined in IAM policies are properly implemented and
+        follow best practices.
+  unique_id: owasp-latest-validate-access-controls-on-the-server-side

@@ -1,0 +1,53 @@
+resource:
+  check:
+    unique_id: owasp-latest-validate-access-controls-on-the-server-side
+  field_paths:
+  - admin_info.isAdmin
+  - admin_info.isDelegatedAdmin
+  - basic_info.customerId
+  - basic_info.id
+  - basic_info.primaryEmail
+  - contact_info.emails
+  - contact_info.phones
+  - organizational_info.orgUnitPath
+  - security_info.isEnforcedIn2Sv
+  - security_info.isEnrolledIn2Sv
+  fix_details:
+    automation_available: true
+    description: If the check fails or partially passes, it indicates that access
+      controls for the UserResource are not properly implemented on the server-side.
+      This could lead to unauthorized access, data breaches, and other security vulnerabilities.
+    estimated_time: 1-2 hours
+    instructions:
+    - Review and update server-side access control mechanisms to ensure that only
+      authorized users or entities can access and perform specific actions on protected
+      user data.
+    - Implement role-based access controls (RBAC) based on the user's administrative
+      privileges, organizational unit, and security settings.
+    - Validate user identities and permissions before allowing access to sensitive
+      user data or performing critical operations.
+    - Regularly review and audit access control policies and configurations to identify
+      and mitigate any potential vulnerabilities.
+  is_valid: true
+  literature: The 'owasp-latest-validate-access-controls-on-the-server-side' check
+    is designed to validate that access controls are properly implemented on the server-side
+    for the Google UserResource. This resource contains information about a user's
+    account, including administrative privileges, contact details, and security settings.
+    Proper access controls are crucial to ensure that only authorized users or entities
+    can access and modify sensitive user data.
+  name: UserResource
+  output_statements:
+    failure: Access controls for the UserResource are not properly implemented on
+      the server-side, allowing unauthorized users to access or modify sensitive user
+      data.
+    partial: Access controls for the UserResource are partially implemented on the
+      server-side, but some issues were identified that could allow unauthorized access
+      or modification of user data.
+    success: Access controls for the UserResource are properly implemented on the
+      server-side, ensuring that only authorized users can access and modify user
+      data based on their assigned roles and permissions.
+  reason: The UserResource contains fields related to user privileges, identities,
+    and security settings, which are essential for implementing proper access controls
+    on the server-side. By validating these fields, the security check can ensure
+    that only authorized users can access and modify user data based on their assigned
+    roles and permissions.

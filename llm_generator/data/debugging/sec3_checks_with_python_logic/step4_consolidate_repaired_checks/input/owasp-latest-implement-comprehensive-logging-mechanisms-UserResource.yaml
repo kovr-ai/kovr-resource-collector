@@ -1,0 +1,8 @@
+check:
+  unique_id: owasp-latest-implement-comprehensive-logging-mechanisms
+resource:
+  field_path: security_info.isEnrolledIn2Sv
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    # Implement comprehensive logging for user security events\n    if fetched_value:\n\
+    \        result = True\n    else:\n        result = False"
+  name: UserResource

@@ -1,0 +1,665 @@
+# Resources configuration file
+# Defines resource structures for different providers
+
+github:
+  info_data:
+    repositories[]:
+      name: "string"
+      url: "string"
+      default_branch_name: "string"
+
+  resources:
+    GithubResource:
+      id: "string"  # Repository name to be used as ID for easy identification
+      repository_data:
+        basic_info:
+          id: "integer"
+          name: "string"
+          full_name: "string"
+          description: "string"
+          private: "boolean"
+          owner: "string"
+          html_url: "string"
+          clone_url: "string"
+          ssh_url: "string"
+          size: "integer"
+          language: "string"
+          created_at: "string"
+          updated_at: "string"
+          pushed_at: "string"
+          stargazers_count: "integer"
+          watchers_count: "integer"
+          forks_count: "integer"
+          open_issues_count: "integer"
+          archived: "boolean"
+          disabled: "boolean"
+        metadata:
+          default_branch: "string"
+          topics[]: "string"
+          has_issues: "boolean"
+          has_projects: "boolean"
+          has_wiki: "boolean"
+          has_pages: "boolean"
+          has_downloads: "boolean"
+          has_discussions: "boolean"
+          is_template: "boolean"
+          license:
+            name: "string"
+            key: "string"
+          visibility: "string"
+          allow_forking: "boolean"
+          web_commit_signoff_required: "boolean"
+        branches[]:
+          name: "string"
+          sha: "string"
+          protected: "boolean"
+          protection_details:
+            required_status_checks: "boolean"
+            enforce_admins: "boolean"
+            required_pull_request_reviews: "boolean"
+            restrictions: "object"
+        statistics:
+          total_commits: "integer"
+          contributors_count: "integer"
+          languages:
+            Python: "integer"
+            JavaScript: "integer"
+            TypeScript: "integer"
+            Shell: "integer"
+            HTML: "integer"
+          code_frequency[]:
+            timestamp: "integer"
+            additions: "integer"
+            deletions: "integer"
+
+      actions_data:
+        workflows:
+          id: "integer"
+          name: "string"
+          path: "string"
+          state: "string"
+          created_at: "string"
+          updated_at: "string"
+          url: "string"
+          html_url: "string"
+          badge_url: "string"
+          recent_runs[]:
+            id: "integer"
+            name: "string"
+            head_branch: "string"
+            head_sha: "string"
+            status: "string"
+            conclusion: "string"
+            created_at: "string"
+            updated_at: "string"
+            run_number: "integer"
+            run_attempt: "integer"
+        total_workflows: "integer"
+        active_workflows: "integer"
+        recent_runs_count: "integer"
+
+      collaboration_data:
+        issues[]:
+          number: "integer"
+          title: "string"
+          state: "string"
+          user: "string"
+          created_at: "string"
+          updated_at: "string"
+          closed_at: "string"
+          labels[]: "string"
+          assignees[]: "string"
+          comments_count: "integer"
+          is_pull_request: "boolean"
+        pull_requests[]:
+          number: "integer"
+          title: "string"
+          state: "string"
+          user: "string"
+          created_at: "string"
+          updated_at: "string"
+          closed_at: "string"
+          merged_at: "string"
+          base_branch: "string"
+        collaborators[]:
+          login: "string"
+          permissions:
+            admin: "boolean"
+            maintain: "boolean"
+            push: "boolean"
+            pull: "boolean"
+            triage: "boolean"
+          role_name: "string"
+        total_issues: "integer"
+        open_issues: "integer"
+        closed_issues: "integer"
+        total_pull_requests: "integer"
+        open_pull_requests: "integer"
+        merged_pull_requests: "integer"
+        draft_pull_requests: "integer"
+        total_collaborators: "integer"
+
+      security_data:
+        security_advisories:
+          error: "string"
+          advisories[]:
+            id: "string"
+            severity: "string"
+            summary: "string"
+            published_at: "string"
+            updated_at: "string"
+            withdrawn_at: "string"
+            vulnerabilities:
+              package: "string"
+              severity: "string"
+              vulnerable_version_range: "string"
+              first_patched_version: "string"
+        vulnerability_alerts:
+          enabled: "boolean"
+          dependabot_alerts[]:
+            number: "integer"
+            state: "string"
+            severity: "string"
+            package: "string"
+            created_at: "string"
+            updated_at: "string"
+          error: "string"
+        dependency_graph:
+          has_vulnerability_alerts_enabled: "boolean"
+          security_and_analysis:
+            advanced_security: "string"
+            secret_scanning: "string"
+            secret_scanning_push_protection: "string"
+        security_analysis:
+          advanced_security_enabled: "boolean"
+          secret_scanning_enabled: "boolean"
+          push_protection_enabled: "boolean"
+          dependency_review_enabled: "boolean"
+        code_scanning_alerts:
+          error: "string"
+          alerts[]:
+            number: "integer"
+            state: "string"
+            dismissed_by:
+              login: "string"
+              id: "integer"
+              type: "string"
+            dismissed_at: "string"
+            dismissed_reason: "string"
+            rule:
+              id: "string"
+              severity: "string"
+              description: "string"
+        total_advisories: "integer"
+        total_dependabot_alerts: "integer"
+        total_code_scanning_alerts: "integer"
+        security_features_enabled: "integer"
+
+      organization_data:
+        members[]:
+          login: "string"
+          id: "integer"
+          type: "string"
+          site_admin: "boolean"
+          role: "string"
+        teams[]:
+          id: "integer"
+          name: "string"
+          slug: "string"
+          description: "string"
+          privacy: "string"
+          permission: "string"
+        outside_collaborators[]:
+          login: "string"
+          id: "integer"
+          type: "string"
+          permissions:
+            admin: "boolean"
+            maintain: "boolean"
+            push: "boolean"
+            pull: "boolean"
+        total_members: "integer"
+        total_teams: "integer"
+        total_outside_collaborators: "integer"
+        admin_members: "integer"
+        members_error: "string"
+        teams_error: "string"
+        collaborators_error: "string"
+
+      advanced_features_data:
+        tags[]:
+          name: "string"
+          commit_sha: "string"
+          commit_date: "string"
+          message: "string"
+        webhooks[]:
+          id: "integer"
+          name: "string"
+          active: "boolean"
+          events[]: "string"
+          config:
+            url: "string"
+            content_type: "string"
+            insecure_ssl: "string"
+            secret: "string"
+        total_tags: "integer"
+        total_webhooks: "integer"
+        active_webhooks: "integer"
+        tags_error: "string"
+        webhooks_error: "string"
+
+  resource_collection:
+    resources[]:
+      - "github.resources.GithubResource"
+    source_connector: "string"
+    total_count: "integer"
+    fetched_at: "string"
+
+aws:
+  info_data:
+    accounts[]:
+      account_name: "string"
+      account_id: "string"
+
+  resources:
+    EC2Resource:
+      id: "string"  # To be used as ID for easy identification
+      region: "string"
+      account:
+        limits:
+          supported-platforms: "string"
+          vpc-max-security-groups-per-interface: "string"
+          max-elastic-ips: "string"
+          max-instances: "string"
+          vpc-max-elastic-ips: "string"
+          default-vpc: "string"
+        reserved_instances[]:
+          id: "string"
+          instance_type: "string"
+          availability_zone: "string"
+          state: "string"
+          instance_count: "integer"
+          platform: "string"
+        spot_instances[]:
+          id: "string"
+          instance_type: "string"
+          state: "string"
+          availability_zone: "string"
+          spot_price: "string"
+          launch_time: "string"
+      instances[]:
+        id: "string"  # Instance ID
+        instance_type: "string"
+        state: "string"
+        private_ip_address: "string"
+        public_ip_address: "string"
+        launch_time: "string"
+        image_id: "string"
+        vpc_id: "string"
+        subnet_id: "string"
+        availability_zone: "string"
+        key_name: "string"
+        platform: "string"
+        monitoring: "string"
+        iam_instance_profile:
+          Arn: "string"
+          Id: "string"
+        ebs_optimized: "boolean"
+        instance_lifecycle: "string"
+        security_groups[]: "string"
+        network_interfaces[]: "string"
+        block_device_mappings[]:
+          device_name: "string"
+          ebs:
+            volume_id: "string"
+            status: "string"
+            attach_time: "string"
+            delete_on_termination: "boolean"
+      security_groups:
+        group_name: "string"
+        description: "string"
+        vpc_id: "string"
+        inbound_rules[]:
+          protocol: "string"
+          from_port: "integer"
+          to_port: "integer"
+          cidr: "string"
+          description: "string"
+          source_groups:
+            group_id: "string"
+            group_name: "string"
+        outbound_rules[]:
+          protocol: "string"
+          from_port: "integer"
+          to_port: "integer"
+          cidr: "string"
+          description: "string"
+          destination_groups:
+            group_id: "string"
+            group_name: "string"
+      vpcs[]:
+        id: "string"  # VPC ID
+        cidr_block: "string"
+        state: "string"
+        dhcp_options_id: "string"
+        instance_tenancy: "string"
+        is_default: "boolean"
+        cidr_block_association_set[]:
+          association_id: "string"
+          cidr_block: "string"
+          state: "string"
+      subnets[]:
+        vpc_id: "string"
+        availability_zone: "string"
+        availability_zone_id: "string"
+        cidr_block: "string"
+        state: "string"
+        map_public_ip_on_launch: "boolean"
+        available_ip_address_count: "integer"
+      route_tables[]:
+        vpc_id: "string"
+        routes[]:
+          destination_cidr_block: "string"
+          gateway_id: "string"
+          instance_id: "string"
+          state: "string"
+          origin: "string"
+        associations[]:
+          route_table_id: "string"
+          subnet_id: "string"
+          main: "boolean"
+          association_state:
+            state: "string"
+            status_message: "string"
+      nat_gateways[]:
+        state: "string"
+        subnet_id: "string"
+        vpc_id: "string"
+        create_time: "string"
+        delete_time: "string"
+        connectivity_type: "string"
+        public_ip: "string"
+        private_ip: "string"
+      elastic_ips[]:
+        public_ip: "string"
+        domain: "string"
+        instance_id: "string"
+        network_interface_id: "string"
+        private_ip_address: "string"
+      key_pairs[]:
+        key_fingerprint: "string"
+        key_type: "string"
+        public_key: "string"
+        create_time: "string"
+      snapshots[]:
+        volume_id: "string"
+        volume_size: "integer"
+        state: "string"
+        start_time: "string"
+        progress: "string"
+        encrypted: "boolean"
+        owner_id: "string"
+        description: "string"
+      volumes[]:
+        size: "integer"
+        volume_type: "string"
+        state: "string"
+        availability_zone: "string"
+        create_time: "string"
+        encrypted: "boolean"
+        iops: "integer"
+        throughput: "integer"
+        multi_attach_enabled: "boolean"
+      network_interfaces[]:
+        subnet_id: "string"
+        vpc_id: "string"
+        availability_zone: "string"
+        description: "string"
+        interface_type: "string"
+        private_ip_address: "string"
+        private_dns_name: "string"
+        source_dest_check: "boolean"
+        status: "string"
+        mac_address: "string"
+        security_groups[]:
+          group_id: "string"
+          group_name: "string"
+      internet_gateways[]:
+        state: "string"
+        attachments[]:
+          vpc_id: "string"
+          state: "string"
+
+    IAMResource:
+      id: "string"  # To be used as ID for easy identification
+      users[]:
+        id: "string"  # User ID
+        arn: "string"
+        user_id: "string"
+        create_date: "string"
+        path: "string"
+        access_keys[]:
+          id: "string"
+          status: "string"
+          create_date: "string"
+          last_used_date: "string"
+          last_used_service: "string"
+          last_used_region: "string"
+        mfa_devices[]:
+          serial_number: "string"
+          enable_date: "string"
+          type: "string"
+          virtual_mfa_token: "string"
+      policies[]:
+        id: "string"  # Policy ID
+        policy_name: "string"
+        policy_id: "string"
+        create_date: "string"
+        update_date: "string"
+        path: "string"
+        default_version_id: "string"
+        attachment_count: "integer"
+        default_version:
+          Document:
+            Version: "string"
+            Statement[]:
+              Effect: "string"
+              Action[]: "string"
+              Resource: "string"
+              Condition: "object"
+          VersionId: "string"
+          IsDefaultVersion: "boolean"
+#          CreateDate: "string"
+
+    S3Resource:
+      id: "string"  # To be used as ID for easy identification
+      buckets[]:
+        id: "string"  # Bucket ID
+        name: "string"
+        creation_date: "string"
+        region: "string"
+        versioning_status: "string"  # Single status per bucket
+        logging_enabled: "boolean"
+        website_enabled: "boolean"
+        encryption:
+          enabled: "boolean"
+          type: "string"
+          kms_key_id: "string"
+        public_access_block:
+          block_public_acls: "boolean"
+          block_public_policy: "boolean"
+          ignore_public_acls: "boolean"
+          restrict_public_buckets: "boolean"
+
+    CloudTrailResource:
+      id: "string"  # To be used as ID for easy identification
+      trails[]:
+        id: "string"  # Trail ID
+        name: "string"
+        s3_bucket_name: "string"
+        s3_key_prefix: "string"
+        include_global_service_events: "boolean"
+        is_multi_region_trail: "boolean"
+        enable_log_file_validation: "boolean"
+        event_selectors[]:
+          read_write_type: "string"
+          include_management_events: "boolean"
+          data_resources:
+            type: "string"
+            values[]: "string"
+        insight_selectors[]:
+          insight_type: "string"
+        is_logging: "boolean"
+        kms_key_id: "string"
+        log_file_validation_enabled: "boolean"
+        tags[]:
+          key: "string"
+          value: "string"
+      event_selectors[]:  # Add event_selectors at resource level
+        read_write_type: "string"
+        include_management_events: "boolean"
+        data_resources:
+          type: "string"
+          values[]: "string"
+
+    CloudWatchResource:
+      id: "string"  # To be used as ID for easy identification
+      log_groups[]:
+        id: "string"
+        log_group_name: "string"
+        creation_time: "integer"
+        retention_in_days: "integer"
+        metric_filter_count: "integer"
+        arn: "string"
+        stored_bytes: "integer"
+        kms_key_id: "string"
+      metrics[]:
+        namespace: "string"
+        metric_name: "string"
+        dimensions[]:
+          Name: "string"
+          Value: "string"
+      alarms[]:
+        alarm_name: "string"
+        alarm_description: "string"
+        actions_enabled: "boolean"
+        ok_actions[]: "string"
+        alarm_actions[]: "string"
+        insufficient_data_actions[]: "string"
+        state_value: "string"
+        state_reason: "string"
+        state_updated_timestamp: "string"
+        metric_name: "string"
+        namespace: "string"
+        statistic: "string"
+        dimensions[]:
+          Name: "string"
+          Value: "string"
+        period: "integer"
+        evaluation_periods: "integer"
+        threshold: "number"
+        comparison_operator: "string"
+      dashboards[]:
+        dashboard_name: "string"
+        dashboard_arn: "string"
+        dashboard_body: "string"
+        size: "integer"
+#        last_modified: "string"
+
+  resource_collection:
+    resources[]:
+      - "aws.resources.EC2Resource"
+      - "aws.resources.IAMResource"
+      - "aws.resources.S3Resource"
+      - "aws.resources.CloudTrailResource"
+      - "aws.resources.CloudWatchResource"
+    source_connector: "string"
+    total_count: "integer"
+    fetched_at: "string"
+
+google:
+  info_data:
+    account_id: "string"
+    users[]:
+      id: "string"
+      name: "string"
+      email: "string"
+    groups[]:
+      id: "string"
+      name: "string"
+      email: "string"
+
+  resources:
+    # Google Workspace User Resource
+    UserResource:
+      user_id: "string"
+      basic_info:
+        kind: "string"
+        id: "string"
+        etag: "string"
+        primaryEmail: "string"
+        customerId: "string"
+        lastLoginTime: "string"
+        creationTime: "string"
+        agreedToTerms: "boolean"
+        suspended: "boolean"
+        archived: "boolean"
+        changePasswordAtNextLogin: "boolean"
+        ipWhitelisted: "boolean"
+        isMailboxSetup: "boolean"
+        includeInGlobalAddressList: "boolean"
+      name:
+        givenName: "string"
+        familyName: "string"
+        fullName: "string"
+      admin_info:
+        isAdmin: "boolean"
+        isDelegatedAdmin: "boolean"
+      security_info:
+        isEnrolledIn2Sv: "boolean"
+        isEnforcedIn2Sv: "boolean"
+      organizational_info:
+        orgUnitPath: "string"
+      contact_info:
+        emails[]:
+          address: "string"
+          type: "string"
+          primary: "boolean"
+          customType: "string"
+        phones[]:
+          value: "string"
+          type: "string"
+        recoveryEmail: "string"
+        recoveryPhone: "string"
+      profile_info:
+        languages[]:
+          languageCode: "string"
+          preference: "string"
+        thumbnailPhotoUrl: "string"
+        thumbnailPhotoEtag: "string"
+      aliases:
+        nonEditableAliases[]: "string"
+
+    # Google Workspace Group Resource
+    GroupResource:
+      group_id: "string"
+      basic_info:
+        kind: "string"
+        id: "string"
+        etag: "string"
+        email: "string"
+        name: "string"
+        description: "string"
+        adminCreated: "boolean"
+      membership_info:
+        directMembersCount: "string"
+      aliases:
+        nonEditableAliases: "array"
+
+  resource_collection:
+    resources[]:
+      - "aws.resources.UserResource"
+      - "aws.resources.GroupResource"
+    source_connector: "string"
+    total_count: "integer"
+    fetched_at: "string"

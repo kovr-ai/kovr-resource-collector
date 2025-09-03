@@ -1,0 +1,34 @@
+resource:
+  check:
+    unique_id: owasp-latest-follow-security-hardening-guidelines
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To implement this security check, you need to review and apply the
+      relevant OWASP security hardening guidelines for your web application or system.
+    estimated_time: Varies depending on the complexity of the system and the number
+      of hardening measures required.
+    instructions:
+    - Identify the components and technologies used in your web application or system.
+    - Review the OWASP security hardening guidelines specific to those components
+      and technologies.
+    - Implement the recommended security hardening measures, such as configuration
+      changes, software updates, and security controls.
+    - Regularly monitor and update your system to ensure compliance with the latest
+      OWASP security hardening guidelines.
+  is_valid: false
+  literature: The OWASP security hardening guidelines provide best practices for securing
+    web applications and systems. However, the provided resource 'UserResource' appears
+    to be related to user management and does not directly address system hardening
+    or web application security. Therefore, this resource is not applicable for implementing
+    the 'owasp-latest-follow-security-hardening-guidelines' security check.
+  name: UserResource
+  output_statements:
+    failure: The system does not follow the latest OWASP security hardening guidelines,
+      leaving it vulnerable to potential security risks and threats.
+    partial: N/A
+    success: The system follows the latest OWASP security hardening guidelines, mitigating
+      various security risks and protecting against known vulnerabilities and threats.
+  reason: The 'UserResource' is focused on user management and does not contain information
+    related to system hardening or web application security best practices as outlined
+    in the OWASP security hardening guidelines.

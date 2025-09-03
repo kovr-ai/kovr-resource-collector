@@ -1,0 +1,27 @@
+check:
+  name: owasp-latest-implement-encryption-for-data-in-transit
+  resource:
+    field_path: buckets[].encryption.enabled
+    fix_details:
+      automation_available: true
+      description: For S3 buckets that do not have encryption for data in transit
+        enabled, the encryption settings need to be updated.
+      estimated_time: 5-10 minutes per bucket
+      instructions:
+      - 1. Open the AWS Management Console and navigate to the S3 service.
+      - 2. Select the bucket that needs encryption for data in transit enabled.
+      - 3. Go to the 'Properties' tab and click on 'Default encryption'.
+      - 4. Enable 'AWS-managed key (SSE-S3)' or 'AWS Key Management Service key (SSE-KMS)'
+        encryption.
+      - 5. Save the changes to apply the encryption settings.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for bucket_encryption in fetched_value:\n        if bucket_encryption and\
+      \ bucket_encryption.enabled:\n            result = True\n            break"
+    name: S3Resource
+    output_statements:
+      failure: One or more S3 buckets do not have encryption for data in transit enabled
+        using SSL/TLS.
+      partial: Some S3 buckets have encryption for data in transit enabled using SSL/TLS,
+        but others do not.
+      success: All S3 buckets have encryption for data in transit enabled using SSL/TLS.
+  unique_id: owasp-latest-implement-encryption-for-data-in-transit

@@ -1,0 +1,42 @@
+resource:
+  check:
+    unique_id: owasp-latest-ensure-secure-configuration-of-databases
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To ensure secure configuration of databases, you need to review and
+      update the database settings related to authentication mechanisms, access controls,
+      encryption settings, auditing, and logging.
+    estimated_time: 1-2 hours
+    instructions:
+    - Review the database authentication mechanisms and ensure strong password policies,
+      multi-factor authentication, and role-based access controls are implemented.
+    - Configure database access controls to restrict access to only authorized users
+      and applications, following the principle of least privilege.
+    - Enable encryption for data at rest and in transit, using industry-standard encryption
+      algorithms and key management practices.
+    - Enable auditing and logging for database activities, including successful and
+      failed authentication attempts, data modifications, and administrative actions.
+    - Regularly review and analyze audit logs for potential security incidents or
+      unauthorized access attempts.
+  is_valid: false
+  literature: The CloudTrailResource in AWS is used to capture and log AWS API activity
+    and events across multiple services and regions. While CloudTrail can provide
+    valuable audit trails and monitoring capabilities, it does not directly relate
+    to the secure configuration of databases. This security check focuses on ensuring
+    that databases themselves are configured securely, following best practices for
+    authentication, access controls, encryption, auditing, and logging.
+  name: CloudTrailResource
+  output_statements:
+    failure: The database is not configured securely, and its configuration does not
+      adhere to industry best practices and security guidelines for authentication,
+      access controls, encryption, auditing, and logging.
+    partial: Some aspects of the database configuration follow security best practices,
+      but there are areas that need improvement to ensure secure configuration.
+    success: The database is configured securely, following industry best practices
+      and security guidelines for authentication, access controls, encryption, auditing,
+      and logging.
+  reason: The CloudTrailResource is primarily used for logging and auditing AWS API
+    activity, but it does not directly configure or manage the security settings of
+    databases. Therefore, it is not applicable for implementing this specific security
+    check related to secure database configuration.

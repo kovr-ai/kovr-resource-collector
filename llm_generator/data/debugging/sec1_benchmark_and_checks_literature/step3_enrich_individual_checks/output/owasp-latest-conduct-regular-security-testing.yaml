@@ -1,0 +1,41 @@
+check:
+  benchmarks:
+  - confidence: 0.7
+    reason: Regular security testing can help identify and mitigate potential vulnerabilities
+      that could be exploited by adversaries to gain initial access or escalate privileges.
+    unique_id: MITRE-ATT&CK-T1588
+  - confidence: 0.8
+    reason: Security testing can help detect and remediate vulnerabilities that could
+      be exploited by adversaries to exfiltrate data from the organization.
+    unique_id: MITRE-ATT&CK-T1499
+  category: risk_assessment
+  controls:
+  - confidence: 0.9
+    reason: This control requires organizations to assess the security controls in
+      information systems and organizations on an ongoing basis to determine the extent
+      to which the controls are implemented correctly, operating as intended, and
+      producing the desired outcome with respect to meeting established security requirements.
+    unique_id: NIST-800-53-CA-2
+  - confidence: 0.8
+    reason: This control requires organizations to scan for vulnerabilities in the
+      information system and hosted applications periodically and when new vulnerabilities
+      potentially affecting the system/applications are identified.
+    unique_id: NIST-800-53-RA-5
+  - confidence: 0.9
+    reason: This control requires organizations to perform regular testing and monitoring
+      of the effectiveness of information security measures implemented.
+    unique_id: ISO-27001-A.14.2.8
+  literature: Regular security testing is a crucial practice in cybersecurity to identify
+    vulnerabilities, assess the effectiveness of security controls, and ensure the
+    overall security posture of an organization. This check validates whether an organization
+    conducts regular security testing, such as penetration testing, vulnerability
+    assessments, and code reviews, to proactively identify and mitigate potential
+    security risks. Failure to perform regular security testing can leave an organization
+    vulnerable to cyber threats, data breaches, and compliance violations.
+  severity: high
+  tags:
+  - security_testing
+  - vulnerability_management
+  - risk_assessment
+  - compliance
+  unique_id: owasp-latest-conduct-regular-security-testing

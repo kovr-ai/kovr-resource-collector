@@ -1,0 +1,37 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-tokenization-techniques
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To implement tokenization techniques in AWS, you would need to consider
+      other services or solutions that provide data encryption and tokenization capabilities.
+    estimated_time: Varies depending on the complexity of the solution and the amount
+      of sensitive data to be tokenized.
+    instructions:
+    - Evaluate AWS services like AWS Key Management Service (KMS) for encryption key
+      management and AWS CloudHSM for hardware security module (HSM) based encryption.
+    - Consider third-party tokenization solutions or building a custom tokenization
+      system within your application hosted on EC2 instances.
+    - Implement tokenization at the application layer, where sensitive data is processed
+      and stored, rather than relying on the EC2Resource itself.
+    - Follow best practices for secure key management, data encryption, and tokenization
+      techniques based on your specific requirements and compliance needs.
+  is_valid: false
+  literature: The EC2Resource in AWS does not directly provide functionality for implementing
+    tokenization techniques to protect sensitive data. Tokenization is a data security
+    technique that replaces sensitive data elements with non-sensitive placeholders
+    called tokens, typically implemented at the application or data layer. The EC2Resource
+    represents Amazon Elastic Compute Cloud (EC2) instances, which are virtual servers
+    in the AWS cloud. While EC2 instances can host applications that implement tokenization,
+    the EC2Resource itself does not have built-in tokenization capabilities.
+  name: EC2Resource
+  output_statements:
+    failure: The EC2Resource does not directly support tokenization techniques.
+    partial: The EC2Resource does not directly support tokenization techniques.
+    success: The EC2Resource does not directly support tokenization techniques.
+  reason: The EC2Resource does not have any field paths related to tokenization or
+    data encryption techniques. It primarily contains information about EC2 instances,
+    such as instance details, network interfaces, security groups, and other EC2-related
+    resources. Tokenization is typically implemented at the application or data layer,
+    which is not directly represented in the EC2Resource.

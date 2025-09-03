@@ -1,0 +1,43 @@
+check:
+  resources:
+  - field_paths:
+    - policies
+    - policies[].default_version.Document.Statement
+    - policies[].default_version.Document.Statement[].Action
+    - policies[].default_version.Document.Statement[].Resource
+    - users
+    - users[].access_keys
+    - users[].mfa_devices
+    is_valid: true
+    literature: The IAMResource in AWS can be used to implement regular security testing
+      by analyzing the policies attached to IAM users and roles. By reviewing the
+      policies, you can identify any overly permissive or risky permissions that could
+      potentially be exploited by attackers. Additionally, you can check for compliance
+      with least privilege principles and ensure that users and roles only have the
+      necessary permissions required for their job functions.
+    name: IAMResource
+    reason: The IAMResource provides access to IAM policies, user access keys, and
+      MFA device information, which are crucial for assessing the security posture
+      of an AWS account and identifying potential vulnerabilities or misconfigurations.
+  - field_paths:
+    - trails
+    - trails[].event_selectors
+    - trails[].event_selectors[].data_resources
+    - trails[].event_selectors[].include_management_events
+    - trails[].event_selectors[].read_write_type
+    - trails[].is_logging
+    - trails[].is_multi_region_trail
+    - trails[].log_file_validation_enabled
+    is_valid: true
+    literature: AWS CloudTrail is a service that records AWS API calls and related
+      events for your account. It provides a log of activities that can be used for
+      security analysis, resource change tracking, and compliance auditing. By enabling
+      CloudTrail and configuring it to capture relevant events, organizations can
+      conduct regular security testing and assessments to identify potential vulnerabilities
+      and ensure compliance with security standards.
+    name: CloudTrailResource
+    reason: The CloudTrail resource is applicable for implementing the 'owasp-latest-conduct-regular-security-testing'
+      security check because it provides a comprehensive log of API activities and
+      events, which can be used for security testing, vulnerability assessments, and
+      compliance auditing.
+  unique_id: owasp-latest-conduct-regular-security-testing

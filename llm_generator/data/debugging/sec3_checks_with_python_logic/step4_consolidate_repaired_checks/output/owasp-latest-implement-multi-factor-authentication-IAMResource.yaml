@@ -1,0 +1,25 @@
+check:
+  name: owasp-latest-implement-multi-factor-authentication
+  resource:
+    field_path: users[*].mfa_devices[*]
+    fix_details:
+      automation_available: true
+      description: For any IAM users without MFA enabled, MFA needs to be configured
+        and enforced.
+      estimated_time: 30 minutes to 1 hour
+      instructions:
+      - Identify IAM users without MFA devices listed under 'users[].mfa_devices'
+      - 'For each user without MFA, enable MFA by following AWS documentation: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa.html'
+      - Consider implementing an IAM password policy to require MFA for all IAM users
+    logic: "result = True\n\nif fetched_value is None or not fetched_value:\n    result\
+      \ = False\nelse:\n    mfa_enabled_users = []\n    for user in fetched_value:\n\
+      \        if user and hasattr(user, 'enable_date'):\n            mfa_enabled_users.append(user)\n\
+      \    if not mfa_enabled_users:\n        result = False"
+    name: IAMResource
+    output_statements:
+      failure: One or more IAM users do not have multi-factor authentication (MFA)
+        enabled, increasing the risk of unauthorized access.
+      partial: N/A
+      success: All IAM users have multi-factor authentication (MFA) enabled, ensuring
+        an additional layer of security beyond just passwords.
+  unique_id: owasp-latest-implement-multi-factor-authentication

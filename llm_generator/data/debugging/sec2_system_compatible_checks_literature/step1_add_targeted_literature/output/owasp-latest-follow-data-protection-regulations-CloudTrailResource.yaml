@@ -1,0 +1,69 @@
+resource:
+  check:
+    unique_id: owasp-latest-follow-data-protection-regulations
+  field_paths:
+  - event_selectors
+  - event_selectors[]
+  - event_selectors[].data_resources
+  - event_selectors[].data_resources.type
+  - event_selectors[].data_resources.values
+  - event_selectors[].data_resources.values[]
+  - event_selectors[].include_management_events
+  - event_selectors[].read_write_type
+  - trails
+  - trails[]
+  - trails[].event_selectors
+  - trails[].event_selectors[]
+  - trails[].event_selectors[].data_resources
+  - trails[].event_selectors[].data_resources.type
+  - trails[].event_selectors[].data_resources.values
+  - trails[].event_selectors[].data_resources.values[]
+  - trails[].event_selectors[].include_management_events
+  - trails[].event_selectors[].read_write_type
+  - trails[].is_logging
+  - trails[].is_multi_region_trail
+  - trails[].s3_bucket_name
+  - trails[].s3_key_prefix
+  fix_details:
+    automation_available: true
+    description: If CloudTrail is not configured correctly, organizations may not
+      be able to effectively monitor and audit access to sensitive data and resources,
+      potentially leading to violations of data protection regulations and industry
+      standards.
+    estimated_time: 1-2 hours
+    instructions:
+    - Review the existing CloudTrail trail configurations and ensure that appropriate
+      event selectors and data resource types are defined to capture events related
+      to data access, modification, and transfer.
+    - Enable logging for the CloudTrail trails and configure them to deliver log files
+      to a secure and centralized location, such as an S3 bucket.
+    - Implement log monitoring and analysis processes to identify and investigate
+      potential violations of data protection regulations and industry standards.
+    - Regularly review and update the CloudTrail configurations to ensure they align
+      with the latest data protection regulations and industry best practices.
+  is_valid: true
+  literature: The CloudTrailResource in AWS is relevant for implementing the 'owasp-latest-follow-data-protection-regulations'
+    security check. CloudTrail is a service that records AWS API calls and related
+    events, which can be used to monitor and audit access to sensitive data and resources.
+    By configuring CloudTrail trails with appropriate event selectors and data resource
+    types, organizations can capture and analyze events related to data access, modification,
+    and transfer, helping them identify potential violations of data protection regulations
+    and industry standards.
+  name: CloudTrailResource
+  output_statements:
+    failure: CloudTrail is not configured to capture and log events related to data
+      access, modification, and transfer, hindering the ability to monitor and audit
+      compliance with data protection regulations.
+    partial: CloudTrail is partially configured to capture and log events related
+      to data access, modification, and transfer, but additional configuration may
+      be required to ensure comprehensive monitoring and auditing of compliance with
+      data protection regulations.
+    success: CloudTrail is configured to capture and log events related to data access,
+      modification, and transfer, enabling effective monitoring and auditing of compliance
+      with data protection regulations.
+  reason: The CloudTrailResource in AWS provides the necessary configuration options
+    to capture and log events related to data access, modification, and transfer,
+    which is essential for monitoring and auditing compliance with data protection
+    regulations. By configuring appropriate event selectors, data resource types,
+    and logging settings, organizations can ensure that relevant events are captured
+    and analyzed for potential violations.

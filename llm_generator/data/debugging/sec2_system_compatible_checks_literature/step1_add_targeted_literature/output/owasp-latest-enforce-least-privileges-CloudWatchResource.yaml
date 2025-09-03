@@ -1,0 +1,32 @@
+resource:
+  check:
+    unique_id: owasp-latest-enforce-least-privileges
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This resource is not applicable for the 'owasp-latest-enforce-least-privileges'
+      security check, and no remediation is required.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The 'owasp-latest-enforce-least-privileges' security check is focused
+    on ensuring that applications and systems follow the principle of least privilege,
+    which restricts access rights for users, accounts, and processes to only those
+    permissions that are essential for performing their intended functions. This check
+    helps mitigate threats like privilege escalation, unauthorized data access, and
+    malicious code execution by ensuring that entities operate with the minimum necessary
+    permissions.
+  name: CloudWatchResource
+  output_statements:
+    failure: This resource is not applicable for the 'owasp-latest-enforce-least-privileges'
+      security check.
+    partial: This resource is not applicable for the 'owasp-latest-enforce-least-privileges'
+      security check.
+    success: This resource is not applicable for the 'owasp-latest-enforce-least-privileges'
+      security check.
+  reason: The AWS CloudWatch resource is a monitoring and observability service that
+    collects and tracks metrics, logs, and events from various AWS resources and applications.
+    It does not directly manage access controls or permissions for users, accounts,
+    or processes. Therefore, this resource is not applicable for implementing the
+    'owasp-latest-enforce-least-privileges' security check, which is focused on enforcing
+    the principle of least privilege for access control.

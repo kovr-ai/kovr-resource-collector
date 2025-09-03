@@ -1,0 +1,126 @@
+check:
+  resources:
+  - field_paths:
+    - policies
+    - policies[].default_version.Document.Statement
+    - policies[].default_version.Document.Statement[].Action
+    - policies[].default_version.Document.Statement[].Effect
+    - policies[].default_version.Document.Statement[].Resource
+    - users
+    - users[].access_keys
+    - users[].access_keys[].create_date
+    - users[].access_keys[].last_used_date
+    - users[].access_keys[].last_used_region
+    - users[].access_keys[].last_used_service
+    - users[].access_keys[].status
+    is_valid: true
+    literature: The IAMResource in AWS is a critical component for implementing comprehensive
+      monitoring mechanisms as outlined in the OWASP security check. IAM (Identity
+      and Access Management) policies and user access keys play a crucial role in
+      controlling and auditing access to AWS resources and services. By monitoring
+      IAM policies, their changes, and user activities, organizations can detect unauthorized
+      access attempts, policy modifications, and potential misuse of privileges. This
+      resource provides the necessary information to track and log IAM-related events,
+      enabling organizations to identify and respond to security incidents promptly.
+    name: IAMResource
+    reason: The IAMResource provides essential information for monitoring IAM policies,
+      their changes, and user access key activities, which are critical components
+      of a comprehensive monitoring mechanism for detecting unauthorized access attempts
+      and potential security incidents.
+  - field_paths:
+    - buckets
+    - buckets[].logging_enabled
+    - buckets[].public_access_block
+    - buckets[].public_access_block.block_public_acls
+    - buckets[].public_access_block.block_public_policy
+    - buckets[].public_access_block.ignore_public_acls
+    - buckets[].public_access_block.restrict_public_buckets
+    - buckets[].encryption
+    - buckets[].encryption.enabled
+    - buckets[].encryption.type
+    is_valid: true
+    literature: The AWS S3 resource can be used to implement comprehensive monitoring
+      mechanisms for detecting and responding to security incidents, unauthorized
+      access attempts, and potential data breaches. By enabling logging and monitoring
+      for S3 buckets, organizations can track and log various activities related to
+      object access, bucket configuration changes, and other events. This allows for
+      the identification of anomalies, suspicious behavior, and potential threats
+      in a timely manner, enabling prompt investigation and mitigation.
+    name: S3Resource
+    reason: The AWS S3 resource provides various fields and configurations that can
+      be used to implement comprehensive monitoring mechanisms. By enabling logging,
+      configuring public access blocks, and ensuring proper encryption, organizations
+      can monitor and log activities related to S3 buckets, detect potential security
+      incidents, and respond accordingly.
+  - field_paths:
+    - event_selectors
+    - event_selectors[]
+    - event_selectors[].data_resources
+    - event_selectors[].data_resources.type
+    - event_selectors[].data_resources.values
+    - event_selectors[].data_resources.values[]
+    - event_selectors[].include_management_events
+    - event_selectors[].read_write_type
+    - trails
+    - trails[]
+    - trails[].enable_log_file_validation
+    - trails[].event_selectors
+    - trails[].event_selectors[]
+    - trails[].event_selectors[].data_resources
+    - trails[].event_selectors[].data_resources.type
+    - trails[].event_selectors[].data_resources.values
+    - trails[].event_selectors[].data_resources.values[]
+    - trails[].event_selectors[].include_management_events
+    - trails[].event_selectors[].read_write_type
+    - trails[].include_global_service_events
+    - trails[].is_logging
+    - trails[].is_multi_region_trail
+    - trails[].log_file_validation_enabled
+    - trails[].s3_bucket_name
+    - trails[].s3_key_prefix
+    is_valid: true
+    literature: The AWS CloudTrail resource is a key component for implementing comprehensive
+      monitoring mechanisms as recommended by the OWASP security check. CloudTrail
+      captures API activity across AWS services and resources, providing a detailed
+      audit trail of user actions, resource changes, and security events. By configuring
+      CloudTrail trails with appropriate event selectors and log file validation,
+      organizations can monitor and log critical activities, enabling detection of
+      unauthorized access attempts, data breaches, and potential security incidents.
+    name: CloudTrailResource
+    reason: The CloudTrail resource provides comprehensive logging and monitoring
+      capabilities for AWS API activities, which aligns with the OWASP security check's
+      recommendation for implementing robust monitoring mechanisms to detect security
+      incidents and unauthorized access attempts.
+  - field_paths:
+    - alarms
+    - alarms[].alarm_actions
+    - alarms[].alarm_description
+    - alarms[].alarm_name
+    - alarms[].comparison_operator
+    - alarms[].dimensions
+    - alarms[].evaluation_periods
+    - alarms[].metric_name
+    - alarms[].namespace
+    - alarms[].period
+    - alarms[].statistic
+    - alarms[].threshold
+    - log_groups
+    - log_groups[].log_group_name
+    - log_groups[].metric_filter_count
+    - log_groups[].retention_in_days
+    is_valid: true
+    literature: The AWS CloudWatch service provides comprehensive monitoring capabilities
+      for AWS resources and applications. It allows you to collect and track metrics,
+      log data, and set alarms to detect anomalies or specific conditions. By configuring
+      CloudWatch Alarms, you can monitor various aspects of your AWS environment and
+      receive notifications or trigger automated actions when predefined thresholds
+      are breached. Additionally, CloudWatch Logs can be used to centralize and analyze
+      log data from various sources, enabling you to identify potential security incidents
+      or unauthorized access attempts.
+    name: CloudWatchResource
+    reason: The AWS CloudWatch service provides comprehensive monitoring capabilities
+      that align with the security check's requirement for implementing robust monitoring
+      mechanisms. By configuring CloudWatch Alarms and analyzing CloudWatch Logs,
+      organizations can detect and respond to security incidents, unauthorized access
+      attempts, and potential data breaches across their AWS infrastructure and applications.
+  unique_id: owasp-latest-implement-comprehensive-monitoring-mechanisms

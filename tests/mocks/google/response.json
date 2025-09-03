@@ -1,0 +1,623 @@
+{
+  "users": {
+    "google-user-114713914898918451490": {
+      "kind": "admin#directory#user",
+      "id": "114713914898918451490",
+      "etag": "\"X0q9WNrZ9BOMuL0MiWiH_eE1hTE-MWe7vawEdmeS94s/D-XFyBUeNXCdNTUU2jntQMBfwhc\"",
+      "primaryEmail": "ab@kovr.ai",
+      "name": {
+        "givenName": "Andrew",
+        "familyName": "Black",
+        "fullName": "Andrew Black"
+      },
+      "isAdmin": false,
+      "isDelegatedAdmin": false,
+      "lastLoginTime": "2025-08-09T17:59:00.000Z",
+      "creationTime": "2024-10-02T22:23:39.000Z",
+      "agreedToTerms": true,
+      "suspended": false,
+      "archived": false,
+      "changePasswordAtNextLogin": false,
+      "ipWhitelisted": false,
+      "emails": [
+        {
+          "address": "ab@kovr.ai",
+          "primary": true
+        },
+        {
+          "address": "ab@kovr.ai.test-google-a.com"
+        }
+      ],
+      "languages": [
+        {
+          "languageCode": "en",
+          "preference": "preferred"
+        }
+      ],
+      "nonEditableAliases": [
+        "ab@kovr.ai.test-google-a.com"
+      ],
+      "customerId": "C00v9i4lo",
+      "orgUnitPath": "/kovr-corp",
+      "isMailboxSetup": true,
+      "isEnrolledIn2Sv": true,
+      "isEnforcedIn2Sv": true,
+      "includeInGlobalAddressList": true
+    },
+    "google-user-106405418143274626965": {
+      "kind": "admin#directory#user",
+      "id": "106405418143274626965",
+      "etag": "\"X0q9WNrZ9BOMuL0MiWiH_eE1hTE-MWe7vawEdmeS94s/RkS-hvjRJ7oy20EYpDPZrDD2msA\"",
+      "primaryEmail": "abhi@kovr.ai",
+      "name": {
+        "givenName": "Abhi",
+        "familyName": "Debakhtar",
+        "fullName": "Abhi Debakhtar"
+      },
+      "isAdmin": false,
+      "isDelegatedAdmin": false,
+      "lastLoginTime": "2025-08-05T13:56:30.000Z",
+      "creationTime": "2025-02-12T18:01:47.000Z",
+      "agreedToTerms": true,
+      "suspended": false,
+      "archived": false,
+      "changePasswordAtNextLogin": false,
+      "ipWhitelisted": false,
+      "emails": [
+        {
+          "address": "abhi01va@gmail.com",
+          "type": "work"
+        },
+        {
+          "address": "abhi@kovr.ai",
+          "primary": true
+        },
+        {
+          "address": "abhi@kovr.ai.test-google-a.com"
+        }
+      ],
+      "phones": [
+        {
+          "value": "5715857539",
+          "type": "work"
+        }
+      ],
+      "languages": [
+        {
+          "languageCode": "en",
+          "preference": "preferred"
+        }
+      ],
+      "nonEditableAliases": [
+        "abhi@kovr.ai.test-google-a.com"
+      ],
+      "customerId": "C00v9i4lo",
+      "orgUnitPath": "/kovr-corp",
+      "isMailboxSetup": true,
+      "isEnrolledIn2Sv": true,
+      "isEnforcedIn2Sv": true,
+      "includeInGlobalAddressList": true
+    },
+    "google-user-118307745185746283019": {
+      "kind": "admin#directory#user",
+      "id": "118307745185746283019",
+      "etag": "\"X0q9WNrZ9BOMuL0MiWiH_eE1hTE-MWe7vawEdmeS94s/U8-AiLIMDx-senrtVi1EjDeGyt8\"",
+      "primaryEmail": "aman@kovr.ai",
+      "name": {
+        "givenName": "aman",
+        "familyName": "jaiswal",
+        "fullName": "aman jaiswal"
+      },
+      "isAdmin": false,
+      "isDelegatedAdmin": false,
+      "lastLoginTime": "2025-08-08T14:52:28.000Z",
+      "creationTime": "2025-02-10T04:30:52.000Z",
+      "agreedToTerms": true,
+      "suspended": false,
+      "archived": false,
+      "changePasswordAtNextLogin": false,
+      "ipWhitelisted": false,
+      "emails": [
+        {
+          "address": "amanjaiswal5728@gmail.com",
+          "type": "work"
+        },
+        {
+          "address": "aman@kovr.ai",
+          "primary": true
+        },
+        {
+          "address": "aman@kovr.ai.test-google-a.com"
+        }
+      ],
+      "languages": [
+        {
+          "languageCode": "en",
+          "preference": "preferred"
+        }
+      ],
+      "nonEditableAliases": [
+        "aman@kovr.ai.test-google-a.com"
+      ],
+      "customerId": "C00v9i4lo",
+      "orgUnitPath": "/kovr-sfive",
+      "isMailboxSetup": true,
+      "isEnrolledIn2Sv": true,
+      "isEnforcedIn2Sv": true,
+      "includeInGlobalAddressList": true,
+      "recoveryEmail": "amanjaiswal5728@gmail.com",
+      "recoveryPhone": "+918084410670"
+    },
+    "google-user-100171139806091810149": {
+      "kind": "admin#directory#user",
+      "id": "100171139806091810149",
+      "etag": "\"X0q9WNrZ9BOMuL0MiWiH_eE1hTE-MWe7vawEdmeS94s/dZswyHeTS2zysbZM7ojW894LPsc\"",
+      "primaryEmail": "amit@kovr.ai",
+      "name": {
+        "givenName": "Amit",
+        "familyName": "khatana",
+        "fullName": "Amit khatana"
+      },
+      "isAdmin": false,
+      "isDelegatedAdmin": false,
+      "lastLoginTime": "2025-08-08T14:49:09.000Z",
+      "creationTime": "2025-03-18T04:25:51.000Z",
+      "agreedToTerms": true,
+      "suspended": false,
+      "archived": false,
+      "changePasswordAtNextLogin": false,
+      "ipWhitelisted": false,
+      "emails": [
+        {
+          "address": "amit@kovr.ai",
+          "primary": true
+        },
+        {
+          "address": "amit@kovr.ai.test-google-a.com"
+        }
+      ],
+      "languages": [
+        {
+          "languageCode": "en",
+          "preference": "preferred"
+        }
+      ],
+      "nonEditableAliases": [
+        "amit@kovr.ai.test-google-a.com"
+      ],
+      "customerId": "C00v9i4lo",
+      "orgUnitPath": "/kovr-sfive",
+      "isMailboxSetup": true,
+      "isEnrolledIn2Sv": true,
+      "isEnforcedIn2Sv": true,
+      "includeInGlobalAddressList": true,
+      "recoveryEmail": "akhatana123@gmail.com",
+      "recoveryPhone": "+919560985409"
+    },
+    "google-user-105474236094132544240": {
+      "kind": "admin#directory#user",
+      "id": "105474236094132544240",
+      "etag": "\"X0q9WNrZ9BOMuL0MiWiH_eE1hTE-MWe7vawEdmeS94s/C847s8w7YvJIa9TIgnMM8grfQ4E\"",
+      "primaryEmail": "avi@kovr.ai",
+      "name": {
+        "givenName": "Avi",
+        "familyName": "ds",
+        "fullName": "Avi ds"
+      },
+      "isAdmin": false,
+      "isDelegatedAdmin": false,
+      "lastLoginTime": "2025-08-10T10:30:25.000Z",
+      "creationTime": "2024-10-14T13:26:29.000Z",
+      "agreedToTerms": true,
+      "suspended": false,
+      "archived": false,
+      "changePasswordAtNextLogin": false,
+      "ipWhitelisted": false,
+      "emails": [
+        {
+          "address": "avi@kovr.ai",
+          "primary": true
+        },
+        {
+          "address": "avi@kovr.ai.test-google-a.com"
+        }
+      ],
+      "languages": [
+        {
+          "languageCode": "en",
+          "preference": "preferred"
+        }
+      ],
+      "nonEditableAliases": [
+        "avi@kovr.ai.test-google-a.com"
+      ],
+      "customerId": "C00v9i4lo",
+      "orgUnitPath": "/kovr-sfive",
+      "isMailboxSetup": true,
+      "isEnrolledIn2Sv": true,
+      "isEnforcedIn2Sv": true,
+      "includeInGlobalAddressList": true
+    },
+    "google-user-104704358482481596809": {
+      "kind": "admin#directory#user",
+      "id": "104704358482481596809",
+      "etag": "\"X0q9WNrZ9BOMuL0MiWiH_eE1hTE-MWe7vawEdmeS94s/MeVcn9Q85AF8qfRoCaBBXNJ1C4k\"",
+      "primaryEmail": "c.hughes@kovr.ai",
+      "name": {
+        "givenName": "Camryn",
+        "familyName": "Hughes",
+        "fullName": "Camryn Hughes"
+      },
+      "isAdmin": false,
+      "isDelegatedAdmin": false,
+      "lastLoginTime": "2025-07-29T21:49:56.000Z",
+      "creationTime": "2025-07-14T14:33:18.000Z",
+      "agreedToTerms": true,
+      "suspended": false,
+      "archived": false,
+      "changePasswordAtNextLogin": false,
+      "ipWhitelisted": false,
+      "emails": [
+        {
+          "address": "c.hughes@memoryblue.com",
+          "type": "custom",
+          "customType": ""
+        },
+        {
+          "address": "c.hughes@kovr.ai",
+          "primary": true
+        },
+        {
+          "address": "c.hughes@kovr.ai.test-google-a.com"
+        }
+      ],
+      "languages": [
+        {
+          "languageCode": "en",
+          "preference": "preferred"
+        }
+      ],
+      "nonEditableAliases": [
+        "c.hughes@kovr.ai.test-google-a.com"
+      ],
+      "customerId": "C00v9i4lo",
+      "orgUnitPath": "/Kovr Consultants",
+      "isMailboxSetup": true,
+      "isEnrolledIn2Sv": false,
+      "isEnforcedIn2Sv": true,
+      "includeInGlobalAddressList": true,
+      "recoveryPhone": "+18704157572"
+    },
+    "google-user-108293747223690889911": {
+      "kind": "admin#directory#user",
+      "id": "108293747223690889911",
+      "etag": "\"X0q9WNrZ9BOMuL0MiWiH_eE1hTE-MWe7vawEdmeS94s/hSKQQ5IsZRsvZWpuDdDhe2W7t-k\"",
+      "primaryEmail": "chadd@kovr.ai",
+      "name": {
+        "givenName": "Chadd",
+        "familyName": "Carr",
+        "fullName": "Chadd Carr"
+      },
+      "isAdmin": false,
+      "isDelegatedAdmin": false,
+      "lastLoginTime": "2025-06-09T12:14:53.000Z",
+      "creationTime": "2025-03-28T16:42:22.000Z",
+      "agreedToTerms": true,
+      "suspended": false,
+      "archived": false,
+      "changePasswordAtNextLogin": false,
+      "ipWhitelisted": false,
+      "emails": [
+        {
+          "address": "chadd@enb45.com",
+          "type": "work"
+        },
+        {
+          "address": "chadd@kovr.ai",
+          "primary": true
+        },
+        {
+          "address": "chadd@kovr.ai.test-google-a.com"
+        }
+      ],
+      "languages": [
+        {
+          "languageCode": "en",
+          "preference": "preferred"
+        }
+      ],
+      "nonEditableAliases": [
+        "chadd@kovr.ai.test-google-a.com"
+      ],
+      "customerId": "C00v9i4lo",
+      "orgUnitPath": "/kovr-corp",
+      "isMailboxSetup": true,
+      "isEnrolledIn2Sv": true,
+      "isEnforcedIn2Sv": true,
+      "includeInGlobalAddressList": true,
+      "thumbnailPhotoUrl": "https://lh3.googleusercontent.com/a-/ALV-UjW1BgHtfOOH-2uiZ4I-rdn9eaXa7DaOuMwL2N3tfb5BEzXKwyE=s96-c",
+      "thumbnailPhotoEtag": "\"X0q9WNrZ9BOMuL0MiWiH_eE1hTE-MWe7vawEdmeS94s/XMTHkivzglyl0Yz5RCK0j4rV6fA\"",
+      "recoveryEmail": "chadd@enb45.com",
+      "recoveryPhone": "+17036181889"
+    },
+    "google-user-115226535096388747064": {
+      "kind": "admin#directory#user",
+      "id": "115226535096388747064",
+      "etag": "\"X0q9WNrZ9BOMuL0MiWiH_eE1hTE-MWe7vawEdmeS94s/aOkfFDndSqUeMdao9tfdHOEyOoo\"",
+      "primaryEmail": "divye@kovr.ai",
+      "name": {
+        "givenName": "DivyePratap",
+        "familyName": "Singh",
+        "fullName": "DivyePratap Singh"
+      },
+      "isAdmin": false,
+      "isDelegatedAdmin": false,
+      "lastLoginTime": "2025-08-10T07:31:06.000Z",
+      "creationTime": "2025-06-16T11:14:56.000Z",
+      "agreedToTerms": true,
+      "suspended": false,
+      "archived": false,
+      "changePasswordAtNextLogin": false,
+      "ipWhitelisted": false,
+      "emails": [
+        {
+          "address": "divye@kovr.ai",
+          "primary": true
+        },
+        {
+          "address": "divye@kovr.ai.test-google-a.com"
+        }
+      ],
+      "languages": [
+        {
+          "languageCode": "en",
+          "preference": "preferred"
+        }
+      ],
+      "nonEditableAliases": [
+        "divye@kovr.ai.test-google-a.com"
+      ],
+      "customerId": "C00v9i4lo",
+      "orgUnitPath": "/",
+      "isMailboxSetup": true,
+      "isEnrolledIn2Sv": true,
+      "isEnforcedIn2Sv": true,
+      "includeInGlobalAddressList": true,
+      "recoveryPhone": "+918439448209"
+    },
+    "google-user-101219601912699020522": {
+      "kind": "admin#directory#user",
+      "id": "101219601912699020522",
+      "etag": "\"X0q9WNrZ9BOMuL0MiWiH_eE1hTE-MWe7vawEdmeS94s/l69nBNv08X1EaA-Znb4uZADMT2g\"",
+      "primaryEmail": "hatchettc@kovr.ai",
+      "name": {
+        "givenName": "Cornelius",
+        "familyName": "Hatchett",
+        "fullName": "Cornelius Hatchett"
+      },
+      "isAdmin": false,
+      "isDelegatedAdmin": true,
+      "lastLoginTime": "2025-08-08T21:45:42.000Z",
+      "creationTime": "2025-04-09T21:47:46.000Z",
+      "agreedToTerms": true,
+      "suspended": false,
+      "archived": false,
+      "changePasswordAtNextLogin": false,
+      "ipWhitelisted": false,
+      "emails": [
+        {
+          "address": "cornelius.hatchett84@gmail.com",
+          "type": "work"
+        },
+        {
+          "address": "hatchettc@kovr.ai",
+          "primary": true
+        },
+        {
+          "address": "hatchettc@kovr.ai.test-google-a.com"
+        }
+      ],
+      "phones": [
+        {
+          "value": "202-507-2889",
+          "type": "work"
+        }
+      ],
+      "languages": [
+        {
+          "languageCode": "en",
+          "preference": "preferred"
+        }
+      ],
+      "nonEditableAliases": [
+        "hatchettc@kovr.ai.test-google-a.com"
+      ],
+      "customerId": "C00v9i4lo",
+      "orgUnitPath": "/kovr-corp",
+      "isMailboxSetup": true,
+      "isEnrolledIn2Sv": true,
+      "isEnforcedIn2Sv": true,
+      "includeInGlobalAddressList": true
+    },
+    "google-user-116737790644049276395": {
+      "kind": "admin#directory#user",
+      "id": "116737790644049276395",
+      "etag": "\"X0q9WNrZ9BOMuL0MiWiH_eE1hTE-MWe7vawEdmeS94s/TfToR9McCqPmnoclIVFIGvZgoj0\"",
+      "primaryEmail": "heather@kovr.ai",
+      "name": {
+        "givenName": "Heather",
+        "familyName": "Iyer",
+        "fullName": "Heather Iyer"
+      },
+      "isAdmin": false,
+      "isDelegatedAdmin": false,
+      "lastLoginTime": "2025-06-27T14:46:17.000Z",
+      "creationTime": "2025-06-09T07:54:57.000Z",
+      "agreedToTerms": true,
+      "suspended": false,
+      "archived": false,
+      "changePasswordAtNextLogin": false,
+      "ipWhitelisted": false,
+      "emails": [
+        {
+          "address": "heather@makeascenemedia.com",
+          "type": "work"
+        },
+        {
+          "address": "heather@kovr.ai",
+          "primary": true
+        },
+        {
+          "address": "heather@kovr.ai.test-google-a.com"
+        }
+      ],
+      "languages": [
+        {
+          "languageCode": "en",
+          "preference": "preferred"
+        }
+      ],
+      "nonEditableAliases": [
+        "heather@kovr.ai.test-google-a.com"
+      ],
+      "customerId": "C00v9i4lo",
+      "orgUnitPath": "/",
+      "isMailboxSetup": true,
+      "isEnrolledIn2Sv": true,
+      "isEnforcedIn2Sv": true,
+      "includeInGlobalAddressList": true
+    }
+  },
+  "groups": {
+    "google-group-03oy7u291ng7a60": {
+      "kind": "admin#directory#group",
+      "id": "03oy7u291ng7a60",
+      "etag": "\"X0q9WNrZ9BOMuL0MiWiH_eE1hTE-MWe7vawEdmeS94s/KeZLdxar2pKECWL65Dcg5A4X1GM\"",
+      "email": "all@kovr.ai",
+      "name": "All",
+      "directMembersCount": "21",
+      "description": "all ",
+      "adminCreated": false,
+      "nonEditableAliases": [
+        "all@kovr.ai.test-google-a.com"
+      ]
+    },
+    "google-group-01qoc8b11a9znz8": {
+      "kind": "admin#directory#group",
+      "id": "01qoc8b11a9znz8",
+      "etag": "\"X0q9WNrZ9BOMuL0MiWiH_eE1hTE-MWe7vawEdmeS94s/54J8ukMOJiGRvzwXuGhWFFWuCUQ\"",
+      "email": "aws-alerts@kovr.ai",
+      "name": "aws-alerts",
+      "directMembersCount": "2",
+      "description": "",
+      "adminCreated": true,
+      "nonEditableAliases": [
+        "aws-alerts@kovr.ai.test-google-a.com"
+      ]
+    },
+    "google-group-035nkun21embi5i": {
+      "kind": "admin#directory#group",
+      "id": "035nkun21embi5i",
+      "etag": "\"X0q9WNrZ9BOMuL0MiWiH_eE1hTE-MWe7vawEdmeS94s/zt37rLxPlBuJGexYKSaM9uCTXs8\"",
+      "email": "aws-dev@kovr.ai",
+      "name": "aws-dev",
+      "directMembersCount": "2",
+      "description": "AWS Dev Account Management",
+      "adminCreated": true,
+      "nonEditableAliases": [
+        "aws-dev@kovr.ai.test-google-a.com"
+      ]
+    },
+    "google-group-00haapch4in2qkx": {
+      "kind": "admin#directory#group",
+      "id": "00haapch4in2qkx",
+      "etag": "\"X0q9WNrZ9BOMuL0MiWiH_eE1hTE-MWe7vawEdmeS94s/d5wDCW-ZkQbXRbjq0H-IYf0uhYs\"",
+      "email": "aws-marketplace@kovr.ai",
+      "name": "AWS Markerplace",
+      "directMembersCount": "2",
+      "description": "AWS Marketplace Support Team",
+      "adminCreated": true,
+      "nonEditableAliases": [
+        "aws-marketplace@kovr.ai.test-google-a.com"
+      ]
+    },
+    "google-group-01hmsyys3iu2t55": {
+      "kind": "admin#directory#group",
+      "id": "01hmsyys3iu2t55",
+      "etag": "\"X0q9WNrZ9BOMuL0MiWiH_eE1hTE-MWe7vawEdmeS94s/U-18qewO4BLJ5sOPHGDHqH13wjs\"",
+      "email": "aws-prod@kovr.ai",
+      "name": "aws-prod",
+      "directMembersCount": "2",
+      "description": "AWS Prod Account",
+      "adminCreated": true,
+      "nonEditableAliases": [
+        "aws-prod@kovr.ai.test-google-a.com"
+      ]
+    },
+    "google-group-019c6y180owfd51": {
+      "kind": "admin#directory#group",
+      "id": "019c6y180owfd51",
+      "etag": "\"X0q9WNrZ9BOMuL0MiWiH_eE1hTE-MWe7vawEdmeS94s/JGbGK7ME1Ohglwd_beqjUWIogdk\"",
+      "email": "aws-test@kovr.ai",
+      "name": "aws-test",
+      "directMembersCount": "2",
+      "description": "AWS Test Account",
+      "adminCreated": true,
+      "nonEditableAliases": [
+        "aws-test@kovr.ai.test-google-a.com"
+      ]
+    },
+    "google-group-048pi1tg3a4pum8": {
+      "kind": "admin#directory#group",
+      "id": "048pi1tg3a4pum8",
+      "etag": "\"X0q9WNrZ9BOMuL0MiWiH_eE1hTE-MWe7vawEdmeS94s/KLODpAMdAbPqW-p2S1TFJNKBWGE\"",
+      "email": "classroom_teachers@kovr.ai",
+      "name": "Classroom Teachers",
+      "directMembersCount": "0",
+      "description": "This group includes all Classroom teachers in your domain. Users who say they are teachers are added as pending members until you approve. Note that members of this group have additional privileges, which you can control in the Admin Console. WARNING: Do not delete this group.",
+      "adminCreated": false,
+      "nonEditableAliases": [
+        "classroom_teachers@kovr.ai.test-google-a.com"
+      ]
+    },
+    "google-group-00rjefff1nvjw2b": {
+      "kind": "admin#directory#group",
+      "id": "00rjefff1nvjw2b",
+      "etag": "\"X0q9WNrZ9BOMuL0MiWiH_eE1hTE-MWe7vawEdmeS94s/w9PUBZ1EOKJn9I_UzbrACtbU4cg\"",
+      "email": "cto@kovr.ai",
+      "name": "CTO Shared",
+      "directMembersCount": "2",
+      "description": "CTO Shared Inbox",
+      "adminCreated": true,
+      "nonEditableAliases": [
+        "cto@kovr.ai.test-google-a.com"
+      ]
+    },
+    "google-group-01664s553brbyqf": {
+      "kind": "admin#directory#group",
+      "id": "01664s553brbyqf",
+      "etag": "\"X0q9WNrZ9BOMuL0MiWiH_eE1hTE-MWe7vawEdmeS94s/nOpM7F5LcXlxwcBadhzj8BRk-DM\"",
+      "email": "dev-all@kovr.ai",
+      "name": "dev-all",
+      "directMembersCount": "8",
+      "description": "all dev",
+      "adminCreated": false,
+      "nonEditableAliases": [
+        "dev-all@kovr.ai.test-google-a.com"
+      ]
+    },
+    "google-group-03znysh72dyfn9r": {
+      "kind": "admin#directory#group",
+      "id": "03znysh72dyfn9r",
+      "etag": "\"X0q9WNrZ9BOMuL0MiWiH_eE1hTE-MWe7vawEdmeS94s/XUtu-bBbzIAfrEdSM8fUTSsgiP0\"",
+      "email": "dev-noreply@kovr.ai",
+      "name": "dev-noreply",
+      "directMembersCount": "2",
+      "description": "No reply",
+      "adminCreated": true,
+      "nonEditableAliases": [
+        "dev-noreply@kovr.ai.test-google-a.com"
+      ]
+    }
+  }
+}

@@ -1,0 +1,50 @@
+resource:
+  check:
+    unique_id: owasp-latest-have-a-plan-for-addressing-vulnerabilities
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To address this security check, the organization needs to develop
+      and implement a comprehensive plan for vulnerability management.
+    estimated_time: Developing and implementing a comprehensive vulnerability management
+      plan can take several weeks or months, depending on the size and complexity
+      of the organization.
+    instructions:
+    - Establish a vulnerability management policy that outlines the organization's
+      approach to identifying, prioritizing, and addressing vulnerabilities.
+    - Define roles and responsibilities for vulnerability management activities, including
+      vulnerability scanning, risk assessment, and remediation.
+    - Implement processes for regularly scanning applications and systems for vulnerabilities,
+      using industry-standard tools and techniques.
+    - Develop a risk-based approach for prioritizing and addressing identified vulnerabilities,
+      considering factors such as severity, impact, and exploitability.
+    - Establish procedures for testing and deploying security patches and updates
+      in a timely and controlled manner.
+    - Implement a process for monitoring and reporting on the status of vulnerability
+      remediation efforts.
+    - Regularly review and update the vulnerability management plan to ensure it remains
+      effective and aligned with the organization's evolving needs and the changing
+      threat landscape.
+  is_valid: false
+  literature: The 'owasp-latest-have-a-plan-for-addressing-vulnerabilities' security
+    check is focused on ensuring that an organization has a documented plan for addressing
+    vulnerabilities in their applications and systems. This check is primarily concerned
+    with the organization's processes, policies, and procedures related to vulnerability
+    management, rather than specific technical configurations or settings within a
+    cloud resource.
+  name: EC2Resource
+  output_statements:
+    failure: The organization does not have a documented plan for addressing vulnerabilities
+      in their applications and systems.
+    partial: The organization has a partially documented plan for addressing vulnerabilities,
+      but it lacks key elements or is not regularly reviewed and updated.
+    success: The organization has a well-defined and documented plan for addressing
+      vulnerabilities in their applications and systems, which is regularly reviewed
+      and updated.
+  reason: The provided resource (EC2Resource) is an AWS EC2 resource that contains
+    information about EC2 instances, security groups, VPCs, and other related components.
+    While these resources are important for the overall security posture of an organization's
+    cloud infrastructure, they do not directly address the requirement of having a
+    documented plan for vulnerability management. This security check is more applicable
+    to an organization's overall risk management and governance processes, rather
+    than a specific cloud resource.

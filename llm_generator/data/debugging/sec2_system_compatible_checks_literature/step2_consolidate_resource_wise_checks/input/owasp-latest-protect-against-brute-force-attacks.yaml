@@ -1,0 +1,21 @@
+check:
+  resources:
+  - field_paths:
+    - policies
+    - policies[].default_version.Document.Statement
+    - policies[].default_version.Document.Statement[].Action
+    - users
+    - users[].access_keys
+    - users[].access_keys[].status
+    - users[].mfa_devices
+    is_valid: true
+    literature: The IAMResource in AWS can be used to implement protection against
+      brute force attacks on IAM user accounts. By configuring appropriate password
+      policies, multi-factor authentication (MFA) requirements, and access key rotation
+      policies, you can significantly reduce the risk of successful brute force attacks
+      on IAM user credentials.
+    name: IAMResource
+    reason: The IAMResource provides access to IAM user accounts, access keys, and
+      password/MFA policies, which are essential for implementing brute force attack
+      protection mechanisms.
+  unique_id: owasp-latest-protect-against-brute-force-attacks

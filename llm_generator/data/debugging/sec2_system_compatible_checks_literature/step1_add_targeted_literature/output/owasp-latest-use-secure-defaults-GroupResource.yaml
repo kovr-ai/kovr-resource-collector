@@ -1,0 +1,28 @@
+resource:
+  check:
+    unique_id: owasp-latest-use-secure-defaults
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This resource is not applicable for the 'owasp-latest-use-secure-defaults'
+      check.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The 'owasp-latest-use-secure-defaults' check is focused on ensuring
+    that applications and systems are configured with secure default settings and
+    configurations. This check is primarily applicable to resources that have configurable
+    settings or options that can impact the security posture of the application or
+    system.
+  name: GroupResource
+  output_statements:
+    failure: The GroupResource does not have any configurable settings related to
+      secure defaults.
+    partial: The GroupResource does not have any configurable settings related to
+      secure defaults.
+    success: The GroupResource is configured with secure default settings.
+  reason: The Google GroupResource is a resource that represents a group of users
+    or entities within the Google Cloud Platform. It does not have any configurable
+    settings or options that directly relate to secure default configurations. This
+    resource is primarily used for managing group memberships and access control,
+    rather than configuring system or application settings.

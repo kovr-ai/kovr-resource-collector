@@ -68,7 +68,7 @@ jobs:
       - name: Checkout application code
         uses: actions/checkout@v4
         with:
-          ref: dev
+          ref: qa
 
       # - name: Checkout external Helm charts repo
       #   uses: actions/checkout@v4

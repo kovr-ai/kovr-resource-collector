@@ -1,0 +1,42 @@
+resource:
+  check:
+    unique_id: owasp-latest-enforce-least-privileges
+  field_paths:
+  - buckets
+  - buckets[].public_access_block
+  - buckets[].public_access_block.block_public_acls
+  - buckets[].public_access_block.block_public_policy
+  - buckets[].public_access_block.ignore_public_acls
+  - buckets[].public_access_block.restrict_public_buckets
+  fix_details:
+    automation_available: true
+    description: 'If any S3 buckets are found to have excessive public access or lack
+      proper access controls, the following steps can be taken to remediate the issue:'
+    estimated_time: 30 minutes to 1 hour
+    instructions:
+    - Review the public access settings for each S3 bucket and ensure that the 'public_access_block'
+      is enabled with all four settings ('block_public_acls', 'block_public_policy',
+      'ignore_public_acls', 'restrict_public_buckets') set to true.
+    - Verify that bucket policies and ACLs grant access only to authorized users,
+      roles, and applications, following the principle of least privilege.
+    - If necessary, create or update IAM policies to restrict access to S3 buckets
+      and objects based on the specific requirements of your applications and users.
+  is_valid: true
+  literature: The 'owasp-latest-enforce-least-privileges' check is applicable to AWS
+    S3 buckets as they support granular access control mechanisms. S3 bucket policies,
+    access control lists (ACLs), and AWS Identity and Access Management (IAM) policies
+    can be used to enforce the principle of least privilege by granting only the necessary
+    permissions to users, roles, and applications. This helps prevent unauthorized
+    access, data leaks, and potential misuse of S3 resources.
+  name: S3Resource
+  output_statements:
+    failure: One or more S3 buckets have excessive public access or lack proper access
+      controls, violating the principle of least privilege.
+    partial: Some S3 buckets have appropriate access controls, while others may have
+      excessive public access or lack proper access controls.
+    success: The S3 bucket(s) have appropriate access controls and policies configured
+      to enforce the principle of least privilege.
+  reason: AWS S3 buckets support configurable access controls and policies that can
+    enforce the principle of least privilege. The provided field paths allow for checking
+    the public access settings, which is a crucial aspect of implementing least privilege
+    for S3 buckets.

@@ -1,0 +1,29 @@
+resource:
+  check:
+    unique_id: owasp-latest-remove-unnecessary-features-and-components
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: Since the GithubResource is not directly applicable for implementing
+      this security check, there are no specific fix details to provide.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The OWASP check 'owasp-latest-remove-unnecessary-features-and-components'
+    aims to ensure that applications and systems do not expose unnecessary features,
+    components, or functionality that could potentially be exploited by attackers.
+    However, the provided GithubResource does not seem to have direct control over
+    the features or components of the GitHub application itself. This resource appears
+    to be focused on retrieving and analyzing data related to a specific GitHub repository,
+    such as its branches, collaborators, security alerts, and other metadata.
+  name: GithubResource
+  output_statements:
+    failure: The GitHub repository exposes unnecessary features or components that
+      should be removed or disabled to reduce the attack surface.
+    partial: N/A
+    success: The GitHub repository does not expose any unnecessary features or components
+      that could increase the attack surface.
+  reason: The GithubResource does not provide direct mechanisms to remove or disable
+    unnecessary features or components within the GitHub application. It is primarily
+    a data retrieval and analysis resource for a specific repository, rather than
+    a resource for configuring or managing the GitHub application itself.

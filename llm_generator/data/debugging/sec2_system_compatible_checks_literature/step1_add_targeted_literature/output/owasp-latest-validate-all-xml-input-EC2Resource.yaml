@@ -1,0 +1,27 @@
+resource:
+  check:
+    unique_id: owasp-latest-validate-all-xml-input
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This security check is not applicable to the EC2Resource in AWS.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The 'owasp-latest-validate-all-xml-input' security check is designed
+    to validate all XML input received by an application to prevent various types
+    of XML-based attacks. This check is primarily applicable to web applications,
+    APIs, or services that accept XML input from users or external sources. The EC2Resource
+    in AWS does not directly handle XML input or process XML data. It represents Elastic
+    Compute Cloud (EC2) instances, networking resources, and related configurations.
+    Therefore, this resource is not directly relevant for implementing this specific
+    security check.
+  name: EC2Resource
+  output_statements:
+    failure: This check is not applicable to the EC2Resource.
+    partial: This check is not applicable to the EC2Resource.
+    success: This check is not applicable to the EC2Resource.
+  reason: The EC2Resource in AWS does not directly handle XML input or process XML
+    data. It represents Elastic Compute Cloud (EC2) instances, networking resources,
+    and related configurations, which are not directly relevant for validating XML
+    input.

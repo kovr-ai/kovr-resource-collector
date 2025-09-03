@@ -1,0 +1,34 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-input-validation-for-xss-prevention
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To implement input validation for XSS prevention, you need to focus
+      on the web application code and server configurations.
+    estimated_time: Varies depending on the complexity of the web application.
+    instructions:
+    - Review the web application code and identify all user input fields and parameters.
+    - Implement input validation and sanitization techniques, such as whitelisting,
+      escaping, and encoding, to prevent XSS attacks.
+    - Configure the web server to set appropriate security headers, such as X-XSS-Protection
+      and Content-Security-Policy.
+    - Implement a Content Security Policy (CSP) to restrict the sources of trusted
+      content and prevent XSS attacks.
+    - Regularly update and patch the web application and server components to address
+      known vulnerabilities.
+  is_valid: false
+  literature: The IAM Resource in AWS is used for managing access to AWS services
+    and resources. It does not directly relate to implementing input validation for
+    preventing Cross-Site Scripting (XSS) attacks, which is a web application security
+    concern. XSS prevention measures should be implemented within the application
+    code and web server configurations.
+  name: IAMResource
+  output_statements:
+    failure: The IAM Resource is not designed to implement input validation for XSS
+      prevention.
+    partial: The IAM Resource does not directly support input validation for XSS prevention.
+    success: The IAM Resource is configured to support input validation for XSS prevention.
+  reason: The IAM Resource is not applicable for implementing input validation for
+    XSS prevention, as it is a service for managing access control and permissions
+    within AWS, rather than a web application resource.

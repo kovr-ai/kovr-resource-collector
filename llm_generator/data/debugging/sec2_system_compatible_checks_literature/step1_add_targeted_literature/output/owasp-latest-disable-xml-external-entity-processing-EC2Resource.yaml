@@ -1,0 +1,30 @@
+resource:
+  check:
+    unique_id: owasp-latest-disable-xml-external-entity-processing
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This security check is not applicable to the EC2Resource in AWS.
+    estimated_time: N/A
+    instructions: []
+  is_valid: false
+  literature: The security check 'owasp-latest-disable-xml-external-entity-processing'
+    is related to preventing XML External Entity (XXE) attacks by disabling external
+    entity processing in applications that parse XML input. This check is primarily
+    applicable to web applications, application servers, or services that handle XML
+    data. The EC2Resource in AWS does not directly handle XML processing or provide
+    configurations related to XML parsing. Therefore, this resource is not directly
+    applicable for implementing this security check.
+  name: EC2Resource
+  output_statements:
+    failure: This resource is not applicable for the 'owasp-latest-disable-xml-external-entity-processing'
+      security check.
+    partial: This resource is not applicable for the 'owasp-latest-disable-xml-external-entity-processing'
+      security check.
+    success: This resource is not applicable for the 'owasp-latest-disable-xml-external-entity-processing'
+      security check.
+  reason: The EC2Resource in AWS represents Elastic Compute Cloud (EC2) instances,
+    networking components, and related resources. It does not have any direct configuration
+    or settings related to XML parsing or external entity processing. This security
+    check is more relevant for web applications, application servers, or services
+    that handle XML data.

@@ -1,0 +1,37 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-encryption-for-data-in-transit
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: This resource is not applicable for implementing encryption for data
+      in transit. To address this security check, you should focus on resources that
+      handle network communication and data transmission, such as load balancers,
+      virtual machine instances, or networking configurations.
+    estimated_time: Varies depending on the complexity of your environment and the
+      number of resources involved.
+    instructions:
+    - Identify resources in your Google Cloud environment that handle network communication
+      and data transmission.
+    - Review the encryption configurations for those resources to ensure proper encryption
+      mechanisms are in place for data in transit.
+    - Consult Google Cloud documentation and best practices for configuring encryption
+      for specific resource types.
+  is_valid: false
+  literature: The Google GroupResource represents a group of users within an organization.
+    It does not directly handle data transmission or encryption mechanisms. Therefore,
+    this resource is not applicable for implementing the 'owasp-latest-implement-encryption-for-data-in-transit'
+    security check, which focuses on ensuring proper encryption for data transmitted
+    over networks.
+  name: GroupResource
+  output_statements:
+    failure: This resource is not applicable for the 'owasp-latest-implement-encryption-for-data-in-transit'
+      security check.
+    partial: This resource is not applicable for the 'owasp-latest-implement-encryption-for-data-in-transit'
+      security check.
+    success: This resource is not applicable for the 'owasp-latest-implement-encryption-for-data-in-transit'
+      security check.
+  reason: The GroupResource is a representation of a user group within an organization
+    and does not directly handle network communication or data transmission. As such,
+    it does not have any relevant fields or configurations related to implementing
+    encryption for data in transit.

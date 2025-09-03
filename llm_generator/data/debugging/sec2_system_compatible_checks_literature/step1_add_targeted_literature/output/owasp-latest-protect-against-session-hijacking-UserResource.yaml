@@ -1,0 +1,41 @@
+resource:
+  check:
+    unique_id: owasp-latest-protect-against-session-hijacking
+  field_paths: []
+  fix_details:
+    automation_available: false
+    description: To implement protection against session hijacking, you would need
+      to review and configure the session management settings and security controls
+      within the specific web application or service that handles user authentication
+      and sessions.
+    estimated_time: 1-2 hours for initial assessment, additional time may be required
+      for implementation and testing
+    instructions:
+    - Identify the web application or service responsible for user authentication
+      and session management.
+    - Review the session management configuration and security controls for that application
+      or service.
+    - Implement recommended practices such as using secure session tokens, setting
+      appropriate session timeouts, protecting session tokens from exposure, and implementing
+      additional security measures like IP address binding or multi-factor authentication.
+    - Test and validate the effectiveness of the implemented session hijacking protection
+      measures.
+  is_valid: false
+  literature: The UserResource in Google Cloud does not appear to be directly applicable
+    for implementing the 'owasp-latest-protect-against-session-hijacking' security
+    check. This resource represents user account information and does not contain
+    details related to session management or protection against session hijacking
+    attacks.
+  name: UserResource
+  output_statements:
+    failure: The UserResource does not have adequate protection against session hijacking
+      attacks.
+    partial: Some aspects of the UserResource are configured to protect against session
+      hijacking attacks, but additional measures are needed.
+    success: The UserResource has appropriate measures in place to protect against
+      session hijacking attacks.
+  reason: The UserResource does not contain any fields or properties related to session
+    management, session tokens, or session hijacking protection mechanisms. This resource
+    is focused on storing user account details such as name, contact information,
+    and organizational details, but does not provide information about how sessions
+    are handled or secured.

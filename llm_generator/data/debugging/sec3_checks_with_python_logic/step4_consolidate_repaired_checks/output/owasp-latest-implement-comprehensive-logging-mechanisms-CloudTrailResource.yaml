@@ -1,0 +1,35 @@
+check:
+  name: owasp-latest-implement-comprehensive-logging-mechanisms
+  resource:
+    field_path: trails[*].is_logging
+    fix_details:
+      automation_available: true
+      description: If CloudTrail trails are not configured correctly or log file validation
+        is disabled, remediation steps are required to ensure comprehensive logging
+        mechanisms are implemented.
+      estimated_time: 30 minutes to 1 hour
+      instructions:
+      - 1. Review the existing CloudTrail trails and their event selectors to ensure
+        they capture all relevant API calls, console actions, and security-related
+        events across AWS services and resources.
+      - 2. Enable log file validation for each CloudTrail trail to ensure log integrity
+        and detect potential tampering.
+      - 3. Configure CloudTrail trails to securely store logs in an S3 bucket with
+        appropriate access controls and encryption.
+      - 4. Consider enabling multi-region trails to capture events from all AWS regions.
+      - 5. Regularly review and update CloudTrail configurations to ensure comprehensive
+        logging coverage as new services or resources are added.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for is_logging in fetched_value:\n        if is_logging:\n            result\
+      \ = True\n            break"
+    name: CloudTrailResource
+    output_statements:
+      failure: CloudTrail trails are not configured to capture comprehensive logs,
+        or log file validation is disabled, or logs are not securely stored.
+      partial: CloudTrail trails are partially configured to capture logs, but some
+        critical events or resources are not included, or log file validation is not
+        enabled, or logs are not securely stored.
+      success: CloudTrail trails are configured to capture comprehensive logs of account
+        activity, including API calls, console actions, and security-related events.
+        Log file validation is enabled, and logs are securely stored in an S3 bucket.
+  unique_id: owasp-latest-implement-comprehensive-logging-mechanisms

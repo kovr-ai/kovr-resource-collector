@@ -1,0 +1,32 @@
+check:
+  name: owasp-latest-follow-security-hardening-guidelines
+  resource:
+    field_path: buckets[*].encryption.enabled
+    fix_details:
+      automation_available: true
+      description: 'For S3 buckets not compliant with the OWASP security hardening
+        guidelines, the following fixes may be required:'
+      estimated_time: 30 minutes to 1 hour
+      instructions:
+      - Enable encryption at rest using AWS-managed keys (SSE-S3) or customer-managed
+        keys (SSE-KMS)
+      - Configure public access block settings to restrict public access to the bucket
+        and objects
+      - Enable versioning to protect against accidental deletion or overwrites
+      - Enable access logging to monitor and audit bucket access
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for encryption_enabled in fetched_value:\n        if encryption_enabled:\n\
+      \            result = True\n        else:\n            result = False\n    \
+      \        break"
+    name: S3Resource
+    output_statements:
+      failure: One or more S3 buckets are not configured according to the OWASP security
+        hardening guidelines, with issues related to encryption, public access, versioning,
+        or logging.
+      partial: Some S3 buckets are configured according to the OWASP security hardening
+        guidelines, but others have issues related to encryption, public access, versioning,
+        or logging.
+      success: The S3 buckets are configured according to the OWASP security hardening
+        guidelines, with encryption enabled, public access restricted, versioning
+        and logging enabled.
+  unique_id: owasp-latest-follow-security-hardening-guidelines

@@ -1,0 +1,8 @@
+check:
+  unique_id: owasp-latest-implement-comprehensive-logging-mechanisms
+resource:
+  field_path: buckets[*].logging_enabled
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    for logging_enabled in fetched_value:\n        if logging_enabled:\n    \
+    \        result = True\n            break"
+  name: S3Resource

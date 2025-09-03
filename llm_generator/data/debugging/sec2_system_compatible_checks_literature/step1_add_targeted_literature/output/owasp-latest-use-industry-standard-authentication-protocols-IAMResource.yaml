@@ -1,0 +1,44 @@
+resource:
+  check:
+    unique_id: owasp-latest-use-industry-standard-authentication-protocols
+  field_paths:
+  - users
+  - users[].access_keys
+  - policies
+  - policies[].default_version.Document.Statement
+  fix_details:
+    automation_available: false
+    description: If the application is not using industry-standard authentication
+      protocols, you should implement one of the recommended protocols like OAuth,
+      OpenID Connect, or SAML.
+    estimated_time: 1-2 weeks
+    instructions:
+    - Identify the authentication mechanisms currently used by your applications and
+      services.
+    - Evaluate the security and industry-standard compliance of these mechanisms.
+    - If they are not compliant, plan and implement the migration to an industry-standard
+      authentication protocol like OAuth, OpenID Connect, or SAML.
+    - Update your application code, configurations, and integrations to use the new
+      authentication protocol.
+    - Test and validate the new authentication implementation thoroughly.
+  is_valid: false
+  literature: The IAMResource in AWS does not directly implement authentication protocols
+    or mechanisms. It provides information about IAM users, policies, and access keys,
+    which are related to authentication and authorization, but not the specific protocols
+    used for authentication. To implement this security check, you would need to analyze
+    the authentication mechanisms used by your applications and services, such as
+    the use of OAuth, OpenID Connect, or SAML.
+  name: IAMResource
+  output_statements:
+    failure: The application does not use industry-standard authentication protocols,
+      and instead relies on weak or outdated authentication mechanisms, making it
+      vulnerable to various attacks.
+    partial: N/A
+    success: The application uses industry-standard authentication protocols like
+      OAuth, OpenID Connect, or SAML to securely authenticate users and protect their
+      credentials.
+  reason: The IAMResource provides information about IAM users, their access keys,
+    and policies, which are related to authentication and authorization, but do not
+    directly implement authentication protocols. To assess the use of industry-standard
+    authentication protocols, you would need to analyze the specific authentication
+    mechanisms used by your applications and services.

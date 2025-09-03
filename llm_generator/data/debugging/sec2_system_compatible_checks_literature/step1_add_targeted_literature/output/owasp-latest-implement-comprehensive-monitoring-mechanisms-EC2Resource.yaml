@@ -1,0 +1,45 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-comprehensive-monitoring-mechanisms
+  field_paths: []
+  fix_details:
+    automation_available: true
+    description: To implement comprehensive monitoring mechanisms in AWS, multiple
+      services and resources need to be configured and integrated.
+    estimated_time: 1-2 hours for initial setup, ongoing maintenance required
+    instructions:
+    - 1. Enable AWS CloudTrail to capture API activity logs across all AWS services
+      and regions.
+    - 2. Configure CloudWatch to collect and analyze logs from various AWS services
+      and applications.
+    - 3. Deploy AWS GuardDuty to continuously monitor for malicious activity and unauthorized
+      behavior.
+    - 4. Integrate AWS Security Hub to centralize security findings and recommendations
+      from multiple AWS services.
+    - 5. Configure appropriate alerting and notification mechanisms for detected security
+      events.
+    - 6. Regularly review and analyze monitoring data to identify potential security
+      incidents and unauthorized access attempts.
+  is_valid: false
+  literature: The EC2Resource in AWS provides information about various EC2 components
+    such as instances, security groups, and network interfaces. However, it does not
+    directly provide comprehensive monitoring mechanisms or logging capabilities for
+    detecting security incidents and unauthorized access attempts across the entire
+    AWS infrastructure and applications.
+  name: EC2Resource
+  output_statements:
+    failure: The AWS account does not have comprehensive monitoring mechanisms in
+      place to detect security incidents and unauthorized access attempts across the
+      infrastructure and applications.
+    partial: The AWS account has implemented some monitoring mechanisms, but they
+      are not comprehensive and may not cover all aspects of the infrastructure and
+      applications.
+    success: The AWS account has implemented comprehensive monitoring mechanisms using
+      services like CloudTrail, CloudWatch, GuardDuty, and AWS Security Hub to detect
+      security incidents and unauthorized access attempts across the infrastructure
+      and applications.
+  reason: The EC2Resource does not contain information related to monitoring and logging
+    mechanisms. It primarily focuses on the configuration and state of EC2 resources
+    within an AWS account. To implement comprehensive monitoring, other AWS services
+    and resources need to be leveraged, such as CloudTrail, CloudWatch, GuardDuty,
+    and AWS Security Hub.

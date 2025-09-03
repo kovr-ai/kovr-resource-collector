@@ -1,0 +1,52 @@
+resource:
+  check:
+    unique_id: owasp-latest-implement-comprehensive-monitoring-mechanisms
+  field_paths:
+  - buckets
+  - buckets[].logging_enabled
+  - buckets[].public_access_block
+  - buckets[].public_access_block.block_public_acls
+  - buckets[].public_access_block.block_public_policy
+  - buckets[].public_access_block.ignore_public_acls
+  - buckets[].public_access_block.restrict_public_buckets
+  - buckets[].encryption
+  - buckets[].encryption.enabled
+  - buckets[].encryption.type
+  fix_details:
+    automation_available: true
+    description: To fully implement comprehensive monitoring mechanisms for S3 buckets,
+      ensure that logging is enabled, public access blocks are configured, and encryption
+      is enabled for all buckets.
+    estimated_time: 30 minutes to 1 hour
+    instructions:
+    - 1. Enable S3 bucket logging for all buckets to capture access and activity logs.
+    - 2. Configure public access blocks for all buckets to restrict public access
+      and prevent accidental data exposure.
+    - 3. Enable encryption for all buckets using AWS-managed keys or customer-managed
+      keys to protect data at rest.
+    - 4. Set up monitoring and alerting mechanisms to detect and respond to security
+      incidents and unauthorized access attempts based on the logged events.
+  is_valid: true
+  literature: The AWS S3 resource can be used to implement comprehensive monitoring
+    mechanisms for detecting and responding to security incidents, unauthorized access
+    attempts, and potential data breaches. By enabling logging and monitoring for
+    S3 buckets, organizations can track and log various activities related to object
+    access, bucket configuration changes, and other events. This allows for the identification
+    of anomalies, suspicious behavior, and potential threats in a timely manner, enabling
+    prompt investigation and mitigation.
+  name: S3Resource
+  output_statements:
+    failure: One or more S3 buckets do not have logging enabled, public access blocks
+      configured, or encryption enabled, leaving the organization vulnerable to potential
+      security incidents and data breaches.
+    partial: Some S3 buckets have logging, public access blocks, and encryption enabled,
+      but others do not, resulting in incomplete monitoring and potential security
+      risks.
+    success: All S3 buckets have logging enabled, public access blocks configured,
+      and encryption enabled, allowing for comprehensive monitoring and detection
+      of security incidents.
+  reason: The AWS S3 resource provides various fields and configurations that can
+    be used to implement comprehensive monitoring mechanisms. By enabling logging,
+    configuring public access blocks, and ensuring proper encryption, organizations
+    can monitor and log activities related to S3 buckets, detect potential security
+    incidents, and respond accordingly.

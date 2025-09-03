@@ -1,0 +1,25 @@
+check:
+  unique_id: owasp-latest-monitor-for-suspicious-activities
+resource:
+  field_path: policies[].default_version.Document.Statement
+  logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+    \    for statement in fetched_value:\n        if hasattr(statement, 'Effect')\
+    \ and statement.Effect == 'Allow':\n            condition = getattr(statement,\
+    \ 'Condition', None)\n            if condition:\n                # Check if the\
+    \ condition allows overly permissive access\n                if 'StringEquals'\
+    \ in condition and 'AWS:SourceIp' in condition['StringEquals'] and condition['StringEquals']['AWS:SourceIp']\
+    \ == '0.0.0.0/0':\n                    result = False\n                    break\n\
+    \                elif 'NotIpAddress' in condition and condition['NotIpAddress']\
+    \ == '0.0.0.0/0':\n                    result = False\n                    break\n\
+    \            else:\n                # Unconditional Allow statement\n        \
+    \        result = False\n                break\n        elif isinstance(statement,\
+    \ dict) and statement.get('Effect') == 'Allow':\n            condition = statement.get('Condition')\n\
+    \            if condition:\n                # Check if the condition allows overly\
+    \ permissive access\n                if 'StringEquals' in condition and 'AWS:SourceIp'\
+    \ in condition['StringEquals'] and condition['StringEquals']['AWS:SourceIp'] ==\
+    \ '0.0.0.0/0':\n                    result = False\n                    break\n\
+    \                elif 'NotIpAddress' in condition and condition['NotIpAddress']\
+    \ == '0.0.0.0/0':\n                    result = False\n                    break\n\
+    \            else:\n                # Unconditional Allow statement\n        \
+    \        result = False\n                break\n    else:\n        result = True"
+  name: IAMResource

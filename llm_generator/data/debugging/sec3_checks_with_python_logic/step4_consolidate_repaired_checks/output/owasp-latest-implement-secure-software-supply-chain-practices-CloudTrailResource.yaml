@@ -1,0 +1,35 @@
+check:
+  name: owasp-latest-implement-secure-software-supply-chain-practices
+  resource:
+    field_path: trails[*].log_file_validation_enabled
+    fix_details:
+      automation_available: true
+      description: To fully implement secure software supply chain practices using
+        CloudTrail, ensure that relevant events are being logged, logs are stored
+        in a secure and immutable location, and log file validation is enabled.
+      estimated_time: 30 minutes to 1 hour
+      instructions:
+      - 1. Review the CloudTrail trail configuration and ensure that relevant event
+        selectors are enabled to capture API calls and events related to software
+        deployments and infrastructure changes.
+      - 2. Configure CloudTrail to store logs in an S3 bucket with appropriate access
+        controls and versioning enabled to ensure log immutability.
+      - 3. Enable log file validation to ensure the integrity of CloudTrail logs.
+      - 4. Configure CloudTrail to log events across all regions if your software
+        supply chain spans multiple regions.
+      - 5. Regularly review and analyze CloudTrail logs to monitor for any suspicious
+        or unauthorized activities related to your software supply chain.
+    logic: "result = False\n\nif fetched_value is None:\n    result = False\nelse:\n\
+      \    for log_file_validation_enabled in fetched_value:\n        if log_file_validation_enabled:\n\
+      \            result = True\n            break"
+    name: CloudTrailResource
+    output_statements:
+      failure: CloudTrail is not configured to log relevant events or store logs in
+        a secure and immutable location, which can compromise secure software supply
+        chain practices.
+      partial: CloudTrail is partially configured to log relevant events and store
+        logs in a secure and immutable location, but additional configuration is required
+        to fully implement secure software supply chain practices.
+      success: CloudTrail is configured to log relevant events and store logs in a
+        secure and immutable location, enabling secure software supply chain practices.
+  unique_id: owasp-latest-implement-secure-software-supply-chain-practices
