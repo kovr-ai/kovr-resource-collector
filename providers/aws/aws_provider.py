@@ -36,6 +36,12 @@ def _dict_to_list_with_id(data: dict[str, dict]) -> list[dict]:
     return [{'id': key, **value} for key, value in data.items()]
 
 
+audit_role_arn = {
+    "dev": "arn:aws:iam::296062557786:role/KovrAuditRole",
+    "qa": "arn:aws:iam::650251729525:role/KovrAuditRole",
+    "prod": "arn:aws:iam::314146328961:role/KovrAuditRole",
+}
+
 @provider_class
 class AWSProvider(Provider):
     def __init__(self, metadata: dict):
@@ -102,7 +108,7 @@ class AWSProvider(Provider):
                 session_kwargs["aws_session_token"] = self.AWS_SESSION_TOKEN
 
         main_session = boto3.Session(**session_kwargs)
-        kovr_arn = "arn:aws:iam::296062557786:role/KovrAuditRole"
+        kovr_arn = audit_role_arn[os.getenv("ENV") or "dev"]
         kovr_session = self.assume_role(kovr_arn, main_session)
         client_session = self.assume_role(
             self.ROLE_ARN, kovr_session, self.AWS_EXTERNAL_ID
