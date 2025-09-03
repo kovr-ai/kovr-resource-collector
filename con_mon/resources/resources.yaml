@@ -564,7 +564,7 @@ aws:
         dashboard_arn: "string"
         dashboard_body: "string"
         size: "integer"
-        last_modified: "string"
+#        last_modified: "string"
 
   resource_collection:
     resources[]:

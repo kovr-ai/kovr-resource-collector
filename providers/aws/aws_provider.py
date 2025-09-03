@@ -168,7 +168,7 @@ class AWSProvider(Provider):
                 data = json.load(mock_response_file)
         else:
             print("🔄 Collecting real AWS data via API calls")
-            for region in self.REGIONS:
+            for region in self.REGIONS[:1]:
                 print("Fetching data for region: ", region)
                 session = boto3.Session(
                     aws_access_key_id=self.AWS_ACCESS_KEY_ID,

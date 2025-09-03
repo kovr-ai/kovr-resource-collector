@@ -3,11 +3,9 @@ Models for resources module - represents individual data items and collections.
 """
 import inspect
 from typing import Any, Dict, List, Optional, Union, Type, get_origin, get_args
-from pydantic import BaseModel, Field, field_validator, ConfigDict
+from pydantic import BaseModel, Field
 from pydantic.fields import FieldInfo
 from datetime import datetime
-from decimal import Decimal
-from uuid import UUID
 
 
 class InfoData(BaseModel):
@@ -17,49 +15,7 @@ class InfoData(BaseModel):
     raw_json: dict
 
 
-class AggressiveCoercionModel(BaseModel):
-    model_config = ConfigDict(str_strip_whitespace=True)
-
-    @field_validator('*', mode='before')
-    @classmethod
-    def aggressive_coercion(cls, v: Any, info) -> Any:
-        if not info.field_name:
-            return v
-
-        field_info = cls.model_fields.get(info.field_name)
-        if not field_info:
-            return v
-
-        target_type = field_info.annotation
-
-        # Skip if already correct type
-        if isinstance(v, target_type):
-            return v
-
-        try:
-            # Handle specific types
-            if target_type is Decimal:
-                return Decimal(str(v))
-            elif target_type is UUID:
-                return UUID(str(v))
-            elif target_type is bytes:
-                if isinstance(v, str):
-                    return v.encode('utf-8')
-                return bytes(v)
-            # Add more custom type handling here...
-
-            # Fallback to basic coercion
-            return target_type(v)
-
-        except (ValueError, TypeError):
-            # Last resort: try to call the type constructor
-            try:
-                return target_type(v)
-            except:
-                return v  # Give up and let Pydantic handle the validation error
-
-
-class Resource(AggressiveCoercionModel):
+class Resource(BaseModel):
     """
     Represents a single resource item that checks will evaluate.
     This is the fundamental unit that connectors fetch and checks operate on.
