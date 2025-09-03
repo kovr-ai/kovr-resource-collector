@@ -469,7 +469,7 @@ aws:
               Condition: "object"
           VersionId: "string"
           IsDefaultVersion: "boolean"
-          CreateDate: "string"
+#          CreateDate: "string"
 
     S3Resource:
       id: "string"  # To be used as ID for easy identification

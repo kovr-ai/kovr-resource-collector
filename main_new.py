@@ -107,7 +107,7 @@ def main(
 
 def params_from_connection_id(
     connection_id: int,
-    check_ids: list[int] | None = None,
+    check_ids: list[str] | None = None,
 ):
     """
     Fetch connection parameters from database by connection_id using ConnectionLoader.
@@ -167,8 +167,10 @@ def wrapper(message: dict = {}):
     main(
         *params_from_connection_id(
             int(connection_id),
-            [int(check_id)
-             for check_id in check_ids],
+            [
+                check_id
+                for check_id in check_ids
+            ],
         ),
     )
 
