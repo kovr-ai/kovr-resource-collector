@@ -71,6 +71,12 @@ class GoogleProvider(Provider):
             results = self.client.groups().list(customer='my_customer', maxResults=500, orderBy='email').execute()
             groups = results.get('groups', [])
 
+            keys = data.keys()
+            if 'users' not in keys:
+                data['users'] = {}
+            if 'groups' not in keys:
+                data['groups'] = {}
+
             for user in users:
                 user_id = f"google-user-{user['id']}"
                 data['users'][user_id] = user
