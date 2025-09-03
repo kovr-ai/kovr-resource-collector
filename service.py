@@ -41,6 +41,7 @@ def main():
                 body = message.get("Body")
                 try:
                     message = json.loads(body)
+                    print(f"Loaded message: {message}")
                 except Exception as e:
                     print(e)
                     traceback.print_exc()
