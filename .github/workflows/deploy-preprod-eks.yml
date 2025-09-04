@@ -26,7 +26,7 @@ env:
   
   # Secret Configuration
   CHAINGUARD_SECRET_ID: "global/Chainguard/Credentials"
-  APP_SECRETS_ID: "kovr-resource-collector-secret-local"
+  APP_SECRETS_ID: "preprod-kovr-resource-collector-secrets"
   
   # SSH Tunneling Configuration
   SSH_TUNNEL_CIDR: "0.0.0.0/0"
