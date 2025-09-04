@@ -6,10 +6,10 @@ service:
   port: 80
   image: 314146328961.dkr.ecr.us-west-2.amazonaws.com/kovr-resource-collector
   roleArn: arn:aws:iam::314146328961:role/DevopsCICDRole
-  memory: 4096
+  memory: 2048
   cpu: 2048
   limits:
-    memory: 6144
+    memory: 4096
     cpu: 4096
   terminationGracePeriodSeconds: 1200
   ingressClassName: nginx
