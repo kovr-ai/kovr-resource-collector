@@ -11,15 +11,12 @@ service:
   limits:
     memory: 2048
     cpu: 2048
-  # healthCheckPath: /api/v1/health
-  # healthCheckTimeout: 5
   terminationGracePeriodSeconds: 30
   ingressClassName: nginx
   minReplicas: 1
   maxReplicas: 1
   affinity: {}
   tolerations: []
-# secrets:
 labels:
   app: kovr-resource-collector
   environment: dev
