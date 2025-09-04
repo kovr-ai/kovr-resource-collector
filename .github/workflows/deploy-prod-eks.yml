@@ -1,15 +1,15 @@
-name: EKS Deploy QA
+name: EKS Deploy Prod
 
 # Environment variables for making the workflow generic
 env:
   # AWS Configuration
-  AWS_ACCOUNT_ID: "650251729525"
+  AWS_ACCOUNT_ID: "314146328961"
   AWS_REGION: "us-west-2"
-  AWS_ROLE_ARN: "arn:aws:iam::650251729525:role/DevopsCICDRole"
+  AWS_ROLE_ARN: "arn:aws:iam::314146328961:role/DevopsCICDRole"
   
   # EKS Configuration
-  EKS_CLUSTER_NAME: "qa-kovr-app-cluster"
-  EKS_NAMESPACE: "qa"
+  EKS_CLUSTER_NAME: "prod-kovr-app-cluster"
+  EKS_NAMESPACE: "prod"
   
   # Docker/ECR Configuration
   ECR_REPOSITORY_NAME: "kovr-resource-collector"
@@ -19,14 +19,14 @@ env:
   # Helm Configuration
   HELM_CHARTS_REPO: "kovr-ai/helm-charts"
   HELM_CHART_PATH: "kovr/kovr-resource-collector/charts"
-  HELM_VALUES_PATH: "./helm-values/qa.yaml"
+  HELM_VALUES_PATH: "./helm-values/prod.yaml"
   HELM_RELEASE_NAME: "kovr-resource-collector"
   HELM_VERSION: "v3.12.0"
   HELM_TIMEOUT: "10m"
   
   # Secret Configuration
   CHAINGUARD_SECRET_ID: "global/Chainguard/Credentials"
-  APP_SECRETS_ID: "qa-kovr-resource-collector-secrets"
+  APP_SECRETS_ID: "kovr-resource-collector-secret-local"
   
   # SSH Tunneling Configuration
   SSH_TUNNEL_CIDR: "0.0.0.0/0"
@@ -43,22 +43,22 @@ env:
   CACHE_PATH: "/tmp/.buildx-cache"
 
 on:
-  workflow_dispatch:
-    inputs:
-      branch:
-        description: 'Branch to deploy'
-        required: true
-        type: string
+  # workflow_dispatch:
+  #   inputs:
+  #     branch:
+  #       description: 'Branch to deploy'
+  #       required: true
+  #       type: string
   push:
     branches:
-      - qa
+      - main
 
 permissions:
   contents: read
   pull-requests: write
 
 jobs:
-  build-qa:
+  build-prod:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -67,7 +67,7 @@ jobs:
       - name: Checkout application code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.branch || github.ref_name }}
+          ref: main
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -120,26 +120,10 @@ jobs:
             # k8s-test-tag.txt
           retention-days: ${{ env.CACHE_RETENTION_DAYS }}
 
-      - name: Run Trivy vulnerability scan
-        uses: aquasecurity/trivy-action@0.29.0
-        with:
-          image-ref: ${{ env.IMAGE_TAG }}
-          output: ${{ env.IMAGE_TAG_SAFE }}-report.txt
-          format: ${{ env.TRIVY_FORMAT }}
-          # template: "@$HOME/.local/bin/trivy-bin/contrib/html.tpl"
-          exit-code: ${{ env.TRIVY_EXIT_CODE }}
-          pkg-types: ${{ env.TRIVY_PKG_TYPES }}
-          cache: ${{ env.TRIVY_CACHE }}
-          severity: ${{ env.TRIVY_SEVERITY }}
-        continue-on-error: true
-
-      - name: Print Trivy report
-        run: cat ${{ env.IMAGE_TAG_SAFE }}-report.txt
-
-  deploy-qa:
+  deploy-prod:
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
-    needs: build-qa
+    needs: build-prod
     permissions:
       id-token: write
       contents: read
@@ -147,7 +131,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.branch || github.ref_name }}
+          ref: main
 
       - name: Checkout external Helm charts repo
         uses: actions/checkout@v4
@@ -175,7 +159,7 @@ jobs:
       - name: Set ENVIRONMENT
         id: set-environment
         run: |
-          echo "ENVIRONMENT=qa" >> $GITHUB_ENV
+          echo "ENVIRONMENT=prod" >> $GITHUB_ENV
 
       - name: Update kubeconfig
         run: aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name ${{ env.EKS_CLUSTER_NAME }}
@@ -199,8 +183,8 @@ jobs:
           # Fetch secrets from AWS Secrets Manager
           SECRETS_JSON=$(aws secretsmanager get-secret-value --secret-id ${{ env.APP_SECRETS_ID }} --query SecretString --output text)
           
-          # Create a values file with secrets
-          echo "$SECRETS_JSON" | jq '{secrets: .}' > temp-secrets-values.yaml
+          # Remove AWS_PROFILE if present, wrap into 'secrets'
+          echo "$SECRETS_JSON" | jq 'del(.AWS_PROFILE) | {secrets: .}' > temp-secrets-values.yaml
           
           # Debug: show the file was created
           echo "Secrets values file created:"
