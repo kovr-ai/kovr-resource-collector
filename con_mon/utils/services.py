@@ -316,6 +316,7 @@ class AsyncTaskService(object):
         FAILED = "FAILED"
 
     def update_task_status(self, status: Status):
+        print(f"Updating task status to {status} for task {self.task_id}")
         self.db.execute_update(
             "UPDATE async_tasks SET status = %s WHERE id = %s",
             (status, self.task_id)
