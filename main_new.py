@@ -4,9 +4,8 @@ import time
 import math
 from con_mon.compliance.data_loader import ChecksLoader, ConnectionLoader
 from con_mon.compliance.models import Connection
-from con_mon.utils.services import ResourceCollectionService, ConMonResultService
+from con_mon.utils.services import AsyncTaskService, ResourceCollectionService, ConMonResultService
 from con_mon.utils import helpers
-
 
 def insert_in_batch(
     batch_executed_check_results,
@@ -159,20 +158,32 @@ def params_from_connection_id(
     )
 
 def wrapper(message: dict = {}):
-    connection_id = message.get("CONNECTION_ID") or os.environ.get("CONNECTION_ID")
-    check_ids_str = message.get("CHECK_IDS") or os.environ.get("CHECK_IDS")
-    check_ids = check_ids_str.split(",") if check_ids_str else list()
-    if not connection_id and not check_ids:
-        return
-    main(
-        *params_from_connection_id(
-            int(connection_id),
-            [
-                check_id
-                for check_id in check_ids
-            ],
-        ),
-    )
+    try:
+        connection_id = message.get("CONNECTION_ID") or os.environ.get("CONNECTION_ID")
+        check_ids_str = message.get("CHECK_IDS") or os.environ.get("CHECK_IDS")
+        check_ids = check_ids_str.split(",") if check_ids_str else list()
+        task_id = message.get("taskId")
+        async_task_service = None
+
+        if not connection_id and not check_ids:
+            return
+
+        if task_id:
+            async_task_service = AsyncTaskService(task_id)
+            async_task_service.update_task_status(AsyncTaskService.Status.IN_PROCESS)
+    
+        main(
+            *params_from_connection_id(
+                int(connection_id),
+                check_ids,
+            ),
+        )
+        if async_task_service:
+            async_task_service.update_task_status(AsyncTaskService.Status.PROCESSED)
+    except Exception as e:
+        if async_task_service:
+            async_task_service.update_task_status(AsyncTaskService.Status.FAILED)
+        raise e
 
 
 if __name__ == "__main__":
