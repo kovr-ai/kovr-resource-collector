@@ -179,9 +179,11 @@ def wrapper(message: dict = {}):
                 for check_id in check_ids],
             ),
         )
-        async_task_service.update_task_status(AsyncTaskService.Status.PROCESSED)
+        if async_task_service:
+            async_task_service.update_task_status(AsyncTaskService.Status.PROCESSED)
     except Exception as e:
-        async_task_service.update_task_status(AsyncTaskService.Status.FAILED)
+        if async_task_service:
+            async_task_service.update_task_status(AsyncTaskService.Status.FAILED)
         raise e
 
 
