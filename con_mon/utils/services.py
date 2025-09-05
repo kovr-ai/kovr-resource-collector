@@ -1,8 +1,10 @@
 """Service utilities for con_mon."""
+from enum import Enum
 import json
 from typing import Type, List, Tuple
 from pydantic import BaseModel
 from datetime import datetime
+from con_mon.utils.db import get_db
 
 from con_mon.compliance.data_loader import ConMonResultLoader, ConMonResultHistoryLoader
 from con_mon.compliance.models import ConMonResult, ConMonResultHistory, Check, CheckResult
@@ -302,3 +304,19 @@ class ConMonResultService(object):
             return 0
 
         return ConMonResultLoader().insert_results(con_mon_results)
+
+class AsyncTaskService(object):
+    def __init__(self, task_id: str):
+        self.task_id = task_id
+        self.db = get_db()
+
+    class Status(Enum):
+        IN_PROCESS = "IN_PROCESS"
+        PROCESSED = "PROCESSED"
+        FAILED = "FAILED"
+
+    def update_task_status(self, status: Status):
+        self.db.execute_update(
+            "UPDATE async_tasks SET status = %s WHERE id = %s",
+            (status, self.task_id)
+        )
