@@ -222,7 +222,7 @@ class ConnectionLoader(BaseLoader):
         print(f'Current metadata: {current_metadata.keys()}')
         updated_metadata = dict(current_metadata)
         updated_metadata['info'] = info_dict
-        print(f'Updated info: {current_metadata['info'].keys()}')
+        # print(f'Updated info: {current_metadata['info'].keys()}')
 
         from datetime import datetime as _dt
         affected = self.db.execute(
