@@ -65,12 +65,9 @@ class YamlChecksLoader(object):
         resource_type = f"con_mon.mappings.{provider}.{resource_name}"
 
         # Build the Check object
-        print(f'Building check object for {check_name}')
         check_obj = Check(
-            # id=check_data.get('unique_id', check_name),
-            # name=check_data.get('name', check_name),
-            id=check_name,
-            name=check_name,
+            id=check_data.get('unique_id', check_name),
+            name=check_data.get('name', check_name),
             description=check_data.get('description', ''),
 
             # Build nested JSONB structures

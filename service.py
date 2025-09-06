@@ -5,7 +5,7 @@ import traceback
 
 from con_mon.utils.config import settings
 
-from main_new import wrapper as run_pipeline
+from main import wrapper as run_pipeline
 
 sqs = boto3.client("sqs", region_name=settings.AWS_REGION)
 

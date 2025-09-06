@@ -4,25 +4,7 @@ COPY . /app
 
 WORKDIR /app
 
-ENV KOVR_AWS_ACCESS_KEY_ID=aws_access_key_id
-ENV KOVR_AWS_SECRET_ACCESS_KEY=aws_secret_access_key
-ENV KOVR_AWS_SESSION_TOKEN=aws_session_token
-ENV AWS_EXTERNAL_ID=aws_external_id
+RUN pip install uv
+RUN uv pip install -r requirements.txt --system
 
-ENV AWS_REGION=aws_region
-ENV AWS_ROLE_ARN=aws_role_arn
-
-ENV APPLICATION_ID=application_id
-ENV SOURCE_ID=source_id
-ENV CONNECTION_ID=connection_id
-
-ENV AZURE_CLIENT_ID=azure_client_id
-ENV AZURE_CLIENT_SECRET=azure_client_secret
-ENV AZURE_TENANT_ID=azure_tenant_id
-ENV AZURE_SUBSCRIPTION_ID=azure_subscription_id
-
-# ENV PROVIDER=provider
-
-RUN pip install -r requirements.txt
-
-CMD ["/bin/sh", "-c", "python main_new.py"]
+CMD ["/bin/sh", "-c", "python service.py"]
