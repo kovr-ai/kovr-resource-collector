@@ -469,7 +469,7 @@ aws:
               Condition: "object"
           VersionId: "string"
           IsDefaultVersion: "boolean"
-          CreateDate: "string"
+#          CreateDate: "string"
 
     S3Resource:
       id: "string"  # To be used as ID for easy identification
@@ -564,7 +564,7 @@ aws:
         dashboard_arn: "string"
         dashboard_body: "string"
         size: "integer"
-        last_modified: "string"
+#        last_modified: "string"
 
   resource_collection:
     resources[]:

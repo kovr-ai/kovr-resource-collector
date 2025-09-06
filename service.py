@@ -1,6 +1,7 @@
 import boto3
 import json
 import time
+import traceback
 
 from con_mon.utils.config import settings
 
@@ -40,8 +41,10 @@ def main():
                 body = message.get("Body")
                 try:
                     message = json.loads(body)
+                    print(f"Loaded message: {message}")
                 except Exception as e:
                     print(e)
+                    traceback.print_exc()
                     continue
                 try:
                     print("Running pipeline", message)
@@ -49,6 +52,7 @@ def main():
                     run_pipeline(message)
                 except Exception as e:
                     print(e)
+                    traceback.print_exc()
                     continue
         except Exception as e:
             print(e)
