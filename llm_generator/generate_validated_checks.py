@@ -24,6 +24,7 @@ from llm_generator.checks_with_python_logic import (
     consolidate_repaired_checks as crc,
 )
 from llm_generator.yaml_checks_loader import YamlChecksLoader
+from llm_generator.executor import Executor
 
 
 def generate():
@@ -330,7 +331,15 @@ def insert_in_db():
     checks_loader.insert_rows(loaded_yaml_checks)
 
 
+def run_executor():
+    executor = Executor()
+    input_dict = dict(
+        benchmark=dict(name='owasp', version='latest'),
+    )
+    return executor.execute(input_dict=input_dict)
+
 if __name__ == '__main__':
     pass
+    # run_executor()
     # generate()
     # insert_in_db()
