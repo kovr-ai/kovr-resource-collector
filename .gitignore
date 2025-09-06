@@ -2,6 +2,7 @@ env/
 __pycache__
 .env
 .idea
+.run
 aws_response.json
 
 # Ignore export and populate script files
